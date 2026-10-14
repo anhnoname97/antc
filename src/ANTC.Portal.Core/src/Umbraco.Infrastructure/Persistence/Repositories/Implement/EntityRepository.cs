@@ -1,0 +1,1636 @@
+using System.Collections;
+using NPoco;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Extensions;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Entities;
+using Umbraco.Cms.Core.Persistence.Querying;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Infrastructure.Persistence.Dtos;
+using Umbraco.Cms.Infrastructure.Persistence.Querying;
+using Umbraco.Cms.Infrastructure.Persistence.SqlSyntax;
+using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Extensions;
+using static Umbraco.Cms.Core.Persistence.SqlExtensionsStatics;
+
+namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement;
+
+/// <summary>
+///     Represents the EntityRepository used to query entity objects.
+/// </summary>
+/// <remarks>
+///     <para>Limited to objects that have a corresponding node (in umbracoNode table).</para>
+///     <para>Returns <see cref="IEntitySlim" /> objects, i.e. lightweight representation of entities.</para>
+/// </remarks>
+internal sealed class EntityRepository : RepositoryBase, IEntityRepositoryExtended
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EntityRepository"/> class.
+    /// </summary>
+    /// <param name="scopeAccessor">Provides access to the current database scope for repository operations.</param>
+    /// <param name="appCaches">The application-level caches used for caching entities and query results.</param>
+    public EntityRepository(IScopeAccessor scopeAccessor, AppCaches appCaches)
+        : base(scopeAccessor, appCaches)
+    {
+    }
+
+    #region Repository
+
+    /// <summary>
+    /// Returns the number of entities of the specified object types that match the given query, with an optional additional filter.
+    /// </summary>
+    /// <param name="query">The main query specifying criteria for selecting entities.</param>
+    /// <param name="objectTypes">A collection of object type GUIDs to restrict the entities considered.</param>
+    /// <param name="filter">An optional query to further filter the entities returned by the main query.</param>
+    /// <returns>The number of entities matching the specified criteria.</returns>
+    public int CountByQuery(IQuery<IUmbracoEntity> query, IEnumerable<Guid> objectTypes, IQuery<IUmbracoEntity>? filter)
+    {
+        Sql<ISqlContext> sql = Sql();
+        sql.SelectCount();
+        sql
+            .From<NodeDto>();
+        sql.WhereIn<NodeDto>(x => x.NodeObjectType, objectTypes);
+
+        foreach (Tuple<string, object[]> queryClause in query.GetWhereClauses())
+        {
+            sql.Where(queryClause.Item1, queryClause.Item2);
+        }
+
+        if (filter is not null)
+        {
+            foreach (Tuple<string, object[]> filterClause in filter.GetWhereClauses())
+            {
+                sql.Where(filterClause.Item1, filterClause.Item2);
+            }
+        }
+
+        return Database.ExecuteScalar<int>(sql);
+    }
+
+    /// <summary>
+    /// Retrieves a paginated collection of entities that match the specified query and object types.
+    /// </summary>
+    /// <param name="query">The query used to filter the entities to be retrieved.</param>
+    /// <param name="objectTypes">A set of object type GUIDs that specify the types of entities to include in the results.</param>
+    /// <param name="pageIndex">The zero-based index of the page to retrieve.</param>
+    /// <param name="pageSize">The number of entities to include in each page.</param>
+    /// <param name="totalRecords">When the method returns, contains the total number of records that match the query and object types.</param>
+    /// <param name="filter">An optional additional query to further filter the results. If <see langword="null"/>, no additional filtering
+    /// is applied.</param>
+    /// <param name="ordering">An optional ordering specification to determine the sort order of the results. If <see langword="null"/>, the
+    /// default ordering is applied.</param>
+    /// <returns>A collection of entities that match the specified query, object types, and optional filters, limited to the
+    /// specified page size.</returns>
+    public IEnumerable<IEntitySlim> GetPagedResultsByQuery(IQuery<IUmbracoEntity> query, ISet<Guid> objectTypes, long pageIndex, int pageSize, out long totalRecords, IQuery<IUmbracoEntity>? filter, Ordering? ordering) =>
+        GetPagedResultsByQuery(query, objectTypes.ToArray(), pageIndex, pageSize, out totalRecords, filter, ordering);
+
+
+    /// <summary>
+    /// Retrieves a paginated collection of entities based on the specified query and parameters.
+    /// </summary>
+    /// <remarks>This method supports querying for content, media, and member entities. The results are
+    /// ordered by the specified <paramref name="ordering"/> if provided, and always include a fallback ordering by node
+    /// ID to ensure consistent results.</remarks>
+    /// <param name="query">The query used to filter the entities.</param>
+    /// <param name="objectTypes">An array of object type GUIDs to filter the entities by type.</param>
+    /// <param name="pageIndex">The zero-based index of the page to retrieve.</param>
+    /// <param name="pageSize">The number of entities to include in each page.</param>
+    /// <param name="totalRecords">When the method returns, contains the total number of records matching the query.</param>
+    /// <param name="filter">An optional additional query filter to further refine the results. Can be <see langword="null"/>.</param>
+    /// <param name="ordering">An optional ordering specification to determine the sort order of the results. Can be <see langword="null"/>.</param>
+    /// <param name="sqlCustomization">An optional action to customize the underlying SQL query. Can be <see langword="null"/>.</param>
+    /// <returns>A collection of entities that match the specified query and parameters. The collection will contain up to
+    /// <paramref name="pageSize"/> entities, or fewer if there are not enough matching entities.</returns>
+    public IEnumerable<IEntitySlim> GetPagedResultsByQuery(
+        IQuery<IUmbracoEntity> query,
+        Guid[] objectTypes,
+        long pageIndex,
+        int pageSize,
+        out long totalRecords,
+        IQuery<IUmbracoEntity>? filter,
+        Ordering? ordering,
+        Action<Sql<ISqlContext>>? sqlCustomization = null)
+    {
+        var isContent = objectTypes.Any(objectType =>
+            objectType == Constants.ObjectTypes.Document || objectType == Constants.ObjectTypes.DocumentBlueprint);
+        var isMedia = objectTypes.Any(objectType => objectType == Constants.ObjectTypes.Media);
+        var isMember = objectTypes.Any(objectType => objectType == Constants.ObjectTypes.Member);
+        var isElement = objectTypes.Any(objectType => objectType == Constants.ObjectTypes.Element);
+
+        Sql<ISqlContext> sql = GetBaseWhere(
+            isContent,
+            isMedia,
+            isMember,
+            isElement,
+            false,
+            s =>
+            {
+                sqlCustomization?.Invoke(s);
+
+                if (filter != null)
+                {
+                    foreach (Tuple<string, object[]> filterClause in filter.GetWhereClauses())
+                    {
+                        s.Where(filterClause.Item1, filterClause.Item2);
+                    }
+                }
+            },
+            objectTypes);
+
+        ordering ??= Ordering.ByDefault();
+
+        var translator = new SqlTranslator<IUmbracoEntity>(sql, query);
+        sql = translator.Translate();
+        sql = AddGroupBy(isContent, isMedia, isMember, isElement, sql, ordering.IsEmpty);
+
+        if (!ordering.IsEmpty)
+        {
+            // apply ordering
+            ApplyOrdering(ref sql, ordering);
+        }
+
+        // for content we must query for ContentEntityDto entities to produce the correct culture variant entity names
+        var pageIndexToFetch = pageIndex + 1;
+        IEnumerable<BaseDto> dtos;
+        Page<GenericContentEntityDto>? page = Database.Page<GenericContentEntityDto>(pageIndexToFetch, pageSize, sql);
+
+        dtos = page.Items;
+        totalRecords = page.TotalItems;
+
+        EntitySlim[] entities = dtos.Select(BuildEntity).ToArray();
+
+        BuildVariants(entities.OfType<DocumentEntitySlim>());
+        BuildVariants(entities.OfType<ElementEntitySlim>());
+
+        return entities;
+    }
+
+    /// <summary>
+    /// Retrieves an <see cref="IEntitySlim"/> instance by its unique identifier.
+    /// </summary>
+    /// <param name="key">The unique <see cref="Guid"/> identifier of the entity.</param>
+    /// <returns>The <see cref="IEntitySlim"/> matching the specified key, or <c>null</c> if no entity is found.</returns>
+    public IEntitySlim? Get(Guid key)
+    {
+        Sql<ISqlContext> sql = GetBaseWhere(false, false, false, false, false, key);
+        BaseDto? dto = Database.FirstOrDefault<BaseDto>(sql);
+        return dto == null ? null : BuildEntity(dto);
+    }
+
+
+    private IEntitySlim? GetEntity(Sql<ISqlContext> sql, bool isContent, bool isMedia, bool isMember, bool isElement)
+    {
+        // isContent is going to return a 1:M result now with the variants so we need to do different things
+        if (isContent)
+        {
+            List<DocumentEntityDto>? cdtos = Database.Fetch<DocumentEntityDto>(sql);
+
+            return cdtos.Count == 0 ? null : BuildVariants(BuildDocumentEntity(cdtos[0]));
+        }
+
+        if (isElement)
+        {
+            List<ElementEntityDto>? cdtos = Database.Fetch<ElementEntityDto>(sql);
+
+            return cdtos.Count == 0 ? null : BuildVariants(BuildElementEntity(cdtos[0]));
+        }
+
+        BaseDto? dto = isMedia
+            ? Database.FirstOrDefault<MediaEntityDto>(sql)
+            : Database.FirstOrDefault<BaseDto>(sql);
+
+        if (dto == null)
+        {
+            return null;
+        }
+
+        EntitySlim entity = BuildEntity(dto);
+
+        return entity;
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<IEntitySlim> GetSiblings(
+        ISet<Guid> objectTypes,
+        Guid targetKey,
+        int before,
+        int after,
+        IQuery<IUmbracoEntity>? filter,
+        Ordering ordering,
+        out long totalBefore,
+        out long totalAfter)
+    {
+        Sql<ISqlContext> mainSql = SiblingsSql(
+            false,
+            objectTypes,
+            targetKey,
+            before,
+            after,
+            filter,
+            ordering,
+            out totalBefore,
+            out totalAfter);
+
+        List<Guid>? keys = Database.Fetch<Guid>(mainSql);
+
+        if (keys is null || keys.Count == 0)
+        {
+            return [];
+        }
+
+        // To re-use this method we need to provide a single object type. By convention for folder based trees, we provide the primary object type last.
+        return PerformGetAll(objectTypes.ToArray(), ordering, sql => sql.WhereIn<NodeDto>(x => x.UniqueId, keys));
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<IEntitySlim> GetTrashedSiblings(
+        ISet<Guid> objectTypes,
+        Guid targetKey,
+        int before,
+        int after,
+        IQuery<IUmbracoEntity>? filter,
+        Ordering ordering,
+        out long totalBefore,
+        out long totalAfter)
+    {
+        Sql<ISqlContext>? mainSql = SiblingsSql(
+            true,
+            objectTypes,
+            targetKey,
+            before,
+            after,
+            filter,
+            ordering,
+            out totalBefore,
+            out totalAfter);
+
+        List<Guid>? keys = Database.Fetch<Guid>(mainSql);
+
+        if (keys is null || keys.Count == 0)
+        {
+            return [];
+        }
+
+        // To re-use this method we need to provide a single object type. By convention for folder based trees, we provide the primary object type last.
+        return PerformGetAll(objectTypes.ToArray(), ordering, sql => sql.WhereIn<NodeDto>(x => x.UniqueId, keys));
+    }
+
+    private Sql<ISqlContext> SiblingsSql(
+        bool isTrashed,
+        ISet<Guid> objectTypes,
+        Guid targetKey,
+        int before,
+        int after,
+        IQuery<IUmbracoEntity>? filter,
+        Ordering ordering,
+        out long totalBefore,
+        out long totalAfter)
+    {
+        Sql<ISqlContext> parentIdQuery = Sql()
+            .Select<NodeDto>(x => x.ParentId)
+            .From<NodeDto>()
+            .Where<NodeDto>(x => x.UniqueId == targetKey);
+
+        Sql<ISqlContext> orderingSql = Sql();
+        ApplyOrdering(ref orderingSql, ordering);
+
+        // Get all children of the parent node which are not trashed and match the provided object types.
+        // Order by SortOrder, and assign each a row number.
+        // These row numbers are important, we need them to select the "before" and "after" siblings of the target node.
+        Sql<ISqlContext> rowNumberSql = Sql()
+            .Select($"ROW_NUMBER() OVER ({orderingSql.SQL}) AS rn")
+
+            // withAlias: false is required here because this subquery is referenced by outer queries using
+            // a table alias (e.g. SELECT [nn].[uniqueId]). Including a column alias (e.g. [uniqueId] AS [uniqueId])
+            // can confuse some database providers (e.g. PostgreSQL) when the outer query refers to the column
+            // by the subquery's table alias rather than the column alias.
+            .AndSelect<NodeDto>(withAlias: false, n => n.UniqueId)
+
+            .From<NodeDto>()
+            .Where<NodeDto>(x => x.Trashed == isTrashed)
+            .WhereIn<NodeDto>(x => x.ParentId, parentIdQuery)
+            .WhereIn<NodeDto>(x => x.NodeObjectType, objectTypes);
+
+        // Apply the filter if provided.
+        if (filter != null)
+        {
+            foreach (Tuple<string, object[]> filterClause in filter.GetWhereClauses())
+            {
+                rowNumberSql.Where(filterClause.Item1, filterClause.Item2);
+            }
+        }
+
+        // By applying additional where clauses with parameters containing an unknown number of elements, the position of the parameters in
+        // the final query for before and after positions will increase. So we need to calculate the offset based on the provided values.
+        int beforeAfterParameterIndexOffset = GetBeforeAfterParameterOffset(objectTypes, filter);
+
+        // use all lower case alias names to avoid sql syntax issues
+        string targetAlias = "target";
+
+        // Find the specific row number of the target node.
+        // We need this to determine the bounds of the row numbers to select.
+        Sql<ISqlContext> targetRowSql = Sql()
+            .Select("rn")
+            .From().AppendSubQuery(rowNumberSql, targetAlias)
+            .Where<NodeDto>(x => x.UniqueId == targetKey, targetAlias);
+
+        // We have to reuse the target row sql arguments, however, we also need to add the "before" and "after" values to the arguments.
+        // If we try to do this directly in the params array it'll consider the initial argument array as a single argument.
+        IEnumerable<object> beforeArguments = targetRowSql.Arguments.Concat([before]);
+        IEnumerable<object> afterArguments = targetRowSql.Arguments.Concat([after]);
+
+        // Select the UniqueId of nodes which row number is within the specified range of the target node's row number.
+        const int BeforeAfterParameterIndex = 3;
+        var beforeAfterParameterIndex = BeforeAfterParameterIndex + beforeAfterParameterIndexOffset;
+        var beforeArgumentsArray = beforeArguments.ToArray();
+        var afterArgumentsArray = afterArguments.ToArray();
+
+        totalBefore = GetNumberOfSiblingsOutsideSiblingRange(rowNumberSql, targetRowSql, beforeAfterParameterIndex, beforeArgumentsArray, true);
+        totalAfter = GetNumberOfSiblingsOutsideSiblingRange(rowNumberSql, targetRowSql, beforeAfterParameterIndex, afterArgumentsArray, false);
+
+        return Sql()
+            .Select<NodeDto>("nn", n => n.UniqueId)
+            .From().AppendSubQuery(rowNumberSql, "nn")
+            .Where($"rn >= ({targetRowSql.SQL}) - @{beforeAfterParameterIndex}", beforeArgumentsArray)
+            .Where($"rn <= ({targetRowSql.SQL}) + @{beforeAfterParameterIndex}", afterArgumentsArray)
+            .OrderBy("rn");
+    }
+
+    private static int GetBeforeAfterParameterOffset(ISet<Guid> objectTypes, IQuery<IUmbracoEntity>? filter)
+    {
+        int beforeAfterParameterIndexOffset = 0;
+
+        // Increment for each object type.
+        beforeAfterParameterIndexOffset += objectTypes.Count;
+
+        // Increment for the provided filter.
+        if (filter != null)
+        {
+            foreach (Tuple<string, object[]> filterClause in filter.GetWhereClauses())
+            {
+                // We need to offset by one for each non-array parameter in the filter clause.
+                // If a query is created using Contains or some other set based operation, we'll get both the collection and the
+                // items in the collection provided in the where clauses. It's only the latter that count for applying parameters
+                // to the SQL statement, and hence we should only offset by them.
+                beforeAfterParameterIndexOffset += filterClause.Item2.Count(x => x.GetType().GetInterface(nameof(IEnumerable)) is null);
+            }
+        }
+
+        return beforeAfterParameterIndexOffset;
+    }
+
+    private long GetNumberOfSiblingsOutsideSiblingRange(
+        Sql<ISqlContext> rowNumberSql,
+        Sql<ISqlContext> targetRowSql,
+        int parameterIndex,
+        object[] arguments,
+        bool getBefore)
+    {
+        Sql<ISqlContext>? sql = Sql()
+            .SelectCount()
+            .From().AppendSubQuery(rowNumberSql, "nn")
+            .Where($"rn {(getBefore ? "<" : ">")} ({targetRowSql.SQL}) {(getBefore ? "-" : "+")} @{parameterIndex}", arguments);
+        return Database.FirstOrDefault<long>(sql);
+    }
+
+
+    /// <summary>
+    /// Retrieves an <see cref="IEntitySlim"/> instance by its unique identifier and object type identifier.
+    /// </summary>
+    /// <param name="key">The unique <see cref="Guid"/> identifier of the entity.</param>
+    /// <param name="objectTypeId">The unique <see cref="Guid"/> identifier of the object type.</param>
+    /// <returns>
+    /// The <see cref="IEntitySlim"/> matching the specified <paramref name="key"/> and <paramref name="objectTypeId"/>,
+    /// or <c>null</c> if no entity is found.
+    /// </returns>
+    public IEntitySlim? Get(Guid key, Guid objectTypeId)
+    {
+        var isContent = objectTypeId == Constants.ObjectTypes.Document ||
+                        objectTypeId == Constants.ObjectTypes.DocumentBlueprint;
+        var isMedia = objectTypeId == Constants.ObjectTypes.Media;
+        var isMember = objectTypeId == Constants.ObjectTypes.Member;
+        var isElement = objectTypeId == Constants.ObjectTypes.Element;
+
+        Sql<ISqlContext> sql = GetFullSqlForEntityType(isContent, isMedia, isMember, isElement, objectTypeId, key);
+        return GetEntity(sql, isContent, isMedia, isMember, isElement);
+    }
+
+    /// <summary>
+    /// Gets an entity by its integer identifier.
+    /// </summary>
+    /// <param name="id">The integer identifier of the entity to retrieve.</param>
+    /// <returns>The entity matching the specified identifier, or null if not found.</returns>
+    public IEntitySlim? Get(int id)
+    {
+        Sql<ISqlContext> sql = GetBaseWhere(false, false, false, false, false, id);
+        BaseDto? dto = Database.FirstOrDefault<BaseDto>(sql);
+        return dto == null ? null : BuildEntity(dto);
+    }
+
+    /// <summary>
+    /// Gets an entity by its integer ID and object type identifier.
+    /// </summary>
+    /// <param name="id">The integer ID of the entity.</param>
+    /// <param name="objectTypeId">The object type identifier (GUID) of the entity.</param>
+    /// <returns>The entity matching the specified ID and object type, or null if not found.</returns>
+    public IEntitySlim? Get(int id, Guid objectTypeId)
+    {
+        var isContent = objectTypeId == Constants.ObjectTypes.Document ||
+                        objectTypeId == Constants.ObjectTypes.DocumentBlueprint;
+        var isMedia = objectTypeId == Constants.ObjectTypes.Media;
+        var isMember = objectTypeId == Constants.ObjectTypes.Member;
+        var isElement = objectTypeId == Constants.ObjectTypes.Element;
+
+        Sql<ISqlContext> sql = GetFullSqlForEntityType(isContent, isMedia, isMember, isElement, objectTypeId, id);
+        return GetEntity(sql, isContent, isMedia, isMember, isElement);
+    }
+
+    /// <summary>
+    /// Retrieves all entities of the specified object type, optionally limited to the provided entity IDs.
+    /// </summary>
+    /// <param name="objectType">The unique identifier (GUID) of the object type to retrieve entities for.</param>
+    /// <param name="ids">Optional. An array of entity IDs to filter the results; if omitted or empty, all entities of the specified type are returned.</param>
+    /// <returns>An enumerable collection of entities matching the specified criteria.</returns>
+    public IEnumerable<IEntitySlim> GetAll(Guid objectType, params int[] ids) =>
+        ids.Length > 0
+            ? PerformGetAll(objectType, sql => sql.WhereIn<NodeDto>(x => x.NodeId, ids.Distinct()))
+            : PerformGetAll(objectType);
+
+    /// <summary>
+    /// Gets all entities of the specified object types, optionally filtered by the provided integer IDs.
+    /// </summary>
+    /// <param name="objectTypes">The unique identifier of the object types to retrieve entities for.</param>
+    /// <param name="keys">An optional array of keys to filter the entities. If not provided, all entities of the specified type are returned.</param>
+    /// <returns>An enumerable collection of entities matching the specified criteria.</returns>
+    public IEnumerable<IEntitySlim> GetAll(IEnumerable<Guid> objectTypes, params int[] ids)
+    {
+        Guid[] objectTypeArray = objectTypes.ToArray();
+        return ids.Length > 0
+            ? PerformGetAll(objectTypeArray, sql => sql.WhereIn<NodeDto>(x => x.NodeId, ids.Distinct()))
+            : PerformGetAll(objectTypeArray);
+    }
+
+    /// <summary>
+    /// Retrieves all entities of the specified object type, optionally limited to the provided entity keys.
+    /// </summary>
+    /// <param name="objectType">The unique identifier (GUID) of the object type to retrieve entities for.</param>
+    /// <param name="keys">Optional. An array of entity keys to filter the results; if omitted or empty, all entities of the specified type are returned.</param>
+    /// <returns>An enumerable collection of entities matching the specified criteria.</returns>
+    public IEnumerable<IEntitySlim> GetAll(Guid objectType, params Guid[] keys) =>
+        keys.Length > 0
+            ? PerformGetAll(objectType, sql => sql.WhereIn<NodeDto>(x => x.UniqueId, keys.Distinct()))
+            : PerformGetAll(objectType);
+
+    /// <summary>
+    /// Gets all entities of the specified object types, optionally filtered by the provided entity keys.
+    /// </summary>
+    /// <param name="objectTypes">The unique identifier of the object types to retrieve entities for.</param>
+    /// <param name="keys">An optional array of keys to filter the entities. If not provided, all entities of the specified type are returned.</param>
+    /// <returns>An enumerable collection of entities matching the specified criteria.</returns>
+    public IEnumerable<IEntitySlim> GetAll(IEnumerable<Guid> objectTypes, params Guid[] keys)
+    {
+        Guid[] objectTypeArray = objectTypes.ToArray();
+        return keys.Length > 0
+            ? PerformGetAll(objectTypeArray, sql => sql.WhereIn<NodeDto>(x => x.UniqueId, keys.Distinct()))
+            : PerformGetAll(objectTypeArray);
+    }
+
+    private IEnumerable<IEntitySlim> GetEntities(Sql<ISqlContext> sql, bool isContent, bool isMedia, bool isMember, bool isElement)
+    {
+        // isContent is going to return a 1:M result now with the variants so we need to do different things
+        if (isContent)
+        {
+            List<DocumentEntityDto>? cdtos = Database.Fetch<DocumentEntityDto>(sql);
+
+            return cdtos.Count == 0
+                ? Enumerable.Empty<IEntitySlim>()
+                : BuildVariants(cdtos.Select(BuildDocumentEntity)).ToList();
+        }
+
+        if (isElement)
+        {
+            List<ElementEntityDto>? cdtos = Database.Fetch<ElementEntityDto>(sql);
+
+            return cdtos.Count == 0
+                ? Enumerable.Empty<IEntitySlim>()
+                : BuildVariants(cdtos.Select(BuildElementEntity)).ToList();
+        }
+
+        IEnumerable<BaseDto>? dtos = isMedia
+            ? (IEnumerable<BaseDto>)Database.Fetch<MediaEntityDto>(sql)
+            : Database.Fetch<BaseDto>(sql);
+
+        EntitySlim[] entities = dtos.Select(BuildEntity).ToArray();
+
+        return entities;
+    }
+
+    private IEnumerable<IEntitySlim> PerformGetAll(Guid objectType, Action<Sql<ISqlContext>>? filter = null)
+    {
+        var isContent = objectType == Constants.ObjectTypes.Document ||
+                        objectType == Constants.ObjectTypes.DocumentBlueprint;
+        var isMedia = objectType == Constants.ObjectTypes.Media;
+        var isMember = objectType == Constants.ObjectTypes.Member;
+        var isElement = objectType == Constants.ObjectTypes.Element;
+
+        Sql<ISqlContext> sql = GetFullSqlForEntityType(isContent, isMedia, isMember, isElement, objectType, filter);
+        return GetEntities(sql, isContent, isMedia, isMember, isElement);
+    }
+
+    private IEnumerable<IEntitySlim> PerformGetAll(Guid[] objectTypes, Action<Sql<ISqlContext>>? filter = null)
+    {
+        var isContent = objectTypes.Contains(Constants.ObjectTypes.Document) ||
+                        objectTypes.Contains(Constants.ObjectTypes.DocumentBlueprint);
+        var isMedia = objectTypes.Contains(Constants.ObjectTypes.Media);
+        var isMember = objectTypes.Contains(Constants.ObjectTypes.Member);
+        var isElement = objectTypes.Contains(Constants.ObjectTypes.Element);
+
+        Sql<ISqlContext> sql = GetFullSqlForEntityType(isContent, isMedia, isMember, isElement, objectTypes, filter);
+        return GetEntities(sql, isContent, isMedia, isMember, isElement);
+    }
+
+    private IEnumerable<IEntitySlim> PerformGetAll(
+        Guid[] objectTypes,
+        Ordering ordering,
+        Action<Sql<ISqlContext>>? filter = null)
+    {
+        var isContent = objectTypes.Contains(Constants.ObjectTypes.Document) ||
+                        objectTypes.Contains(Constants.ObjectTypes.DocumentBlueprint);
+        var isMedia = objectTypes.Contains(Constants.ObjectTypes.Media);
+        var isMember = objectTypes.Contains(Constants.ObjectTypes.Member);
+        var isElement = objectTypes.Contains(Constants.ObjectTypes.Element);
+
+        Sql<ISqlContext> sql = GetFullSqlForEntityType(isContent, isMedia, isMember, isElement, objectTypes, ordering, filter);
+        return GetEntities(sql, isContent, isMedia, isMember, isElement);
+    }
+
+    /// <summary>
+    /// Retrieves the paths for all entities of the specified object type, optionally limited to the provided node IDs.
+    /// </summary>
+    /// <param name="objectType">The GUID identifying the object type of the entities.</param>
+    /// <param name="ids">Optional node IDs to filter which entity paths are returned. If not specified or empty, returns paths for all entities of the given type.</param>
+    /// <returns>An <see cref="IEnumerable{TreeEntityPath}"/> containing the paths of the matching entities.</returns>
+    public IEnumerable<TreeEntityPath> GetAllPaths(Guid objectType, params int[]? ids) =>
+        ids?.Any() ?? false
+            ? ids.Distinct().SelectByGroups(
+                group => PerformGetAllPaths(objectType, sql => sql.WhereIn<NodeDto>(x => x.NodeId, group)),
+                Constants.Sql.MaxParameterCount)
+                .ToList()
+            : PerformGetAllPaths(objectType);
+
+    /// <summary>
+    /// Gets all paths for entities of the specified object type, optionally filtered by the provided entity IDs.
+    /// </summary>
+    /// <param name="objectType">The unique identifier of the object type.</param>
+    /// <param name="keys">Optional array of entity keys to filter the paths. If not provided, paths for all entities of the specified type are returned.</param>
+    /// <returns>An enumerable of <see cref="TreeEntityPath"/> representing the entity paths.</returns>
+    public IEnumerable<TreeEntityPath> GetAllPaths(Guid objectType, params Guid[] keys) =>
+        keys.Any()
+            ? keys.Distinct().SelectByGroups(
+                group => PerformGetAllPaths(objectType, sql => sql.WhereIn<NodeDto>(x => x.UniqueId, group)),
+                Constants.Sql.MaxParameterCount)
+                .ToList()
+            : PerformGetAllPaths(objectType);
+
+    /// <inheritdoc/>
+    public IEnumerable<TreeEntityPath> GetAllPaths(Guid[] objectTypes, params Guid[] keys) =>
+        keys.Any()
+            ? PerformGetAllPaths(objectTypes, sql => sql.WhereIn<NodeDto>(x => x.UniqueId, keys.Distinct()))
+            : PerformGetAllPaths(objectTypes);
+
+    private IEnumerable<TreeEntityPath> PerformGetAllPaths(Guid objectType, Action<Sql<ISqlContext>>? filter = null)
+        => PerformGetAllPaths([objectType], filter);
+
+    private IEnumerable<TreeEntityPath> PerformGetAllPaths(Guid[] objectTypes, Action<Sql<ISqlContext>>? filter = null)
+    {
+        // NodeId is named Id on TreeEntityPath = use an alias
+        Sql<ISqlContext> sql = Sql().Select<NodeDto>(
+                x => Alias(x.NodeId, nameof(TreeEntityPath.Id)),
+                x => x.Path,
+                x => Alias(x.UniqueId, nameof(TreeEntityPath.Key)))
+            .From<NodeDto>().WhereIn<NodeDto>(x => x.NodeObjectType, objectTypes);
+        filter?.Invoke(sql);
+        return Database.Fetch<TreeEntityPath>(sql);
+    }
+
+    /// <summary>
+    /// Retrieves a collection of <see cref="IEntitySlim"/> objects that match the specified query criteria.
+    /// </summary>
+    /// <param name="query">An <see cref="IQuery{IUmbracoEntity}"/> used to filter the entities to return.</param>
+    /// <returns>An <see cref="IEnumerable{IEntitySlim}"/> containing entities that satisfy the query.</returns>
+    public IEnumerable<IEntitySlim> GetByQuery(IQuery<IUmbracoEntity> query)
+    {
+        Sql<ISqlContext> sqlClause = GetBase(false, false, false, false, null);
+        var translator = new SqlTranslator<IUmbracoEntity>(sqlClause, query);
+        Sql<ISqlContext> sql = translator.Translate();
+        sql = AddGroupBy(false, false, false, false, sql, true);
+        List<BaseDto>? dtos = Database.Fetch<BaseDto>(sql);
+        return dtos.Select(BuildEntity).ToList();
+    }
+
+    /// <summary>
+    /// Retrieves a collection of <see cref="IEntitySlim"/> objects matching the specified query and object type.
+    /// </summary>
+    /// <param name="query">The <see cref="IQuery{IUmbracoEntity}"/> used to filter the entities.</param>
+    /// <param name="objectType">The <see cref="Guid"/> representing the type of entities to retrieve.</param>
+    /// <returns>An <see cref="IEnumerable{IEntitySlim}"/> of entities that match the query and object type.</returns>
+    public IEnumerable<IEntitySlim> GetByQuery(IQuery<IUmbracoEntity> query, Guid objectType)
+    {
+        var isContent = objectType == Constants.ObjectTypes.Document ||
+                        objectType == Constants.ObjectTypes.DocumentBlueprint;
+        var isMedia = objectType == Constants.ObjectTypes.Media;
+        var isMember = objectType == Constants.ObjectTypes.Member;
+        var isElement = objectType == Constants.ObjectTypes.Element;
+
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, isElement, false, null, new[] { objectType });
+
+        var translator = new SqlTranslator<IUmbracoEntity>(sql, query);
+        sql = translator.Translate();
+        sql = AddGroupBy(isContent, isMedia, isMember, isElement, sql, true);
+
+        return GetEntities(sql, isContent, isMedia, isMember, isElement);
+    }
+
+    /// <summary>
+    /// Retrieves the <see cref="UmbracoObjectTypes"/> value that corresponds to the specified node ID.
+    /// </summary>
+    /// <param name="id">The unique identifier of the node whose object type is to be retrieved.</param>
+    /// <returns>The <see cref="UmbracoObjectTypes"/> associated with the specified node ID.</returns>
+    public UmbracoObjectTypes GetObjectType(int id)
+    {
+        Sql<ISqlContext> sql = Sql().Select<NodeDto>(x => x.NodeObjectType).From<NodeDto>()
+            .Where<NodeDto>(x => x.NodeId == id);
+        return ObjectTypes.GetUmbracoObjectType(Database.First<Guid>(sql));
+    }
+
+    /// <summary>
+    /// Gets the Umbraco object type for the entity with the specified unique key.
+    /// </summary>
+    /// <param name="key">The unique identifier (GUID) of the entity.</param>
+    /// <returns>The <see cref="UmbracoObjectTypes"/> value representing the object's type.</returns>
+    public UmbracoObjectTypes GetObjectType(Guid key)
+    {
+        Sql<ISqlContext> sql = Sql().Select<NodeDto>(x => x.NodeObjectType).From<NodeDto>()
+            .Where<NodeDto>(x => x.UniqueId == key);
+        return ObjectTypes.GetUmbracoObjectType(Database.First<Guid>(sql));
+    }
+
+    /// <summary>
+    /// Reserves a node identifier for the specified unique key.
+    /// If an identifier has already been reserved for the given key, an <see cref="InvalidOperationException"/> is thrown.
+    /// </summary>
+    /// <param name="key">The unique key (GUID) for which to reserve a node ID.</param>
+    /// <returns>The reserved node ID.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if an identifier has already been reserved for the specified key.</exception>
+    public int ReserveId(Guid key)
+    {
+        NodeDto? node;
+
+        Sql<ISqlContext> sql = SqlContext.Sql()
+            .Select<NodeDto>()
+            .From<NodeDto>()
+            .Where<NodeDto>(x => x.UniqueId == key && x.NodeObjectType == Constants.ObjectTypes.IdReservation);
+
+        node = Database.SingleOrDefault<NodeDto>(sql);
+        if (node is not null)
+        {
+            throw new InvalidOperationException("An identifier has already been reserved for this Udi.");
+        }
+
+        node = new NodeDto
+        {
+            UniqueId = key,
+            Text = "RESERVED.ID",
+            NodeObjectType = Constants.ObjectTypes.IdReservation,
+            CreateDate = DateTime.UtcNow,
+            UserId = null,
+            ParentId = -1,
+            Level = 1,
+            Path = "-1",
+            SortOrder = 0,
+            Trashed = false
+        };
+        Database.Insert(node);
+
+        return node.NodeId;
+    }
+
+    /// <summary>
+    /// Determines whether an entity with the specified unique identifier exists.
+    /// </summary>
+    /// <param name="key">The unique identifier of the entity.</param>
+    /// <returns>True if the entity exists; otherwise, false.</returns>
+    public bool Exists(Guid key)
+    {
+        Sql<ISqlContext> sql = Sql().SelectCount().From<NodeDto>().Where<NodeDto>(x => x.UniqueId == key);
+        return Database.ExecuteScalar<int>(sql) > 0;
+    }
+
+    /// <summary>
+    /// Determines whether any entities with the specified unique identifiers exist.
+    /// </summary>
+    /// <param name="keys">A collection of unique identifiers to check for existence.</param>
+    /// <returns>
+    /// True if at least one of the entities exists; otherwise, false.
+    /// </returns>
+    public bool Exists(IEnumerable<Guid> keys)
+    {
+        IEnumerable<Guid> distictKeys = keys.Distinct();
+        Sql<ISqlContext> sql = Sql().SelectCount().From<NodeDto>().Where<NodeDto>(x => distictKeys.Contains(x.UniqueId));
+        return Database.ExecuteScalar<int>(sql) == distictKeys.Count();
+    }
+
+    /// <inheritdoc />
+    public bool Exists(Guid key, Guid objectType)
+    {
+        Sql<ISqlContext> sql = Sql()
+            .SelectCount()
+            .From<NodeDto>()
+            .Where<NodeDto>(x => x.UniqueId == key && x.NodeObjectType == objectType);
+
+        return Database.ExecuteScalar<int>(sql) > 0;
+    }
+
+    /// <summary>
+    /// Determines whether an entity with the specified identifier and object type exists in the repository.
+    /// </summary>
+    /// <param name="id">The integer identifier of the entity.</param>
+    /// <param name="objectType">The <see cref="Guid"/> representing the object type of the entity.</param>
+    /// <returns><c>true</c> if an entity with the specified identifier and object type exists; otherwise, <c>false</c>.</returns>
+    public bool Exists(int id, Guid objectType)
+    {
+        Sql<ISqlContext> sql = Sql()
+            .SelectCount()
+            .From<NodeDto>()
+            .Where<NodeDto>(x => x.NodeId == id && x.NodeObjectType == objectType);
+
+        return Database.ExecuteScalar<int>(sql) > 0;
+    }
+
+    /// <summary>
+    /// Determines whether an entity with the specified integer identifier exists in the data store.
+    /// </summary>
+    /// <param name="id">The integer identifier of the entity to check for existence.</param>
+    /// <returns><c>true</c> if an entity with the specified identifier exists; otherwise, <c>false</c>.</returns>
+    public bool Exists(int id)
+    {
+        Sql<ISqlContext> sql = Sql().SelectCount().From<NodeDto>().Where<NodeDto>(x => x.NodeId == id);
+        return Database.ExecuteScalar<int>(sql) > 0;
+    }
+
+    private TEntity BuildVariants<TEntity>(TEntity entity)
+        where TEntity : PublishableContentEntitySlim
+        => BuildVariants([entity]).First();
+
+    private IEnumerable<TEntity> BuildVariants<TEntity>(IEnumerable<TEntity> entities)
+        where TEntity : PublishableContentEntitySlim
+    {
+        List<TEntity>? v = null;
+        var entitiesList = entities.ToList();
+        foreach (TEntity e in entitiesList)
+        {
+            if (e.Variations.VariesByCulture())
+            {
+                (v ??= new List<TEntity>()).Add(e);
+            }
+        }
+
+        if (v == null)
+        {
+            return entitiesList;
+        }
+
+        Func<IEnumerable<int>, Sql<ISqlContext>> getVariantInfos = typeof(TEntity) == typeof(DocumentEntitySlim)
+            ? GetDocumentVariantInfos
+            : typeof(TEntity) == typeof(ElementEntitySlim)
+                ? GetElementVariantInfos
+                : throw new NotSupportedException($"The supplied entity type is not supported: {typeof(TEntity).FullName}");
+
+        // fetch all variant info dtos
+        IEnumerable<VariantInfoDto> dtos = Database.FetchByGroups<VariantInfoDto, int>(
+            v.Select(x => x.Id),
+            Constants.Sql.MaxParameterCount,
+            getVariantInfos);
+
+        // group by node id (each group contains all languages)
+        var xdtos = dtos.GroupBy(x => x.NodeId).ToDictionary(x => x.Key, x => x);
+
+        foreach (TEntity e in v)
+        {
+            // since we're only iterating on entities that vary, we must have something
+            IGrouping<int, VariantInfoDto> edtos = xdtos[e.Id];
+
+            e.CultureNames = edtos.Where(x => x.CultureAvailable).ToDictionary(x => x.IsoCode, x => x.Name);
+            e.PublishedCultures = edtos.Where(x => x.CulturePublished).Select(x => x.IsoCode);
+            e.EditedCultures = edtos.Where(x => x.CultureAvailable && x.CultureEdited).Select(x => x.IsoCode);
+        }
+
+        return entitiesList;
+    }
+
+    #endregion
+
+    #region Sql
+
+    private Sql<ISqlContext> GetDocumentVariantInfos(IEnumerable<int> ids) =>
+        Sql()
+            .Select<NodeDto>(x => x.NodeId)
+            .AndSelect<LanguageDto>(x => x.IsoCode)
+            .AndSelect<DocumentDto>(
+                "doc",
+                x => Alias(
+                    x.Published,
+                    nameof(VariantInfoDto.DocumentPublished)),
+                x => Alias(x.Edited, nameof(VariantInfoDto.DocumentEdited)))
+            .AndSelect<DocumentCultureVariationDto>(
+                "dcv",
+                x => Alias(x.Available, nameof(VariantInfoDto.CultureAvailable)),
+                x => Alias(x.Published, nameof(VariantInfoDto.CulturePublished)),
+                x => Alias(x.Edited, nameof(VariantInfoDto.CultureEdited)),
+                x => Alias(x.Name, nameof(VariantInfoDto.Name)))
+
+            // from node x language
+            .From<NodeDto>()
+            .CrossJoin<LanguageDto>()
+
+            // join to document - always exists - indicates global document published/edited status
+            .InnerJoin<DocumentDto>("doc")
+            .On<NodeDto, DocumentDto>((node, doc) => node.NodeId == doc.NodeId, aliasRight: "doc")
+
+            // left-join do document variation - matches cultures that are *available* + indicates when *edited*
+            .LeftJoin<DocumentCultureVariationDto>("dcv")
+            .On<NodeDto, DocumentCultureVariationDto, LanguageDto>(
+                (node, dcv, lang) => node.NodeId == dcv.NodeId && lang.Id == dcv.LanguageId, aliasRight: "dcv")
+
+            // for selected nodes
+            .WhereIn<NodeDto>(x => x.NodeId, ids)
+            .OrderBy<LanguageDto>(x => x.Id);
+
+    // This is a copy/paste of GetDocumentVariantInfos, adjusted for elements. While we have interfaces in place to
+    // reduce this duplication at code level, NPoco unfortunately does not allow it at execution time, so we'll have
+    // to live with the duplication.
+    private Sql<ISqlContext> GetElementVariantInfos(IEnumerable<int> ids) =>
+        Sql()
+            .Select<NodeDto>(x => x.NodeId)
+            .AndSelect<LanguageDto>(x => x.IsoCode)
+            .AndSelect<ElementDto>(
+                "doc",
+                x => Alias(
+                    x.Published,
+                    nameof(VariantInfoDto.DocumentPublished)),
+                x => Alias(x.Edited, nameof(VariantInfoDto.DocumentEdited)))
+            .AndSelect<ElementCultureVariationDto>(
+                "dcv",
+                x => Alias(x.Available, nameof(VariantInfoDto.CultureAvailable)),
+                x => Alias(x.Published, nameof(VariantInfoDto.CulturePublished)),
+                x => Alias(x.Edited, nameof(VariantInfoDto.CultureEdited)),
+                x => Alias(x.Name, nameof(VariantInfoDto.Name)))
+
+            // from node x language
+            .From<NodeDto>()
+            .CrossJoin<LanguageDto>()
+
+            // join to element - always exists - indicates global element published/edited status
+            .InnerJoin<ElementDto>("doc")
+            .On<NodeDto, ElementDto>((node, doc) => node.NodeId == doc.NodeId, aliasRight: "doc")
+
+            // left-join do element variation - matches cultures that are *available* + indicates when *edited*
+            .LeftJoin<ElementCultureVariationDto>("dcv")
+            .On<NodeDto, ElementCultureVariationDto, LanguageDto>(
+                (node, dcv, lang) => node.NodeId == dcv.NodeId && lang.Id == dcv.LanguageId, aliasRight: "dcv")
+
+            // for selected nodes
+            .WhereIn<NodeDto>(x => x.NodeId, ids)
+            .OrderBy<LanguageDto>(x => x.Id);
+
+    // gets the full sql for a given object type and a given unique id
+    private Sql<ISqlContext> GetFullSqlForEntityType(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        Guid objectType,
+        Guid uniqueId)
+    {
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, isElement, false, objectType, uniqueId);
+        return AddGroupBy(isContent, isMedia, isMember, isElement, sql, true);
+    }
+
+    // gets the full sql for a given object type and a given node id
+    private Sql<ISqlContext> GetFullSqlForEntityType(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        Guid objectType,
+        int nodeId)
+    {
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, isElement, false, objectType, nodeId);
+        return AddGroupBy(isContent, isMedia, isMember, isElement, sql, true);
+    }
+
+    // gets the full sql for a given object type, with a given filter
+    private Sql<ISqlContext> GetFullSqlForEntityType(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        Guid objectType,
+        Action<Sql<ISqlContext>>? filter)
+    {
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, isElement, false, filter, [objectType]);
+        return AddGroupBy(isContent, isMedia, isMember, isElement, sql, true);
+    }
+
+    // gets the full sql for multiple object types, with a given filter
+    private Sql<ISqlContext> GetFullSqlForEntityType(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        Guid[] objectTypes,
+        Action<Sql<ISqlContext>>? filter)
+    {
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, isElement, false, filter, objectTypes);
+        return AddGroupBy(isContent, isMedia, isMember, isElement, sql, true);
+    }
+
+    private Sql<ISqlContext> GetFullSqlForEntityType(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        Guid objectType,
+        Ordering ordering,
+        Action<Sql<ISqlContext>>? filter)
+        => GetFullSqlForEntityType(isContent, isMedia, isMember, isElement, [objectType], ordering, filter);
+
+    private Sql<ISqlContext> GetFullSqlForEntityType(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        Guid[] objectTypes,
+        Ordering ordering,
+        Action<Sql<ISqlContext>>? filter)
+    {
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, isElement, false, filter, objectTypes);
+        AddGroupBy(isContent, isMedia, isMember, isElement, sql, false);
+        ApplyOrdering(ref sql, ordering);
+
+        return sql;
+    }
+
+    private Sql<ISqlContext> GetBase(bool isContent, bool isMedia, bool isMember, bool isElement, Action<Sql<ISqlContext>>? filter, bool isCount = false)
+        => GetBase(isContent, isMedia, isMember, isElement, filter, [], isCount);
+
+    // gets the base SELECT + FROM [+ filter] sql
+    // always from the 'current' content version
+    private Sql<ISqlContext> GetBase(bool isContent, bool isMedia, bool isMember, bool isElement, Action<Sql<ISqlContext>>? filter, Guid[] objectTypes, bool isCount = false)
+    {
+        Sql<ISqlContext> sql = Sql();
+        ISqlSyntaxProvider syntax = SqlContext.SqlSyntax;
+        if (isCount)
+        {
+            sql.SelectCount();
+        }
+        else
+        {
+            sql
+                .Select<NodeDto>(
+                    x => x.NodeId,
+                    x => x.Trashed,
+                    x => x.ParentId,
+                    x => x.UserId,
+                    x => x.Level,
+                    x => x.Path)
+                .AndSelect<NodeDto>(
+                    x => x.SortOrder,
+                    x => x.UniqueId,
+                    x => x.Text,
+                    x => x.NodeObjectType,
+                    x => x.CreateDate);
+
+            if (objectTypes.Length == 0)
+            {
+                sql.Append($", COUNT(child.{syntax.GetQuotedColumnName("id")}) AS children");
+            }
+            else
+            {
+                // The following is safe from SQL injection as we are dealing with GUIDs, not strings.
+                // Upper-case is necessary for SQLite, and also works for SQL Server.
+                var objectTypesForInClause = string.Join("','", objectTypes.Select(x => x.ToString().ToUpperInvariant()));
+                sql.Append($", SUM(CASE WHEN child.{syntax.GetQuotedColumnName("nodeObjectType")} IN ('{objectTypesForInClause}') THEN 1 ELSE 0 END) AS children");
+            }
+
+            if (isContent || isMedia || isMember || isElement)
+            {
+                sql
+                    .AndSelect<ContentVersionDto>(x => Alias(x.Id, "versionId"), x => x.VersionDate)
+                    .AndSelect<ContentTypeDto>(
+                        x => x.Alias,
+                        x => x.Icon,
+                        x => x.Thumbnail,
+                        x => x.ListView,
+                        x => x.Variations)
+                    .AndSelect<NodeDto>("ContentTypeNode", x => Alias(x.UniqueId, "ContentTypeKey"));
+            }
+
+            if (isContent)
+            {
+                sql
+                    .AndSelect<DocumentDto>(x => x.Published, x => x.Edited);
+            }
+
+            if (isElement)
+            {
+                sql
+                    .AndSelect<ElementDto>(x => x.Published, x => x.Edited);
+            }
+
+            if (isMedia)
+            {
+                sql
+                    .AndSelect<MediaVersionDto>(x => Alias(x.Path, "MediaPath"));
+            }
+        }
+
+        sql
+            .From<NodeDto>();
+
+        if (isContent || isMedia || isMember || isElement)
+        {
+            sql
+                .LeftJoin<ContentVersionDto>()
+                .On<NodeDto, ContentVersionDto>((left, right) => left.NodeId == right.NodeId && right.Current)
+                .LeftJoin<ContentDto>()
+                .On<NodeDto, ContentDto>((left, right) => left.NodeId == right.NodeId)
+                .LeftJoin<ContentTypeDto>()
+                .On<ContentDto, ContentTypeDto>((left, right) => left.ContentTypeId == right.NodeId)
+                .LeftJoin<NodeDto>("ContentTypeNode")
+                .On<NodeDto, ContentTypeDto>((left, right) => left.NodeId == right.NodeId, aliasLeft: "ContentTypeNode");
+        }
+
+        if (isContent)
+        {
+            sql
+                .LeftJoin<DocumentDto>().On<NodeDto, DocumentDto>((left, right) => left.NodeId == right.NodeId);
+        }
+
+        if (isElement)
+        {
+            sql
+                .LeftJoin<ElementDto>().On<NodeDto, ElementDto>((left, right) => left.NodeId == right.NodeId);
+        }
+
+        if (isMedia)
+        {
+            sql
+                .LeftJoin<MediaVersionDto>()
+                .On<ContentVersionDto, MediaVersionDto>((left, right) => left.Id == right.Id);
+        }
+
+        //Any LeftJoin statements need to come last
+        if (isCount == false)
+        {
+            sql
+                .LeftJoin<NodeDto>("child")
+                .On<NodeDto, NodeDto>((left, right) => left.NodeId == right.ParentId, aliasRight: "child");
+        }
+
+
+        filter?.Invoke(sql);
+
+        return sql;
+    }
+
+    // gets the base SELECT + FROM [+ filter] + WHERE sql
+    // for a given object type, with a given filter
+    private Sql<ISqlContext> GetBaseWhere(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        bool isCount,
+        Action<Sql<ISqlContext>>? filter,
+        Guid[] objectTypes)
+    {
+        Sql<ISqlContext> sql = GetBase(isContent, isMedia, isMember, isElement, filter, objectTypes, isCount);
+        if (objectTypes.Length > 0)
+        {
+            sql.WhereIn<NodeDto>(x => x.NodeObjectType, objectTypes);
+        }
+
+        return sql;
+    }
+
+    // gets the base SELECT + FROM + WHERE sql
+    // for a given node id
+    private Sql<ISqlContext> GetBaseWhere(bool isContent, bool isMedia, bool isMember, bool isElement, bool isCount, int id)
+    {
+        Sql<ISqlContext> sql = GetBase(isContent, isMedia, isMember, isElement, null, isCount)
+            .Where<NodeDto>(x => x.NodeId == id);
+        return AddGroupBy(isContent, isMedia, isMember, isElement, sql, true);
+    }
+
+    // gets the base SELECT + FROM + WHERE sql
+    // for a given unique id
+    private Sql<ISqlContext> GetBaseWhere(bool isContent, bool isMedia, bool isMember, bool isElement, bool isCount, Guid uniqueId)
+    {
+        Sql<ISqlContext> sql = GetBase(isContent, isMedia, isMember, isElement, null, isCount)
+            .Where<NodeDto>(x => x.UniqueId == uniqueId);
+        return AddGroupBy(isContent, isMedia, isMember, isElement, sql, true);
+    }
+
+    // gets the base SELECT + FROM + WHERE sql
+    // for a given object type and node id
+    private Sql<ISqlContext> GetBaseWhere(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        bool isCount,
+        Guid objectType,
+        int nodeId) =>
+        GetBase(isContent, isMedia, isMember, isElement, null, isCount)
+            .Where<NodeDto>(x => x.NodeId == nodeId && x.NodeObjectType == objectType);
+
+    // gets the base SELECT + FROM + WHERE sql
+    // for a given object type and unique id
+    private Sql<ISqlContext> GetBaseWhere(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        bool isCount,
+        Guid objectType,
+        Guid uniqueId) =>
+        GetBase(isContent, isMedia, isMember, isElement, null, isCount)
+            .Where<NodeDto>(x => x.UniqueId == uniqueId && x.NodeObjectType == objectType);
+
+    // gets the GROUP BY / ORDER BY sql
+    // required in order to count children
+    private Sql<ISqlContext> AddGroupBy(
+        bool isContent,
+        bool isMedia,
+        bool isMember,
+        bool isElement,
+        Sql<ISqlContext> sql,
+        bool defaultSort)
+    {
+        sql
+            .GroupBy<NodeDto>(x => x.NodeId, x => x.Trashed, x => x.ParentId, x => x.UserId, x => x.Level, x => x.Path)
+            .AndBy<NodeDto>(x => x.SortOrder, x => x.UniqueId, x => x.Text, x => x.NodeObjectType, x => x.CreateDate);
+
+        if (isContent)
+        {
+            sql
+                .AndBy<DocumentDto>(x => x.Published, x => x.Edited);
+        }
+
+        if (isElement)
+        {
+            sql
+                .AndBy<ElementDto>(x => x.Published, x => x.Edited);
+        }
+
+        if (isMedia)
+        {
+            sql
+                .AndBy<MediaVersionDto>(x => Alias(x.Path, "MediaPath"));
+        }
+
+
+        if (isContent || isMedia || isMember || isElement)
+        {
+            sql
+                .AndBy<ContentVersionDto>(x => x.Id, x => x.VersionDate)
+                .AndBy<ContentTypeDto>(
+                    x => x.Alias,
+                    x => x.Icon,
+                    x => x.Thumbnail,
+                    x => x.ListView,
+                    x => x.Variations)
+                .AndBy<NodeDto>("ContentTypeNode", x => x.UniqueId);
+        }
+
+        if (defaultSort)
+        {
+            sql.OrderBy<NodeDto>(x => x.SortOrder);
+        }
+
+        return sql;
+    }
+
+    private void ApplyOrdering(ref Sql<ISqlContext> sql, Ordering ordering)
+    {
+        if (sql == null)
+        {
+            throw new ArgumentNullException(nameof(sql));
+        }
+
+        if (ordering == null)
+        {
+            throw new ArgumentNullException(nameof(ordering));
+        }
+
+        // TODO: although the default ordering string works for name, it wont work for others without a table or an alias of some sort
+        // As more things are attempted to be sorted we'll prob have to add more expressions here
+        string orderBy;
+
+        Ordering? runner = ordering;
+
+        Direction lastDirection = Direction.Ascending;
+        bool orderingIncludesNodeId = false;
+        do
+        {
+
+            switch (runner.OrderBy?.ToUpperInvariant())
+            {
+                case "NODEOBJECTTYPE":
+                    orderBy = SqlSyntax.OrderByGuid(NodeDto.TableName, "nodeObjectType");
+                    break;
+                case "PATH":
+                    orderBy = SqlSyntax.GetQuotedColumn(NodeDto.TableName, "path");
+                    break;
+                case "NODEID":
+                    orderBy = SqlSyntax.GetQuotedColumn(NodeDto.TableName, "id");
+                    orderingIncludesNodeId = true;
+                    break;
+                default:
+                    orderBy = runner.OrderBy != null
+                        ? SqlSyntax.GetQuotedColumn(NodeDto.TableName, runner.OrderBy)
+                        : string.Empty;
+                    break;
+            }
+
+            if (runner.Direction == Direction.Ascending)
+            {
+                sql.OrderBy(orderBy);
+            }
+            else
+            {
+                sql.OrderByDescending(orderBy);
+            }
+
+            lastDirection = runner.Direction;
+
+            runner = runner.Next;
+        }
+        while (runner is not null);
+
+        // If we haven't already included the node Id in the order by clause, order by node Id as well to ensure consistent results
+        // when the provided sort yields entities with the same value.
+        if (orderingIncludesNodeId is false)
+        {
+            if (lastDirection == Direction.Ascending)
+            {
+                sql.OrderBy<NodeDto>(x => x.NodeId);
+            }
+            else
+            {
+                sql.OrderByDescending<NodeDto>(x => x.NodeId);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Classes
+
+    /// <summary>
+    ///     The DTO used to fetch results for a generic content item which could be either a document, media or a member
+    /// </summary>
+    private sealed class GenericContentEntityDto : PublishableEntityDto
+    {
+        /// <summary>
+        /// Gets or sets the file system path or URL to the media item associated with this content entity, if any.
+        /// </summary>
+        public string? MediaPath { get; set; }
+    }
+
+    /// <summary>
+    ///     The DTO used to fetch results for a document item with its variation info
+    /// </summary>
+    private class DocumentEntityDto : PublishableEntityDto
+    {
+    }
+
+
+    /// <summary>
+    ///     The DTO used to fetch results for an element item with its variation info
+    /// </summary>
+    private class ElementEntityDto : PublishableEntityDto
+    {
+
+    }
+
+    /// <summary>
+    ///     The DTO used to fetch results for a media item with its media path info
+    /// </summary>
+    private sealed class MediaEntityDto : BaseDto
+    {
+        /// <summary>
+        /// Gets or sets the path to the media item, such as a file system path or URL.
+        /// </summary>
+        public string? MediaPath { get; set; }
+    }
+
+    /// <summary>
+    ///     The DTO used to fetch results for a member item
+    /// </summary>
+    private sealed class MemberEntityDto : BaseDto
+    {
+    }
+
+    private abstract class PublishableEntityDto : BaseDto
+    {
+        public ContentVariation Variations { get; set; }
+
+        public bool Published { get; set; }
+
+        public bool Edited { get; set; }
+    }
+
+    private class VariantInfoDto
+    {
+        /// <summary>
+        /// Gets or sets the unique identifier for the node.
+        /// </summary>
+        public int NodeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ISO code representing the variant.
+        /// </summary>
+        public string IsoCode { get; set; } = null!;
+
+        /// <summary>
+        /// Gets or sets the display name of this variant.
+        /// </summary>
+        public string Name { get; set; } = null!;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this document is published.
+        /// </summary>
+        public bool DocumentPublished { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this document variant has been edited.
+        /// </summary>
+        public bool DocumentEdited { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this culture variant is available for the entity.
+        /// </summary>
+        public bool CultureAvailable { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the culture is published.
+        /// </summary>
+        public bool CulturePublished { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the culture variant of the content has been edited.
+        /// </summary>
+        public bool CultureEdited { get; set; }
+    }
+
+    /// <summary>
+    ///     the DTO corresponding to fields selected by GetBase
+    /// </summary>
+    /// <remarks>ReSharper disable once ClassNeverInstantiated.Local</remarks>
+    private class BaseDto
+    {
+        /// <summary>
+        /// Gets or sets the unique identifier for the node.
+        /// </summary>
+        /// <remarks>
+        /// ReSharper disable UnusedAutoPropertyAccessor.Local
+        /// ReSharper disable UnusedMember.Local
+        /// </remarks>
+        public int NodeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the entity is trashed.
+        /// </summary>
+        public bool Trashed { get; set; }
+
+        /// <summary>
+        /// Gets or sets the identifier of the parent entity.
+        /// </summary>
+        public int ParentId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the identifier of the user associated with the entity.
+        /// </summary>
+        public int? UserId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the hierarchical level (depth) of the entity within its structure.
+        /// </summary>
+        public int Level { get; set; }
+
+        /// <summary>
+        /// Gets the hierarchical path of the entity, typically represented as a comma-separated list of ancestor IDs.
+        /// </summary>
+        public string Path { get; } = null!;
+
+        /// <summary>
+        /// Gets or sets the sort order of the entity.
+        /// </summary>
+        public int SortOrder { get; set; }
+
+        /// <summary>
+        /// Gets or sets the unique GUID identifier for this entity instance.
+        /// </summary>
+        public Guid UniqueId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the textual representation or name associated with this DTO.
+        /// </summary>
+        public string? Text { get; set; }
+
+        /// <summary>Gets or sets the unique identifier for the node object type.</summary>
+        public Guid NodeObjectType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the entity was created.
+        /// </summary>
+        public DateTime CreateDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the entity version was created.
+        /// </summary>
+        public DateTime VersionDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of child entities associated with this entity.
+        /// </summary>
+        public int Children { get; set; }
+
+        /// <summary>Gets or sets the version identifier for concurrency control.</summary>
+        public int VersionId { get; set; }
+
+        /// <summary>
+        /// Gets the unique alias identifier for the entity.
+        /// </summary>
+        public string Alias { get; } = null!;
+
+        /// <summary>
+        /// Gets or sets the icon associated with the entity, typically as a string representing the icon's name or identifier.
+        /// </summary>
+        public string? Icon { get; set; }
+
+        /// <summary>
+        /// Gets or sets the thumbnail image associated with the entity.
+        /// </summary>
+        public string? Thumbnail { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this entity is a container, such as a folder or grouping node.
+        /// </summary>
+        public bool IsContainer { get; set; }
+
+        /// <summary>Gets or sets the unique identifier for the content type.</summary>
+        public Guid ContentTypeKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the unique identifier of the related list view, if any.
+        /// This value may be <c>null</c> if no list view is associated.
+        /// </summary>
+        public Guid? ListView { get; set; }
+
+        // ReSharper restore UnusedAutoPropertyAccessor.Local
+        // ReSharper restore UnusedMember.Local
+    }
+
+    #endregion
+
+    #region Factory
+
+    private EntitySlim BuildEntity(BaseDto dto)
+    {
+        if (dto.NodeObjectType == Constants.ObjectTypes.Document
+            || dto.NodeObjectType == Constants.ObjectTypes.DocumentBlueprint)
+        {
+            return BuildDocumentEntity(dto);
+        }
+
+        if (dto.NodeObjectType == Constants.ObjectTypes.Media)
+        {
+            return BuildMediaEntity(dto);
+        }
+
+        if (dto.NodeObjectType == Constants.ObjectTypes.Member)
+        {
+            return BuildMemberEntity(dto);
+        }
+
+        if (dto.NodeObjectType == Constants.ObjectTypes.Element)
+        {
+            return BuildElementEntity(dto);
+        }
+
+        // EntitySlim does not track changes
+        var entity = new EntitySlim();
+        BuildEntity(entity, dto);
+        return entity;
+    }
+
+    private static void BuildEntity(EntitySlim entity, BaseDto dto)
+    {
+        entity.Trashed = dto.Trashed;
+        entity.CreateDate = dto.CreateDate.EnsureUtc();
+        entity.UpdateDate = dto.VersionDate.EnsureUtc();
+        entity.CreatorId = dto.UserId ?? Constants.Security.UnknownUserId;
+        entity.Id = dto.NodeId;
+        entity.Key = dto.UniqueId;
+        entity.Level = dto.Level;
+        entity.Name = dto.Text;
+        entity.NodeObjectType = dto.NodeObjectType;
+        entity.ParentId = dto.ParentId;
+        entity.Path = dto.Path;
+        entity.SortOrder = dto.SortOrder;
+        entity.HasChildren = dto.Children > 0;
+        entity.IsContainer = dto.IsContainer;
+    }
+
+    private static void BuildContentEntity(ContentEntitySlim entity, BaseDto dto)
+    {
+        BuildEntity(entity, dto);
+        entity.ContentTypeAlias = dto.Alias;
+        entity.ContentTypeIcon = dto.Icon;
+        entity.ContentTypeThumbnail = dto.Thumbnail;
+        entity.ContentTypeKey = dto.ContentTypeKey;
+        entity.ListViewKey = dto.ListView;
+    }
+
+    private static MediaEntitySlim BuildMediaEntity(BaseDto dto)
+    {
+        // EntitySlim does not track changes
+        var entity = new MediaEntitySlim();
+        BuildContentEntity(entity, dto);
+
+        // fill in the media info
+        if (dto is MediaEntityDto mediaEntityDto)
+        {
+            entity.MediaPath = mediaEntityDto.MediaPath;
+        }
+        else if (dto is GenericContentEntityDto genericContentEntityDto)
+        {
+            entity.MediaPath = genericContentEntityDto.MediaPath;
+        }
+
+        return entity;
+    }
+
+    private static DocumentEntitySlim BuildDocumentEntity(BaseDto dto)
+    {
+        // EntitySlim does not track changes
+        var entity = new DocumentEntitySlim();
+        BuildContentEntity(entity, dto);
+
+        if (dto is PublishableEntityDto contentDto)
+        {
+            // fill in the invariant info
+            entity.Edited = contentDto.Edited;
+            entity.Published = contentDto.Published;
+            entity.Variations = contentDto.Variations;
+        }
+
+        return entity;
+    }
+
+    private static ElementEntitySlim BuildElementEntity(BaseDto dto)
+    {
+        // EntitySlim does not track changes
+        var entity = new ElementEntitySlim();
+        BuildContentEntity(entity, dto);
+
+        if (dto is PublishableEntityDto contentDto)
+        {
+            // fill in the invariant info
+            entity.Edited = contentDto.Edited;
+            entity.Published = contentDto.Published;
+            entity.Variations = contentDto.Variations;
+        }
+
+        return entity;
+    }
+
+    private static MemberEntitySlim BuildMemberEntity(BaseDto dto)
+    {
+        // EntitySlim does not track changes
+        var entity = new MemberEntitySlim();
+        BuildEntity(entity, dto);
+
+        entity.ContentTypeAlias = dto.Alias;
+        entity.ContentTypeIcon = dto.Icon;
+        entity.ContentTypeThumbnail = dto.Thumbnail;
+
+        return entity;
+    }
+
+    #endregion
+}

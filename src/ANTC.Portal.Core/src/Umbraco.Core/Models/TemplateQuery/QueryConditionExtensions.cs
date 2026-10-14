@@ -1,0 +1,91 @@
+using System.Linq.Expressions;
+using System.Reflection;
+using Umbraco.Cms.Core.Models.TemplateQuery;
+
+namespace Umbraco.Extensions;
+
+/// <summary>
+///     Provides extension methods for building query condition expressions.
+/// </summary>
+public static class QueryConditionExtensions
+{
+    private static Lazy<MethodInfo> StringContainsMethodInfo =>
+        new(() => typeof(string).GetMethod("Contains", new[] { typeof(string) })!);
+
+    /// <summary>
+    ///     Builds a lambda expression predicate from a query condition.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity being queried.</typeparam>
+    /// <param name="condition">The query condition to convert.</param>
+    /// <param name="parameterAlias">The alias to use for the parameter in the expression.</param>
+    /// <returns>A lambda expression that can be used to filter entities.</returns>
+    public static Expression<Func<T, bool>> BuildCondition<T>(this QueryCondition condition, string parameterAlias)
+    {
+        object constraintValue;
+        switch (condition.Property.Type?.ToLowerInvariant())
+        {
+            case "string":
+                constraintValue = condition.ConstraintValue;
+                break;
+            case "datetime":
+                constraintValue = DateTime.Parse(condition.ConstraintValue);
+                break;
+            case "boolean":
+                constraintValue = bool.Parse(condition.ConstraintValue);
+                break;
+            default:
+                constraintValue = Convert.ChangeType(condition.ConstraintValue, typeof(int));
+                break;
+        }
+
+        ParameterExpression parameterExpression = Expression.Parameter(typeof(T), parameterAlias);
+
+        // GetPublicProperties resolves properties inherited from base interfaces (e.g. IPublishedContent
+        // exposing Name/Id via IPublishedElement), which Expression.Property(expression, string) cannot.
+        PropertyInfo propertyInfo = typeof(T).GetPublicProperties().FirstOrDefault(p => p.Name == condition.Property.Alias)
+            ?? throw new ArgumentException(
+                $"Instance property '{condition.Property.Alias}' is not defined for type '{typeof(T)}'",
+                nameof(condition));
+        MemberExpression propertyExpression = Expression.Property(parameterExpression, propertyInfo);
+
+        ConstantExpression valueExpression = Expression.Constant(constraintValue);
+        Expression bodyExpression;
+        switch (condition.Term.Operator)
+        {
+            case Operator.NotEquals:
+                bodyExpression = Expression.NotEqual(propertyExpression, valueExpression);
+                break;
+            case Operator.GreaterThan:
+                bodyExpression = Expression.GreaterThan(propertyExpression, valueExpression);
+                break;
+            case Operator.GreaterThanEqualTo:
+                bodyExpression = Expression.GreaterThanOrEqual(propertyExpression, valueExpression);
+                break;
+            case Operator.LessThan:
+                bodyExpression = Expression.LessThan(propertyExpression, valueExpression);
+                break;
+            case Operator.LessThanEqualTo:
+                bodyExpression = Expression.LessThanOrEqual(propertyExpression, valueExpression);
+                break;
+            case Operator.Contains:
+                bodyExpression = Expression.Call(propertyExpression, StringContainsMethodInfo.Value, valueExpression);
+                break;
+            case Operator.NotContains:
+                MethodCallExpression tempExpression = Expression.Call(
+                    propertyExpression,
+                    StringContainsMethodInfo.Value,
+                    valueExpression);
+                bodyExpression = Expression.Equal(tempExpression, Expression.Constant(false));
+                break;
+            default:
+            case Operator.Equals:
+                bodyExpression = Expression.Equal(propertyExpression, valueExpression);
+                break;
+        }
+
+        var predicate =
+            Expression.Lambda<Func<T, bool>>(bodyExpression.Reduce(), parameterExpression);
+
+        return predicate;
+    }
+}

@@ -1,0 +1,253 @@
+using System.Data;
+using Microsoft.Extensions.Logging;
+using NPoco;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Persistence.Querying;
+using Umbraco.Cms.Core.Persistence.Repositories;
+using Umbraco.Cms.Infrastructure.Persistence.Dtos;
+using Umbraco.Cms.Infrastructure.Persistence.Factories;
+using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement;
+
+internal sealed class DomainRepository : EntityRepositoryBase<int, IDomain>, IDomainRepository
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DomainRepository"/> class.
+    /// </summary>
+    /// <param name="scopeAccessor">Provides access to the current database scope for repository operations.</param>
+    /// <param name="cache">The application-level caches used for optimizing data retrieval.</param>
+    /// <param name="logger">The logger used for logging repository events and errors.</param>
+    /// <param name="repositoryCacheVersionService">Service for managing cache versioning within the repository.</param>
+    /// <param name="cacheSyncService">Service responsible for synchronizing cache across distributed environments.</param>
+    public DomainRepository(
+        IScopeAccessor scopeAccessor,
+        AppCaches cache,
+        ILogger<DomainRepository> logger,
+        IRepositoryCacheVersionService repositoryCacheVersionService,
+        ICacheSyncService cacheSyncService)
+        : base(
+            scopeAccessor,
+            cache,
+            logger,
+            repositoryCacheVersionService,
+            cacheSyncService)
+    {
+    }
+
+    /// <summary>
+    /// Gets the cache policy as <see cref="FullDataSetRepositoryCachePolicy{TEntity, TId}"/> for predicate-based lookups.
+    /// Returns null when caching is disabled (e.g. <see cref="AppCaches.NoCache"/>).
+    /// </summary>
+    private FullDataSetRepositoryCachePolicy<IDomain, int>? TypedCachePolicy
+        => CachePolicy as FullDataSetRepositoryCachePolicy<IDomain, int>;
+
+    /// <summary>
+    /// Gets a domain by its name.
+    /// </summary>
+    /// <param name="domainName">The name of the domain to retrieve.</param>
+    /// <returns>The domain matching the specified name, or null if none found.</returns>
+    public IDomain? GetByName(string domainName)
+        => TypedCachePolicy?.FindCached(x => x.DomainName.InvariantEquals(domainName), PerformGetAll)
+           ?? GetMany().FirstOrDefault(x => x.DomainName.InvariantEquals(domainName));
+
+    /// <summary>
+    /// Determines whether a domain with the specified name exists.
+    /// </summary>
+    /// <param name="domainName">The name of the domain to check for existence.</param>
+    /// <returns>True if the domain exists; otherwise, false.</returns>
+    public bool Exists(string domainName)
+        => TypedCachePolicy?.ExistsCached(x => x.DomainName.InvariantEquals(domainName), PerformGetAll)
+           ?? GetMany().Any(x => x.DomainName.InvariantEquals(domainName));
+
+    /// <summary>
+    /// Gets all domains, optionally including wildcard domains.
+    /// </summary>
+    /// <param name="includeWildcards">If true, includes wildcard domains in the result; otherwise, excludes them.</param>
+    /// <returns>An enumerable collection of domains.</returns>
+    public IEnumerable<IDomain> GetAll(bool includeWildcards)
+    {
+        if (includeWildcards)
+        {
+            return GetMany();
+        }
+
+        return TypedCachePolicy?.FindAllCached(x => x.IsWildcard == false, PerformGetAll)
+               ?? GetMany().Where(x => x.IsWildcard == false);
+    }
+
+    /// <summary>
+    /// Retrieves the domains assigned to the specified content item.
+    /// </summary>
+    /// <param name="contentId">The identifier of the content item for which to retrieve assigned domains.</param>
+    /// <param name="includeWildcards">If <c>true</c>, includes wildcard domains in the results; if <c>false</c>, only non-wildcard domains are returned.</param>
+    /// <returns>An <see cref="IEnumerable{IDomain}"/> containing the domains assigned to the specified content item.</returns>
+    public IEnumerable<IDomain> GetAssignedDomains(int contentId, bool includeWildcards)
+        => TypedCachePolicy?.FindAllCached(x => x.RootContentId == contentId && (includeWildcards || x.IsWildcard == false), PerformGetAll)
+           ?? GetMany().Where(x => x.RootContentId == contentId).Where(x => includeWildcards || x.IsWildcard == false);
+
+    protected override IRepositoryCachePolicy<IDomain, int> CreateCachePolicy()
+        => new FullDataSetRepositoryCachePolicy<IDomain, int>(GlobalIsolatedCache, ScopeAccessor,  RepositoryCacheVersionService, CacheSyncService, GetEntityId, false);
+
+    // Note: PerformGet(int) is passed as a callback to the cache policy's Get(TId) method,
+    // but FullDataSetRepositoryCachePolicy.Get() never invokes it — it uses GetAllCached()
+    // internally and clones only the matched entity. This override exists only as a required
+    // implementation of the abstract base and as a fallback for non-FullDataSet policies.
+    protected override IDomain? PerformGet(int id)
+        => GetMany().FirstOrDefault(x => x.Id == id);
+
+    protected override IEnumerable<IDomain> PerformGetAll(params int[]? ids)
+    {
+        Sql<ISqlContext> sql = GetBaseQuery(false).Where<DomainDto>(x => x.Id > 0);
+        if (ids?.Any() ?? false)
+        {
+            sql.WhereIn<DomainDto>(x => x.Id, ids);
+        }
+        sql.OrderBy<DomainDto>(dto => dto.SortOrder);
+
+        return Database.Fetch<DomainDto>(sql).Select(DomainFactory.BuildEntity);
+    }
+
+    protected override IEnumerable<IDomain> PerformGetByQuery(IQuery<IDomain> query)
+        => throw new NotSupportedException("This repository does not support this method");
+
+    protected override Sql<ISqlContext> GetBaseQuery(bool isCount)
+    {
+        Sql<ISqlContext> sql = Sql();
+        if (isCount)
+        {
+            sql.SelectCount().From<DomainDto>();
+        }
+        else
+        {
+            sql.Select($"{QuoteTableName(Constants.DatabaseSchema.Tables.Domain)}.*, {QuoteTableName(Constants.DatabaseSchema.Tables.Language)}.{QuoteColumnName("languageISOCode")}")
+                .From<DomainDto>()
+                .LeftJoin<LanguageDto>()
+                .On<DomainDto, LanguageDto>(dto => dto.DefaultLanguage, dto => dto.Id);
+        }
+
+        return sql;
+    }
+
+    protected override string GetBaseWhereClause()
+        => $"{QuoteTableName(Constants.DatabaseSchema.Tables.Domain)}.id = @id";
+
+    protected override IEnumerable<string> GetDeleteClauses()
+        => new []
+        {
+            $"DELETE FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Domain)} WHERE id = @id",
+        };
+
+    protected override void PersistNewItem(IDomain entity)
+    {
+        var exists = Database.ExecuteScalar<int>(
+            $"SELECT COUNT(*) FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Domain)} WHERE {QuoteColumnName("domainName")} = @domainName",
+            new { domainName = entity.DomainName });
+        if (exists > 0)
+        {
+            throw new DuplicateNameException($"The domain name {entity.DomainName} is already assigned.");
+        }
+
+        if (entity.RootContentId.HasValue)
+        {
+            var contentExists = Database.ExecuteScalar<int>(
+                $"SELECT COUNT(*) FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Content)} WHERE {QuoteColumnName("nodeId")} = @id",
+                new { id = entity.RootContentId.Value });
+            if (contentExists == 0)
+            {
+                throw new NullReferenceException($"No content exists with id {entity.RootContentId.Value}.");
+            }
+        }
+
+        if (entity.LanguageId.HasValue)
+        {
+            var languageExists = Database.ExecuteScalar<int>(
+                $"SELECT COUNT(*) FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Language)} WHERE id = @id",
+                new { id = entity.LanguageId.Value });
+            if (languageExists == 0)
+            {
+                throw new NullReferenceException($"No language exists with id {entity.LanguageId.Value}.");
+            }
+        }
+
+        entity.AddingEntity();
+
+        // Get sort order
+        entity.SortOrder = GetNewSortOrder(entity.RootContentId, entity.IsWildcard);
+
+        DomainDto dto = DomainFactory.BuildDto(entity);
+
+        var id = Convert.ToInt32(Database.Insert(dto));
+        entity.Id = id;
+
+        // If the language changed, we need to resolve the ISO code
+        if (entity.LanguageId.HasValue)
+        {
+            ((UmbracoDomain)entity).LanguageIsoCode = Database.ExecuteScalar<string>(
+                $"SELECT {QuoteColumnName("languageISOCode")} FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Language)} WHERE id = @langId",
+                new { langId = entity.LanguageId });
+        }
+
+        entity.ResetDirtyProperties();
+    }
+
+    protected override void PersistUpdatedItem(IDomain entity)
+    {
+        entity.UpdatingEntity();
+
+        // Ensure there is no other domain with the same name on another entity
+        var exists = Database.ExecuteScalar<int>(
+            $"SELECT COUNT(*) FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Domain)} WHERE {QuoteColumnName("domainName")} = @domainName AND id <> @id",
+            new { domainName = entity.DomainName, id = entity.Id });
+        if (exists > 0)
+        {
+            throw new DuplicateNameException($"The domain name {entity.DomainName} is already assigned.");
+        }
+
+        if (entity.RootContentId.HasValue)
+        {
+            var contentExists = Database.ExecuteScalar<int>(
+                $"SELECT COUNT(*) FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Content)} WHERE {QuoteColumnName("nodeId")} = @id",
+                new { id = entity.RootContentId.Value });
+            if (contentExists == 0)
+            {
+                throw new NullReferenceException($"No content exists with id {entity.RootContentId.Value}.");
+            }
+        }
+
+        if (entity.LanguageId.HasValue)
+        {
+            var languageExists = Database.ExecuteScalar<int>(
+                $"SELECT COUNT(*) FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Language)} WHERE id = @id",
+                new { id = entity.LanguageId.Value });
+            if (languageExists == 0)
+            {
+                throw new NullReferenceException($"No language exists with id {entity.LanguageId.Value}.");
+            }
+        }
+
+        DomainDto dto = DomainFactory.BuildDto(entity);
+
+        Database.Update(dto);
+
+        // If the language changed, we need to resolve the ISO code
+        if (entity.WasPropertyDirty("LanguageId"))
+        {
+            ((UmbracoDomain)entity).LanguageIsoCode = Database.ExecuteScalar<string>(
+                $"SELECT {QuoteColumnName("languageISOCode")} FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Language)} WHERE id = @langId",
+                new { langId = entity.LanguageId });
+        }
+
+        entity.ResetDirtyProperties();
+    }
+
+    private int GetNewSortOrder(int? rootContentId, bool isWildcard)
+        => isWildcard
+        ? -1
+        : Database.ExecuteScalar<int>(
+            $"SELECT COALESCE(MAX({QuoteColumnName("sortOrder")}), -1) + 1 FROM {QuoteTableName(Constants.DatabaseSchema.Tables.Domain)} WHERE {QuoteColumnName("domainRootStructureID")} = @rootContentId AND NOT ({QuoteColumnName("domainName")} = '' OR {QuoteColumnName("domainName")} LIKE '*%')",
+            new { rootContentId });
+}

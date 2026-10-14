@@ -1,0 +1,41 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Management.Routing;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Cms.Web.Common.Authorization;
+
+namespace Umbraco.Cms.Api.Management.Controllers.DocumentVersion;
+
+/// <summary>
+/// Serves as the base controller for handling operations related to document versions within the Umbraco CMS Management API.
+/// </summary>
+[VersionedApiBackOfficeRoute($"{Constants.UdiEntityType.Document}-version")]
+[ApiExplorerSettings(GroupName = $"{nameof(Constants.UdiEntityType.Document)} Version")]
+[Authorize(Policy = AuthorizationPolicies.TreeAccessDocuments)]
+public abstract class DocumentVersionControllerBase : ManagementApiControllerBase
+{
+    internal static IActionResult MapFailure(ContentVersionOperationStatus status)
+        => OperationStatusResult(status, problemDetailsBuilder => status switch
+        {
+            ContentVersionOperationStatus.NotFound => new NotFoundObjectResult(problemDetailsBuilder
+                .WithTitle("The requested version could not be found")
+                .Build()),
+            ContentVersionOperationStatus.ContentNotFound => new NotFoundObjectResult(problemDetailsBuilder
+                .WithTitle("The requested document could not be found")
+                .Build()),
+            ContentVersionOperationStatus.InvalidSkipTake => SkipTakeToPagingProblem(),
+            ContentVersionOperationStatus.RollBackFailed => new BadRequestObjectResult(problemDetailsBuilder
+                .WithTitle("Rollback failed")
+                .WithDetail(
+                    "An unspecified error occurred while rolling back the requested version. Please check the logs for additional information.")),
+            ContentVersionOperationStatus.RollBackCanceled => new BadRequestObjectResult(problemDetailsBuilder
+                .WithTitle("Request cancelled by notification")
+                .WithDetail("The request to roll back was cancelled by a notification handler.")
+                .Build()),
+            _ => new ObjectResult(problemDetailsBuilder
+                .WithTitle("Unknown content version operation status.")
+                .Build()) { StatusCode = StatusCodes.Status500InternalServerError },
+        });
+}

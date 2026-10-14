@@ -1,0 +1,463 @@
+namespace Umbraco.Cms.Core;
+
+public static partial class Constants
+{
+    /// <summary>
+    ///     Defines the identifiers for property-type alias conventions that are used within the Umbraco core.
+    /// </summary>
+    public static class Conventions
+    {
+        /// <summary>
+        ///     Contains constants related to database migrations.
+        /// </summary>
+        public static class Migrations
+        {
+            /// <summary>
+            ///     The name of the Umbraco core upgrade plan.
+            /// </summary>
+            public const string UmbracoUpgradePlanName = "Umbraco.Core";
+
+            /// <summary>
+            ///     The name of the Umbraco core pre-migrations upgrade plan.
+            /// </summary>
+            public const string UmbracoUpgradePlanPremigrationsName = "Umbraco.Core.Premigrations";
+
+            /// <summary>
+            ///     The prefix used for key-value storage of upgrade state.
+            /// </summary>
+            public const string KeyValuePrefix = "Umbraco.Core.Upgrader.State+";
+
+            /// <summary>
+            ///     The key used to store the Umbraco upgrade plan state.
+            /// </summary>
+            public const string UmbracoUpgradePlanKey = KeyValuePrefix + UmbracoUpgradePlanName;
+
+            /// <summary>
+            ///     The key used to store the Umbraco pre-migrations upgrade plan state.
+            /// </summary>
+            public const string UmbracoUpgradePlanPremigrationsKey = KeyValuePrefix + UmbracoUpgradePlanPremigrationsName;
+
+            /// <summary>
+            ///     The key used to coordinate migration leadership across servers in a load-balanced
+            ///     environment. The value is either empty (no active leader) or
+            ///     <c>"{machineIdentifier}|{claimedAtUtc:O}"</c> when a server holds the claim,
+            ///     where <c>machineIdentifier</c> is the value returned by <see cref="Umbraco.Cms.Core.Factories.IMachineInfoFactory.GetMachineIdentifier"/>.
+            /// </summary>
+            public const string UpgradeLockKey = "Umbraco.Core.Upgrader.Lock";
+        }
+
+        /// <summary>
+        ///     Contains constants for permission category identifiers.
+        /// </summary>
+        public static class PermissionCategories
+        {
+            /// <summary>
+            ///     The content permission category.
+            /// </summary>
+            public const string ContentCategory = "content";
+
+            /// <summary>
+            ///     The administration permission category.
+            /// </summary>
+            public const string AdministrationCategory = "administration";
+
+            /// <summary>
+            ///     The structure permission category.
+            /// </summary>
+            public const string StructureCategory = "structure";
+
+            /// <summary>
+            ///     The other permission category.
+            /// </summary>
+            public const string OtherCategory = "other";
+        }
+
+        /// <summary>
+        ///     Contains constants for public access rule types.
+        /// </summary>
+        public static class PublicAccess
+        {
+            /// <summary>
+            ///     The rule type for member username-based access.
+            /// </summary>
+            public const string MemberUsernameRuleType = "MemberUsername";
+
+            /// <summary>
+            ///     The rule type for member role-based access.
+            /// </summary>
+            public const string MemberRoleRuleType = "MemberRole";
+        }
+
+        /// <summary>
+        ///     Contains constants for data type naming conventions.
+        /// </summary>
+        public static class DataTypes
+        {
+            /// <summary>
+            ///     The prefix used for list view data type names.
+            /// </summary>
+            public const string ListViewPrefix = "List View - ";
+        }
+
+        /// <summary>
+        ///     Constants for Umbraco Content property aliases.
+        /// </summary>
+        public static class Content
+        {
+            /// <summary>
+            ///     Property alias for the Content's Url (internal) redirect.
+            /// </summary>
+            public const string InternalRedirectId = "umbracoInternalRedirectId";
+
+            /// <summary>
+            ///     Property alias for the Content's navigational hide, (not actually used in core code).
+            /// </summary>
+            public const string NaviHide = "umbracoNaviHide";
+
+            /// <summary>
+            ///     Property alias for the Content's Url redirect.
+            /// </summary>
+            public const string Redirect = "umbracoRedirect";
+
+            /// <summary>
+            ///     Property alias for the Content's Url alias.
+            /// </summary>
+            public const string UrlAlias = "umbracoUrlAlias";
+
+            /// <summary>
+            ///     Property alias for the Content's Url name.
+            /// </summary>
+            public const string UrlName = "umbracoUrlName";
+        }
+
+        /// <summary>
+        ///     Constants for Umbraco Media property aliases.
+        /// </summary>
+        public static class Media
+        {
+            /// <summary>
+            ///     Property alias for the Media's file name.
+            /// </summary>
+            public const string File = "umbracoFile";
+
+            /// <summary>
+            ///     Property alias for the Media's width.
+            /// </summary>
+            public const string Width = "umbracoWidth";
+
+            /// <summary>
+            ///     Property alias for the Media's height.
+            /// </summary>
+            public const string Height = "umbracoHeight";
+
+            /// <summary>
+            ///     Property alias for the Media's file size (in bytes).
+            /// </summary>
+            public const string Bytes = "umbracoBytes";
+
+            /// <summary>
+            ///     Property alias for the Media's file extension.
+            /// </summary>
+            public const string Extension = "umbracoExtension";
+
+            /// <summary>
+            ///     The default height/width of an image file if the size can't be determined from the metadata
+            /// </summary>
+            public const int DefaultSize = 200;
+
+            /// <summary>
+            ///     Suffix added to media files when moved to the recycle bin when recycle bin media protection is enabled.
+            /// </summary>
+            public const string TrashedMediaSuffix = ".deleted";
+
+            /// <summary>
+            ///     Constants for the keys of built-in Umbraco media property types.
+            /// </summary>
+            public static class PropertyTypeKeys
+            {
+                // Must stay in sync between the clean install (DatabaseDataCreator) and the AddDimensionsToSvg
+                // upgrade migration so upgraded and clean-installed sites end up identical.
+
+                /// <summary>
+                ///     Key of the Width property type on the built-in Vector Graphics media type.
+                /// </summary>
+                public const string VectorGraphicsWidth = "5BC7E468-C53E-41A6-A522-2723F3B94514";
+
+                /// <summary>
+                ///     Key of the Height property type on the built-in Vector Graphics media type.
+                /// </summary>
+                public const string VectorGraphicsHeight = "9E4C2B59-6BC6-4648-BB71-B0F45DDBC274";
+            }
+        }
+
+        /// <summary>
+        ///     Defines the alias identifiers for Umbraco media types.
+        /// </summary>
+        public static class MediaTypes
+        {
+            /// <summary>
+            ///     MediaType alias for a file.
+            /// </summary>
+            public const string File = "File";
+
+            /// <summary>
+            ///     MediaType alias for a folder.
+            /// </summary>
+            public const string Folder = "Folder";
+
+            /// <summary>
+            ///     MediaType alias for an image.
+            /// </summary>
+            public const string Image = "Image";
+
+            /// <summary>
+            ///     MediaType name for a video.
+            /// </summary>
+            public const string Video = "Video";
+
+            /// <summary>
+            ///     MediaType name for an audio.
+            /// </summary>
+            public const string Audio = "Audio";
+
+            /// <summary>
+            ///     MediaType name for an article.
+            /// </summary>
+            public const string Article = "Article";
+
+            /// <summary>
+            ///     MediaType name for vector graphics.
+            /// </summary>
+            public const string VectorGraphics = "VectorGraphics";
+
+            /// <summary>
+            ///     MediaType alias for a video.
+            /// </summary>
+            public const string VideoAlias = "umbracoMediaVideo";
+
+            /// <summary>
+            ///     MediaType alias for an audio.
+            /// </summary>
+            public const string AudioAlias = "umbracoMediaAudio";
+
+            /// <summary>
+            ///     MediaType alias for an article.
+            /// </summary>
+            public const string ArticleAlias = "umbracoMediaArticle";
+
+            /// <summary>
+            ///     MediaType alias for vector graphics.
+            /// </summary>
+            public const string VectorGraphicsAlias = "umbracoMediaVectorGraphics";
+
+            /// <summary>
+            ///     MediaType alias indicating allowing auto-selection.
+            /// </summary>
+            public const string AutoSelect = "umbracoAutoSelect";
+        }
+
+        /// <summary>
+        ///     Constants for Umbraco Member property aliases.
+        /// </summary>
+        public static class Member
+        {
+            /// <summary>
+            ///     Property alias for the Comments on a Member
+            /// </summary>
+            public const string Comments = "umbracoMemberComments";
+
+            /// <summary>
+            ///     The label for the Comments property.
+            /// </summary>
+            public const string CommentsLabel = "Comments";
+
+            /// <summary>
+            ///     The standard properties group alias for membership properties.
+            /// </summary>
+            public const string StandardPropertiesGroupAlias = "membership";
+
+            /// <summary>
+            ///     The standard properties group name for membership properties.
+            /// </summary>
+            public const string StandardPropertiesGroupName = "Membership";
+
+            /// <summary>
+            ///     if a role starts with __umbracoRole we won't show it as it's an internal role used for public access
+            /// </summary>
+            public static readonly string InternalRolePrefix = "__umbracoRole";
+
+            /// <summary>
+            ///     Notification-state key that flags a save as touching only login-related properties
+            ///     (e.g. <c>LastLoginDate</c>, <c>SecurityStamp</c>).
+            /// </summary>
+            public const string LoginPropertiesOnlyStateKey = "LoginPropertiesOnly";
+
+            /// <summary>
+            ///     Notification-state key that indicates whether any indexable field changed as part of the save.
+            ///     When explicitly set to <c>false</c>, Examine indexing for the affected member is skipped.
+            /// </summary>
+            public const string IndexableFieldsChangedStateKey = "IndexableFieldsChanged";
+        }
+
+        /// <summary>
+        ///     Defines the alias identifiers for Umbraco member types.
+        /// </summary>
+        public static class MemberTypes
+        {
+            /// <summary>
+            ///     MemberType alias for default member type.
+            /// </summary>
+            public const string DefaultAlias = "Member";
+
+            /// <summary>
+            ///     The system default protect type alias.
+            /// </summary>
+            public const string SystemDefaultProtectType = "_umbracoSystemDefaultProtectType";
+
+            /// <summary>
+            ///     The identifier for the all members list.
+            /// </summary>
+            public const string AllMembersListId = "all-members";
+        }
+
+        /// <summary>
+        ///     Constants for Umbraco URLs/Querystrings.
+        /// </summary>
+        public static class Url
+        {
+            /// <summary>
+            ///     Querystring parameter name used for Umbraco's alternative template functionality.
+            /// </summary>
+            public const string AltTemplate = "altTemplate";
+        }
+
+        /// <summary>
+        ///     Defines the alias identifiers for built-in Umbraco relation types.
+        /// </summary>
+        public static class RelationTypes
+        {
+            /// <summary>
+            ///     Name for default relation type "Related Media".
+            /// </summary>
+            public const string RelatedMediaName = "Related Media";
+
+            /// <summary>
+            ///     Alias for default relation type "Related Media".
+            /// </summary>
+            public const string RelatedMediaAlias = "umbMedia";
+
+            /// <summary>
+            ///     Name for default relation type "Related Member".
+            /// </summary>
+            public const string RelatedMemberName = "Related Member";
+
+            /// <summary>
+            ///     Alias for default relation type "Related Member".
+            /// </summary>
+            public const string RelatedMemberAlias = "umbMember";
+
+            /// <summary>
+            ///     Name for default relation type "Related Document".
+            /// </summary>
+            public const string RelatedDocumentName = "Related Document";
+
+            /// <summary>
+            ///     Alias for default relation type "Related Document".
+            /// </summary>
+            public const string RelatedDocumentAlias = "umbDocument";
+
+            /// <summary>
+            ///     Name for default relation type "Related Element".
+            /// </summary>
+            public const string RelatedElementName = "Related Element";
+
+            /// <summary>
+            ///     Alias for default relation type "Related Element".
+            /// </summary>
+            public const string RelatedElementAlias = "umbElement";
+
+            /// <summary>
+            ///     Name for default relation type "Relate Document On Copy".
+            /// </summary>
+            public const string RelateDocumentOnCopyName = "Relate Document On Copy";
+
+            /// <summary>
+            ///     Alias for default relation type "Relate Document On Copy".
+            /// </summary>
+            public const string RelateDocumentOnCopyAlias = "relateDocumentOnCopy";
+
+            /// <summary>
+            ///     Name for default relation type "Relate Parent Document On Delete".
+            /// </summary>
+            public const string RelateParentDocumentOnDeleteName = "Relate Parent Document On Delete";
+
+            /// <summary>
+            ///     Alias for default relation type "Relate Parent Document On Delete".
+            /// </summary>
+            public const string RelateParentDocumentOnDeleteAlias = "relateParentDocumentOnDelete";
+
+            /// <summary>
+            ///     Name for default relation type "Relate Parent Media Folder On Delete".
+            /// </summary>
+            public const string RelateParentMediaFolderOnDeleteName = "Relate Parent Media Folder On Delete";
+
+            /// <summary>
+            ///     Alias for default relation type "Relate Parent Media Folder On Delete".
+            /// </summary>
+            public const string RelateParentMediaFolderOnDeleteAlias = "relateParentMediaFolderOnDelete";
+
+            /// <summary>
+            ///     Name for default relation type "Relate Parent Element Container On Element Delete".
+            /// </summary>
+            public const string RelateParentElementContainerOnElementDeleteName = "Relate Parent Element Container On Element Delete";
+
+            /// <summary>
+            ///     Alias for default relation type "Relate Parent Element Container On Element Delete".
+            /// </summary>
+            public const string RelateParentElementContainerOnElementDeleteAlias = "relateParentElementContainerOnElementDelete";
+
+            /// <summary>
+            ///     Name for default relation type "Relate Parent Element Container On Container Delete".
+            /// </summary>
+            public const string RelateParentElementContainerOnContainerDeleteName = "Relate Parent Element Container On Container Delete";
+
+            /// <summary>
+            ///     Alias for default relation type "Relate Parent Element Container On Container Delete".
+            /// </summary>
+            public const string RelateParentElementContainerOnContainerDeleteAlias = "relateParentElementContainerOnContainerDelete";
+
+            /// <summary>
+            ///     Returns the types of relations that are automatically tracked.
+            /// </summary>
+            /// <remarks>
+            ///     Developers should not manually use these relation types since they will all be cleared whenever an entity
+            ///     (content, media, member or element) is saved since they are auto-populated based on property values.
+            /// </remarks>
+            public static string[] AutomaticRelationTypes { get; } = { RelatedMediaAlias, RelatedMemberAlias, RelatedDocumentAlias, RelatedElementAlias };
+
+            // TODO: return a list of built in types so we can use that to prevent deletion in the UI
+        }
+
+        /// <summary>
+        ///     Contains constants for UDI (Umbraco Data Identifier) conventions.
+        /// </summary>
+        public static class Udi
+        {
+            /// <summary>
+            ///     The prefix for all Umbraco Data Identifiers.
+            /// </summary>
+            public const string Prefix = "umb://";
+        }
+
+        /// <summary>
+        ///     Constants for relating to view model flags.
+        /// </summary>
+        public static class Flags
+        {
+            /// <summary>
+            ///     Prefix for all flag aliases.
+            /// </summary>
+            public const string Prefix = "Umb.";
+        }
+    }
+}

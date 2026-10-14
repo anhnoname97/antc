@@ -1,0 +1,53 @@
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Common.ViewModels.Pagination;
+using Umbraco.Cms.Api.Management.ViewModels.DocumentType;
+using Umbraco.Cms.Core.Mapping;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Web.Common.Authorization;
+
+namespace Umbraco.Cms.Api.Management.Controllers.DocumentType;
+
+/// <summary>
+/// Controller for managing which document types are allowed at the root level.
+/// </summary>
+[ApiVersion("1.0")]
+public class AllowedAtRootDocumentTypeController : DocumentTypeControllerBase
+{
+    private readonly IContentTypeService _contentTypeService;
+    private readonly IUmbracoMapper _umbracoMapper;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AllowedAtRootDocumentTypeController"/> class.
+    /// </summary>
+    /// <param name="contentTypeService">Service used to manage content types.</param>
+    /// <param name="umbracoMapper">The mapper used to map Umbraco objects to API models.</param>
+    public AllowedAtRootDocumentTypeController(IContentTypeService contentTypeService, IUmbracoMapper umbracoMapper)
+    {
+        _contentTypeService = contentTypeService;
+        _umbracoMapper = umbracoMapper;
+    }
+
+    [HttpGet("allowed-at-root")]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(typeof(PagedViewModel<AllowedDocumentType>), StatusCodes.Status200OK)]
+    [EndpointSummary("Gets document types allowed at root.")]
+    [EndpointDescription("Gets a collection of document types that are allowed to be created at the root level.")]
+    public async Task<IActionResult> AllowedAtRoot(CancellationToken cancellationToken, int skip = 0, int take = 100)
+    {
+        PagedModel<IContentType> result = await _contentTypeService.GetAllAllowedAsRootAsync(skip, take);
+
+        List<AllowedDocumentType> viewModels = _umbracoMapper.MapEnumerable<IContentType, AllowedDocumentType>(result.Items);
+
+        var pagedViewModel = new PagedViewModel<AllowedDocumentType>
+        {
+            Total = result.Total,
+            Items = viewModels,
+        };
+
+        return Ok(pagedViewModel);
+    }
+}

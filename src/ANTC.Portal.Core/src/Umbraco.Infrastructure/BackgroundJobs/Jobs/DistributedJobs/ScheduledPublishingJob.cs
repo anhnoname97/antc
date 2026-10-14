@@ -1,0 +1,131 @@
+// Copyright (c) Umbraco.
+// See LICENSE for more details.
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Scoping;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Sync;
+using Umbraco.Cms.Core.Web;
+
+namespace Umbraco.Cms.Infrastructure.BackgroundJobs.Jobs.DistributedJobs;
+
+/// <summary>
+///     Hosted service implementation for scheduled publishing feature.
+/// </summary>
+/// <remarks>
+///     Runs only on non-replica servers.
+/// </remarks>
+internal class ScheduledPublishingJob : IDistributedBackgroundJob
+{
+    /// <inheritdoc />
+    public string Name => "ScheduledPublishingJob";
+
+    /// <inheritdoc />
+    public TimeSpan Period => _scheduledPublishingSettings.CurrentValue.Period;
+
+    /// <inheritdoc />
+    public bool AlignToClock => _scheduledPublishingSettings.CurrentValue.AlignToClock;
+
+
+    private readonly IContentService _contentService;
+    private readonly IElementService _elementService;
+    private readonly ILogger<ScheduledPublishingJob> _logger;
+    private readonly ICoreScopeProvider _scopeProvider;
+    private readonly TimeProvider _timeProvider;
+    private readonly IServerMessenger _serverMessenger;
+    private readonly IUmbracoContextFactory _umbracoContextFactory;
+    private readonly IOptionsMonitor<ScheduledPublishingSettings> _scheduledPublishingSettings;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ScheduledPublishingJob" /> class.
+    /// </summary>
+    public ScheduledPublishingJob(
+        IContentService contentService,
+        IElementService elementService,
+        IUmbracoContextFactory umbracoContextFactory,
+        ILogger<ScheduledPublishingJob> logger,
+        IServerMessenger serverMessenger,
+        ICoreScopeProvider scopeProvider,
+        TimeProvider timeProvider,
+        IOptionsMonitor<ScheduledPublishingSettings> scheduledPublishingSettings)
+    {
+        _contentService = contentService;
+        _elementService = elementService;
+        _umbracoContextFactory = umbracoContextFactory;
+        _logger = logger;
+        _serverMessenger = serverMessenger;
+        _scopeProvider = scopeProvider;
+        _timeProvider = timeProvider;
+        _scheduledPublishingSettings = scheduledPublishingSettings;
+    }
+
+    /// <inheritdoc />
+    public Task ExecuteAsync()
+    {
+        if (Suspendable.ScheduledPublishing.CanRun == false)
+        {
+            return Task.CompletedTask;
+        }
+
+        try
+        {
+            // Ensure we run with an UmbracoContext, because this will run in a background task,
+            // and developers may be using the UmbracoContext in the event handlers.
+
+            // TODO: or maybe not, CacheRefresherComponent already ensures a context when handling events
+            // - UmbracoContext 'current' needs to be refactored and cleaned up
+            // - batched messenger should not depend on a current HttpContext
+            //    but then what should be its "scope"? could we attach it to scopes?
+            // - and we should definitively *not* have to flush it here (should be auto)
+            using UmbracoContextReference contextReference = _umbracoContextFactory.EnsureUmbracoContext();
+            using ICoreScope scope = _scopeProvider.CreateCoreScope(autoComplete: true);
+
+            /* We used to assume that there will never be two instances running concurrently where (IsMainDom && ServerRole == SchedulingPublisher)
+             * However this is possible during an azure deployment slot swap for the SchedulingPublisher instance when trying to achieve zero downtime deployments.
+             * If we take a distributed write lock, we are certain that the multiple instances of the job will not run in parallel.
+             * It's possible that during the swapping process we may run this job more frequently than intended but this is not of great concern and it's
+             * only until the old SchedulingPublisher shuts down. */
+            scope.EagerWriteLock(Constants.Locks.ScheduledPublishing);
+            try
+            {
+                DateTime date = _timeProvider.GetUtcNow().UtcDateTime;
+
+                PerformScheduledPublish(_contentService, Constants.UdiEntityType.Document, date);
+                PerformScheduledPublish(_elementService, Constants.UdiEntityType.Element, date);
+            }
+            finally
+            {
+                // If running on a temp context, we have to flush the messenger
+                if (contextReference.IsRoot)
+                {
+                    _serverMessenger.SendMessages();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // important to catch *everything* to ensure the task repeats
+            _logger.LogError(ex, "Failed.");
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void PerformScheduledPublish<TContent>(IPublishableContentService<TContent> service, string entityType, DateTime date)
+        where TContent : class, IPublishableContentBase
+    {
+        IEnumerable<PublishResult> results = service.PerformScheduledPublish(date);
+        foreach (IGrouping<PublishResultType, PublishResult> grouped in results.GroupBy(x => x.Result))
+        {
+            _logger.LogInformation(
+                "Scheduled {EntityType} publishing result: '{StatusCount}' items with status {Status}",
+                entityType,
+                grouped.Count(),
+                grouped.Key);
+        }
+    }
+}

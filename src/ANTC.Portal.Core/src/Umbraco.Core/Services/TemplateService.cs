@@ -1,0 +1,579 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Notifications;
+using Umbraco.Cms.Core.Persistence.Repositories;
+using Umbraco.Cms.Core.Scoping;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Cms.Core.Strings;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Core.Services;
+
+/// <summary>
+///     Provides functionality for managing templates (Razor views) including CRUD operations and layout template relationships.
+/// </summary>
+public class TemplateService : RepositoryService, ITemplateService
+{
+    private readonly IShortStringHelper _shortStringHelper;
+    private readonly ITemplateRepository _templateRepository;
+    private readonly IAuditService _auditService;
+    private readonly ITemplateContentParserService _templateContentParserService;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="TemplateService" /> class.
+    /// </summary>
+    /// <param name="provider">The scope provider for unit of work operations.</param>
+    /// <param name="loggerFactory">The logger factory for creating loggers.</param>
+    /// <param name="eventMessagesFactory">The factory for creating event messages.</param>
+    /// <param name="shortStringHelper">The helper for short string operations.</param>
+    /// <param name="templateRepository">The repository for template data access.</param>
+    /// <param name="auditService">The audit service for recording audit entries.</param>
+    /// <param name="templateContentParserService">The service for parsing template content.</param>
+    public TemplateService(
+        ICoreScopeProvider provider,
+        ILoggerFactory loggerFactory,
+        IEventMessagesFactory eventMessagesFactory,
+        IShortStringHelper shortStringHelper,
+        ITemplateRepository templateRepository,
+        IAuditService auditService,
+        ITemplateContentParserService templateContentParserService)
+        : base(provider, loggerFactory, eventMessagesFactory)
+    {
+        _shortStringHelper = shortStringHelper;
+        _templateRepository = templateRepository;
+        _auditService = auditService;
+        _templateContentParserService = templateContentParserService;
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use the overload that includes name and alias parameters instead. Scheduled for removal in Umbraco 19.")]
+    public async Task<Attempt<ITemplate, TemplateOperationStatus>> CreateForContentTypeAsync(
+        string contentTypeAlias,
+        string? contentTypeName,
+        Guid userKey)
+    {
+        ITemplate template = new Template(
+            _shortStringHelper,
+            contentTypeName,
+            // NOTE: We are NOT passing in the content type alias here, we want to use it's name since we don't
+            // want to save template file names as camelCase, the Template ctor will clean the alias as
+            // `alias.ToCleanString(CleanStringType.UnderscoreAlias)` which has been the default.
+            // This fixes: http://issues.umbraco.org/issue/U4-7953
+            contentTypeName);
+
+        if (IsValidAlias(template.Alias) == false)
+        {
+            return Attempt.FailWithStatus(TemplateOperationStatus.InvalidAlias, template);
+        }
+
+        EventMessages eventMessages = EventMessagesFactory.Get();
+
+        // check that the template hasn't been created on disk before creating the content type
+        // if it exists, set the new template content to the existing file content
+        var content = GetViewContent(template.Alias);
+        if (content != null)
+        {
+            template.Content = content;
+        }
+
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope())
+        {
+            var savingEvent = new TemplateSavingNotification(template, eventMessages, true, contentTypeAlias!);
+            if (await scope.Notifications.PublishCancelableAsync(savingEvent))
+            {
+                scope.Complete();
+                return Attempt.FailWithStatus(TemplateOperationStatus.CancelledByNotification, template);
+            }
+
+            _templateRepository.Save(template);
+            scope.Notifications.Publish(
+                new TemplateSavedNotification(template, eventMessages).WithStateFrom(savingEvent));
+
+            await Audit(AuditType.New, userKey, template.Id, UmbracoObjectTypes.Template.GetName());
+            scope.Complete();
+        }
+
+        return Attempt.SucceedWithStatus(TemplateOperationStatus.Success, template);
+    }
+
+    /// <inheritdoc />
+    public async Task<Attempt<ITemplate?, TemplateOperationStatus>> CreateForContentTypeAsync(
+        string name,
+        string alias,
+        string contentTypeAlias,
+        Guid userKey)
+    {
+        ITemplate template =
+            new Template(_shortStringHelper, name, alias) { Key = Guid.CreateVersion7() };
+
+        Attempt<ITemplate, TemplateOperationStatus> result = await CreateAsync(template, userKey, contentTypeAlias);
+        return result.Success
+            ? Attempt.SucceedWithStatus<ITemplate?, TemplateOperationStatus>(result.Status, result.Result)
+            : Attempt<ITemplate?, TemplateOperationStatus>.Fail(result.Status);
+    }
+
+    /// <inheritdoc />
+    public async Task<Attempt<ITemplate, TemplateOperationStatus>> CreateAsync(
+        string name,
+        string alias,
+        string? content,
+        Guid userKey,
+        Guid? templateKey = null)
+        => await CreateAsync(new Template(_shortStringHelper, name, alias) { Content = content, Key = templateKey ?? Guid.NewGuid() }, userKey);
+
+    /// <inheritdoc />
+    public async Task<Attempt<ITemplate, TemplateOperationStatus>> CreateAsync(ITemplate template, Guid userKey)
+        => await CreateAsync(template, userKey, null);
+
+    /// <summary>
+    ///     Validates that a template can be created.
+    /// </summary>
+    /// <param name="templateToCreate">The template to validate.</param>
+    /// <returns>The operation status indicating the result of the validation.</returns>
+    private async Task<TemplateOperationStatus> ValidateCreateAsync(ITemplate templateToCreate)
+    {
+        ITemplate? existingTemplate = await GetAsync(templateToCreate.Alias);
+        if (existingTemplate is not null)
+        {
+            return TemplateOperationStatus.DuplicateAlias;
+        }
+
+        return TemplateOperationStatus.Success;
+    }
+
+    /// <inheritdoc />
+    public Task<IEnumerable<ITemplate>> GetAllAsync(params string[] aliases)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true))
+        {
+            return Task.FromResult<IEnumerable<ITemplate>>(_templateRepository.GetAll(aliases).OrderBy(x => x.Name));
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<IEnumerable<ITemplate>> GetAllAsync(params Guid[] keys)
+    {
+        using ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true);
+        IEnumerable<ITemplate> templates = _templateRepository.GetMany(keys);
+        return Task.FromResult(templates);
+    }
+
+    /// <inheritdoc />
+    public Task<IEnumerable<ITemplate>> GetChildrenAsync(int layoutTemplateId)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true))
+        {
+            return Task.FromResult<IEnumerable<ITemplate>>(_templateRepository.GetChildren(layoutTemplateId).OrderBy(x => x.Name));
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<ITemplate?> GetAsync(string? alias)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true))
+        {
+            return Task.FromResult(_templateRepository.Get(alias));
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<ITemplate?> GetAsync(int id)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true))
+        {
+            return Task.FromResult(_templateRepository.Get(id));
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<ITemplate?> GetAsync(Guid id)
+    {
+        using ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true);
+        ITemplate? template = _templateRepository.Get(id);
+        return Task.FromResult(template);
+    }
+
+    /// <inheritdoc />
+    public Task<IEnumerable<ITemplate>> GetDescendantsAsync(int layoutTemplateId)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true))
+        {
+            return Task.FromResult(_templateRepository.GetDescendants(layoutTemplateId));
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Attempt<ITemplate, TemplateOperationStatus>> UpdateAsync(ITemplate template, Guid userKey)
+        => await SaveAsync(
+            template,
+            AuditType.Save,
+            userKey,
+            () => ValidateUpdateAsync(template));
+
+    /// <summary>
+    ///     Validates that a template can be updated.
+    /// </summary>
+    /// <param name="templateToUpdate">The template to validate.</param>
+    /// <returns>The operation status indicating the result of the validation.</returns>
+    private async Task<TemplateOperationStatus> ValidateUpdateAsync(ITemplate templateToUpdate)
+    {
+        ITemplate? existingTemplate = await GetAsync(templateToUpdate.Alias);
+        if (existingTemplate is not null && existingTemplate.Key != templateToUpdate.Key)
+        {
+            return TemplateOperationStatus.DuplicateAlias;
+        }
+
+        if (_templateRepository.Exists(templateToUpdate.Id) is false)
+        {
+            return TemplateOperationStatus.TemplateNotFound;
+        }
+
+        return TemplateOperationStatus.Success;
+    }
+
+    /// <summary>
+    ///     Saves a template with validation and auditing.
+    /// </summary>
+    /// <param name="template">The template to save.</param>
+    /// <param name="auditType">The type of audit entry to create.</param>
+    /// <param name="userKey">The key of the user performing the operation.</param>
+    /// <param name="scopeValidatorAsync">An optional validation function to execute within the scope.</param>
+    /// <param name="contentTypeAlias">The optional content type alias for the saving notification.</param>
+    /// <returns>An attempt result containing the template and operation status.</returns>
+    private async Task<Attempt<ITemplate, TemplateOperationStatus>> SaveAsync(
+        ITemplate template,
+        AuditType auditType,
+        Guid userKey,
+        Func<Task<TemplateOperationStatus>>? scopeValidatorAsync = null,
+        string? contentTypeAlias = null)
+    {
+        if (IsValidAlias(template.Alias) == false)
+        {
+            return Attempt.FailWithStatus(TemplateOperationStatus.InvalidAlias, template);
+        }
+
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope())
+        {
+            TemplateOperationStatus scopeValidatorStatus = scopeValidatorAsync is not null
+                ? await scopeValidatorAsync()
+                : TemplateOperationStatus.Success;
+            if (scopeValidatorStatus != TemplateOperationStatus.Success)
+            {
+                return Attempt.FailWithStatus(scopeValidatorStatus, template);
+            }
+
+            var layoutTemplateAlias = _templateContentParserService.LayoutTemplateAlias(template.Content);
+            ITemplate? layoutTemplate = layoutTemplateAlias.IsNullOrWhiteSpace()
+                ? null
+                : await GetAsync(layoutTemplateAlias);
+
+            // fail if the template content specifies a layout template but said template does not exist
+            if (layoutTemplateAlias.IsNullOrWhiteSpace() == false && layoutTemplate == null)
+            {
+                return Attempt.FailWithStatus(TemplateOperationStatus.LayoutTemplateNotFound, template);
+            }
+
+            // detect circular references
+            if (layoutTemplateAlias is not null
+                && layoutTemplate is not null
+                && await HasCircularReference(layoutTemplateAlias, template, layoutTemplate))
+            {
+                return Attempt.FailWithStatus(TemplateOperationStatus.CircularLayoutTemplateReference, template);
+            }
+
+            await SetLayoutTemplateAsync(template, layoutTemplate, userKey);
+
+            EventMessages eventMessages = EventMessagesFactory.Get();
+            var savingNotification = new TemplateSavingNotification(
+                template,
+                eventMessages,
+                !contentTypeAlias.IsNullOrWhiteSpace(),
+                contentTypeAlias ?? string.Empty);
+            if (await scope.Notifications.PublishCancelableAsync(savingNotification))
+            {
+                scope.Complete();
+                return Attempt.FailWithStatus(TemplateOperationStatus.CancelledByNotification, template);
+            }
+
+            _templateRepository.Save(template);
+
+            scope.Notifications.Publish(
+                new TemplateSavedNotification(template, eventMessages).WithStateFrom(savingNotification));
+
+            await Audit(auditType, userKey, template.Id, UmbracoObjectTypes.Template.GetName());
+            scope.Complete();
+            return Attempt.SucceedWithStatus(TemplateOperationStatus.Success, template);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Attempt<ITemplate?, TemplateOperationStatus>> DeleteAsync(string alias, Guid userKey)
+        => await DeleteAsync(() => Task.FromResult(_templateRepository.Get(alias)), userKey);
+
+    /// <inheritdoc />
+    public async Task<Attempt<ITemplate?, TemplateOperationStatus>> DeleteAsync(Guid key, Guid userKey)
+        => await DeleteAsync(async () => await GetAsync(key), userKey);
+
+    /// <inheritdoc />
+    public Task<Stream> GetFileContentStreamAsync(string filepath)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true))
+        {
+            return Task.FromResult(_templateRepository.GetFileContentStream(filepath));
+        }
+    }
+
+    /// <inheritdoc />
+    public Task SetFileContentAsync(string filepath, Stream content)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope())
+        {
+            _templateRepository.SetFileContent(filepath, content);
+            scope.Complete();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task<long> GetFileSizeAsync(string filepath)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope(autoComplete: true))
+        {
+            return Task.FromResult(_templateRepository.GetFileSize(filepath));
+        }
+    }
+
+    /// <summary>
+    ///     Sets or removes the layout template for the specified template.
+    /// </summary>
+    /// <param name="template">The template to update.</param>
+    /// <param name="layoutTemplate">The layout template to set, or null to remove the layout template.</param>
+    /// <param name="userKey">The key of the user performing the operation.</param>
+    private async Task SetLayoutTemplateAsync(ITemplate template, ITemplate? layoutTemplate, Guid userKey)
+    {
+        if (template.LayoutTemplateAlias == layoutTemplate?.Alias)
+        {
+            return;
+        }
+
+        var concreteTemplate = (Template)template;
+
+        if (layoutTemplate != null)
+        {
+            if (layoutTemplate.Id == template.Id)
+            {
+                concreteTemplate.LayoutTemplateId = new Lazy<int>(() => -1);
+                concreteTemplate.LayoutTemplateAlias = null;
+            }
+            else
+            {
+                concreteTemplate.LayoutTemplateId = new Lazy<int>(() => layoutTemplate.Id);
+                concreteTemplate.LayoutTemplateAlias = layoutTemplate.Alias;
+
+                //After updating the layout - ensure we update the path property if it has any children already assigned
+                if (template.Id > 0)
+                {
+                    IEnumerable<ITemplate> templateHasChildren = await GetDescendantsAsync(template.Id);
+
+                    foreach (ITemplate childTemplate in templateHasChildren)
+                    {
+                        //template ID to find
+                        var templateIdInPath = "," + template.Id + ",";
+
+                        if (string.IsNullOrEmpty(childTemplate.Path))
+                        {
+                            continue;
+                        }
+
+                        //Find position in current comma separate string path (so we get the correct children path)
+                        var positionInPath = childTemplate.Path.IndexOf(templateIdInPath) + templateIdInPath.Length;
+
+                        //Get the substring of the child & any children (descendants it may have too)
+                        var childTemplatePath = childTemplate.Path.Substring(positionInPath);
+
+                        //As we are updating the template to be a child of a layout
+                        //Set the path to the layout's path + its current template id + the current child path substring
+                        childTemplate.Path = layoutTemplate.Path + "," + template.Id + "," + childTemplatePath;
+
+                        //Save the children with the updated path
+                        await UpdateAsync(childTemplate, userKey);
+                    }
+                }
+            }
+        }
+        else
+        {
+            //remove the layout
+            concreteTemplate.LayoutTemplateId = new Lazy<int>(() => -1);
+            concreteTemplate.LayoutTemplateAlias = null;
+        }
+    }
+
+    /// <summary>
+    ///     Gets the content of a view file from disk.
+    /// </summary>
+    /// <param name="fileName">The file name of the view.</param>
+    /// <returns>The content of the view file, or null if empty.</returns>
+    private string? GetViewContent(string? fileName)
+    {
+        if (fileName.IsNullOrWhiteSpace())
+        {
+            throw new ArgumentNullException(nameof(fileName));
+        }
+
+        if (!fileName!.EndsWith(".cshtml"))
+        {
+            fileName = $"{fileName}.cshtml";
+        }
+
+        Stream fs = _templateRepository.GetFileContentStream(fileName);
+
+        using (var view = new StreamReader(fs))
+        {
+            return view.ReadToEnd().Trim().NullOrWhiteSpaceAsNull();
+        }
+    }
+
+    /// <summary>
+    ///     Records an audit entry.
+    /// </summary>
+    /// <param name="type">The type of audit.</param>
+    /// <param name="userKey">The key of the user who performed the action.</param>
+    /// <param name="objectId">The ID of the object being audited.</param>
+    /// <param name="entityType">The type of entity being audited.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private Task Audit(AuditType type, Guid userKey, int objectId, string? entityType) =>
+        _auditService.AddAsync(type, userKey, objectId, entityType);
+
+    /// <summary>
+    ///     Creates a template with optional content type association.
+    /// </summary>
+    /// <param name="template">The template to create.</param>
+    /// <param name="userKey">The key of the user performing the operation.</param>
+    /// <param name="contentTypeAlias">The optional content type alias to associate with the template.</param>
+    /// <returns>An attempt result containing the template and operation status.</returns>
+    private async Task<Attempt<ITemplate, TemplateOperationStatus>> CreateAsync(ITemplate template, Guid userKey, string? contentTypeAlias)
+    {
+        if (IsValidAlias(template.Alias) is false)
+        {
+            return Attempt.FailWithStatus(TemplateOperationStatus.InvalidAlias, template);
+        }
+
+        try
+        {
+            // file might already be on disk, if so grab the content to avoid overwriting
+            template.Content = GetViewContent(template.Alias) ?? template.Content;
+            return await SaveAsync(template, AuditType.New, userKey, () => ValidateCreateAsync(template), contentTypeAlias);
+        }
+        catch (PathTooLongException ex)
+        {
+            LoggerFactory.CreateLogger<TemplateService>().LogError(ex, "The template path was too long. Consider making the template alias shorter.");
+            return Attempt.FailWithStatus(TemplateOperationStatus.InvalidAlias, template);
+        }
+    }
+
+    /// <summary>
+    ///     Deletes a template using a function to retrieve it.
+    /// </summary>
+    /// <param name="getTemplate">A function that retrieves the template to delete.</param>
+    /// <param name="userKey">The key of the user performing the operation.</param>
+    /// <returns>An attempt result containing the deleted template and operation status.</returns>
+    private async Task<Attempt<ITemplate?, TemplateOperationStatus>> DeleteAsync(Func<Task<ITemplate?>> getTemplate, Guid userKey)
+    {
+        using (ICoreScope scope = ScopeProvider.CreateCoreScope())
+        {
+            ITemplate? template = await getTemplate();
+            if (template == null)
+            {
+                scope.Complete();
+                return Attempt.FailWithStatus<ITemplate?, TemplateOperationStatus>(TemplateOperationStatus.TemplateNotFound, null);
+            }
+
+            if (template.IsLayoutTemplate)
+            {
+                scope.Complete();
+                return Attempt.FailWithStatus<ITemplate?, TemplateOperationStatus>(TemplateOperationStatus.LayoutTemplateCannotBeDeleted, null);
+            }
+
+            EventMessages eventMessages = EventMessagesFactory.Get();
+            var deletingNotification = new TemplateDeletingNotification(template, eventMessages);
+            if (scope.Notifications.PublishCancelable(deletingNotification))
+            {
+                scope.Complete();
+                return Attempt.FailWithStatus<ITemplate?, TemplateOperationStatus>(TemplateOperationStatus.CancelledByNotification, template);
+            }
+
+            _templateRepository.Delete(template);
+
+            scope.Notifications.Publish(
+                new TemplateDeletedNotification(template, eventMessages).WithStateFrom(deletingNotification));
+
+            await Audit(AuditType.Delete, userKey, template.Id, UmbracoObjectTypes.Template.GetName());
+            scope.Complete();
+            return Attempt.SucceedWithStatus<ITemplate?, TemplateOperationStatus>(TemplateOperationStatus.Success, template);
+        }
+    }
+
+    /// <summary>
+    ///     Determines whether the specified alias is valid.
+    /// </summary>
+    /// <param name="alias">The alias to validate.</param>
+    /// <returns><c>true</c> if the alias is valid; otherwise, <c>false</c>.</returns>
+    private static bool IsValidAlias(string alias)
+        => alias.IsNullOrWhiteSpace() == false && alias.Length <= 255;
+
+    /// <summary>
+    ///     Checks if setting the layout template would create a circular reference.
+    /// </summary>
+    /// <param name="parsedLayoutTemplateAlias">The parsed layout template alias from the template content.</param>
+    /// <param name="template">The template being updated.</param>
+    /// <param name="layoutTemplate">The proposed layout template.</param>
+    /// <returns><c>true</c> if a circular reference would be created; otherwise, <c>false</c>.</returns>
+    private async Task<bool> HasCircularReference(string parsedLayoutTemplateAlias, ITemplate template, ITemplate layoutTemplate)
+    {
+        // quick check without extra DB calls as we already have both templates
+        if (parsedLayoutTemplateAlias.IsNullOrWhiteSpace() is false
+            && layoutTemplate.LayoutTemplateAlias is not null
+            && layoutTemplate.LayoutTemplateAlias.Equals(template.Alias))
+        {
+            return true;
+        }
+
+        var processedTemplates = new List<ITemplate> { template, layoutTemplate };
+        return await HasRecursiveCircularReference(processedTemplates, layoutTemplate.LayoutTemplateAlias);
+    }
+
+    /// <summary>
+    ///     Recursively checks for circular references in the layout template chain.
+    /// </summary>
+    /// <param name="referencedTemplates">The list of templates already referenced in the chain.</param>
+    /// <param name="layoutTemplateAlias">The layout template alias to check.</param>
+    /// <returns><c>true</c> if a circular reference is detected; otherwise, <c>false</c>.</returns>
+    private async Task<bool> HasRecursiveCircularReference(List<ITemplate> referencedTemplates, string? layoutTemplateAlias)
+    {
+        if (layoutTemplateAlias is null)
+        {
+            return false;
+        }
+
+        if (referencedTemplates.Any(template => template.Alias.Equals(layoutTemplateAlias)))
+        {
+            return true;
+        }
+
+        ITemplate? layoutTemplate = await GetAsync(layoutTemplateAlias);
+        if (layoutTemplate is null)
+        {
+            // this should not happen unless somebody manipulated the data by hand as this function is only called between persisted items
+            return false;
+        }
+
+        referencedTemplates.Add(layoutTemplate);
+
+        return await HasRecursiveCircularReference(referencedTemplates, layoutTemplate.LayoutTemplateAlias);
+    }
+}

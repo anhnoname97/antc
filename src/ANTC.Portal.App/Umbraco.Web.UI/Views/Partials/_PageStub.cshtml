@@ -1,0 +1,16 @@
+@model (string Title, string Lead, string Tasks, string Images)
+@* Khoi giu cho cua mot trang chua dung. Xoa loi goi partial nay khi trang da duoc dung that. *@
+<section class="page-hero">
+    <div class="container">
+        <p class="eyebrow eyebrow--on-brand">Trang chưa dựng</p>
+        <h1>@Model.Title</h1>
+        <p>@Model.Lead</p>
+    </div>
+</section>
+<div class="container">
+    <div class="stub">
+        <p><b>Công việc dựng trang này:</b> @Model.Tasks</p>
+        <p><b>Ảnh tham chiếu:</b> @Model.Images (xem <code>docs/ke-hoach</code>)</p>
+        <p>Bản dựng gốc: <code>docs/ban-dung/antoantaichinh-ban-dung-thu.html</code></p>
+    </div>
+</div>

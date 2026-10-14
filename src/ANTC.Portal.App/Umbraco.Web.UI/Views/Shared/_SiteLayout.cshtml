@@ -1,0 +1,66 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Khung trang dung chung. Day la ban TAM de cac duong dan chay duoc ngay:
+    // FE1 dung lai theo ban dung trong task FE-02 (dai tren, header, footer) va FE-03 (menu mobile).
+    Layout = null;
+    var home = Model.Root();
+    var siteName = home?.Value<string>("siteName") ?? "antoantaichinh.vn";
+    var path = Context.Request.Path.Value ?? "/";
+    string Current(string prefix) => prefix == "/" ? (path == "/" ? "page" : "false") : (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? "page" : "false");
+}
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@(Model.Value<string>("seoTitle") is { Length: > 0 } t ? t : Model.Name) — @siteName</title>
+    <script>try { document.documentElement.dataset.fontScale = localStorage.getItem('at_font_scale') || '0' } catch (e) { }</script>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="~/assets/css/fonts.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/tokens.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/base.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/components.css" asp-append-version="true">
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body>
+    <a class="sr-only" href="#noi-dung">Bỏ qua, tới nội dung chính</a>
+    <div class="site-topbar">
+        <div class="container">
+            <span>
+                @if (home?.Value<bool>("showPreviewBanner") == true)
+                {
+                    <text><b>BẢN DỰNG THỬ</b> · chưa phải website đang hoạt động</text>
+                }
+            </span>
+            <button type="button" class="btn btn--outline btn--sm" data-font-toggle>A+ Chữ to</button>
+        </div>
+    </div>
+    <header class="site-header">
+        <div class="container">
+            <a class="site-logo" href="/">antoantaichinh<span>.vn</span></a>
+            <nav class="site-nav" aria-label="Năm phần của website">
+                <a href="/" aria-current="@Current("/")">Giới thiệu</a>
+                <a href="/ung-pho" aria-current="@Current("/ung-pho")">Ứng phó khẩn cấp</a>
+                <a href="/thu-doan" aria-current="@Current("/thu-doan")">Thủ đoạn</a>
+                <a href="/tham-gia" aria-current="@Current("/tham-gia")">Tham gia</a>
+                <a href="/hoi-dap" aria-current="@Current("/hoi-dap")">Hỏi – Đáp</a>
+            </nav>
+            <a class="btn btn--danger btn--sm" href="/ung-pho">Làm ngay</a>
+        </div>
+    </header>
+
+    <main id="noi-dung">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><b>@siteName</b></p>
+            <p>@(home?.Value<string>("footerText"))</p>
+        </div>
+    </footer>
+
+    <script type="module" src="~/assets/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

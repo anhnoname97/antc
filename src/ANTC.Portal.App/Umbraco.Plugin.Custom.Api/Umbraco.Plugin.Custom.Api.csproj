@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Umbraco.Plugin.Custom.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Umbraco.Cms" />
+    <ProjectReference Include="..\Umbraco.Plugin.Custom.Core\Umbraco.Plugin.Custom.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,1188 @@
+using System.Data;
+using System.Globalization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Mapping;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.PublishedCache;
+using Umbraco.Cms.Core.Scoping;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Core.Security;
+
+/// <summary>
+///     A custom user store that uses Umbraco member data.
+/// </summary>
+public class MemberUserStore : UmbracoUserStore<MemberIdentityUser, UmbracoIdentityRole>, IMemberUserStore
+{
+    /// <summary>
+    /// Represents the error code used to indicate that an identity operation was canceled by the user store.
+    /// </summary>
+    public const string CancelledIdentityErrorCode = "CancelledIdentityErrorUserStore";
+
+    private const string GenericIdentityErrorCode = "IdentityErrorUserStore";
+
+    private readonly IExternalLoginWithKeyService _externalLoginService;
+    private readonly IUmbracoMapper _mapper;
+    private readonly IMemberService _memberService;
+    private readonly ICoreScopeProvider _scopeProvider;
+    private readonly ITwoFactorLoginService _twoFactorLoginService;
+    private readonly IPublishedMemberCache _memberCache;
+    private readonly IExternalMemberService _externalMemberService;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="MemberUserStore" /> class for the members identity store
+    /// </summary>
+    /// <param name="memberService">The member service</param>
+    /// <param name="mapper">The mapper for properties</param>
+    /// <param name="scopeProvider">The scope provider</param>
+    /// <param name="describer">The error describer</param>
+    /// <param name="externalLoginService">The external login service</param>
+    /// <param name="twoFactorLoginService">The two factor login service</param>
+    /// <param name="memberCache">The published member cache for resolving member content.</param>
+    /// <param name="externalMemberService">The external member service for external-only members.</param>
+    public MemberUserStore(
+        IMemberService memberService,
+        IUmbracoMapper mapper,
+        ICoreScopeProvider scopeProvider,
+        IdentityErrorDescriber describer,
+        IExternalLoginWithKeyService externalLoginService,
+        ITwoFactorLoginService twoFactorLoginService,
+        IPublishedMemberCache memberCache,
+        IExternalMemberService externalMemberService)
+        : base(describer)
+    {
+        _memberService = memberService ?? throw new ArgumentNullException(nameof(memberService));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _scopeProvider = scopeProvider ?? throw new ArgumentNullException(nameof(scopeProvider));
+        _externalLoginService = externalLoginService;
+        _twoFactorLoginService = twoFactorLoginService;
+        _memberCache = memberCache;
+        _externalMemberService = externalMemberService ?? throw new ArgumentNullException(nameof(externalMemberService));
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="MemberUserStore" /> class for the members identity store
+    /// </summary>
+    /// <param name="memberService">The member service</param>
+    /// <param name="mapper">The mapper for properties</param>
+    /// <param name="scopeProvider">The scope provider</param>
+    /// <param name="describer">The error describer</param>
+    /// <param name="externalLoginService">The external login service</param>
+    /// <param name="twoFactorLoginService">The two factor login service</param>
+    /// <param name="memberCache">The published member cache for resolving member content.</param>
+    [Obsolete("Please use the constructor with all parameters. Scheduled for removal in Umbraco 19.")]
+    public MemberUserStore(
+        IMemberService memberService,
+        IUmbracoMapper mapper,
+        ICoreScopeProvider scopeProvider,
+        IdentityErrorDescriber describer,
+        IExternalLoginWithKeyService externalLoginService,
+        ITwoFactorLoginService twoFactorLoginService,
+        IPublishedMemberCache memberCache)
+        : this(
+            memberService,
+            mapper,
+            scopeProvider,
+            describer,
+            externalLoginService,
+            twoFactorLoginService,
+            memberCache,
+            StaticServiceProvider.Instance.GetRequiredService<IExternalMemberService>())
+    {
+    }
+
+    /// <inheritdoc />
+    public override async Task<IdentityResult> CreateAsync(
+        MemberIdentityUser user,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            ArgumentNullException.ThrowIfNull(user);
+
+            // External-only members are stored in the lightweight umbracoExternalMember table,
+            // bypassing the content system entirely (no umbracoNode, cmsContent, or property data).
+            if (user.IsExternalOnly)
+            {
+                return await CreateExternalMemberAsync(user);
+            }
+
+            // Create the in-memory member entity before opening the write scope.
+            // CreateMember only does a member type lookup (in its own read-only scope) and
+            // builds the entity in memory — keeping it outside the write scope avoids holding
+            // table locks that conflict with concurrent write transactions on SQLite.
+            IMember memberEntity = _memberService.CreateMember(
+                user.UserName!,
+                user.Email!,
+                user.Name.IsNullOrWhiteSpace() ? user.UserName! : user.Name!,
+                user.MemberTypeAlias.IsNullOrWhiteSpace()
+                    ? Constants.Security.DefaultMemberTypeAlias
+                    : user.MemberTypeAlias!);
+
+            if (user.Key != Guid.Empty)
+            {
+                // at the time of writing, the memberEntity identity is not set until the member is saved. as we rely on
+                // that behavior when setting an explicit key, we need to know immediately if it changes. integration tests
+                // will detect this change of behavior.
+                if (memberEntity.HasIdentity)
+                {
+                    return IdentityResult.Failed(new IdentityError
+                    {
+                        Code = GenericIdentityErrorCode,
+                        Description = "Cannot assign a new key to a member that already has identity."
+                    });
+                }
+
+                memberEntity.Key = user.Key;
+            }
+
+            UpdateMemberProperties(memberEntity, user, out bool _);
+
+            using ICoreScope scope = _scopeProvider.CreateCoreScope();
+
+            // save the member
+            Attempt<OperationResult?> saveAttempt = _memberService.Save(memberEntity, PublishNotificationSaveOptions.Saving);
+            if (saveAttempt.Success is false)
+            {
+                scope.Complete();
+                return IdentityResult.Failed(
+                    new IdentityError
+                    {
+                        Code = CancelledIdentityErrorCode,
+                        Description = string.Empty
+
+                    });
+            }
+
+            // We need to add roles now that the member has an Id. It do not work implicit in UpdateMemberProperties
+            _memberService.AssignRoles(
+                new[] { memberEntity.Id },
+                user.Roles.Select(x => x.RoleId).Where(x => x is not null).ToArray());
+
+            if (!memberEntity.HasIdentity)
+            {
+                throw new DataException("Could not create the member, check logs for details");
+            }
+
+            // re-assign id
+            user.Id = UserIdToString(memberEntity.Id);
+            user.Key = memberEntity.Key;
+
+            // we have to remember whether Logins property is dirty, since the UpdateMemberProperties will reset it.
+            var isLoginsPropertyDirty = user.IsPropertyDirty(nameof(MemberIdentityUser.Logins));
+            var isTokensPropertyDirty = user.IsPropertyDirty(nameof(MemberIdentityUser.LoginTokens));
+
+            if (isLoginsPropertyDirty)
+            {
+                _externalLoginService.Save(
+                    memberEntity.Key,
+                    user.Logins.Select(x => new ExternalLogin(
+                        x.LoginProvider,
+                        x.ProviderKey,
+                        x.UserData)));
+            }
+
+            if (isTokensPropertyDirty)
+            {
+                _externalLoginService.Save(
+                    memberEntity.Key,
+                    user.LoginTokens.Select(x => new ExternalLoginToken(
+                        x.LoginProvider,
+                        x.Name,
+                        x.Value)));
+            }
+
+            scope.Complete();
+            return IdentityResult.Success;
+        }
+        catch (Exception ex)
+        {
+            return IdentityResult.Failed(new IdentityError { Code = GenericIdentityErrorCode, Description = ex.Message });
+        }
+    }
+
+    /// <inheritdoc />
+    public override async Task<IdentityResult> UpdateAsync(
+        MemberIdentityUser user,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            ArgumentNullException.ThrowIfNull(user);
+
+            // External-only members are stored in the lightweight umbracoExternalMember table,
+            // bypassing the content system entirely (no umbracoNode, cmsContent, or property data).
+            if (user.IsExternalOnly)
+            {
+                return await UpdateExternalMemberAsync(user);
+            }
+
+            if (!int.TryParse(user.Id, NumberStyles.Integer, CultureInfo.InvariantCulture, out var asInt))
+            {
+                // TODO: should this be thrown, or an identity result?
+                throw new InvalidOperationException("The user id must be an integer to work with the Umbraco");
+            }
+
+            using ICoreScope scope = _scopeProvider.CreateCoreScope();
+
+            IMember? found = _memberService.GetById(asInt);
+            if (found != null)
+            {
+                // we have to remember whether Logins property is dirty, since the UpdateMemberProperties will reset it.
+                var isLoginsPropertyDirty = user.IsPropertyDirty(nameof(MemberIdentityUser.Logins));
+                var isTokensPropertyDirty = user.IsPropertyDirty(nameof(MemberIdentityUser.LoginTokens));
+
+                IReadOnlyList<string> propertiesUpdated = UpdateMemberProperties(found, user, out var updateRoles);
+
+                if (propertiesUpdated.Count > 0)
+                {
+                    // As part of logging in members we update the last login date, and, if concurrent logins are disabled, the security stamp.
+                    // If and only if we are updating these properties, we can avoid the overhead of a full save of the member with the associated
+                    // locking, property updates, tag handling etc., and make a more efficient update.
+                    if (UpdatingOnlyLoginProperties(propertiesUpdated))
+                    {
+                        await _memberService.UpdateLoginPropertiesAsync(found);
+                    }
+                    else
+                    {
+                        _memberService.Save(found);
+                    }
+
+                    if (updateRoles)
+                    {
+                        var identityUserRoles = user.Roles.Select(x => x.RoleId).ToArray();
+                        _memberService.ReplaceRoles(new[] { found.Id }, identityUserRoles);
+                    }
+                }
+
+                if (isLoginsPropertyDirty)
+                {
+                    _externalLoginService.Save(
+                        found.Key,
+                        user.Logins.Select(x => new ExternalLogin(
+                            x.LoginProvider,
+                            x.ProviderKey,
+                            x.UserData)));
+                }
+
+                if (isTokensPropertyDirty)
+                {
+                    _externalLoginService.Save(
+                        found.Key,
+                        user.LoginTokens.Select(x => new ExternalLoginToken(
+                            x.LoginProvider,
+                            x.Name,
+                            x.Value)));
+                }
+            }
+
+            scope.Complete();
+            return IdentityResult.Success;
+        }
+        catch (Exception ex)
+        {
+            return IdentityResult.Failed(new IdentityError { Code = GenericIdentityErrorCode, Description = ex.Message });
+        }
+    }
+
+    private static bool UpdatingOnlyLoginProperties(IReadOnlyList<string> propertiesUpdated)
+    {
+        string[] loginPropertyUpdates = [nameof(MemberIdentityUser.LastLoginDate), nameof(MemberIdentityUser.SecurityStamp)];
+        return (propertiesUpdated.Count == 2 && propertiesUpdated.ContainsAll(loginPropertyUpdates)) ||
+               (propertiesUpdated.Count == 1 && propertiesUpdated.ContainsAny(loginPropertyUpdates));
+    }
+
+    /// <inheritdoc />
+    public override async Task<IdentityResult> DeleteAsync(
+        MemberIdentityUser user,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            ArgumentNullException.ThrowIfNull(user);
+
+            // External-only members are stored in the lightweight umbracoExternalMember table,
+            // bypassing the content system entirely (no umbracoNode, cmsContent, or property data).
+            if (user.IsExternalOnly)
+            {
+                return await DeleteExternalMemberAsync(user);
+            }
+
+            IMember? found = _memberService.GetById(user.Key);
+            if (found != null)
+            {
+                _memberService.Delete(found);
+            }
+
+            _externalLoginService.DeleteUserLogins(user.Key);
+
+            return IdentityResult.Success;
+        }
+        catch (Exception ex)
+        {
+            return IdentityResult.Failed(new IdentityError { Code = GenericIdentityErrorCode, Description = ex.Message });
+        }
+    }
+
+    /// <inheritdoc />
+    public override Task<MemberIdentityUser?> FindByNameAsync(string userName, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+        IMember? user = _memberService.GetByUsername(userName);
+        if (user == null)
+        {
+            // Check external member store
+            ExternalMemberIdentity? externalMember = _externalMemberService.GetByUsernameAsync(userName).GetAwaiter().GetResult();
+            if (externalMember is not null)
+            {
+                return Task.FromResult<MemberIdentityUser?>(AssignLoginsCallback(MapExternalMemberToIdentityUser(externalMember)));
+            }
+
+            return Task.FromResult<MemberIdentityUser?>(null);
+        }
+
+        MemberIdentityUser? result = AssignLoginsCallback(_mapper.Map<MemberIdentityUser>(user))!;
+
+        return Task.FromResult<MemberIdentityUser?>(result);
+    }
+
+    /// <summary>
+    /// Retrieves the published member content associated with the specified <see cref="MemberIdentityUser"/>.
+    /// </summary>
+    /// <param name="user">The member identity user whose published member content is to be retrieved. If <c>null</c>, the method returns <c>null</c>.</param>
+    /// <returns>
+    /// The <see cref="IPublishedContent"/> representing the published member content if found; otherwise, <c>null</c>.
+    /// </returns>
+    public IPublishedContent? GetPublishedMember(MemberIdentityUser? user)
+    {
+        if (user is null)
+        {
+            return null;
+        }
+
+        if (user.IsExternalOnly)
+        {
+            ExternalMemberIdentity? external = _externalMemberService.GetByKeyAsync(user.Key)
+                .GetAwaiter().GetResult();
+            return external is not null ? new PublishedExternalMember(external) : null;
+        }
+
+        IMember? member = _memberService.GetById(user.Key);
+        if (member is null)
+        {
+            return null;
+        }
+
+        return _memberCache.Get(member);
+    }
+
+    /// <inheritdoc />
+    public override Task<MemberIdentityUser?> FindByEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+        IMember? member = _memberService.GetByEmail(email);
+        if (member == null)
+        {
+            // Check external member store
+            ExternalMemberIdentity? externalMember = _externalMemberService.GetByEmailAsync(email).GetAwaiter().GetResult();
+            if (externalMember is not null)
+            {
+                return Task.FromResult(AssignLoginsCallback(MapExternalMemberToIdentityUser(externalMember)));
+            }
+
+            return Task.FromResult<MemberIdentityUser?>(null);
+        }
+
+        MemberIdentityUser? result = _mapper.Map<MemberIdentityUser>(member);
+        return Task.FromResult(AssignLoginsCallback(result));
+    }
+
+    /// <inheritdoc />
+    protected override Task<MemberIdentityUser?> FindUserAsync(string userId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            throw new ArgumentNullException(nameof(userId));
+        }
+
+        IMember? user = null;
+        if (Guid.TryParse(userId, out Guid key))
+        {
+            user = _memberService.GetById(key);
+        }
+        else if (TryResolveEntityIdFromIdentityId(userId, out int id))
+        {
+            user = _memberService.GetById(id);
+        }
+
+        if (user == null)
+        {
+            // Check external member store — userId is the Guid key as a string for external members.
+            ExternalMemberIdentity? externalMember = null;
+            if (Guid.TryParse(userId, out Guid externalKey))
+            {
+                externalMember = _externalMemberService.GetByKeyAsync(externalKey).GetAwaiter().GetResult();
+            }
+
+            if (externalMember is not null)
+            {
+                return Task.FromResult(AssignLoginsCallback(MapExternalMemberToIdentityUser(externalMember)))!;
+            }
+
+            return Task.FromResult((MemberIdentityUser)null!)!;
+        }
+
+        return Task.FromResult(AssignLoginsCallback(_mapper.Map<MemberIdentityUser>(user)))!;
+    }
+
+    private bool TryResolveEntityIdFromIdentityId(string? identityId, out int entityId)
+    {
+        if (TryConvertIdentityIdToInt(identityId, out entityId))
+        {
+            return true;
+        }
+
+        if (Guid.TryParse(identityId, out Guid key))
+        {
+            IMember? member = _memberService.GetById(key);
+            if (member is not null)
+            {
+                entityId = member.Id;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc/>
+    protected override Task<int> ResolveEntityIdFromIdentityId(string? identityId)
+    {
+        if (TryResolveEntityIdFromIdentityId(identityId, out var entityId))
+        {
+            return Task.FromResult(entityId);
+        }
+
+        throw new InvalidOperationException($"Unable to resolve user with ID {identityId}");
+    }
+
+    /// <inheritdoc />
+    public override Task AddLoginAsync(
+        MemberIdentityUser user,
+        UserLoginInfo login,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+        if (user == null)
+        {
+            throw new ArgumentNullException(nameof(user));
+        }
+
+        if (login == null)
+        {
+            throw new ArgumentNullException(nameof(login));
+        }
+
+        if (string.IsNullOrWhiteSpace(login.LoginProvider))
+        {
+            throw new ArgumentNullException(nameof(login.LoginProvider));
+        }
+
+        if (string.IsNullOrWhiteSpace(login.ProviderKey))
+        {
+            throw new ArgumentNullException(nameof(login.ProviderKey));
+        }
+
+        ICollection<IIdentityUserLogin> logins = user.Logins;
+        if (user.Id is not null)
+        {
+            var instance = new IdentityUserLogin(
+                login.LoginProvider,
+                login.ProviderKey,
+                user.Id);
+
+            IdentityUserLogin userLogin = instance;
+            logins.Add(userLogin);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public override Task RemoveLoginAsync(
+        MemberIdentityUser user,
+        string loginProvider,
+        string providerKey,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+        if (user == null)
+        {
+            throw new ArgumentNullException(nameof(user));
+        }
+
+        if (string.IsNullOrWhiteSpace(loginProvider))
+        {
+            throw new ArgumentNullException(nameof(loginProvider));
+        }
+
+        if (string.IsNullOrWhiteSpace(providerKey))
+        {
+            throw new ArgumentNullException(nameof(providerKey));
+        }
+
+        IIdentityUserLogin? userLogin =
+            user.Logins.SingleOrDefault(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
+        if (userLogin != null)
+        {
+            user.Logins.Remove(userLogin);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public override Task<IList<UserLoginInfo>> GetLoginsAsync(
+        MemberIdentityUser user,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+        if (user == null)
+        {
+            throw new ArgumentNullException(nameof(user));
+        }
+
+        return Task.FromResult((IList<UserLoginInfo>)user.Logins
+            .Select(l => new UserLoginInfo(l.LoginProvider, l.ProviderKey, l.LoginProvider)).ToList());
+    }
+
+    /// <summary>
+    ///     Gets a list of role names that the specified user belongs to.
+    /// </summary>
+    /// <remarks>
+    ///     This method lazy loads the roles for the member.
+    /// </remarks>
+    /// <param name="user">The user whose roles are to be retrieved.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the list of role names the user belongs to.</returns>
+    public override Task<IList<string>> GetRolesAsync(
+        MemberIdentityUser user,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureRoles(user);
+        return base.GetRolesAsync(user, cancellationToken);
+    }
+
+    /// <summary>
+    ///     Determines whether the specified user is a member of the given role.
+    /// </summary>
+    /// <param name="user">The user to check.</param>
+    /// <param name="roleName">The name of the role to check.</param>
+    /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <returns>True if the user is in the specified role; otherwise, false.</returns>
+    public override Task<bool> IsInRoleAsync(
+        MemberIdentityUser user,
+        string roleName,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureRoles(user);
+
+        return base.IsInRoleAsync(user, roleName, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    protected override async Task<IdentityUserLogin<string>?> FindUserLoginAsync(string userId, string loginProvider, string providerKey, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+
+        if (string.IsNullOrWhiteSpace(loginProvider))
+        {
+            throw new ArgumentNullException(nameof(loginProvider));
+        }
+
+        if (string.IsNullOrWhiteSpace(providerKey))
+        {
+            throw new ArgumentNullException(nameof(providerKey));
+        }
+
+        MemberIdentityUser? user = await FindUserAsync(userId, cancellationToken);
+        if (user?.Id is null)
+        {
+            return null;
+        }
+
+        IList<UserLoginInfo> logins = await GetLoginsAsync(user, cancellationToken);
+        UserLoginInfo? found = logins.FirstOrDefault(x => x.ProviderKey == providerKey && x.LoginProvider == loginProvider);
+        if (found is null)
+        {
+            return null;
+        }
+
+        return new IdentityUserLogin<string>
+        {
+            LoginProvider = found.LoginProvider,
+            ProviderKey = found.ProviderKey,
+            // TODO: We don't store this value so it will be null
+            ProviderDisplayName = found.ProviderDisplayName,
+            UserId = user.Id
+        };
+    }
+
+    /// <inheritdoc />
+    protected override Task<IdentityUserLogin<string>?> FindUserLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+
+        if (string.IsNullOrWhiteSpace(loginProvider))
+        {
+            throw new ArgumentNullException(nameof(loginProvider));
+        }
+
+        if (string.IsNullOrWhiteSpace(providerKey))
+        {
+            throw new ArgumentNullException(nameof(providerKey));
+        }
+
+        var logins = _externalLoginService.Find(loginProvider, providerKey).ToList();
+        if (logins.Count == 0)
+        {
+            return Task.FromResult<IdentityUserLogin<string>?>(null);
+        }
+
+        IIdentityUserLogin found = logins[0];
+        return Task.FromResult<IdentityUserLogin<string>?>(new IdentityUserLogin<string>
+        {
+            LoginProvider = found.LoginProvider,
+            ProviderKey = found.ProviderKey,
+
+            // TODO: We don't store this value so it will be null
+            ProviderDisplayName = null,
+            UserId = found.UserId,
+        });
+    }
+
+    private void EnsureRoles(MemberIdentityUser user)
+    {
+        if (user.Roles.Count == 0)
+        {
+            // if there are no roles, they either haven't been loaded since we don't eagerly
+            // load for members, or they just have no roles.
+            IEnumerable<string> currentRoles;
+            if (user.IsExternalOnly)
+            {
+                currentRoles = _externalMemberService.GetRolesAsync(user.Key).GetAwaiter().GetResult();
+            }
+            else
+            {
+                currentRoles = _memberService.GetAllRoles(user.UserName!);
+            }
+
+            ICollection<IdentityUserRole<string>> roles = currentRoles
+                .Select(role => new IdentityUserRole<string> { RoleId = role, UserId = user.Id }).ToList();
+
+            user.Roles = roles;
+        }
+    }
+
+    /// <summary>
+    ///     Asynchronously retrieves all users assigned to the specified role as <see cref="MemberIdentityUser"/> objects.
+    /// </summary>
+    /// <param name="roleName">The name of the role to list users for.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see cref="MemberIdentityUser"/> instances in the specified role.</returns>
+    public override Task<IList<MemberIdentityUser>> GetUsersInRoleAsync(
+        string roleName,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            throw new ArgumentNullException(nameof(roleName));
+        }
+
+        IEnumerable<IMember> members = _memberService.GetMembersByMemberType(roleName);
+
+        IList<MemberIdentityUser> membersIdentityUsers =
+            members.Select(x => _mapper.Map<MemberIdentityUser>(x)!).ToList();
+
+        return Task.FromResult(membersIdentityUsers);
+    }
+
+    /// <summary>
+    ///     Overridden to support Umbraco's own data storage requirements
+    /// </summary>
+    /// <remarks>
+    ///     The base class's implementation of this calls into FindTokenAsync and AddUserTokenAsync, both methods will only
+    ///     work with ORMs that are change
+    ///     tracking ORMs like EFCore.
+    /// </remarks>
+    /// <inheritdoc />
+    public override Task SetTokenAsync(MemberIdentityUser user, string loginProvider, string name, string? value, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+
+        if (user == null)
+        {
+            throw new ArgumentNullException(nameof(user));
+        }
+
+        IIdentityUserToken? token = user.LoginTokens.FirstOrDefault(x =>
+            x.LoginProvider.InvariantEquals(loginProvider) && x.Name.InvariantEquals(name));
+
+        // We have to remove token and then re-add to ensure that LoginTokens are dirty, which is required for them to save
+        // This is because we're using an observable collection, which only cares about added/removed items.
+        if (token is not null)
+        {
+            // The token hasn't changed, so there's no reason for us to re-add it.
+            if (token.Value == value)
+            {
+                return Task.CompletedTask;
+            }
+
+            user.LoginTokens.Remove(token);
+        }
+
+        user.LoginTokens.Add(new IdentityUserToken(loginProvider, name, value, user.Id));
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Overridden to support Umbraco's own data storage requirements
+    /// </summary>
+    /// <remarks>
+    ///     The base class's implementation of this calls into FindTokenAsync, RemoveUserTokenAsync and AddUserTokenAsync, both
+    ///     methods will only work with ORMs that are change
+    ///     tracking ORMs like EFCore.
+    /// </remarks>
+    /// <inheritdoc />
+    public override Task<string?> GetTokenAsync(
+        MemberIdentityUser user,
+        string loginProvider,
+        string name,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+
+        if (user == null)
+        {
+            throw new ArgumentNullException(nameof(user));
+        }
+
+        IIdentityUserToken? token = user.LoginTokens.FirstOrDefault(x =>
+            x.LoginProvider.InvariantEquals(loginProvider) && x.Name.InvariantEquals(name));
+
+        return Task.FromResult(token?.Value);
+    }
+
+    /// <inheritdoc />
+    protected override Task<UmbracoIdentityRole?> FindRoleAsync(string roleName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            throw new ArgumentNullException(nameof(roleName));
+        }
+
+        IMemberGroup? group = _memberService.GetAllRoles().SingleOrDefault(x => x.Name == roleName);
+        if (group?.Name is null)
+        {
+            return Task.FromResult<UmbracoIdentityRole?>(null);
+        }
+
+        return Task.FromResult<UmbracoIdentityRole?>(new UmbracoIdentityRole(group.Name)
+        {
+            // TODO: what should the alias be?
+            Id = group.Id.ToString(),
+        });
+    }
+
+    /// <inheritdoc />
+    protected override async Task<IdentityUserRole<string>?> FindUserRoleAsync(
+        string userId,
+        string roleId,
+        CancellationToken cancellationToken)
+    {
+        MemberIdentityUser? user = await FindUserAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            return null;
+        }
+
+        IdentityUserRole<string>? found = user.Roles.FirstOrDefault(x => x.RoleId.InvariantEquals(roleId));
+        return found;
+    }
+
+    private MemberIdentityUser? AssignLoginsCallback(MemberIdentityUser? user)
+    {
+        if (user is not null)
+        {
+            user.SetLoginsCallback(new Lazy<IEnumerable<IIdentityUserLogin>?>(() => _externalLoginService.GetExternalLogins(user.Key)));
+            user.SetTokensCallback(new Lazy<IEnumerable<IIdentityUserToken>?>(() => _externalLoginService.GetExternalLoginTokens(user.Key)));
+        }
+
+        return user;
+    }
+
+    private async Task<IdentityResult> CreateExternalMemberAsync(MemberIdentityUser user)
+    {
+        var externalIdentity = new ExternalMemberIdentity
+        {
+            Key = user.Key != Guid.Empty ? user.Key : Guid.NewGuid(),
+            Email = user.Email!,
+            UserName = user.UserName!,
+            Name = user.Name,
+            IsApproved = user.IsApproved,
+            SecurityStamp = user.SecurityStamp,
+            ProfileData = user.ProfileData,
+            CreateDate = DateTime.UtcNow,
+        };
+
+        // Build the external login upfront so it can be saved in the same transaction
+        // as the member creation, reducing database write-lock contention.
+        IExternalLogin? externalLogin = user.Logins
+            .Select(x => new ExternalLogin(x.LoginProvider, x.ProviderKey, x.UserData))
+            .FirstOrDefault();
+
+        Attempt<ExternalMemberIdentity, ExternalMemberOperationStatus> result =
+            await _externalMemberService.CreateAsync(externalIdentity, externalLogin);
+
+        if (result.Success is false)
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = result.Status == ExternalMemberOperationStatus.CancelledByNotification
+                    ? CancelledIdentityErrorCode
+                    : GenericIdentityErrorCode,
+                Description = result.Status.ToString(),
+            });
+        }
+
+        // Use the Guid key as the user ID for external members so that FindUserAsync
+        // can resolve them via Guid.TryParse → GetByKeyAsync. Content members use int IDs,
+        // but external members don't have content node IDs.
+        user.Id = result.Result.Key.ToString();
+        user.Key = result.Result.Key;
+
+        // Handle roles.
+        var roles = user.Roles.Select(x => x.RoleId).Where(x => x is not null).ToArray();
+        if (roles.Length > 0)
+        {
+            await _externalMemberService.AssignRolesAsync(result.Result.Key, roles);
+        }
+
+        // Save any additional logins beyond the first (which was batched with create above).
+        if (user.IsPropertyDirty(nameof(MemberIdentityUser.Logins)) && user.Logins.Count > 1)
+        {
+            _externalLoginService.Save(
+                result.Result.Key,
+                user.Logins.Select(x => new ExternalLogin(
+                    x.LoginProvider,
+                    x.ProviderKey,
+                    x.UserData)));
+        }
+
+        if (user.IsPropertyDirty(nameof(MemberIdentityUser.LoginTokens)))
+        {
+            _externalLoginService.Save(
+                result.Result.Key,
+                user.LoginTokens.Select(x => new ExternalLoginToken(
+                    x.LoginProvider,
+                    x.Name,
+                    x.Value)));
+        }
+
+        return IdentityResult.Success;
+    }
+
+    private async Task<IdentityResult> UpdateExternalMemberAsync(MemberIdentityUser user)
+    {
+        var isLoginsPropertyDirty = user.IsPropertyDirty(nameof(MemberIdentityUser.Logins));
+        var isTokensPropertyDirty = user.IsPropertyDirty(nameof(MemberIdentityUser.LoginTokens));
+
+        // Detect login-only updates — on the OIDC callback we typically only set LastLoginDate
+        // (and SecurityStamp when concurrent logins are disabled). In that case we route to the
+        // lightweight UpdateLoginPropertiesAsync which issues a targeted SQL UPDATE and lets the
+        // downstream indexing handler skip re-indexing when nothing indexable changed.
+        if (IsUpdatingOnlyLoginProperties(user))
+        {
+            var loginIdentity = new ExternalMemberIdentity
+            {
+                Key = user.Key,
+                LastLoginDate = user.LastLoginDate,
+                SecurityStamp = user.SecurityStamp,
+            };
+
+            ExternalMemberIdentity? existingForLogin = await _externalMemberService.GetByKeyAsync(user.Key);
+            if (existingForLogin is not null)
+            {
+                loginIdentity.Id = existingForLogin.Id;
+            }
+
+            await _externalMemberService.UpdateLoginPropertiesAsync(loginIdentity);
+        }
+        else
+        {
+            // Full update — covers ProfileData changes from OnExternalLogin callbacks, role updates,
+            // email/username changes etc.
+            var externalIdentity = new ExternalMemberIdentity
+            {
+                Key = user.Key,
+                Email = user.Email!,
+                UserName = user.UserName!,
+                Name = user.Name,
+                IsApproved = user.IsApproved,
+                IsLockedOut = user.LockoutEnd.HasValue && user.LockoutEnd.Value >= DateTimeOffset.UtcNow,
+                LastLoginDate = user.LastLoginDate,
+                LastLockoutDate = user.LastLockoutDate,
+                CreateDate = user.CreatedDate,
+                SecurityStamp = user.SecurityStamp,
+                ProfileData = user.ProfileData,
+            };
+
+            // Resolve the int Id and CreateDate from the stored record — MemberIdentityUser
+            // doesn't carry the int Id (it uses Guid key as Id) and CreateDate may not be set.
+            ExternalMemberIdentity? existing = await _externalMemberService.GetByKeyAsync(user.Key);
+            if (existing is not null)
+            {
+                externalIdentity.Id = existing.Id;
+                if (externalIdentity.CreateDate == default)
+                {
+                    externalIdentity.CreateDate = existing.CreateDate;
+                }
+            }
+
+            await _externalMemberService.UpdateAsync(externalIdentity);
+        }
+
+        if (isLoginsPropertyDirty)
+        {
+            _externalLoginService.Save(
+                user.Key,
+                user.Logins.Select(x => new ExternalLogin(
+                    x.LoginProvider,
+                    x.ProviderKey,
+                    x.UserData)));
+        }
+
+        if (isTokensPropertyDirty)
+        {
+            _externalLoginService.Save(
+                user.Key,
+                user.LoginTokens.Select(x => new ExternalLoginToken(
+                    x.LoginProvider,
+                    x.Name,
+                    x.Value)));
+        }
+
+        return IdentityResult.Success;
+    }
+
+    private static bool IsUpdatingOnlyLoginProperties(MemberIdentityUser user)
+    {
+        // Only consider a login-only update if at least LastLoginDate or SecurityStamp is dirty,
+        // and none of the other tracked fields that would require a full update are dirty.
+        bool hasLoginChange = user.IsPropertyDirty(nameof(MemberIdentityUser.LastLoginDate))
+            || user.IsPropertyDirty(nameof(MemberIdentityUser.SecurityStamp));
+        if (hasLoginChange is false)
+        {
+            return false;
+        }
+
+        string[] disqualifyingProperties =
+        [
+            nameof(MemberIdentityUser.Email),
+            nameof(MemberIdentityUser.UserName),
+            nameof(MemberIdentityUser.Name),
+            nameof(MemberIdentityUser.IsApproved),
+            nameof(MemberIdentityUser.LockoutEnd),
+            nameof(MemberIdentityUser.LastLockoutDate),
+            nameof(MemberIdentityUser.ProfileData),
+        ];
+
+        return disqualifyingProperties.All(p => user.IsPropertyDirty(p) is false);
+    }
+
+    private async Task<IdentityResult> DeleteExternalMemberAsync(MemberIdentityUser user)
+    {
+        await _externalMemberService.DeleteAsync(user.Key);
+        _externalLoginService.DeleteUserLogins(user.Key);
+        return IdentityResult.Success;
+    }
+
+    private MemberIdentityUser MapExternalMemberToIdentityUser(ExternalMemberIdentity external)
+    {
+        var user = new MemberIdentityUser();
+        user.DisableChangeTracking();
+        // Use Guid key as ID for external members (content members use int node IDs).
+        // This ensures FindUserAsync can resolve external members via Guid.TryParse.
+        user.Id = external.Key.ToString();
+        user.Key = external.Key;
+        user.UserName = external.UserName;
+        user.Email = external.Email;
+        user.Name = external.Name;
+        user.IsApproved = external.IsApproved;
+        user.LockoutEnd = external.IsLockedOut ? (external.LastLockoutDate ?? DateTime.MaxValue).ToUniversalTime() : null;
+        user.LastLoginDate = external.LastLoginDate;
+        user.LastLockoutDate = external.LastLockoutDate;
+        user.CreatedDate = external.CreateDate;
+        user.SecurityStamp = external.SecurityStamp;
+        user.IsExternalOnly = true;
+        user.ProfileData = external.ProfileData;
+        user.EnableChangeTracking();
+        return user;
+    }
+
+    private IReadOnlyList<string> UpdateMemberProperties(IMember member, MemberIdentityUser identityUser, out bool updateRoles)
+    {
+        var updatedProperties = new List<string>();
+        updateRoles = false;
+
+        // don't assign anything if nothing has changed as this will trigger the track changes of the model
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.LastLoginDate))
+            || (member.LastLoginDate != default && identityUser.LastLoginDate.HasValue == false)
+            || (identityUser.LastLoginDate.HasValue &&
+                member.LastLoginDate?.ToUniversalTime() != identityUser.LastLoginDate.Value))
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.LastLoginDate));
+
+            member.LastLoginDate = identityUser.LastLoginDate;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.LastPasswordChangeDate))
+            || (member.LastPasswordChangeDate != default && identityUser.LastPasswordChangeDate.HasValue == false)
+            || (identityUser.LastPasswordChangeDate.HasValue && member.LastPasswordChangeDate?.ToUniversalTime() !=
+                identityUser.LastPasswordChangeDate.Value))
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.LastPasswordChangeDate));
+            member.LastPasswordChangeDate = identityUser.LastPasswordChangeDate ?? DateTime.UtcNow;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.Comments))
+            && member.Comments != identityUser.Comments && identityUser.Comments.IsNullOrWhiteSpace() == false)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.Comments));
+            member.Comments = identityUser.Comments;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.EmailConfirmed))
+            || (member.EmailConfirmedDate.HasValue && member.EmailConfirmedDate.Value != default &&
+                identityUser.EmailConfirmed == false)
+            || ((member.EmailConfirmedDate.HasValue == false || member.EmailConfirmedDate.Value == default) &&
+                identityUser.EmailConfirmed))
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.EmailConfirmed));
+            member.EmailConfirmedDate = identityUser.EmailConfirmed ? DateTime.UtcNow : null;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.Name))
+            && member.Name != identityUser.Name && identityUser.Name.IsNullOrWhiteSpace() == false)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.Name));
+            member.Name = identityUser.Name ?? string.Empty;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.Email))
+            && member.Email != identityUser.Email && identityUser.Email.IsNullOrWhiteSpace() == false)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.Email));
+            member.Email = identityUser.Email!;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.AccessFailedCount))
+            && member.FailedPasswordAttempts != identityUser.AccessFailedCount)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.AccessFailedCount));
+            member.FailedPasswordAttempts = identityUser.AccessFailedCount;
+        }
+
+        if (member.IsLockedOut != identityUser.IsLockedOut)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.IsLockedOut));
+            member.IsLockedOut = identityUser.IsLockedOut;
+
+            if (member.IsLockedOut)
+            {
+                // need to set the last lockout date
+                member.LastLockoutDate = DateTime.UtcNow;
+            }
+        }
+
+        if (member.IsApproved != identityUser.IsApproved)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.IsApproved));
+            member.IsApproved = identityUser.IsApproved;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.UserName))
+            && member.Username != identityUser.UserName && identityUser.UserName.IsNullOrWhiteSpace() == false)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.UserName));
+            member.Username = identityUser.UserName!;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.PasswordHash))
+            && member.RawPasswordValue != identityUser.PasswordHash &&
+            identityUser.PasswordHash.IsNullOrWhiteSpace() == false)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.PasswordHash));
+            member.RawPasswordValue = identityUser.PasswordHash;
+            member.PasswordConfiguration = identityUser.PasswordConfig;
+        }
+
+        if (member.PasswordConfiguration != identityUser.PasswordConfig)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.PasswordConfig));
+            member.PasswordConfiguration = identityUser.PasswordConfig;
+        }
+
+        if (member.SecurityStamp != identityUser.SecurityStamp)
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.SecurityStamp));
+            member.SecurityStamp = identityUser.SecurityStamp;
+        }
+
+        if (identityUser.IsPropertyDirty(nameof(MemberIdentityUser.Roles)))
+        {
+            updatedProperties.Add(nameof(MemberIdentityUser.Roles));
+            updateRoles = true;
+        }
+
+        // reset all changes
+        identityUser.ResetDirtyProperties(false);
+
+        return updatedProperties.AsReadOnly();
+    }
+
+    /// <inheritdoc />
+    public override async Task<bool> GetTwoFactorEnabledAsync(
+        MemberIdentityUser user,
+        CancellationToken cancellationToken = default) =>
+        await _twoFactorLoginService.IsTwoFactorEnabledAsync(user.Key);
+}

@@ -1,0 +1,431 @@
+using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Services;
+
+namespace Umbraco.Cms.Core.PublishedCache;
+
+/// <summary>
+///     Represents a content type cache.
+/// </summary>
+/// <remarks>This cache is not snapshotted, so it refreshes any time things change.</remarks>
+public class PublishedContentTypeCache : IPublishedContentTypeCache
+{
+    private readonly IContentTypeService? _contentTypeService;
+    private readonly Dictionary<Guid, int> _keyToIdMap = new();
+    private readonly ReaderWriterLockSlim _lock = new();
+    private readonly ILogger<PublishedContentTypeCache> _logger;
+    private readonly IMediaTypeService? _mediaTypeService;
+    private readonly IMemberTypeService? _memberTypeService;
+
+    private readonly IPublishedContentTypeFactory _publishedContentTypeFactory;
+
+    // NOTE: These are not concurrent dictionaries because all access is done within a lock
+    private readonly Dictionary<string, IPublishedContentType> _typesByAlias = new();
+    private readonly Dictionary<int, IPublishedContentType> _typesById = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PublishedContentTypeCache"/> class.
+    /// </summary>
+    /// <remarks>default ctor</remarks>
+    /// <param name="contentTypeService">The service used to manage content types. Typically injected as a dependency.</param>
+    /// <param name="mediaTypeService">The service used to manage media types. Typically injected as a dependency.</param>
+    /// <param name="memberTypeService">The service used to manage member types. Typically injected as a dependency.</param>
+    /// <param name="publishedContentTypeFactory">The factory used to create published content types.</param>
+    /// <param name="logger">The logger used for logging cache-related events and errors.</param>
+    public PublishedContentTypeCache(
+        IContentTypeService? contentTypeService,
+        IMediaTypeService? mediaTypeService,
+        IMemberTypeService? memberTypeService,
+        IPublishedContentTypeFactory publishedContentTypeFactory,
+        ILogger<PublishedContentTypeCache> logger)
+    {
+        _contentTypeService = contentTypeService;
+        _mediaTypeService = mediaTypeService;
+        _memberTypeService = memberTypeService;
+        _logger = logger;
+        _publishedContentTypeFactory = publishedContentTypeFactory;
+    }
+
+    /// <summary>
+    ///     Clears all cached content types.
+    /// </summary>
+    public void ClearAll()
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Clear all.");
+        }
+
+        try
+        {
+            _lock.EnterWriteLock();
+
+            _typesByAlias.Clear();
+            _typesById.Clear();
+            _keyToIdMap.Clear();
+        }
+        finally
+        {
+            if (_lock.IsWriteLockHeld)
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Clears a cached content type.
+    /// </summary>
+    /// <param name="id">An identifier.</param>
+    public void ClearContentType(int id)
+    {
+        try
+        {
+            _lock.EnterUpgradeableReadLock();
+
+            if (_typesById.TryGetValue(id, out IPublishedContentType? type) == false)
+            {
+                return;
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Clear content type w/id {ContentTypeId}, key {ContentTypeKey}", id, type.Key);
+            }
+
+            try
+            {
+                _lock.EnterWriteLock();
+
+                // Multiple alias entries can point to the same type because Get(itemType, alias)
+                // keys by the *requested* itemType, which may not match the type's actual ItemType
+                // (e.g. Get(Content, alias) for an element type). Remove all of them.
+                var aliasKeysToRemove = _typesByAlias
+                    .Where(kvp => kvp.Value.Id == id)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+                foreach (var aliasKey in aliasKeysToRemove)
+                {
+                    _typesByAlias.Remove(aliasKey);
+                }
+
+                _typesById.Remove(id);
+                _keyToIdMap.Remove(type.Key);
+            }
+            finally
+            {
+                if (_lock.IsWriteLockHeld)
+                {
+                    _lock.ExitWriteLock();
+                }
+            }
+        }
+        finally
+        {
+            if (_lock.IsUpgradeableReadLockHeld)
+            {
+                _lock.ExitUpgradeableReadLock();
+            }
+        }
+    }
+
+    /// <summary>Clears the cached content types for the specified IDs.</summary>
+    /// <param name="ids">The collection of content type IDs to clear from the cache.</param>
+    public void ClearContentTypes(IEnumerable<int> ids)
+    {
+        foreach (var id in ids)
+        {
+            ClearContentType(id);
+        }
+    }
+
+    /// <summary>
+    ///     Clears all cached content types referencing a data type.
+    /// </summary>
+    /// <param name="id">A data type identifier.</param>
+    public void ClearDataType(int id) => ClearByDataTypeId(id);
+
+    /// <summary>
+    /// Removes and returns all published content types that have at least one property using the specified data type ID.
+    /// </summary>
+    /// <param name="id">The unique identifier of the data type whose associated content types should be cleared.</param>
+    /// <returns>An enumerable of <see cref="IPublishedContentType"/> instances that were removed from the cache.</returns>
+    public IEnumerable<IPublishedContentType> ClearByDataTypeId(int id)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Clear data type w/id {DataTypeId}.", id);
+        }
+
+        // there is no recursion to handle here because a PublishedContentType contains *all* its
+        // properties ie both its own properties and those that were inherited (it's based upon an
+        // IContentTypeComposition) and so every PublishedContentType having a property based upon
+        // the cleared data type, be it local or inherited, will be cleared.
+        IPublishedContentType[] toRemove;
+        try
+        {
+            _lock.EnterWriteLock();
+
+            toRemove = _typesById.Values
+                .Where(x => x.PropertyTypes.Any(xx => xx.DataType.Id == id)).ToArray();
+
+            var idsToRemove = toRemove.Select(x => x.Id).ToHashSet();
+
+            // See ClearContentType for why we scan _typesByAlias instead of using GetAliasKey(type).
+            var aliasKeysToRemove = _typesByAlias
+                .Where(kvp => idsToRemove.Contains(kvp.Value.Id))
+                .Select(kvp => kvp.Key)
+                .ToList();
+            foreach (var aliasKey in aliasKeysToRemove)
+            {
+                _typesByAlias.Remove(aliasKey);
+            }
+
+            foreach (IPublishedContentType type in toRemove)
+            {
+                _typesById.Remove(type.Id);
+                _keyToIdMap.Remove(type.Key);
+            }
+        }
+        finally
+        {
+            if (_lock.IsWriteLockHeld)
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        return toRemove;
+    }
+
+    /// <summary>
+    ///     Gets a published content type.
+    /// </summary>
+    /// <param name="itemType">An item type.</param>
+    /// <param name="key">An key.</param>
+    /// <returns>The published content type corresponding to the item key.</returns>
+    public IPublishedContentType Get(PublishedItemType itemType, Guid key)
+    {
+        try
+        {
+            _lock.EnterUpgradeableReadLock();
+
+            if (_keyToIdMap.TryGetValue(key, out var id))
+            {
+                if (_typesById.TryGetValue(id, out IPublishedContentType? foundType))
+                {
+                    return foundType;
+                }
+            }
+
+            IPublishedContentType type = CreatePublishedContentType(itemType, key);
+
+            try
+            {
+                _lock.EnterWriteLock();
+                _keyToIdMap[key] = type.Id;
+                return _typesByAlias[GetAliasKey(type)] = _typesById[type.Id] = type;
+            }
+            finally
+            {
+                if (_lock.IsWriteLockHeld)
+                {
+                    _lock.ExitWriteLock();
+                }
+            }
+        }
+        finally
+        {
+            if (_lock.IsUpgradeableReadLockHeld)
+            {
+                _lock.ExitUpgradeableReadLock();
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Gets a published content type.
+    /// </summary>
+    /// <param name="itemType">An item type.</param>
+    /// <param name="alias">An alias.</param>
+    /// <returns>The published content type corresponding to the item type and alias.</returns>
+    public IPublishedContentType Get(PublishedItemType itemType, string alias)
+    {
+        var aliasKey = GetAliasKey(itemType, alias);
+
+        try
+        {
+            _lock.EnterUpgradeableReadLock();
+
+            if (_typesByAlias.TryGetValue(aliasKey, out IPublishedContentType? type))
+            {
+                return type;
+            }
+
+            type = CreatePublishedContentType(itemType, alias);
+
+            try
+            {
+                _lock.EnterWriteLock();
+
+                // If a previous lookup under a different itemType prefix already cached this
+                // content type by id, reuse that instance so _typesById and every alias entry
+                // point at the same object.
+                if (_typesById.TryGetValue(type.Id, out IPublishedContentType? existing))
+                {
+                    type = existing;
+                }
+                else
+                {
+                    _typesById[type.Id] = type;
+                }
+
+                _keyToIdMap[type.Key] = type.Id;
+                _typesByAlias[aliasKey] = type;
+                return type;
+            }
+            finally
+            {
+                if (_lock.IsWriteLockHeld)
+                {
+                    _lock.ExitWriteLock();
+                }
+            }
+        }
+        finally
+        {
+            if (_lock.IsUpgradeableReadLockHeld)
+            {
+                _lock.ExitUpgradeableReadLock();
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Gets a published content type.
+    /// </summary>
+    /// <param name="itemType">An item type.</param>
+    /// <param name="id">An identifier.</param>
+    /// <returns>The published content type corresponding to the item type and identifier.</returns>
+    public IPublishedContentType Get(PublishedItemType itemType, int id)
+    {
+        try
+        {
+            _lock.EnterUpgradeableReadLock();
+
+            if (_typesById.TryGetValue(id, out IPublishedContentType? type))
+            {
+                return type;
+            }
+
+            type = CreatePublishedContentType(itemType, id);
+
+            try
+            {
+                _lock.EnterWriteLock();
+                _keyToIdMap[type.Key] = type.Id;
+                return _typesByAlias[GetAliasKey(type)] = _typesById[type.Id] = type;
+            }
+            finally
+            {
+                if (_lock.IsWriteLockHeld)
+                {
+                    _lock.ExitWriteLock();
+                }
+            }
+        }
+        finally
+        {
+            if (_lock.IsUpgradeableReadLockHeld)
+            {
+                _lock.ExitUpgradeableReadLock();
+            }
+        }
+    }
+
+    private static string GetAliasKey(PublishedItemType itemType, string alias)
+    {
+        string k;
+
+        switch (itemType)
+        {
+            case PublishedItemType.Content:
+                k = "c";
+                break;
+            case PublishedItemType.Media:
+                k = "m";
+                break;
+            case PublishedItemType.Member:
+                k = "m";
+                break;
+            case PublishedItemType.Element:
+                k = "e";
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(itemType));
+        }
+
+        return k + ":" + alias;
+    }
+
+    private IPublishedContentType CreatePublishedContentType(PublishedItemType itemType, Guid key)
+    {
+        IContentTypeComposition? contentType = itemType switch
+        {
+            PublishedItemType.Content => _contentTypeService?.Get(key),
+            PublishedItemType.Element => _contentTypeService?.Get(key),
+            PublishedItemType.Media => _mediaTypeService?.Get(key),
+            PublishedItemType.Member => _memberTypeService?.Get(key),
+            _ => throw new ArgumentOutOfRangeException(nameof(itemType)),
+        };
+        if (contentType == null)
+        {
+            throw new Exception(
+                $"ContentTypeService failed to find a {itemType.ToString().ToLower()} type with key \"{key}\".");
+        }
+
+        return _publishedContentTypeFactory.CreateContentType(contentType);
+    }
+
+    private IPublishedContentType CreatePublishedContentType(PublishedItemType itemType, string alias)
+    {
+        IContentTypeComposition? contentType = itemType switch
+        {
+            PublishedItemType.Content => _contentTypeService?.Get(alias),
+            PublishedItemType.Element => _contentTypeService?.Get(alias),
+            PublishedItemType.Media => _mediaTypeService?.Get(alias),
+            PublishedItemType.Member => _memberTypeService?.Get(alias),
+            _ => throw new ArgumentOutOfRangeException(nameof(itemType)),
+        };
+        if (contentType == null)
+        {
+            throw new Exception(
+                $"ContentTypeService failed to find a {itemType.ToString().ToLower()} type with alias \"{alias}\".");
+        }
+
+        return _publishedContentTypeFactory.CreateContentType(contentType);
+    }
+
+    private IPublishedContentType CreatePublishedContentType(PublishedItemType itemType, int id)
+    {
+        IContentTypeComposition? contentType = itemType switch
+        {
+            PublishedItemType.Content => _contentTypeService?.Get(id),
+            PublishedItemType.Element => _contentTypeService?.Get(id),
+            PublishedItemType.Media => _mediaTypeService?.Get(id),
+            PublishedItemType.Member => _memberTypeService?.Get(id),
+            _ => throw new ArgumentOutOfRangeException(nameof(itemType)),
+        };
+        if (contentType == null)
+        {
+            throw new Exception(
+                $"ContentTypeService failed to find a {itemType.ToString().ToLower()} type with id {id}.");
+        }
+
+        return _publishedContentTypeFactory.CreateContentType(contentType);
+    }
+
+    private static string GetAliasKey(IPublishedContentType contentType) =>
+        GetAliasKey(contentType.ItemType, contentType.Alias);
+}

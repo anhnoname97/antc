@@ -1,0 +1,641 @@
+using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NPoco;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Cache.PropertyEditors;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.IO;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Blocks;
+using Umbraco.Cms.Core.Models.Editors;
+using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Cms.Core.Scoping;
+using Umbraco.Cms.Core.Serialization;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Web;
+using Umbraco.Cms.Infrastructure.Migrations.Upgrade.V_18_0_0.SingleBlockList;
+using Umbraco.Cms.Infrastructure.Persistence;
+using Umbraco.Cms.Infrastructure.Persistence.Dtos;
+using Umbraco.Cms.Infrastructure.PropertyEditors;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Infrastructure.Migrations.Upgrade.V_18_0_0;
+
+/// <summary>
+/// Handles migration of single block list data structures during the upgrade to Umbraco version 18.0.0.
+/// </summary>
+public class MigrateSingleBlockList : AsyncMigrationBase
+{
+    private readonly IUmbracoContextFactory _umbracoContextFactory;
+    private readonly ILanguageService _languageService;
+    private readonly IContentTypeService _contentTypeService;
+    private readonly IMediaTypeService _mediaTypeService;
+    private readonly IMemberTypeService _memberTypeService;
+    private readonly IDataTypeService _dataTypeService;
+    private readonly ICoreScopeProvider _coreScopeProvider;
+    private readonly SingleBlockListProcessor _singleBlockListProcessor;
+    private readonly IJsonSerializer _jsonSerializer;
+    private readonly SingleBlockListConfigurationCache _blockListConfigurationCache;
+    private readonly IBlockEditorElementTypeCache _elementTypeCache;
+    private readonly AppCaches _appCaches;
+    private readonly IDataTypeConfigurationCache _dataTypeConfigurationCache;
+    private readonly ILogger<MigrateSingleBlockList> _logger;
+    private readonly IDataValueEditor _dummySingleBlockValueEditor;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MigrateSingleBlockList"/> class, responsible for migrating single block list data during the upgrade to version 18.0.0.
+    /// </summary>
+    /// <param name="context">The migration context providing information and services for the migration process.</param>
+    /// <param name="umbracoContextFactory">Factory for creating Umbraco context instances.</param>
+    /// <param name="languageService">Service for managing languages in Umbraco.</param>
+    /// <param name="contentTypeService">Service for managing content types.</param>
+    /// <param name="mediaTypeService">Service for managing media types.</param>
+    /// <param name="memberTypeService">Service for managing member types.</param>
+    /// <param name="dataTypeService">Service for managing data types.</param>
+    /// <param name="logger">The logger used for logging migration operations.</param>
+    /// <param name="coreScopeProvider">Provides scope management for database operations.</param>
+    /// <param name="singleBlockListProcessor">Processor for handling single block list migration logic.</param>
+    /// <param name="jsonSerializer">Serializer for handling JSON data during migration.</param>
+    /// <param name="blockListConfigurationCache">Cache for block list configuration data.</param>
+    /// <param name="dataValueEditorFactory">Factory for creating data value editors.</param>
+    /// <param name="ioHelper">Helper for IO operations, such as file and path management.</param>
+    /// <param name="blockValuePropertyIndexValueFactory">Factory for creating property index values for block values.</param>
+    /// <param name="elementTypeCache">Cache for block editor element types.</param>
+    /// <param name="appCaches">Provides access to application-level caches.</param>
+    [Obsolete("Please use the constructor with all parameters. Scheduled for removal in Umbraco 19.")]
+    public MigrateSingleBlockList(
+        IMigrationContext context,
+        IUmbracoContextFactory umbracoContextFactory,
+        ILanguageService languageService,
+        IContentTypeService contentTypeService,
+        IMediaTypeService mediaTypeService,
+        IMemberTypeService memberTypeService,
+        IDataTypeService dataTypeService,
+        ILogger<MigrateSingleBlockList> logger,
+        ICoreScopeProvider coreScopeProvider,
+        SingleBlockListProcessor singleBlockListProcessor,
+        IJsonSerializer jsonSerializer,
+        SingleBlockListConfigurationCache blockListConfigurationCache,
+        IDataValueEditorFactory dataValueEditorFactory,
+        IIOHelper ioHelper,
+        IBlockValuePropertyIndexValueFactory blockValuePropertyIndexValueFactory,
+        IBlockEditorElementTypeCache elementTypeCache,
+        AppCaches appCaches)
+        : this(
+            context,
+            umbracoContextFactory,
+            languageService,
+            contentTypeService,
+            mediaTypeService,
+            memberTypeService,
+            dataTypeService,
+            logger,
+            coreScopeProvider,
+            singleBlockListProcessor,
+            jsonSerializer,
+            blockListConfigurationCache,
+            dataValueEditorFactory,
+            ioHelper,
+            blockValuePropertyIndexValueFactory,
+            elementTypeCache,
+            appCaches,
+            StaticServiceProvider.Instance.GetRequiredService<IDataTypeConfigurationCache>())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MigrateSingleBlockList"/> class, responsible for migrating single block list data during the upgrade to version 18.0.0.
+    /// </summary>
+    /// <param name="context">The migration context providing information and services for the migration process.</param>
+    /// <param name="umbracoContextFactory">Factory for creating Umbraco context instances.</param>
+    /// <param name="languageService">Service for managing languages in Umbraco.</param>
+    /// <param name="contentTypeService">Service for managing content types.</param>
+    /// <param name="mediaTypeService">Service for managing media types.</param>
+    /// <param name="memberTypeService">Service for managing member types.</param>
+    /// <param name="dataTypeService">Service for managing data types.</param>
+    /// <param name="logger">The logger used for logging migration operations.</param>
+    /// <param name="coreScopeProvider">Provides scope management for database operations.</param>
+    /// <param name="singleBlockListProcessor">Processor for handling single block list migration logic.</param>
+    /// <param name="jsonSerializer">Serializer for handling JSON data during migration.</param>
+    /// <param name="blockListConfigurationCache">Cache for block list configuration data.</param>
+    /// <param name="dataValueEditorFactory">Factory for creating data value editors.</param>
+    /// <param name="ioHelper">Helper for IO operations, such as file and path management.</param>
+    /// <param name="blockValuePropertyIndexValueFactory">Factory for creating property index values for block values.</param>
+    /// <param name="elementTypeCache">Cache for block editor element types.</param>
+    /// <param name="appCaches">Provides access to application-level caches.</param>
+    /// <param name="dataTypeConfigurationCache">Cache for data type configurations.</param>
+    public MigrateSingleBlockList(
+        IMigrationContext context,
+        IUmbracoContextFactory umbracoContextFactory,
+        ILanguageService languageService,
+        IContentTypeService contentTypeService,
+        IMediaTypeService mediaTypeService,
+        IMemberTypeService memberTypeService,
+        IDataTypeService dataTypeService,
+        ILogger<MigrateSingleBlockList> logger,
+        ICoreScopeProvider coreScopeProvider,
+        SingleBlockListProcessor singleBlockListProcessor,
+        IJsonSerializer jsonSerializer,
+        SingleBlockListConfigurationCache blockListConfigurationCache,
+        IDataValueEditorFactory dataValueEditorFactory,
+        IIOHelper ioHelper,
+        IBlockValuePropertyIndexValueFactory blockValuePropertyIndexValueFactory,
+        IBlockEditorElementTypeCache elementTypeCache,
+        AppCaches appCaches,
+        IDataTypeConfigurationCache dataTypeConfigurationCache)
+        : base(context)
+    {
+        _umbracoContextFactory = umbracoContextFactory;
+        _languageService = languageService;
+        _contentTypeService = contentTypeService;
+        _mediaTypeService = mediaTypeService;
+        _memberTypeService = memberTypeService;
+        _dataTypeService = dataTypeService;
+        _logger = logger;
+        _coreScopeProvider = coreScopeProvider;
+        _singleBlockListProcessor = singleBlockListProcessor;
+        _jsonSerializer = jsonSerializer;
+        _blockListConfigurationCache = blockListConfigurationCache;
+        _elementTypeCache = elementTypeCache;
+        _appCaches = appCaches;
+        _dataTypeConfigurationCache = dataTypeConfigurationCache;
+
+        _dummySingleBlockValueEditor = new SingleBlockPropertyEditor(dataValueEditorFactory, jsonSerializer, ioHelper, blockValuePropertyIndexValueFactory).GetValueEditor();
+    }
+
+    protected override async Task MigrateAsync()
+    {
+        // gets filled by all registered ITypedSingleBlockListProcessor
+        IEnumerable<string> propertyEditorAliases = _singleBlockListProcessor.GetSupportedPropertyEditorAliases();
+
+        using UmbracoContextReference umbracoContextReference = _umbracoContextFactory.EnsureUmbracoContext();
+        var languagesById = (await _languageService.GetAllAsync())
+            .ToDictionary(language => language.Id);
+
+        IEnumerable<IContentType> allContentTypes = _contentTypeService.GetAll();
+        IEnumerable<IPropertyType> contentPropertyTypes = allContentTypes
+            .SelectMany(ct => ct.PropertyTypes);
+
+        IMediaType[] allMediaTypes = _mediaTypeService.GetAll().ToArray();
+        IEnumerable<IPropertyType> mediaPropertyTypes = allMediaTypes
+            .SelectMany(ct => ct.PropertyTypes);
+
+        IMemberType[] allMemberTypes = _memberTypeService.GetAll().ToArray();
+        IEnumerable<IPropertyType> memberPropertyTypes = allMemberTypes
+            .SelectMany(mt => mt.PropertyTypes);
+
+        // get all relevantPropertyTypes
+        var relevantPropertyEditors =
+            contentPropertyTypes.Concat(mediaPropertyTypes).Concat(memberPropertyTypes).DistinctBy(pt => pt.Id)
+                .Where(pt => propertyEditorAliases.Contains(pt.PropertyEditorAlias))
+                .GroupBy(pt => pt.PropertyEditorAlias)
+                .ToDictionary(group => group.Key, group => group.ToArray());
+
+        // populate the cache to limit amount of db locks in recursion logic.
+        var blockListsConfiguredAsSingleCount = await _blockListConfigurationCache.Populate();
+
+        if (blockListsConfiguredAsSingleCount == 0)
+        {
+            _logger.LogInformation(
+                "No blocklist were configured as single, nothing to do.");
+            return;
+        }
+
+        _logger.LogInformation(
+            "Found {blockListsConfiguredAsSingleCount} number of blockListConfigurations with UseSingleBlockMode set to true",
+            blockListsConfiguredAsSingleCount);
+
+        // we want to batch actual update calls to the database, so we are grouping them by propertyEditorAlias
+        // and again by propertyType(dataType).
+        var updateItemsByPropertyEditorAlias = new Dictionary<string, Dictionary<IPropertyType, List<UpdateItem>>>();
+
+        // For each propertyEditor, collect and process all propertyTypes and their propertyData
+        foreach (var propertyEditorAlias in propertyEditorAliases)
+        {
+            if (relevantPropertyEditors.TryGetValue(propertyEditorAlias, out IPropertyType[]? propertyTypes) is false)
+            {
+                continue;
+            }
+
+            _logger.LogInformation(
+                "Migration starting for all properties of type: {propertyEditorAlias}",
+                propertyEditorAlias);
+            Dictionary<IPropertyType, List<UpdateItem>> updateItemsByPropertyType = await ProcessPropertyTypesAsync(propertyTypes, languagesById);
+            if (updateItemsByPropertyType.Count < 1)
+            {
+                _logger.LogInformation(
+                    "No properties have been found to migrate for {propertyEditorAlias}",
+                    propertyEditorAlias);
+                continue;
+            }
+
+            updateItemsByPropertyEditorAlias[propertyEditorAlias] = updateItemsByPropertyType;
+        }
+
+        IDataType[] singleBlockListDataTypes = _blockListConfigurationCache.CachedDataTypes.ToArray();
+        var singleBlockListDataTypeKeys = singleBlockListDataTypes.Select(dataType => dataType.Key).ToHashSet();
+
+        // Save the converted property values first, and only switch the data types over below.
+        //
+        // This ordering is load-bearing, not cosmetic. The value editors that re-serialize a converted value resolve
+        // the value editor of each nested block property from its data type's property editor alias, and they do so on
+        // their own scopes - and therefore their own connections - which cannot observe anything this migration has
+        // written but not committed. Converting first means those lookups only ever read committed, pre-migration
+        // state, and SingleBlockMigrationEditorAliasOverride is what routes the converted values to the single block
+        // value editor regardless (https://github.com/umbraco/Umbraco-CMS/issues/23596).
+        foreach (string propertyEditorAlias in updateItemsByPropertyEditorAlias.Keys)
+        {
+            if (await SavePropertyTypes(updateItemsByPropertyEditorAlias[propertyEditorAlias], singleBlockListDataTypeKeys))
+            {
+                _logger.LogInformation(
+                    "Migration succeeded for all properties of type: {propertyEditorAlias}",
+                    propertyEditorAlias);
+            }
+            else
+            {
+                _logger.LogError(
+                    "Migration failed for one or more properties of type: {propertyEditorAlias}",
+                    propertyEditorAlias);
+            }
+        }
+
+        // update the configuration of all propertyTypes
+        var singleBlockListDataTypesIds = singleBlockListDataTypes.Select(type => type.Id).ToList();
+
+        string updateSql = $@"
+UPDATE umbracoDataType
+SET propertyEditorAlias = '{Constants.PropertyEditors.Aliases.SingleBlock}',
+    propertyEditorUiAlias = 'Umb.PropertyEditorUi.BlockSingle'
+WHERE nodeId IN (@0)";
+        await Database.ExecuteAsync(updateSql, singleBlockListDataTypesIds);
+
+        // the element type cache, and the isolated/runtime caches it is built from in the default implementation,
+        // still describe the data types as they were before the update - as does the data type configuration cache,
+        // which is backed by its own memory cache rather than the application caches
+        _elementTypeCache.ClearAll();
+        _appCaches.IsolatedCaches.ClearAllCaches();
+        _appCaches.RuntimeCache.Clear();
+        _dataTypeConfigurationCache.ClearCache(singleBlockListDataTypeKeys);
+        RebuildCache = true;
+    }
+
+    private async Task<Dictionary<IPropertyType, List<UpdateItem>>> ProcessPropertyTypesAsync(IPropertyType[] propertyTypes, IDictionary<int, ILanguage> languagesById)
+    {
+        var updateItemsByPropertyType = new Dictionary<IPropertyType, List<UpdateItem>>();
+        foreach (IPropertyType propertyType in propertyTypes)
+        {
+            // make sure the passed in data is valid and can be processed
+            IDataType dataType = await _dataTypeService.GetAsync(propertyType.DataTypeKey)
+                                 ?? throw new InvalidOperationException("The data type could not be fetched.");
+            IDataValueEditor valueEditor = dataType.Editor?.GetValueEditor()
+                                           ?? throw new InvalidOperationException(
+                                               "The data type value editor could not be obtained.");
+
+            // fetch all the propertyData for the current propertyType
+            Sql<ISqlContext> sql = Sql()
+                .Select<PropertyDataDto>()
+                .From<PropertyDataDto>()
+                .InnerJoin<ContentVersionDto>()
+                .On<PropertyDataDto, ContentVersionDto>((propertyData, contentVersion) =>
+                    propertyData.VersionId == contentVersion.Id)
+                .LeftJoin<DocumentVersionDto>()
+                .On<ContentVersionDto, DocumentVersionDto>((contentVersion, documentVersion) =>
+                    contentVersion.Id == documentVersion.Id)
+                .Where<PropertyDataDto, ContentVersionDto, DocumentVersionDto>((propertyData, contentVersion, documentVersion) =>
+                    (contentVersion.Current == true || documentVersion.Published == true)
+                    && propertyData.PropertyTypeId == propertyType.Id);
+
+            List<PropertyDataDto> propertyDataDtos = await Database.FetchAsync<PropertyDataDto>(sql);
+            if (propertyDataDtos.Count < 1)
+            {
+                continue;
+            }
+
+            var updateItems = new List<UpdateItem>();
+
+            // process all the propertyData
+            // if none of the processors modify the value, the propertyData is skipped from being saved.
+            foreach (PropertyDataDto propertyDataDto in propertyDataDtos)
+            {
+                if (ProcessPropertyDataDto(propertyDataDto, propertyType, languagesById, valueEditor, out UpdateItem? updateItem) is false)
+                {
+                    continue;
+                }
+
+                updateItems.Add(updateItem!);
+            }
+
+            updateItemsByPropertyType[propertyType] = updateItems;
+        }
+
+        return updateItemsByPropertyType;
+    }
+
+    private async Task<bool> SavePropertyTypes(
+        IDictionary<IPropertyType, List<UpdateItem>> propertyTypes,
+        IReadOnlySet<Guid> singleBlockListDataTypeKeys)
+    {
+        var success = true;
+
+        foreach (IPropertyType propertyType in propertyTypes.Keys)
+        {
+            success &= await SavePropertyType(propertyType, propertyTypes[propertyType], singleBlockListDataTypeKeys);
+        }
+
+        return success;
+    }
+
+    private async Task<bool> SavePropertyType(
+        IPropertyType propertyType,
+        List<UpdateItem> updateItems,
+        IReadOnlySet<Guid> singleBlockListDataTypeKeys)
+    {
+        // Both lookups already succeeded for this property type in ProcessPropertyTypesAsync, so neither can
+        // realistically fail here - the throws are only because the APIs are nullable.
+        IDataType dataType = await _dataTypeService.GetAsync(propertyType.DataTypeKey)
+                             ?? throw new InvalidOperationException("The data type could not be fetched.");
+        IDataValueEditor valueEditor = dataType.Editor?.GetValueEditor()
+                                       ?? throw new InvalidOperationException(
+                                           "The data type value editor could not be obtained.");
+
+        // batch by datatype
+        var propertyDataDtos = updateItems.Select(item => item.PropertyDataDto).ToList();
+
+        var updateBatch = propertyDataDtos.Select(propertyDataDto =>
+            UpdateBatch.For(propertyDataDto, Database.StartSnapshot(propertyDataDto))).ToList();
+
+        var updatesToSkip = new ConcurrentBag<UpdateBatch<PropertyDataDto>>();
+
+        var total = updateBatch.Count;
+        var progress = 0;
+
+        void HandleUpdateBatch(UpdateBatch<PropertyDataDto> update)
+        {
+            using UmbracoContextReference umbracoContextReference = _umbracoContextFactory.EnsureUmbracoContext();
+
+            // The override has to be applied here rather than around the whole loop: the parallelized path below
+            // deliberately does not flow the execution context, which is what an ambient AsyncLocal rides on.
+            using (SingleBlockMigrationEditorAliasOverride.For(singleBlockListDataTypeKeys))
+            {
+                var completed = Interlocked.Increment(ref progress);
+                if (completed % 100 == 0)
+                {
+                    _logger.LogInformation("  - finished {Progress} of {Total} properties", completed, total);
+                }
+
+                if (FinalizeUpdateItem(updateItems.First(item => Equals(item.PropertyDataDto, update.Poco)), valueEditor) is false)
+                {
+                    updatesToSkip.Add(update);
+                }
+            }
+        }
+
+        RunUpdateBatch(updateBatch, HandleUpdateBatch);
+
+        var success = true;
+        if (updatesToSkip.IsEmpty is false)
+        {
+            success = false;
+            updateBatch.RemoveAll(updatesToSkip.Contains);
+        }
+
+        if (updateBatch.Any() is false)
+        {
+            _logger.LogDebug("  - no properties to convert, continuing");
+            return success;
+        }
+
+        _logger.LogInformation("  - {totalConverted} properties converted, saving...", updateBatch.Count);
+        var result = Database.UpdateBatch(updateBatch, new BatchOptions { BatchSize = 100 });
+        if (result != updateBatch.Count)
+        {
+            throw new InvalidOperationException(
+                $"The database batch update was supposed to update {updateBatch.Count} property DTO entries, but it updated {result} entries.");
+        }
+
+        _logger.LogDebug(
+            "Migration completed for property type: {propertyTypeName} (id: {propertyTypeId}, key: {propertyTypeKey}, alias: {propertyTypeAlias}, editor alias: {propertyTypeEditorAlias}) - {updateCount} property DTO entries updated.",
+            propertyType.Name,
+            propertyType.Id,
+            propertyType.Key,
+            propertyType.Alias,
+            propertyType.PropertyEditorAlias,
+            result);
+
+        return success;
+    }
+
+    private void RunUpdateBatch(
+        List<UpdateBatch<PropertyDataDto>> updateBatch,
+        Action<UpdateBatch<PropertyDataDto>> handleUpdateBatch)
+    {
+        if (DatabaseType == DatabaseType.SQLite)
+        {
+            // SQLite locks up if we run the migration in parallel, so... let's not.
+            foreach (UpdateBatch<PropertyDataDto> update in updateBatch)
+            {
+                handleUpdateBatch(update);
+            }
+
+            return;
+        }
+
+        Parallel.ForEachAsync(updateBatch, async (update, token) =>
+        {
+            //Foreach here, but we need to suppress the flow before each task, but not the actuall await of the task
+            Task task;
+            using (ExecutionContext.SuppressFlow())
+            {
+                task = Task.Run(
+                    () =>
+                    {
+                        using ICoreScope scope = _coreScopeProvider.CreateCoreScope();
+                        scope.Complete();
+                        handleUpdateBatch(update);
+                    },
+                    token);
+            }
+
+            await task;
+        }).GetAwaiter().GetResult();
+    }
+
+    private bool ProcessPropertyDataDto(
+        PropertyDataDto propertyDataDto,
+        IPropertyType propertyType,
+        IDictionary<int, ILanguage> languagesById,
+        IDataValueEditor valueEditor,
+        out UpdateItem? updateItem)
+    {
+        var cultureResult = PropertyDataCultureResolver.ResolveCulture(propertyType, propertyDataDto.LanguageId, languagesById);
+        if (cultureResult.ShouldSkip)
+        {
+            _logger.LogWarning(
+                PropertyDataCultureResolver.OrphanedLanguageWarningTemplate,
+                propertyDataDto.Id,
+                cultureResult.OrphanedLanguageId,
+                propertyType.Name,
+                propertyType.Id,
+                propertyType.Key,
+                propertyType.Alias);
+            updateItem = null;
+            return false;
+        }
+
+        var culture = cultureResult.Culture;
+
+        // create a fake property to be able to get a typed value and run it through the processors.
+        var segment = propertyType.VariesBySegment() ? propertyDataDto.Segment : null;
+        var property = PropertyDataCultureResolver.CreateMigrationProperty(propertyType, propertyDataDto.Value, culture, segment);
+        var toEditorValue = valueEditor.ToEditor(property, culture, segment);
+
+        if (TryTransformValue(toEditorValue, property, out var updatedValue) is false)
+        {
+            _logger.LogDebug(
+                "    - skipping as no processor modified the data for property data with id: {propertyDataId} (property type: {propertyTypeName}, id: {propertyTypeId}, key: {propertyTypeKey}, alias: {propertyTypeAlias})",
+                propertyDataDto.Id,
+                propertyType.Name,
+                propertyType.Id,
+                propertyType.Key,
+                propertyType.Alias);
+            updateItem = null;
+            return false;
+        }
+
+        updateItem = new UpdateItem(propertyDataDto, propertyType, updatedValue);
+        return true;
+    }
+
+    /// <summary>
+    /// Serializes the converted value back to its database representation and sets it on the PropertyDataDto.
+    /// </summary>
+    private bool FinalizeUpdateItem(UpdateItem updateItem, IDataValueEditor valueEditor)
+    {
+        var editorValue = _jsonSerializer.Serialize(updateItem.UpdatedValue);
+
+        // Re-running FromEditor here is only to re-serialize the converted value; the referenced-entity
+        // caching it would otherwise trigger is wasted work that issues per-property content/media reads
+        // in separate scopes, contending with this migration's own scope. Suppress it.
+        object? dbValue;
+#pragma warning disable CS0618 // Type or member is obsolete
+        using (CacheReferencedEntitiesSuppression.Suppress())
+        {
+            dbValue = updateItem.UpdatedValue is SingleBlockValue
+                ? _dummySingleBlockValueEditor.FromEditor(new ContentPropertyData(editorValue, null), null)
+                : valueEditor.FromEditor(new ContentPropertyData(editorValue, null), null);
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        if (dbValue is not string stringValue || stringValue.DetectIsJson() is false)
+        {
+            // Anything but a JSON string would replace the stored value, so the row is left untouched. Losing a
+            // value that held content is an error; an empty one converting to nothing is expected.
+            LogFailedConversion(
+                updateItem,
+                "the value editor did not yield a valid JSON string as its FromEditor value");
+            return false;
+        }
+
+        // The conversions happen on the in-memory value, but the value that gets persisted is produced by the
+        // containing value editor, which resolves the value editor of each nested block property itself. If it
+        // resolves the wrong one the nested value is replaced with null while the outer value stays valid JSON, so
+        // the conversions are counted on both sides to make that loss detectable.
+        var expectedSingleBlockCount = SingleBlockConversionVerifier.CountSingleBlockValues(updateItem.UpdatedValue);
+        var actualSingleBlockCount = SingleBlockConversionVerifier.CountSingleBlockLayouts(stringValue);
+        if (actualSingleBlockCount < expectedSingleBlockCount)
+        {
+            LogFailedConversion(
+                updateItem,
+                $"only {actualSingleBlockCount} of {expectedSingleBlockCount} converted single block values survived being serialized for persistence");
+            return false;
+        }
+
+        updateItem.PropertyDataDto.TextValue = stringValue;
+        return true;
+    }
+
+    private void LogFailedConversion(UpdateItem updateItem, string reason)
+    {
+        const string MessageTemplate =
+            "    - refused to update property data with id: {propertyDataId} (property type: {propertyTypeName}, id: {propertyTypeId}, key: {propertyTypeKey}, alias: {propertyTypeAlias}) as {reason}. The stored value is left as it was.";
+
+        if (updateItem.PropertyDataDto.TextValue.IsNullOrWhiteSpace())
+        {
+            _logger.LogWarning(
+                MessageTemplate,
+                updateItem.PropertyDataDto.Id,
+                updateItem.PropertyType.Name,
+                updateItem.PropertyType.Id,
+                updateItem.PropertyType.Key,
+                updateItem.PropertyType.Alias,
+                reason);
+            return;
+        }
+
+        _logger.LogError(
+            MessageTemplate,
+            updateItem.PropertyDataDto.Id,
+            updateItem.PropertyType.Name,
+            updateItem.PropertyType.Id,
+            updateItem.PropertyType.Key,
+            updateItem.PropertyType.Alias,
+            reason);
+    }
+
+    /// <summary>
+    /// If the value is a BlockListValue, and its datatype is configured as single
+    /// We also need to convert the outer BlockListValue to a SingleBlockValue
+    /// Either way, we need to run the value through the processors to possibly update nested values
+    /// </summary>
+    private bool TryTransformValue(object? toEditorValue, Property property, out object? value)
+    {
+        bool hasChanged = _singleBlockListProcessor.ProcessToEditorValue(toEditorValue);
+
+        if (toEditorValue is BlockListValue blockListValue
+            && _blockListConfigurationCache.IsPropertyEditorBlockListConfiguredAsSingle(property.PropertyType.DataTypeKey))
+        {
+            value = _singleBlockListProcessor.ConvertBlockListToSingleBlock(blockListValue);
+
+            // the conversion returns the value unchanged when there is no block to convert
+            return hasChanged || ReferenceEquals(value, blockListValue) is false;
+        }
+
+        value = toEditorValue;
+        return hasChanged;
+    }
+
+    private class UpdateItem
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdateItem"/> class with the specified property data, property type, and updated value.
+        /// </summary>
+        /// <param name="propertyDataDto">The <see cref="PropertyDataDto"/> representing the data for the property to be updated.</param>
+        /// <param name="propertyType">The <see cref="IPropertyType"/> that defines the type of the property being updated.</param>
+        /// <param name="updatedValue">The new value to assign to the property.</param>
+        public UpdateItem(PropertyDataDto propertyDataDto, IPropertyType propertyType, object? updatedValue)
+        {
+            PropertyDataDto = propertyDataDto;
+            PropertyType = propertyType;
+            UpdatedValue = updatedValue;
+        }
+
+        /// <summary>
+        /// Gets or sets the value that has been updated for this item during the migration process.
+        /// This typically represents the new value assigned after migration logic is applied.
+        /// </summary>
+        public object? UpdatedValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets the property data transfer object (DTO) associated with this update item.
+        /// This object contains the data for a specific property being migrated in the single block list upgrade process.
+        /// </summary>
+        public PropertyDataDto PropertyDataDto { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="IPropertyType"/> that is associated with this update item.
+        /// </summary>
+        public IPropertyType PropertyType { get; set; }
+    }
+}

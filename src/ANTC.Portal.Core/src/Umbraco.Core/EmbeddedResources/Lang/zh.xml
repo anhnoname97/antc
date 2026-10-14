@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language alias="zh" intName="Chinese (Simple)" localName="中文（简体，中国）" lcid="0804" culture="zh-CN">
+  <creator>
+    <name>黄仁祥(wanddy@163.com)</name>
+    <link>https://docs.umbraco.com/umbraco-cms/extending/language-files</link>
+  </creator>
+  <area alias="actions">
+    <key alias="assigndomain">管理主机名</key>
+    <key alias="auditTrail">跟踪审计</key>
+    <key alias="browse">浏览节点</key>
+    <key alias="changeDocType">改变文档类型</key>
+    <key alias="copy">复制</key>
+    <key alias="create">创建</key>
+    <key alias="createPackage">创建扩展包</key>
+    <key alias="delete">删除</key>
+    <key alias="disable">禁用</key>
+    <key alias="emptyrecyclebin">清空回收站</key>
+    <key alias="exportDocumentType">导出文档类型</key>
+    <key alias="importdocumenttype">导入文档类型</key>
+    <key alias="importPackage">导入扩展包</key>
+    <key alias="liveEdit">实时编辑模式</key>
+    <key alias="logout">退出</key>
+    <key alias="move">移动</key>
+    <key alias="notify">提醒</key>
+    <key alias="protect">公众访问权限</key>
+    <key alias="publish">发布</key>
+    <key alias="unpublish">取消发布</key>
+    <key alias="refreshNode">重新加载节点</key>
+    <key alias="republish">重新发布整站</key>
+    <key alias="restore" version="7.3.0">恢复</key>
+    <key alias="chooseWhereToMove">选择移动目的地</key>
+    <key alias="toInTheTreeStructureBelow">到下列的树结构中</key>
+    <key alias="rights">权限</key>
+    <key alias="rollback">回滚</key>
+    <key alias="sendtopublish">提交至发布者</key>
+    <key alias="sendToTranslate">发送给翻译</key>
+    <key alias="sort">排序</key>
+    <key alias="translate">翻译</key>
+    <key alias="update">更新</key>
+  </area>
+  <area alias="content">
+    <key alias="itemNotPublished">该项没有发布</key>
+    <key alias="parentNotPublished">该文档不可见，因为其上级 '%0%' 未发布。</key>
+    <key alias="parentNotPublishedAnomaly">该文档已发布，但是没有更新至缓存（内部错误）</key>
+    <key alias="getUrlException">Could not get the URL</key>
+    <key alias="routeError">This document is published but its URL would collide with content %0%</key>
+  </area>
+  <area alias="member">
+  </area>
+  <area alias="errors">
+  </area>
+  <area alias="login">
+    <key alias="resetCodeExpired">您单击的链接无效或已过期</key>
+    <key alias="resetPasswordEmailCopySubject">Umbraco: 重置密码</key>
+    <key alias="resetPasswordEmailCopyFormat"><![CDATA[<p>您的用户名登录到 Umbraco 后台是: <strong>%0%</strong></p><p>点击 <a href="%1%"><strong>这里</strong></a> 重置密码，或复制链接粘贴到您的浏览器访问:</p><p><em>%1%</em></p>]]></key>
+  </area>
+  <area alias="notifications">
+    <key alias="mailBody"><![CDATA[
+      %0%，您好！
+
+      这是一封自动邮件，提醒您用户 '%3%'
+      已在页面 '%2%' 上执行了任务 '%1%'。
+
+      转到 http://%4%/section/content/workspace/document/edit/%5% 进行编辑。
+
+      %6%
+
+      祝您愉快！
+      来自 Umbraco 机器人
+    ]]></key>
+    <key alias="mailBodyVariantSummary">以下语言已被修改 %0%</key>
+    <key alias="mailBodyHtml"><![CDATA[
+        <html>
+			<head>
+				<meta name='viewport' content='width=device-width'>
+				<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+			</head>
+			<body class='' style='font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; color: #392F54; line-height: 22px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background: #1d1333; margin: 0; padding: 0;' bgcolor='#1d1333'>
+				<style type='text/css'> @media only screen and (max-width: 620px) {table[class=body] h1 {font-size: 28px !important; margin-bottom: 10px !important; } table[class=body] .wrapper {padding: 32px !important; } table[class=body] .article {padding: 32px !important; } table[class=body] .content {padding: 24px !important; } table[class=body] .container {padding: 0 !important; width: 100% !important; } table[class=body] .main {border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; } table[class=body] .btn table {width: 100% !important; } table[class=body] .btn a {width: 100% !important; } table[class=body] .img-responsive {height: auto !important; max-width: 100% !important; width: auto !important; } } .btn-primary table td:hover {background-color: #34495e !important; } .btn-primary a:hover {background-color: #34495e !important; border-color: #34495e !important; } .btn  a:visited {color:#FFFFFF;} </style>
+				<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;" bgcolor="#1d1333">
+					<tr>
+						<td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 24px;" valign="top">
+							<table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+								<tr>
+									<td background="https://umbraco.com/umbraco/assets/img/application/logo.png" bgcolor="#1d1333" width="28" height="28" valign="top" style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+										<!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:30px;height:30px;"> <v:fill type="tile" src="https://umbraco.com/umbraco/assets/img/application/logo.png" color="#1d1333" /> <v:textbox inset="0,0,0,0"> <![endif]-->
+<div></div>
+<!--[if gte mso 9]> </v:textbox> </v:rect> <![endif]-->
+</td>
+<td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top"></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;' bgcolor='#1d1333'>
+<tr>
+<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'></td>
+<td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 560px; width: 560px; margin: 0 auto; padding: 10px;' valign='top'>
+<div class='content' style='box-sizing: border-box; display: block; max-width: 560px; margin: 0 auto; padding: 10px;'>
+<br>
+<table class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-radius: 3px; background: #FFFFFF;' bgcolor='#FFFFFF'>
+<tr>
+<td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 50px;' valign='top'>
+<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
+<tr>
+<td style='line-height: 24px; font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+<h1 style='color: #392F54; font-family: sans-serif; font-weight: bold; line-height: 1.4; font-size: 24px; text-align: left; text-transform: capitalize; margin: 0 0 30px;' align='left'>
+															%0%，您好！
+														</h1>
+<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															这是一封自动发送的邮件，告诉您任务 <strong>'%1%'</strong> 已在页面 <a style="color: #392F54; text-decoration: none; -ms-word-break: break-all; word-break: break-all;" href="http://%4%/section/content/workspace/document/edit/%5%"><strong>'%2%'</strong></a> 上被用户 <strong>'%3%'</strong> 执行。
+</p>
+<table border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;'>
+<tbody>
+<tr>
+<td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;'><tbody><tr>
+<td style='font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background: #35C786;' align='center' bgcolor='#35C786' valign='top'>
+<a href='http://%4%/section/content/workspace/document/edit/%5%' target='_blank' rel='noopener' style='color: #FFFFFF; text-decoration: none; -ms-word-break: break-all; word-break: break-all; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; text-transform: capitalize; background: #35C786; margin: 0; padding: 12px 30px; border: 1px solid #35c786;'>编辑</a></td></tr></tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+<h3>更新概况：</h3>
+															%6%
+														</p>
+<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															祝您愉快！<br /><br />
+															来自 Umbraco 机器人
+														</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<br><br><br>
+</div>
+</td>
+<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'></td>
+</tr>
+</table>
+</body>
+</html>
+	]]></key>
+    <key alias="mailBodyVariantHtmlSummary"><![CDATA[<p>以下语言已被修改：</p>
+        %0%
+    ]]></key>
+    <key alias="mailSubject">在 %2%，[%0%] 关于 %1% 的通告已执行。</key>
+  </area>
+  <area alias="user">
+    <key alias="passwordMismatch">重输的密码和原密码不一致！</key>
+  </area>
+  <area alias="validation">
+  </area>
+  <area alias="healthcheck">
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+		   2: XPath
+		   3: Configuration file path
+	  -->
+    <key alias="checkSuccessMessage">Value is set to the recommended value: '%0%'.</key>
+    <key alias="checkErrorMessageDifferentExpectedValue">Expected value '%1%' for '%2%' in configuration file '%3%', but found '%0%'.</key>
+    <key alias="checkErrorMessageUnexpectedValue">Found unexpected value '%0%' for '%2%' in configuration file '%3%'.</key>
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+	  -->
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+		   2: Server version
+	  -->
+    <!-- The following keys get predefined tokens passed in that are not all the same, like above -->
+    <key alias="httpsCheckValidCertificate">Your site certificate was marked as valid.</key>
+    <key alias="httpsCheckInvalidCertificate">Certificate validation error: '%0%'</key>
+    <key alias="healthCheckInvalidUrl">Error pinging the URL %0% - '%1%'</key>
+    <key alias="httpsCheckIsCurrentSchemeHttps">You are currently %0% viewing the site using the HTTPS scheme.</key>
+    <!-- The following keys don't get tokens passed in -->
+    <key alias="compilationDebugCheckSuccessMessage">Debug compilation mode is disabled.</key>
+    <key alias="compilationDebugCheckErrorMessage">Debug compilation mode is currently enabled. It is recommended to disable this setting before go live.</key>
+    <!-- The following keys get these tokens passed in:
+	    0: Comma delimitted list of failed folder paths
+  	-->
+    <!-- The following keys get these tokens passed in:
+	    0: Path to the file not found
+  	-->
+    <!-- The following keys get these tokens passed in:
+	    0: Comma delimitted list of failed folder paths
+  	-->
+    <!-- The following key get these tokens passed in:
+	    0: Comma delimitted list of headers found
+  	-->
+    <key alias="excessiveHeadersFound"><![CDATA[The following headers revealing information about the website technology were found: <strong>%0%</strong>.]]></key>
+    <key alias="excessiveHeadersNotFound">No headers revealing information about the website technology were found.</key>
+    <key alias="smtpMailSettingsConnectionSuccess">SMTP settings are configured correctly and the service is operating as expected.</key>
+    <key alias="notificationEmailsCheckSuccessMessage"><![CDATA[Notification email has been set to <strong>%0%</strong>.]]></key>
+    <key alias="notificationEmailsCheckErrorMessage"><![CDATA[Notification email is still set to the default value of <strong>%0%</strong>.]]></key>
+  </area>
+</language>

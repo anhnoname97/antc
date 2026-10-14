@@ -1,0 +1,69 @@
+using Microsoft.AspNetCore.Http;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.DeliveryApi;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.PublishedCache;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.Navigation;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Api.Delivery.Services;
+
+internal sealed class RequestStartItemProvider : RequestHeaderHandler, IRequestStartItemProvider
+{
+    private readonly IVariationContextAccessor _variationContextAccessor;
+    private readonly IRequestPreviewService _requestPreviewService;
+    private readonly IDocumentNavigationQueryService _documentNavigationQueryService;
+    private readonly IPublishedContentCache _publishedContentCache;
+    private readonly IDocumentUrlService _documentUrlService;
+
+    // this provider lifetime is Scope, so we can cache this as a field
+    private IPublishedContent? _requestedStartContent;
+
+    public RequestStartItemProvider(
+        IHttpContextAccessor httpContextAccessor,
+        IVariationContextAccessor variationContextAccessor,
+        IRequestPreviewService requestPreviewService,
+        IDocumentNavigationQueryService documentNavigationQueryService,
+        IPublishedContentCache publishedContentCache,
+        IDocumentUrlService documentUrlService)
+        : base(httpContextAccessor)
+    {
+        _variationContextAccessor = variationContextAccessor;
+        _requestPreviewService = requestPreviewService;
+        _documentNavigationQueryService = documentNavigationQueryService;
+        _publishedContentCache = publishedContentCache;
+        _documentUrlService = documentUrlService;
+    }
+
+    /// <inheritdoc/>
+    public IPublishedContent? GetStartItem()
+    {
+        if (_requestedStartContent != null)
+        {
+            return _requestedStartContent;
+        }
+
+        var headerValue = RequestedStartItem()?.Trim('/');
+        if (headerValue.IsNullOrWhiteSpace())
+        {
+            return null;
+        }
+
+        var isPreview = _requestPreviewService.IsPreview();
+        _documentNavigationQueryService.TryGetRootKeys(out IEnumerable<Guid> rootKeys);
+        IEnumerable<IPublishedContent> rootContent = rootKeys
+            .Select(rootKey => _publishedContentCache.GetById(isPreview, rootKey))
+            .WhereNotNull();
+
+        var culture = _variationContextAccessor.VariationContext?.Culture ?? string.Empty;
+        _requestedStartContent = Guid.TryParse(headerValue, out Guid key)
+            ? rootContent.FirstOrDefault(c => c.Key == key)
+            : rootContent.FirstOrDefault(c => _documentUrlService.GetUrlSegment(c.Key, culture, isPreview).InvariantEquals(headerValue));
+
+        return _requestedStartContent;
+    }
+
+    /// <inheritdoc/>
+    public string? RequestedStartItem() => GetHeaderValue(Constants.DeliveryApi.HeaderNames.StartItem);
+}

@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Chay website (debug)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-app",
+      "program": "${workspaceFolder}/src/ANTC.Portal.App/Umbraco.Web.UI/bin/Debug/net10.0/Umbraco.Web.UI.dll",
+      "cwd": "${workspaceFolder}/src/ANTC.Portal.App/Umbraco.Web.UI",
+      "env": { "ASPNETCORE_ENVIRONMENT": "Development", "ASPNETCORE_URLS": "http://localhost:11000" },
+      "stopAtEntry": false
+    }
+  ]
+}

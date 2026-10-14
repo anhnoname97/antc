@@ -1,0 +1,69 @@
+using Umbraco.Cms.Core.Models.PublishedContent;
+
+namespace Umbraco.Cms.Core.PropertyEditors.ValueConverters;
+
+/// <summary>
+///     Provides property value conversion for boolean (Yes/No) properties.
+/// </summary>
+[DefaultPropertyValueConverter]
+public class YesNoValueConverter : PropertyValueConverterBase
+{
+    /// <inheritdoc />
+    public override bool IsConverter(IPublishedPropertyType propertyType)
+        => propertyType.EditorAlias == Constants.PropertyEditors.Aliases.Boolean;
+
+    /// <inheritdoc />
+    public override Type GetPropertyValueType(IPublishedPropertyType propertyType)
+        => typeof(bool);
+
+    /// <inheritdoc />
+    public override PropertyCacheLevel GetPropertyCacheLevel(IPublishedPropertyType propertyType)
+        => PropertyCacheLevel.Element;
+
+    /// <inheritdoc />
+    public override object? ConvertSourceToIntermediate(IPublishedElement owner, IPublishedPropertyType propertyType, object? source, bool preview)
+    {
+        if (source is null)
+        {
+            return false;
+        }
+
+        // in xml a boolean is: string
+        // in the database a boolean is: string "1" or "0" or empty
+        // typically the converter does not need to handle anything else ("true"...)
+        // however there are cases where the value passed to the converter could be a non-string object, e.g. int, bool
+        if (source is string s)
+        {
+            if (s.Length == 0 || s == "0")
+            {
+                return false;
+            }
+
+            if (s == "1")
+            {
+                return true;
+            }
+
+            return bool.TryParse(s, out var result) && result;
+        }
+
+        if (source is int sourceAsInt)
+        {
+            return sourceAsInt == 1;
+        }
+
+        // this is required for correct true/false handling in nested content elements
+        if (source is long sourceAsLong)
+        {
+            return sourceAsLong == 1;
+        }
+
+        if (source is bool sourceAsBoolean)
+        {
+            return sourceAsBoolean;
+        }
+
+        // false for any other value
+        return false;
+    }
+}

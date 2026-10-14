@@ -1,0 +1,31 @@
+{
+  "name": "login",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "watch": "tsc && vite build --watch",
+    "preview": "vite preview",
+    "generate:tsconfig": "node devops/tsconfig/index.js"
+  },
+  "engines": {
+    "node": ">=24.13",
+    "npm": ">=11"
+  },
+  "devDependencies": {
+    "msw": "^2.15.0",
+    "typescript": "^6.0.3",
+    "vite": "^7.3.6",
+    "vite-tsconfig-paths": "^6.1.1"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "msw": true
+  }
+}

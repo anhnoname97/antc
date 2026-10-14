@@ -1,0 +1,71 @@
+using Microsoft.Extensions.Logging;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Core.Packaging;
+
+/// <summary>
+/// Represents a collection of package migrations that are pending and need to be applied.
+/// </summary>
+public class PendingPackageMigrations
+{
+    private readonly ILogger<PendingPackageMigrations> _logger;
+    private readonly PackageMigrationPlanCollection _packageMigrationPlans;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PendingPackageMigrations"/> class with the specified logger and package migration plans.
+    /// </summary>
+    /// <param name="logger">An <see cref="ILogger{PendingPackageMigrations}"/> instance used for logging.</param>
+    /// <param name="packageMigrationPlans">A <see cref="PackageMigrationPlanCollection"/> containing the migration plans for packages.</param>
+    public PendingPackageMigrations(
+        ILogger<PendingPackageMigrations> logger,
+        PackageMigrationPlanCollection packageMigrationPlans)
+    {
+        _logger = logger;
+        _packageMigrationPlans = packageMigrationPlans;
+    }
+
+    /// <summary>
+    ///     Returns what package migration names are pending
+    /// </summary>
+    /// <param name="keyValues">
+    ///     These are the key/value pairs from the keyvalue storage of migration names and their final values
+    /// </param>
+    /// <returns></returns>
+    public IReadOnlyList<string> GetPendingPackageMigrations(IReadOnlyDictionary<string, string?>? keyValues)
+    {
+        var packageMigrationPlans = _packageMigrationPlans.ToList();
+
+        var pendingMigrations = new List<string>(packageMigrationPlans.Count);
+
+        foreach (PackageMigrationPlan plan in packageMigrationPlans)
+        {
+            string? currentMigrationState = null;
+            var planKeyValueKey = Constants.Conventions.Migrations.KeyValuePrefix + plan.Name;
+            if (keyValues?.TryGetValue(planKeyValueKey, out var value) ?? false)
+            {
+                currentMigrationState = value;
+
+                if (!plan.FinalState.InvariantEquals(value))
+                {
+                    // Not equal so we need to run
+                    pendingMigrations.Add(plan.Name);
+                }
+            }
+            else
+            {
+                // If there is nothing in the DB then we need to run
+                pendingMigrations.Add(plan.Name);
+            }
+            if (_logger.IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+            {
+                _logger.LogDebug(
+                "Final package migration for {PackagePlan} state is {FinalMigrationState}, database contains {DatabaseState}",
+                plan.Name,
+                plan.FinalState,
+                currentMigrationState ?? "<null>");
+            }
+        }
+
+        return pendingMigrations;
+    }
+}

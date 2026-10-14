@@ -1,0 +1,140 @@
+using Umbraco.Cms.Core.Models;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Core.Services;
+
+/// <summary>
+///     Tag service to query for tags in the tags db table. The tags returned are only relevant for published content &amp;
+///     saved media or members
+/// </summary>
+/// <remarks>
+///     If there is unpublished content with tags, those tags will not be contained.
+///     This service does not contain methods to query for content, media or members based on tags, those methods will be added
+///     to the content, media and member services respectively.
+/// </remarks>
+public interface ITagService : IService
+{
+    /// <summary>
+    ///     Gets a tagged entity.
+    /// </summary>
+    TaggedEntity? GetTaggedEntityById(int id);
+
+    /// <summary>
+    ///     Gets a tagged entity.
+    /// </summary>
+    TaggedEntity? GetTaggedEntityByKey(Guid key);
+
+    /// <summary>
+    ///     Gets all documents tagged with any tag in the specified group.
+    /// </summary>
+    IEnumerable<TaggedEntity> GetTaggedContentByTagGroup(string group, string? culture = null);
+
+    /// <summary>
+    ///     Gets all documents tagged with the specified tag.
+    /// </summary>
+    IEnumerable<TaggedEntity> GetTaggedContentByTag(string tag, string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all media tagged with any tag in the specified group.
+    /// </summary>
+    IEnumerable<TaggedEntity> GetTaggedMediaByTagGroup(string group, string? culture = null);
+
+    /// <summary>
+    ///     Gets all media tagged with the specified tag.
+    /// </summary>
+    IEnumerable<TaggedEntity> GetTaggedMediaByTag(string tag, string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all members tagged with any tag in the specified group.
+    /// </summary>
+    IEnumerable<TaggedEntity> GetTaggedMembersByTagGroup(string group, string? culture = null);
+
+    /// <summary>
+    ///     Gets all members tagged with the specified tag.
+    /// </summary>
+    IEnumerable<TaggedEntity> GetTaggedMembersByTag(string tag, string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all elements tagged with any tag in the specified group.
+    /// </summary>
+    // TODO (V19): Remove the default implementation from this interface.
+    IEnumerable<TaggedEntity> GetTaggedElementsByTagGroup(string group, string? culture = null) => [];
+
+    /// <summary>
+    ///     Gets all elements tagged with the specified tag.
+    /// </summary>
+    // TODO (V19): Remove the default implementation from this interface.
+    IEnumerable<TaggedEntity> GetTaggedElementsByTag(string tag, string? group = null, string? culture = null) => [];
+
+    /// <summary>
+    ///     Gets all tags.
+    /// </summary>
+    IEnumerable<ITag> GetAllTags(string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all tags asynchronously.
+    /// </summary>
+    /// <param name="group">The optional tag group to filter by.</param>
+    /// <param name="culture">The optional culture to filter by.</param>
+    /// <returns>A task that represents the asynchronous operation, containing a collection of <see cref="ITag"/> objects.</returns>
+    Task<IEnumerable<ITag>> GetAllAsync(string? group = null, string? culture = null)
+    {
+        if (culture == string.Empty)
+        {
+            culture = null;
+        }
+
+        return Task.FromResult(GetAllTags(group, culture));
+    }
+
+    /// <summary>
+    ///     Gets tags matching the specified query asynchronously.
+    /// </summary>
+    /// <param name="query">The search query to filter tags by.</param>
+    /// <param name="group">The optional tag group to filter by.</param>
+    /// <param name="culture">The optional culture to filter by.</param>
+    /// <returns>A task that represents the asynchronous operation, containing a collection of matching <see cref="ITag"/> objects.</returns>
+    Task<IEnumerable<ITag>> GetByQueryAsync(string query, string? group = null, string? culture = null)
+        => Task.FromResult(GetAllAsync(group, culture).GetAwaiter().GetResult().Where(x => x.Text.InvariantContains(query)));
+
+    /// <summary>
+    ///     Gets all document tags.
+    /// </summary>
+    IEnumerable<ITag> GetAllContentTags(string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all media tags.
+    /// </summary>
+    IEnumerable<ITag> GetAllMediaTags(string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all member tags.
+    /// </summary>
+    IEnumerable<ITag> GetAllMemberTags(string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all element tags.
+    /// </summary>
+    // TODO (V19): Remove the default implementation from this interface.
+    IEnumerable<ITag> GetAllElementTags(string? group = null, string? culture = null) => [];
+
+    /// <summary>
+    ///     Gets all tags attached to an entity via a property.
+    /// </summary>
+    IEnumerable<ITag> GetTagsForProperty(int contentId, string propertyTypeAlias, string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all tags attached to an entity.
+    /// </summary>
+    IEnumerable<ITag> GetTagsForEntity(int contentId, string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all tags attached to an entity via a property.
+    /// </summary>
+    IEnumerable<ITag> GetTagsForProperty(Guid contentId, string propertyTypeAlias, string? group = null, string? culture = null);
+
+    /// <summary>
+    ///     Gets all tags attached to an entity.
+    /// </summary>
+    IEnumerable<ITag> GetTagsForEntity(Guid contentId, string? group = null, string? culture = null);
+}

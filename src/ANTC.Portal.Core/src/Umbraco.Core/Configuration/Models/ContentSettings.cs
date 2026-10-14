@@ -1,0 +1,273 @@
+// Copyright (c) Umbraco.
+// See LICENSE for more details.
+
+using System.ComponentModel;
+
+namespace Umbraco.Cms.Core.Configuration.Models;
+
+/// <summary>
+///     Typed configuration options for content settings.
+/// </summary>
+[UmbracoOptions(Constants.Configuration.ConfigContent)]
+public class ContentSettings
+{
+    /// <summary>
+    ///     The default value for resolving URLs from text strings.
+    /// </summary>
+    internal const bool StaticResolveUrlsFromTextString = false;
+
+    /// <summary>
+    ///     The default value for whether sorting children by a field fires per-item notifications.
+    /// </summary>
+    internal const bool StaticSortChildrenByFieldFiresNotifications = false;
+
+    /// <summary>
+    ///     The placeholder in <see cref="PreviewBadge" /> that renders as the CSP nonce attribute.
+    /// </summary>
+    internal const string PreviewBadgeNoncePlaceholder = "{3}";
+
+    /// <summary>
+    ///     The default preview badge markup template.
+    /// </summary>
+    internal const string StaticDefaultPreviewBadge = @"
+<script{3} src=""{0}/website/preview.js""></script>
+<umb-website-preview path=""{0}"" url=""{1}"" unique=""{2}""></umb-website-preview>";
+
+    /// <summary>
+    ///     The default comma-separated list of disallowed file extensions for upload.
+    /// </summary>
+    internal const string StaticDisallowedUploadFiles = "ashx,aspx,ascx,config,cshtml,vbhtml,asmx,air,axd,xamlx";
+
+    /// <summary>
+    ///     The default value for showing deprecated property editors.
+    /// </summary>
+    internal const bool StaticShowDeprecatedPropertyEditors = false;
+
+    /// <summary>
+    ///     The default path for the login background image.
+    /// </summary>
+    internal const string StaticLoginBackgroundImage = "assets/login.jpg";
+
+    /// <summary>
+    ///     The default path for the login logo image.
+    /// </summary>
+    internal const string StaticLoginLogoImage = "assets/logo_light.svg";
+
+    /// <summary>
+    ///     The default path for the alternative login logo image.
+    /// </summary>
+    internal const string StaticLoginLogoImageAlternative = "assets/logo_dark.svg";
+
+    /// <summary>
+    ///     The default path for the back-office logo.
+    /// </summary>
+    internal const string StaticBackOfficeLogo = "assets/logo.svg";
+
+    /// <summary>
+    ///     The default path for the alternative back-office logo.
+    /// </summary>
+    internal const string StaticBackOfficeLogoAlternative = "assets/logo_blue.svg";
+
+    /// <summary>
+    ///     The default value for hiding the back-office logo.
+    /// </summary>
+    internal const bool StaticHideBackOfficeLogo = false;
+
+    /// <summary>
+    ///     The default value for disabling delete when referenced.
+    /// </summary>
+    internal const bool StaticDisableDeleteWhenReferenced = false;
+
+    /// <summary>
+    ///     The default value for disabling unpublish when referenced.
+    /// </summary>
+    internal const bool StaticDisableUnpublishWhenReferenced = false;
+
+    /// <summary>
+    ///     The default value for allowing edit of invariant properties from non-default language.
+    /// </summary>
+    internal const bool StaticAllowEditInvariantFromNonDefault = false;
+
+    /// <summary>
+    ///     The default value for showing domain warnings.
+    /// </summary>
+    internal const bool StaticShowDomainWarnings = true;
+
+    /// <summary>
+    ///     The default value for showing unroutable content warnings.
+    /// </summary>
+    internal const bool StaticShowUnroutableContentWarnings = true;
+
+    /// <summary>
+    ///     The default value for enabling media recycle bin protection.
+    /// </summary>
+    private const bool StaticEnableMediaRecycleBinProtection = true;
+
+    /// <summary>
+    ///     Gets or sets a value for the content notification settings.
+    /// </summary>
+    public ContentNotificationSettings Notifications { get; set; } = new();
+
+    /// <summary>
+    ///     Gets or sets a value for the content imaging settings.
+    /// </summary>
+    public ContentImagingSettings Imaging { get; set; } = new();
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether URLs should be resolved from text strings.
+    /// </summary>
+    [DefaultValue(StaticResolveUrlsFromTextString)]
+    public bool ResolveUrlsFromTextString { get; set; } = StaticResolveUrlsFromTextString;
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether sorting the children of a node by a field fires
+    ///     per-item save/sort notifications (and therefore webhooks).
+    /// </summary>
+    /// <remarks>
+    ///     Defaults to <c>false</c>: the children are reordered with a single set-based update and a branch
+    ///     cache refresh, without per-item notifications. Set to <c>true</c> to restore per-item notifications
+    ///     (and webhooks), accepting the additional performance cost on nodes with many children.
+    /// </remarks>
+    [DefaultValue(StaticSortChildrenByFieldFiresNotifications)]
+    public bool SortChildrenByFieldFiresNotifications { get; set; } = StaticSortChildrenByFieldFiresNotifications;
+
+    /// <summary>
+    ///     Gets or sets a value for the collection of error pages.
+    /// </summary>
+    public IEnumerable<ContentErrorPage> Error404Collection { get; set; } = [];
+
+    /// <summary>
+    ///     Gets or sets a value for the preview badge mark-up.
+    /// </summary>
+    /// <remarks>
+    ///     The mark-up is used as a format string with the following placeholders:
+    ///     <list type="bullet">
+    ///         <item><description><c>{0}</c>: the back office path.</description></item>
+    ///         <item><description><c>{1}</c>: the URL of the previewed page.</description></item>
+    ///         <item><description><c>{2}</c>: the key of the previewed content item.</description></item>
+    ///         <item>
+    ///             <description>
+    ///                 <c>{3}</c>: a <c>nonce</c> attribute (including the leading space) for the current request,
+    ///                 or an empty string when no nonce is available. Required for sites using a nonce-based
+    ///                 Content Security Policy.
+    ///             </description>
+    ///         </item>
+    ///     </list>
+    ///     <para>
+    ///         The nonce rendered by <c>{3}</c> is the one provided by
+    ///         <see cref="Umbraco.Cms.Core.Security.ICspNonceService" />, so it only matches the policy when that
+    ///         same nonce reaches the <c>Content-Security-Policy</c> header — which is what
+    ///         <c>app.UseUmbracoCspNonceInjection()</c> does. A site whose own middleware generates a different
+    ///         nonce for the header needs to source its nonce from <c>ICspNonceService</c> as well, otherwise the
+    ///         values will not match and the badge stays blocked.
+    ///     </para>
+    /// </remarks>
+    [DefaultValue(StaticDefaultPreviewBadge)]
+    public string PreviewBadge { get; set; } = StaticDefaultPreviewBadge;
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether deprecated property editors should be shown.
+    /// </summary>
+    [DefaultValue(StaticShowDeprecatedPropertyEditors)]
+    public bool ShowDeprecatedPropertyEditors { get; set; } = StaticShowDeprecatedPropertyEditors;
+
+    /// <summary>
+    ///     Gets or sets a value for the path to the login screen background image.
+    /// </summary>
+    [DefaultValue(StaticLoginBackgroundImage)]
+    public string LoginBackgroundImage { get; set; } = StaticLoginBackgroundImage;
+
+    /// <summary>
+    ///     Gets or sets a value for the path to the login screen logo image
+    ///     shown on top of the background image set in <see cref="LoginBackgroundImage" />.
+    /// </summary>
+    /// <remarks>The alternative version of this logo can be found at <see cref="LoginLogoImageAlternative"/>.</remarks>
+    [DefaultValue(StaticLoginLogoImage)]
+    public string LoginLogoImage { get; set; } = StaticLoginLogoImage;
+
+    /// <summary>
+    ///     Gets or sets a value for the path to the login screen logo image when shown on top
+    ///     of a light background (e.g. in mobile resolutions).
+    /// </summary>
+    /// <remarks>This is the alternative version to the regular logo found at <see cref="LoginLogoImage"/>.</remarks>
+    [DefaultValue(StaticLoginLogoImageAlternative)]
+    public string LoginLogoImageAlternative { get; set; } = StaticLoginLogoImageAlternative;
+
+    /// <summary>
+    ///     Gets or sets a value for the path to the backoffice logo.
+    /// </summary>
+    /// <remarks>The alternative version of this logo can be found at <see cref="BackOfficeLogoAlternative"/>.</remarks>
+    [DefaultValue(StaticBackOfficeLogo)]
+    public string BackOfficeLogo { get; set; } = StaticBackOfficeLogo;
+
+    /// <summary>
+    ///     Gets or sets a value for the path to the alternative backoffice logo, which can be shown
+    ///     on top of a light background.
+    /// </summary>
+    /// <remarks>This is the alternative version to the regular logo found at <see cref="BackOfficeLogo"/>.</remarks>
+    [DefaultValue(StaticBackOfficeLogoAlternative)]
+    public string BackOfficeLogoAlternative { get; set; } = StaticBackOfficeLogoAlternative;
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether to disable the deletion of items referenced by other items.
+    /// </summary>
+    [DefaultValue(StaticDisableDeleteWhenReferenced)]
+    public bool DisableDeleteWhenReferenced { get; set; } = StaticDisableDeleteWhenReferenced;
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether to disable the unpublishing of items referenced by other items.
+    /// </summary>
+    [DefaultValue(StaticDisableUnpublishWhenReferenced)]
+    public bool DisableUnpublishWhenReferenced { get; set; } = StaticDisableUnpublishWhenReferenced;
+
+    /// <summary>
+    ///     Gets or sets the model representing the global content version cleanup policy
+    /// </summary>
+    public ContentVersionCleanupPolicySettings ContentVersionCleanupPolicy { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to allow editing invariant properties from a non-default language variation.
+    /// </summary>
+    [DefaultValue(StaticAllowEditInvariantFromNonDefault)]
+    public bool AllowEditInvariantFromNonDefault { get; set; } = StaticAllowEditInvariantFromNonDefault;
+
+    /// <summary>
+    ///     Gets or sets a value for the collection of file extensions that are allowed for upload.
+    /// </summary>
+    public ISet<string> AllowedUploadedFileExtensions { get; set; } = new HashSet<string>();
+
+    /// <summary>
+    ///     Gets or sets a value for the collection of file extensions that are disallowed for upload.
+    /// </summary>
+    [DefaultValue(StaticDisallowedUploadFiles)]
+    public ISet<string> DisallowedUploadedFileExtensions { get; set; } = new HashSet<string>(StaticDisallowedUploadFiles.Split(Constants.CharArrays.Comma));
+
+    /// <summary>
+    /// Gets or sets the allowed external host for media. If empty only relative paths are allowed.
+    /// </summary>
+    public ISet<string> AllowedMediaHosts { get; set; } = new HashSet<string>();
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show domain warnings.
+    /// </summary>
+    [DefaultValue(StaticShowDomainWarnings)]
+    public bool ShowDomainWarnings { get; set; } = StaticShowDomainWarnings;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to show unroutable content warnings.
+    /// </summary>
+    [DefaultValue(StaticShowUnroutableContentWarnings)]
+    public bool ShowUnroutableContentWarnings { get; set; } = StaticShowUnroutableContentWarnings;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to enable or disable the recycle bin protection for media.
+    /// </summary>
+    /// <remarks>
+    /// When set to true, this will:
+    ///  - Rename media moved to the recycle bin to have a .deleted suffice (e.g. image.jpg will be renamed to image.deleted.jpg).
+    ///  - On restore, the media file will be renamed back to its original name.
+    ///  - A middleware component will be enabled to prevent access to media files in the recycle bin unless the user is authenticated with access to the media section.
+    /// </remarks>
+    [DefaultValue(StaticEnableMediaRecycleBinProtection)]
+    public bool EnableMediaRecycleBinProtection { get; set; } = StaticEnableMediaRecycleBinProtection;
+}

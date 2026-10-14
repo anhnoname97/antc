@@ -1,0 +1,615 @@
+// Copyright (c) Umbraco.
+// See LICENSE for more details.
+
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Composing;
+using Umbraco.Cms.Core.Strings;
+
+namespace Umbraco.Extensions;
+
+/// <summary>
+/// Provides extension methods for <see cref="Type"/>.
+/// </summary>
+public static class TypeExtensions
+{
+    /// <summary>
+    /// Gets the default value for the specified type.
+    /// </summary>
+    /// <param name="t">The type to get the default value for.</param>
+    /// <returns>The default value for the type (null for reference types, the default instance for value types).</returns>
+    public static object? GetDefaultValue(this Type t) =>
+        t.IsValueType
+            ? Activator.CreateInstance(t)
+            : null;
+
+    /// <summary>
+    ///     Checks if the type is an anonymous type
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    /// <remarks>
+    ///     reference: http://jclaes.blogspot.com/2011/05/checking-for-anonymous-types.html
+    /// </remarks>
+    public static bool IsAnonymousType(this Type type)
+    {
+        if (type == null)
+        {
+            throw new ArgumentNullException("type");
+        }
+
+        return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
+               && type.IsGenericType && type.Name.Contains("AnonymousType")
+               && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
+               && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
+    }
+
+    /// <summary>
+    /// Gets all base types of the specified type.
+    /// </summary>
+    /// <param name="type">The type to get base types for.</param>
+    /// <param name="andSelf">If <c>true</c>, includes the type itself in the results.</param>
+    /// <returns>An enumerable of base types.</returns>
+    public static IEnumerable<Type?> GetBaseTypes(this Type? type, bool andSelf)
+    {
+        if (andSelf)
+        {
+            yield return type;
+        }
+
+        while ((type = type?.BaseType) != null)
+        {
+            yield return type;
+        }
+    }
+
+    /// <summary>
+    /// Gets a generic method by name and parameter types.
+    /// </summary>
+    /// <param name="type">The type to search for the method.</param>
+    /// <param name="name">The name of the method.</param>
+    /// <param name="parameterTypes">The parameter types of the method.</param>
+    /// <returns>The method info if found; otherwise, null.</returns>
+    internal static MethodInfo? GetGenericMethod(this Type type, string name, params Type[] parameterTypes)
+    {
+        IEnumerable<MethodInfo> methods = type.GetMethods().Where(method => method.Name == name);
+
+        foreach (MethodInfo method in methods)
+        {
+            if (method.HasParameters(parameterTypes))
+            {
+                return method;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Determines whether the method has the specified parameter types.
+    /// </summary>
+    /// <param name="method">The method to check.</param>
+    /// <param name="parameterTypes">The expected parameter types.</param>
+    /// <returns><c>true</c> if the method has the specified parameter types; otherwise, <c>false</c>.</returns>
+    internal static bool HasParameters(this MethodInfo method, params Type[] parameterTypes)
+    {
+        Type[] methodParameters = method.GetParameters().Select(parameter => parameter.ParameterType).ToArray();
+
+        if (methodParameters.Length != parameterTypes.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < methodParameters.Length; i++)
+        {
+            if (methodParameters[i].ToString() != parameterTypes[i].ToString())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Gets all methods from the type and its interfaces.
+    /// </summary>
+    /// <param name="target">The type to get methods from.</param>
+    /// <returns>An enumerable of all methods.</returns>
+    public static IEnumerable<MethodInfo> AllMethods(this Type target)
+    {
+        // var allTypes = target.AllInterfaces().ToList();
+        var allTypes = target.GetInterfaces().ToList(); // GetInterfaces is ok here
+        allTypes.Add(target);
+
+        return allTypes.SelectMany(t => t.GetMethods());
+    }
+
+    /// <summary>
+    /// Determines whether the specified type implements <see cref="IEnumerable"/>.
+    /// </summary>
+    /// <param name="type">The type to check.</param>
+    /// <returns>
+    ///     <c>true</c> if the specified type is enumerable; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsEnumerable(this Type type)
+    {
+        if (type.IsGenericType)
+        {
+            if (type.GetGenericTypeDefinition().GetInterfaces().Contains(typeof(IEnumerable)))
+            {
+                return true;
+            }
+        }
+        else
+        {
+            if (type.GetInterfaces().Contains(typeof(IEnumerable)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Determines whether [is of generic type] [the specified type].
+    /// </summary>
+    /// <param name="type">The type.</param>
+    /// <param name="genericType">Type of the generic.</param>
+    /// <returns>
+    ///     <c>true</c> if [is of generic type] [the specified type]; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsOfGenericType(this Type type, Type genericType)
+        => type.TryGetGenericArguments(genericType, out _);
+
+    /// <summary>
+    ///     Will find the generic type of the 'type' parameter passed in that is equal to the 'genericType' parameter passed in
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="genericType"></param>
+    /// <param name="genericArgType"></param>
+    /// <returns></returns>
+    public static bool TryGetGenericArguments(this Type type, Type genericType, [NotNullWhen(true)] out Type[]? genericArgType)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(genericType);
+
+        if (genericType.IsGenericType == false)
+        {
+            throw new ArgumentException("genericType must be a generic type");
+        }
+
+        Func<Type, Type, Type[]?> checkGenericType = (@int, t) =>
+        {
+            if (@int.IsGenericType)
+            {
+                Type def = @int.GetGenericTypeDefinition();
+                if (def == t)
+                {
+                    return @int.GetGenericArguments();
+                }
+            }
+
+            return null;
+        };
+
+        // first, check if the type passed in is already the generic type
+        genericArgType = checkGenericType(type, genericType);
+        if (genericArgType != null)
+        {
+            return true;
+        }
+
+        // if we're looking for interfaces, enumerate them:
+        if (genericType.IsInterface)
+        {
+            foreach (Type @interface in type.GetInterfaces())
+            {
+                genericArgType = checkGenericType(@interface, genericType);
+                if (genericArgType != null)
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            // loop back into the base types as long as they are generic
+            while (type.BaseType != null && type.BaseType != typeof(object))
+            {
+                genericArgType = checkGenericType(type.BaseType, genericType);
+                if (genericArgType != null)
+                {
+                    return true;
+                }
+
+                type = type.BaseType;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Gets all properties in a flat hierarchy
+    /// </summary>
+    /// <remarks>Includes both Public and Non-Public properties</remarks>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static PropertyInfo[] GetAllProperties(this Type type)
+    {
+        const BindingFlags bindingFlags = BindingFlags.FlattenHierarchy
+                                          | BindingFlags.Public
+                                          | BindingFlags.NonPublic
+                                          | BindingFlags.Instance;
+        return type.GetAllMemberInfos(t => t.GetProperties(bindingFlags));
+    }
+
+    /// <summary>
+    ///     Returns public properties including inherited properties even for interfaces
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static PropertyInfo[] GetPublicProperties(this Type type)
+    {
+        const BindingFlags bindingFlags = BindingFlags.FlattenHierarchy
+                                          | BindingFlags.Public
+                                          | BindingFlags.Instance;
+        return type.GetAllMemberInfos(t => t.GetProperties(bindingFlags));
+    }
+
+    /// <summary>
+    ///     Returns public methods including inherited methods even for interfaces
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static MethodInfo[] GetPublicMethods(this Type type)
+    {
+        const BindingFlags bindingFlags = BindingFlags.FlattenHierarchy
+                                          | BindingFlags.Public
+                                          | BindingFlags.Instance;
+        return type.GetAllMemberInfos(t => t.GetMethods(bindingFlags));
+    }
+
+    /// <summary>
+    ///     Returns all methods including inherited methods even for interfaces
+    /// </summary>
+    /// <remarks>Includes both Public and Non-Public methods</remarks>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static MethodInfo[] GetAllMethods(this Type type)
+    {
+        const BindingFlags bindingFlags = BindingFlags.FlattenHierarchy
+                                          | BindingFlags.Public
+                                          | BindingFlags.NonPublic
+                                          | BindingFlags.Instance;
+        return type.GetAllMemberInfos(t => t.GetMethods(bindingFlags));
+    }
+
+    /// <summary>
+    ///     Determines whether the specified actual type is type.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="actualType">The actual type.</param>
+    /// <returns>
+    ///     <c>true</c> if the specified actual type is type; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsType<T>(this Type actualType) => TypeHelper.IsTypeAssignableFrom<T>(actualType);
+
+    /// <summary>
+    /// Determines whether the type inherits from the specified base type.
+    /// </summary>
+    /// <typeparam name="TBase">The base type to check.</typeparam>
+    /// <param name="type">The type to check.</param>
+    /// <returns><c>true</c> if the type inherits from the base type; otherwise, <c>false</c>.</returns>
+    public static bool Inherits<TBase>(this Type type) => typeof(TBase).IsAssignableFrom(type);
+
+    /// <summary>
+    /// Determines whether the type inherits from the specified base type.
+    /// </summary>
+    /// <param name="type">The type to check.</param>
+    /// <param name="tbase">The base type to check.</param>
+    /// <returns><c>true</c> if the type inherits from the base type; otherwise, <c>false</c>.</returns>
+    public static bool Inherits(this Type type, Type tbase) => tbase.IsAssignableFrom(type);
+
+    /// <summary>
+    /// Determines whether the type implements the specified interface.
+    /// </summary>
+    /// <typeparam name="TInterface">The interface type to check.</typeparam>
+    /// <param name="type">The type to check.</param>
+    /// <returns><c>true</c> if the type implements the interface; otherwise, <c>false</c>.</returns>
+    public static bool Implements<TInterface>(this Type type) => typeof(TInterface).IsAssignableFrom(type);
+
+    /// <summary>
+    /// Gets the first attribute of the specified type from the type.
+    /// </summary>
+    /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
+    /// <param name="type">The type to get the attribute from.</param>
+    /// <returns>The first attribute of the specified type, or null if not found.</returns>
+    public static TAttribute? FirstAttribute<TAttribute>(this Type type) => type.FirstAttribute<TAttribute>(true);
+
+    /// <summary>
+    /// Gets the first attribute of the specified type from the type.
+    /// </summary>
+    /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
+    /// <param name="type">The type to get the attribute from.</param>
+    /// <param name="inherit">Whether to search the inheritance chain.</param>
+    /// <returns>The first attribute of the specified type, or null if not found.</returns>
+    public static TAttribute? FirstAttribute<TAttribute>(this Type type, bool inherit)
+    {
+        var attrs = type.GetCustomAttributes(typeof(TAttribute), inherit);
+        return (TAttribute?)(attrs.Length > 0 ? attrs[0] : null);
+    }
+
+    /// <summary>
+    /// Gets the first attribute of the specified type from the property.
+    /// </summary>
+    /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
+    /// <param name="propertyInfo">The property to get the attribute from.</param>
+    /// <returns>The first attribute of the specified type, or null if not found.</returns>
+    public static TAttribute? FirstAttribute<TAttribute>(this PropertyInfo propertyInfo) =>
+        propertyInfo.FirstAttribute<TAttribute>(true);
+
+    /// <summary>
+    /// Gets the first attribute of the specified type from the property.
+    /// </summary>
+    /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
+    /// <param name="propertyInfo">The property to get the attribute from.</param>
+    /// <param name="inherit">Whether to search the inheritance chain.</param>
+    /// <returns>The first attribute of the specified type, or null if not found.</returns>
+    public static TAttribute? FirstAttribute<TAttribute>(this PropertyInfo propertyInfo, bool inherit)
+    {
+        var attrs = propertyInfo.GetCustomAttributes(typeof(TAttribute), inherit);
+        return (TAttribute?)(attrs.Length > 0 ? attrs[0] : null);
+    }
+
+    /// <summary>
+    /// Gets all attributes of the specified type from the property.
+    /// </summary>
+    /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
+    /// <param name="propertyInfo">The property to get the attributes from.</param>
+    /// <returns>An enumerable of attributes, or null if none found.</returns>
+    public static IEnumerable<TAttribute>? MultipleAttribute<TAttribute>(this PropertyInfo propertyInfo) =>
+        propertyInfo.MultipleAttribute<TAttribute>(true);
+
+    /// <summary>
+    /// Gets all attributes of the specified type from the property.
+    /// </summary>
+    /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
+    /// <param name="propertyInfo">The property to get the attributes from.</param>
+    /// <param name="inherit">Whether to search the inheritance chain.</param>
+    /// <returns>An enumerable of attributes, or null if none found.</returns>
+    public static IEnumerable<TAttribute>? MultipleAttribute<TAttribute>(this PropertyInfo propertyInfo, bool inherit)
+    {
+        var attrs = propertyInfo.GetCustomAttributes(typeof(TAttribute), inherit);
+        return attrs.Length > 0 ? attrs.ToList().ConvertAll(input => (TAttribute)input) : null;
+    }
+
+    /// <summary>
+    ///     Returns the full type name with the assembly but without all of the assembly specific version information.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    /// <remarks>
+    ///     This method is like an 'in between' of Type.FullName and Type.AssemblyQualifiedName which returns the type and the
+    ///     assembly separated
+    ///     by a comma.
+    /// </remarks>
+    /// <example>
+    ///     The output of this class would be:
+    ///     Umbraco.Core.TypeExtensions, Umbraco.Core
+    /// </example>
+    public static string GetFullNameWithAssembly(this Type type)
+    {
+        AssemblyName assemblyName = type.Assembly.GetName();
+
+        return string.Concat(type.FullName, ", ", assemblyName.FullName.StartsWith("App_Code.") ? "App_Code" : assemblyName.Name);
+    }
+
+    /// <summary>
+    /// Gets a custom attribute of the specified type from the type.
+    /// </summary>
+    /// <typeparam name="T">The type of attribute to get.</typeparam>
+    /// <param name="type">The type to get the attribute from.</param>
+    /// <param name="inherit">Whether to search the inheritance chain.</param>
+    /// <returns>The custom attribute, or null if not found.</returns>
+    public static T? GetCustomAttribute<T>(this Type type, bool inherit)
+        where T : Attribute =>
+        type.GetCustomAttributes<T>(inherit).SingleOrDefault();
+
+    /// <summary>
+    /// Gets all custom attributes of the specified type from the type.
+    /// </summary>
+    /// <typeparam name="T">The type of attributes to get.</typeparam>
+    /// <param name="type">The type to get the attributes from.</param>
+    /// <param name="inherited">Whether to search the inheritance chain.</param>
+    /// <returns>An enumerable of custom attributes.</returns>
+    public static IEnumerable<T> GetCustomAttributes<T>(this Type? type, bool inherited)
+        where T : Attribute
+    {
+        if (type == null)
+        {
+            return Enumerable.Empty<T>();
+        }
+
+        return type.GetCustomAttributes(typeof(T), inherited).OfType<T>();
+    }
+
+    /// <summary>
+    /// Determines whether the type has a custom attribute of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of attribute to check for.</typeparam>
+    /// <param name="type">The type to check.</param>
+    /// <param name="inherit">Whether to search the inheritance chain.</param>
+    /// <returns><c>true</c> if the type has the attribute; otherwise, <c>false</c>.</returns>
+    public static bool HasCustomAttribute<T>(this Type type, bool inherit)
+        where T : Attribute =>
+        type.GetCustomAttribute<T>(inherit) != null;
+
+    /// <summary>
+    ///     Determines whether an instance of a specified type can be assigned to the current type instance.
+    /// </summary>
+    /// <param name="type">The current type.</param>
+    /// <param name="c">The type to compare with the current type.</param>
+    /// <returns>A value indicating whether an instance of the specified type can be assigned to the current type instance.</returns>
+    /// <remarks>
+    ///     This extended version supports the current type being a generic type definition, and will
+    ///     consider that eg <c>List{int}</c> is "assignable to" <c>IList{}</c>.
+    /// </remarks>
+    public static bool IsAssignableFromGtd(this Type type, Type c)
+    {
+        // type *can* be a generic type definition
+        // c is a real type, cannot be a generic type definition
+        if (type.IsGenericTypeDefinition == false)
+        {
+            return type.IsAssignableFrom(c);
+        }
+
+        if (c.IsInterface == false)
+        {
+            Type? t = c;
+            while (t != typeof(object))
+            {
+                if (t is not null && t.IsGenericType && t.GetGenericTypeDefinition() == type)
+                {
+                    return true;
+                }
+
+                t = t?.BaseType;
+            }
+        }
+
+        return c.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == type);
+    }
+
+    /// <summary>
+    ///     If the given <paramref name="type" /> is an array or some other collection
+    ///     comprised of 0 or more instances of a "subtype", get that type
+    /// </summary>
+    /// <param name="type">the source type</param>
+    /// <returns></returns>
+    public static Type? GetEnumeratedType(this Type type)
+    {
+        if (typeof(IEnumerable).IsAssignableFrom(type) == false)
+        {
+            return null;
+        }
+
+        // provided by Array
+        Type? elType = type.GetElementType();
+        if (elType != null)
+        {
+            return elType;
+        }
+
+        // otherwise provided by collection
+        Type[] elTypes = type.GetGenericArguments();
+        if (elTypes.Length > 0)
+        {
+            return elTypes[0];
+        }
+
+        // otherwise is not an 'enumerated' type
+        return null;
+    }
+
+    /// <summary>
+    ///     Tries to return a value based on a property name for an object but ignores case sensitivity
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="shortStringHelper"></param>
+    /// <param name="target"></param>
+    /// <param name="memberName"></param>
+    /// <returns></returns>
+    /// <remarks>
+    ///     Currently this will only work for ProperCase and camelCase properties, see the TODO below to enable complete case
+    ///     insensitivity
+    /// </remarks>
+    internal static Attempt<object> GetMemberIgnoreCase(this Type type, IShortStringHelper shortStringHelper, object target, string memberName)
+    {
+        Func<string, Attempt<object>> getMember =
+            memberAlias =>
+            {
+                try
+                {
+                    return Attempt<object>.Succeed(
+                        type.InvokeMember(
+                            memberAlias,
+                            BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public,
+                            null,
+                            target,
+                            null));
+                }
+                catch (MissingMethodException ex)
+                {
+                    return Attempt<object>.Fail(ex);
+                }
+            };
+
+        // try with the current casing
+        Attempt<object> attempt = getMember(memberName);
+        if (attempt.Success == false)
+        {
+            // if we cannot get with the current alias, try changing it's case
+            attempt = memberName[0].IsUpperCase()
+                ? getMember(memberName.ToCleanString(
+                    shortStringHelper,
+                    CleanStringType.Ascii | CleanStringType.ConvertCase | CleanStringType.CamelCase))
+                : getMember(memberName.ToCleanString(
+                    shortStringHelper,
+                    CleanStringType.Ascii | CleanStringType.ConvertCase | CleanStringType.PascalCase));
+
+            // TODO: If this still fails then we should get a list of properties from the object and then compare - doing the above without listing
+            // all properties will surely be faster than using reflection to get ALL properties first and then query against them.
+        }
+
+        return attempt;
+    }
+
+    /// <remarks>
+    ///     taken from
+    ///     http://stackoverflow.com/questions/358835/getproperties-to-return-all-properties-for-an-interface-inheritance-hierarchy
+    /// </remarks>
+    private static T[] GetAllMemberInfos<T>(this Type type, Func<Type, T[]> getMemberInfos)
+        where T : MemberInfo
+    {
+        if (type.IsInterface is false)
+        {
+            return getMemberInfos(type);
+        }
+
+        var memberInfos = new List<T>();
+
+        var considered = new List<Type>();
+        var queue = new Queue<Type>();
+        considered.Add(type);
+        queue.Enqueue(type);
+        while (queue.Count > 0)
+        {
+            Type subType = queue.Dequeue();
+            foreach (Type subInterface in subType.GetInterfaces())
+            {
+                if (considered.Contains(subInterface))
+                {
+                    continue;
+                }
+
+                considered.Add(subInterface);
+                queue.Enqueue(subInterface);
+            }
+
+            T[] typeMethodInfos = getMemberInfos(subType);
+
+            IEnumerable<T> newMethodInfos = typeMethodInfos
+                .Where(x => !memberInfos.Contains(x));
+
+            memberInfos.InsertRange(0, newMethodInfos);
+        }
+
+        return memberInfos.ToArray();
+    }
+}

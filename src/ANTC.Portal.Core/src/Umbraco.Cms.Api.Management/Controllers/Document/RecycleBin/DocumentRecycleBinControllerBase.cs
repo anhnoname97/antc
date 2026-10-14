@@ -1,0 +1,54 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Management.Controllers.RecycleBin;
+using Umbraco.Cms.Api.Management.Factories;
+using Umbraco.Cms.Api.Management.Filters;
+using Umbraco.Cms.Api.Management.Routing;
+using Umbraco.Cms.Api.Management.ViewModels.Document.RecycleBin;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Entities;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Web.Common.Authorization;
+
+namespace Umbraco.Cms.Api.Management.Controllers.Document.RecycleBin;
+
+/// <summary>
+/// Serves as the base controller for handling operations related to the document recycle bin in the management API.
+/// </summary>
+[VersionedApiBackOfficeRoute($"{Constants.Web.RoutePath.RecycleBin}/{Constants.UdiEntityType.Document}")]
+[RequireDocumentTreeRootAccess]
+[ApiExplorerSettings(GroupName = nameof(Constants.UdiEntityType.Document))]
+[Authorize(Policy = AuthorizationPolicies.TreeAccessDocuments)]
+public class DocumentRecycleBinControllerBase : RecycleBinControllerBase<DocumentRecycleBinItemResponseModel>
+{
+    protected override string EntityName => "document";
+
+    private readonly IDocumentPresentationFactory _documentPresentationFactory;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DocumentRecycleBinControllerBase"/> class.
+    /// </summary>
+    /// <param name="entityService">Service used for entity operations within the recycle bin.</param>
+    /// <param name="documentPresentationFactory">Factory responsible for creating document presentation models.</param>
+    public DocumentRecycleBinControllerBase(IEntityService entityService, IDocumentPresentationFactory documentPresentationFactory)
+        : base(entityService)
+        => _documentPresentationFactory = documentPresentationFactory;
+
+    protected override UmbracoObjectTypes ItemObjectType => UmbracoObjectTypes.Document;
+
+    protected override Guid RecycleBinRootKey => Constants.System.RecycleBinContentKey;
+
+    protected override async Task<DocumentRecycleBinItemResponseModel> MapRecycleBinViewModelAsync(Guid? parentId, IEntitySlim entity)
+    {
+        DocumentRecycleBinItemResponseModel responseModel = await base.MapRecycleBinViewModelAsync(parentId, entity);
+
+        if (entity is IDocumentEntitySlim documentEntitySlim)
+        {
+            responseModel.Variants = await _documentPresentationFactory.CreateVariantsItemResponseModelsAsync(documentEntitySlim);
+            responseModel.DocumentType = _documentPresentationFactory.CreateDocumentTypeReferenceResponseModel(documentEntitySlim);
+        }
+
+        return responseModel;
+    }
+}

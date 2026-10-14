@@ -1,0 +1,59 @@
+using Asp.Versioning;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Management.Factories;
+using Umbraco.Cms.Api.Management.ViewModels.User;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Membership;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.OperationStatus;
+
+namespace Umbraco.Cms.Api.Management.Controllers.User;
+
+/// <summary>
+/// API controller responsible for handling requests to resend invitation emails to users.
+/// </summary>
+[ApiVersion("1.0")]
+public class ResendInviteUserController : UserControllerBase
+{
+    private readonly IUserService _userService;
+    private readonly IUserPresentationFactory _userPresentationFactory;
+    private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Umbraco.Cms.Api.Management.Controllers.User.ResendInviteUserController"/> class,
+    /// which handles operations related to resending user invitations in the management API.
+    /// </summary>
+    /// <param name="userService">Service used for user management operations.</param>
+    /// <param name="userPresentationFactory">Factory for creating user presentation models.</param>
+    /// <param name="backOfficeSecurityAccessor">Accessor for back office security context.</param>
+    public ResendInviteUserController(IUserService userService, IUserPresentationFactory userPresentationFactory, IBackOfficeSecurityAccessor backOfficeSecurityAccessor)
+    {
+        _userService = userService;
+        _userPresentationFactory = userPresentationFactory;
+        _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
+    }
+
+    [HttpPost("invite/resend")]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [EndpointSummary("Resends a user invitation.")]
+    [EndpointDescription("Resends the invitation email for the users identified by the provided Ids.")]
+    public async Task<IActionResult> ResendInvite(
+        CancellationToken cancellationToken,
+        ResendInviteUserRequestModel model)
+    {
+        UserResendInviteModel resendInviteModel = await _userPresentationFactory.CreateResendInviteModelAsync(model);
+
+        Attempt<UserInvitationResult, UserOperationStatus> result =
+            await _userService.ResendInvitationAsync(CurrentUserKey(_backOfficeSecurityAccessor), resendInviteModel);
+
+        return result.Success
+            ? Ok()
+            : UserOperationStatusResult(result.Status, result.Result);
+    }
+}

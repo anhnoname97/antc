@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Company>Umbraco HQ</Company>
+    <Authors>Umbraco</Authors>
+    <Copyright>Copyright © Umbraco $([System.DateTime]::Today.ToString('yyyy'))</Copyright>
+    <Product>Umbraco CMS</Product>
+    <PackageProjectUrl>https://umbraco.com/</PackageProjectUrl>
+    <PackageIconUrl>https://umbraco.com/dist/nuget/logo-small.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>umbraco</PackageTags>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
+  </PropertyGroup>
+
+
+  <PropertyGroup>
+    <!--
+      TODO: Fix and remove overrides:
+      [NU5104] Warning As Error: A stable release of a package should not have a prerelease dependency. Either modify the version spec of dependency
+    -->
+    <NoWarn>$(NoWarn),NU5104,SA1309</NoWarn>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors),NU5104,SA1600</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <!-- SourceLink -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- Package Validation -->
+  <PropertyGroup>
+    <GenerateCompatibilitySuppressionFile>false</GenerateCompatibilitySuppressionFile>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>18.0.0</PackageValidationBaselineVersion>
+    <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
+    <EnableStrictModeForCompatibleTfms>true</EnableStrictModeForCompatibleTfms>
+  </PropertyGroup>
+
+  <!-- Calculate version only once for the whole repository -->
+  <PropertyGroup>
+    <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
+  </PropertyGroup>
+
+  <!-- Include icon in generated NuGet packages -->
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+
+  <!-- Use version range on project references (to limit on major version in generated packages) -->
+  <Target Name="_GetProjectReferenceVersionRanges" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Condition="'%(ProjectVersion)' != ''">
+        <ProjectVersion>[%(ProjectVersion), $([MSBuild]::Add($([System.Text.RegularExpressions.Regex]::Match('%(ProjectVersion)', '^\d+').Value), 1)))</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
+
+  <!-- Workaround for https://github.com/umbraco/Umbraco-CMS/issues/23018
+       Due to the amount of XML documentation in this solution, the OpenAPI XML documentation source generator produces
+       too many lines of code causing a StackOverflowException when running on IIS. For that reason we disable the analyzer.
+       See https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/openapi-comments?view=aspnetcore-10.0#disabling-xml-documentation-support -->
+  <Target Name="DisableCompileTimeOpenApiXmlGenerator" BeforeTargets="CoreCompile" Condition="'$(IsPackable)' != 'false' or '$(IsTestProject)' == 'true'">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Microsoft.AspNetCore.OpenApi.SourceGenerators'" />
+    </ItemGroup>
+  </Target>
+</Project>

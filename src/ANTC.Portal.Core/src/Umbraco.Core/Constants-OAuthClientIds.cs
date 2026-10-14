@@ -1,0 +1,33 @@
+namespace Umbraco.Cms.Core;
+
+public static partial class Constants
+{
+    /// <summary>
+    ///     Contains OAuth client ID constants for different API clients.
+    /// </summary>
+    public static class OAuthClientIds
+    {
+        /// <summary>
+        ///     Client ID used for default back-office access.
+        /// </summary>
+        public const string BackOffice = "umbraco-back-office";
+
+        /// <summary>
+        ///     Client ID used for OpenAPI UI access.
+        /// </summary>
+        /// <remarks>
+        ///     The value remains "umbraco-swagger" for backwards compatibility with existing database registrations.
+        /// </remarks>
+        public const string OpenApiUi = "umbraco-swagger";
+
+        /// <summary>
+        ///     Client ID used for Postman API access.
+        /// </summary>
+        public const string Postman = "umbraco-postman";
+
+        /// <summary>
+        ///     Client ID used for member access.
+        /// </summary>
+        public const string Member = "umbraco-member";
+    }
+}

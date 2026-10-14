@@ -1,0 +1,366 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Cms.Core.Scoping;
+using Umbraco.Cms.Core.Strings;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Core.IO;
+
+/// <summary>
+/// Manages media files and their storage in the file system.
+/// </summary>
+public sealed class MediaFileManager
+{
+    private readonly ILogger<MediaFileManager> _logger;
+    private readonly IMediaPathScheme _mediaPathScheme;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly Lazy<ICoreScopeProvider> _coreScopeProvider;
+    private readonly IShortStringHelper _shortStringHelper;
+    private MediaUrlGeneratorCollection? _mediaUrlGenerators;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MediaFileManager"/> class.
+    /// </summary>
+    /// <param name="fileSystem">The file system for media storage.</param>
+    /// <param name="mediaPathScheme">The media path scheme.</param>
+    /// <param name="logger">The logger.</param>
+    /// <param name="shortStringHelper">The short string helper.</param>
+    /// <param name="serviceProvider">The service provider.</param>
+    [Obsolete("Please use the constructor taking all arguments, scheduled for removal in Umbraco 19")]
+    public MediaFileManager(
+        IFileSystem fileSystem,
+        IMediaPathScheme mediaPathScheme,
+        ILogger<MediaFileManager> logger,
+        IShortStringHelper shortStringHelper,
+        IServiceProvider serviceProvider)
+        : this(
+            fileSystem,
+            mediaPathScheme,
+            logger,
+            shortStringHelper,
+            serviceProvider,
+            StaticServiceProvider.Instance.GetRequiredService<Lazy<ICoreScopeProvider>>())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MediaFileManager"/> class.
+    /// </summary>
+    /// <param name="fileSystem">The file system for media storage.</param>
+    /// <param name="mediaPathScheme">The media path scheme.</param>
+    /// <param name="logger">The logger.</param>
+    /// <param name="shortStringHelper">The short string helper.</param>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <param name="coreScopeProvider">The core scope provider.</param>
+    public MediaFileManager(
+        IFileSystem fileSystem,
+        IMediaPathScheme mediaPathScheme,
+        ILogger<MediaFileManager> logger,
+        IShortStringHelper shortStringHelper,
+        IServiceProvider serviceProvider,
+        Lazy<ICoreScopeProvider> coreScopeProvider)
+    {
+        _mediaPathScheme = mediaPathScheme;
+        _logger = logger;
+        _shortStringHelper = shortStringHelper;
+        _serviceProvider = serviceProvider;
+        _coreScopeProvider = coreScopeProvider;
+        FileSystem = fileSystem;
+    }
+
+    /// <summary>
+    ///     Gets the media filesystem.
+    /// </summary>
+    public IFileSystem FileSystem { get; }
+
+    /// <summary>
+    ///     Delete media files.
+    /// </summary>
+    /// <param name="files">Files to delete (filesystem-relative paths).</param>
+    public void DeleteMediaFiles(IEnumerable<string> files) =>
+        PerformMediaFileOperation(
+            files,
+            file =>
+            {
+                FileSystem.DeleteFile(file);
+
+                var directory = _mediaPathScheme.GetDeleteDirectory(this, file);
+                if (!directory.IsNullOrWhiteSpace())
+                {
+                    FileSystem.DeleteDirectory(directory!, true);
+                }
+            },
+            "Failed to delete media file '{File}'.");
+
+    /// <summary>
+    /// Adds a suffix to media files.
+    /// </summary>
+    /// <param name="files">Files to append a suffix to.</param>
+    /// <param name="suffix">The suffix to append.</param>
+    /// <remarks>
+    /// The suffix will be added prior to the file extension, e.g. "image.jpg" with suffix ".deleted" will become "image.deleted.jpg".
+    /// </remarks>
+    public void SuffixMediaFiles(IEnumerable<string> files, string suffix)
+        => PerformMediaFileOperation(
+            files,
+            file =>
+            {
+                var suffixedFile = Path.ChangeExtension(file, suffix + Path.GetExtension(file));
+                FileSystem.MoveFile(file, suffixedFile);
+            },
+            "Failed to rename media file '{File}'.");
+
+    /// <summary>
+    /// Removes a suffix from media files.
+    /// </summary>
+    /// <param name="files">Files to remove a suffix from.</param>
+    /// <param name="suffix">The suffix to remove.</param>
+    /// <remarks>
+    /// The suffix will be removed prior to the file extension, e.g. "image.deleted.jpg" with suffix ".deleted" will become "image.jpg".
+    /// </remarks>
+    public void RemoveSuffixFromMediaFiles(IEnumerable<string> files, string suffix)
+        => PerformMediaFileOperation(
+            files,
+            file =>
+            {
+                var fileWithSuffixRemoved = file.Replace(suffix + Path.GetExtension(file), Path.GetExtension(file));
+                FileSystem.MoveFile(file, fileWithSuffixRemoved);
+            },
+            "Failed to rename media file '{File}'.");
+
+    /// <summary>
+    /// Performs a file operation on multiple media files in parallel.
+    /// </summary>
+    /// <param name="files">The files to operate on.</param>
+    /// <param name="fileOperation">The operation to perform on each file.</param>
+    /// <param name="errorMessage">The error message template to log on failure.</param>
+    private void PerformMediaFileOperation(IEnumerable<string> files, Action<string> fileOperation, string errorMessage)
+    {
+        using ICoreScope scope = _coreScopeProvider.Value.CreateCoreScope();
+        scope.WriteLock(Constants.Locks.MediaTree);
+
+        files = files.Distinct();
+
+        // kinda try to keep things under control
+        var options = new ParallelOptions { MaxDegreeOfParallelism = 20 };
+
+        Parallel.ForEach(files, options, file =>
+        {
+            try
+            {
+                if (file.IsNullOrWhiteSpace())
+                {
+                    return;
+                }
+
+                if (FileSystem.FileExists(file) == false)
+                {
+                    return;
+                }
+
+                fileOperation(file);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, errorMessage, file);
+            }
+        });
+
+        scope.Complete();
+    }
+
+    #region Media Path
+
+    /// <summary>
+    ///     Gets the file path of a media file.
+    /// </summary>
+    /// <param name="filename">The file name.</param>
+    /// <param name="cuid">The unique identifier of the content/media owning the file.</param>
+    /// <param name="puid">The unique identifier of the property type owning the file.</param>
+    /// <returns>The filesystem-relative path to the media file.</returns>
+    /// <remarks>With the old media path scheme, this CREATES a new media path each time it is invoked.</remarks>
+    public string GetMediaPath(string? filename, Guid cuid, Guid puid)
+    {
+        filename = Path.GetFileName(filename);
+        if (filename == null)
+        {
+            throw new ArgumentException("Cannot become a safe filename.", nameof(filename));
+        }
+
+        filename = _shortStringHelper.CleanStringForSafeFileName(filename.ToLowerInvariant());
+
+        return _mediaPathScheme.GetFilePath(this, cuid, puid, filename);
+    }
+
+    /// <summary>
+    ///     Determines whether a media file path is one that could have been generated for the given content and property type.
+    /// </summary>
+    /// <param name="pathOrUrl">The media file path or URL to check.</param>
+    /// <param name="contentKey">The unique identifier of the content/media expected to own the file.</param>
+    /// <param name="propertyTypeKey">The unique identifier of the property type expected to own the file.</param>
+    /// <returns>
+    ///     <c>true</c> if the path resolves to one the active media path scheme would produce for
+    ///     <paramref name="contentKey" /> and <paramref name="propertyTypeKey" />; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    ///     A value editor stores the file path in the property value, so before acting destructively on that path
+    ///     (deleting or renaming the file) callers must confirm the path actually belongs to the item being processed,
+    ///     rather than one supplied by a client to reference another item's file. The determination is delegated to the
+    ///     active <see cref="IMediaPathScheme" />, which owns the mapping between item/property keys and file paths;
+    ///     see <see cref="IMediaPathScheme.IsFilePathOwnedBy" />.
+    /// </remarks>
+    public bool IsFileOwnedBy(string? pathOrUrl, Guid contentKey, Guid propertyTypeKey)
+    {
+        if (string.IsNullOrWhiteSpace(pathOrUrl))
+        {
+            return false;
+        }
+
+        var relativePath = FileSystem.GetRelativePath(pathOrUrl);
+        return _mediaPathScheme.IsFilePathOwnedBy(this, relativePath, contentKey, propertyTypeKey);
+    }
+
+    internal static string NormalizePathForComparison(string path)
+        => path.Replace('\\', '/').Trim('/');
+
+    #endregion
+
+    #region Associated Media Files
+
+    /// <summary>
+    ///     Returns a stream (file) for a content item (or a null stream if there is no file).
+    /// </summary>
+    /// <param name="content"></param>
+    /// <param name="mediaFilePath">The file path if a file was found</param>
+    /// <param name="propertyTypeAlias"></param>
+    /// <param name="culture"></param>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    public Stream GetFile(
+        IContentBase content,
+        out string? mediaFilePath,
+        string propertyTypeAlias = Constants.Conventions.Media.File,
+        string? culture = null,
+        string? segment = null)
+    {
+        // TODO: If collections were lazy we could just inject them
+        if (_mediaUrlGenerators == null)
+        {
+            _mediaUrlGenerators = _serviceProvider.GetRequiredService<MediaUrlGeneratorCollection>();
+        }
+
+        if (!content.TryGetMediaPath(propertyTypeAlias, _mediaUrlGenerators!, out mediaFilePath, culture, segment))
+        {
+            return Stream.Null;
+        }
+
+        return FileSystem.OpenFile(mediaFilePath!);
+    }
+
+    /// <summary>
+    ///     Stores a media file associated to a property of a content item.
+    /// </summary>
+    /// <param name="content">The content item owning the media file.</param>
+    /// <param name="propertyType">The property type owning the media file.</param>
+    /// <param name="filename">The media file name.</param>
+    /// <param name="filestream">A stream containing the media bytes.</param>
+    /// <param name="oldpath">An optional filesystem-relative filepath to the previous media file.</param>
+    /// <returns>The filesystem-relative filepath to the media file.</returns>
+    /// <remarks>
+    ///     <para>The file is considered "owned" by the content/propertyType.</para>
+    ///     <para>
+    ///         If an <paramref name="oldpath" /> is provided then that file (and associated thumbnails if any) is deleted
+    ///         before the new file is saved, and depending on the media path scheme, the folder may be reused for the new
+    ///         file.
+    ///     </para>
+    /// </remarks>
+    public string StoreFile(IContentBase content, IPropertyType? propertyType, string filename, Stream filestream, string? oldpath)
+    {
+        if (content == null)
+        {
+            throw new ArgumentNullException(nameof(content));
+        }
+
+        if (propertyType == null)
+        {
+            throw new ArgumentNullException(nameof(propertyType));
+        }
+
+        if (filename == null)
+        {
+            throw new ArgumentNullException(nameof(filename));
+        }
+
+        if (string.IsNullOrWhiteSpace(filename))
+        {
+            throw new ArgumentException(
+                "Value can't be empty or consist only of white-space characters.",
+                nameof(filename));
+        }
+
+        if (filestream == null)
+        {
+            throw new ArgumentNullException(nameof(filestream));
+        }
+
+        // clear the old file, if any
+        if (string.IsNullOrWhiteSpace(oldpath) == false)
+        {
+            FileSystem.DeleteFile(oldpath);
+        }
+
+        // get the filepath, store the data
+        var filepath = GetMediaPath(filename, content.Key, propertyType.Key);
+        FileSystem.AddFile(filepath, filestream);
+        return filepath;
+    }
+
+    /// <summary>
+    ///     Copies a media file as a new media file, associated to a property of a content item.
+    /// </summary>
+    /// <param name="content">The content item owning the copy of the media file.</param>
+    /// <param name="propertyType">The property type owning the copy of the media file.</param>
+    /// <param name="sourcepath">The filesystem-relative path to the source media file.</param>
+    /// <returns>The filesystem-relative path to the copy of the media file.</returns>
+    public string? CopyFile(IContentBase content, IPropertyType propertyType, string sourcepath)
+    {
+        if (content == null)
+        {
+            throw new ArgumentNullException(nameof(content));
+        }
+
+        if (propertyType == null)
+        {
+            throw new ArgumentNullException(nameof(propertyType));
+        }
+
+        if (sourcepath == null)
+        {
+            throw new ArgumentNullException(nameof(sourcepath));
+        }
+
+        if (string.IsNullOrWhiteSpace(sourcepath))
+        {
+            throw new ArgumentException(
+                "Value can't be empty or consist only of white-space characters.",
+                nameof(sourcepath));
+        }
+
+        // ensure we have a file to copy
+        if (FileSystem.FileExists(sourcepath) == false)
+        {
+            return null;
+        }
+
+        // get the filepath
+        var filename = Path.GetFileName(sourcepath);
+        var filepath = GetMediaPath(filename, content.Key, propertyType.Key);
+        FileSystem.CopyFile(sourcepath, filepath);
+        return filepath;
+    }
+
+    #endregion
+}

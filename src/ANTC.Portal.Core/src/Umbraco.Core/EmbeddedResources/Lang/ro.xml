@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language alias="ro" intName="Romanian (Romania)" localName="romana (Romania)" lcid="" culture="ro-RO">
+  <creator>
+    <name>The Umbraco community</name>
+    <link>https://docs.umbraco.com/umbraco-cms/extending/language-files</link>
+  </creator>
+</language>

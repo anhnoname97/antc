@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language alias="da" intName="Danish" localName="dansk" lcid="6" culture="da-DK">
+  <creator>
+    <name>The Umbraco community</name>
+    <link>https://docs.umbraco.com/umbraco-cms/extending/language-files</link>
+  </creator>
+  <area alias="actions">
+    <key alias="assigndomain">Tilføj domæne</key>
+    <key alias="auditTrail">Revisionsspor</key>
+    <key alias="browse">Gennemse elementer</key>
+    <key alias="changeDocType">Skift Dokument Type</key>
+    <key alias="changeDataType">Skift Input Type</key>
+    <key alias="copy">Kopier</key>
+    <key alias="create">Opret</key>
+    <key alias="export">Eksportér</key>
+    <key alias="createPackage">Opret pakke</key>
+    <key alias="createGroup">Opret gruppe</key>
+    <key alias="delete">Slet</key>
+    <key alias="disable">Deaktivér</key>
+    <key alias="editSettings">Redigér indstillinger</key>
+    <key alias="emptyrecyclebin">Tøm papirkurv</key>
+    <key alias="enable">Aktivér</key>
+    <key alias="exportDocumentType">Eksportér dokumenttype</key>
+    <key alias="importdocumenttype">Importér dokumenttype</key>
+    <key alias="importPackage">Importér pakke</key>
+    <key alias="liveEdit">Redigér i Canvas</key>
+    <key alias="logout">Log af</key>
+    <key alias="move">Flyt</key>
+    <key alias="notify">Notifikationer</key>
+    <key alias="protect">Offentlig adgang</key>
+    <key alias="publish">Udgiv</key>
+    <key alias="unpublish">Afpublicér</key>
+    <key alias="refreshNode">Genindlæs elementer</key>
+    <key alias="remove">Fjern</key>
+    <key alias="republish">Genudgiv hele sitet</key>
+    <key alias="rename" version="7.3.0">Omdøb</key>
+    <key alias="restore" version="7.3.0">Gendan</key>
+    <key alias="chooseWhereToCopy">Vælg hvor du vil kopiere</key>
+    <key alias="chooseWhereToMove">Vælg hvortil du vil flytte</key>
+    <key alias="infiniteEditorChooseWhereToMove">Vælg hvor du vil flytte de valgte elementer hen</key>
+    <key alias="toInTheTreeStructureBelow">til i træstrukturen nedenfor</key>
+    <key alias="infiniteEditorChooseWhereToCopy">Vælg hvor du vil kopiere de valgte elementer til</key>
+    <key alias="wasMovedTo">blev flyttet til</key>
+    <key alias="wasCopiedTo">blev kopieret til</key>
+    <key alias="wasDeleted">blev slettet</key>
+    <key alias="rights">Rettigheder</key>
+    <key alias="rollback">Fortryd ændringer</key>
+    <key alias="sendtopublish">Send til udgivelse</key>
+    <key alias="sendToTranslate">Send til oversættelse</key>
+    <key alias="setGroup">Sæt gruppe</key>
+    <key alias="sort">Sortér</key>
+    <key alias="translate">Oversæt</key>
+    <key alias="update">Opdatér</key>
+    <key alias="setPermissions">Sæt rettigheder</key>
+    <key alias="unlock">Lås op</key>
+    <key alias="createblueprint">Opret indholdsskabelon</key>
+    <key alias="resendInvite">Gensend invitation</key>
+    <key alias="toggleHideUnavailable">Skjul utilgængelige kompositioner</key>
+  </area>
+  <area alias="content">
+    <key alias="itemNotPublished">Dette punkt er endnu ikke udgivet</key>
+    <key alias="parentNotPublished">Dette dokument er udgivet, men ikke synligt da den overliggende side '%0%' ikke er
+      udgivet!
+    </key>
+    <key alias="parentCultureNotPublished">Dette sprog er udgivet, men ikke synligt, da den overliggende side '%0%' ikke
+      er udgivet!
+    </key>
+    <key alias="parentNotPublishedAnomaly">Ups: dette dokument er udgivet, men er ikke i cachen (intern fejl)</key>
+    <key alias="getUrlException">Kunne ikke hente URL'en</key>
+    <key alias="routeError">Dette dokument er udgivet, men dets URL ville kollidere med indholdet %0%</key>
+    <key alias="routeErrorCannotRoute">Dette dokument er udgivet, men dets URL kan ikke genereres</key>
+  </area>
+  <area alias="member">
+  </area>
+  <area alias="errors">
+  </area>
+  <area alias="login">
+    <key alias="resetCodeExpired">Det link, du har klikket på, er ugyldigt eller udløbet</key>
+    <key alias="resetPasswordEmailCopySubject">Umbraco: Nulstil adgangskode</key>
+    <key alias="resetPasswordEmailCopyFormat"><![CDATA[<p>Dit brugernavn til at logge på Umbraco backoffice er: <strong>%0%</strong></p><p>Klik <a href="%1%"><strong>her</strong></a> for at nulstille din adgangskode eller kopier/indsæt denne URL i din browser:</p><p><em>%1%</em></p>]]></key>
+  </area>
+  <area alias="notifications">
+    <key alias="mailBody"><![CDATA[
+      Hej %0%
+
+      Dette er en automatisk mail for at fortælle dig, at handlingen '%1%'
+      er blevet udført på siden '%2%'
+      af brugeren '%3%'
+
+      Gå til http://%4%/section/content/workspace/document/edit/%5% for at redigere.
+
+      %6%
+
+      Ha' en dejlig dag!
+      Mange hilsner fra Umbraco-robotten
+    ]]></key>
+    <key alias="mailBodyVariantSummary">Følgende sprog er blevet ændret %0%</key>
+    <key alias="mailBodyHtml"><![CDATA[
+        <html>
+			<head>
+				<meta name='viewport' content='width=device-width'>
+				<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+			</head>
+			<body class='' style='font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; color: #392F54; line-height: 22px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background: #1d1333; margin: 0; padding: 0;' bgcolor='#1d1333'>
+				<style type='text/css'> @media only screen and (max-width: 620px) {table[class=body] h1 {font-size: 28px !important; margin-bottom: 10px !important; } table[class=body] .wrapper {padding: 32px !important; } table[class=body] .article {padding: 32px !important; } table[class=body] .content {padding: 24px !important; } table[class=body] .container {padding: 0 !important; width: 100% !important; } table[class=body] .main {border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; } table[class=body] .btn table {width: 100% !important; } table[class=body] .btn a {width: 100% !important; } table[class=body] .img-responsive {height: auto !important; max-width: 100% !important; width: auto !important; } } .btn-primary table td:hover {background-color: #34495e !important; } .btn-primary a:hover {background-color: #34495e !important; border-color: #34495e !important; } .btn  a:visited {color:#FFFFFF;} </style>
+				<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;" bgcolor="#1d1333">
+					<tr>
+						<td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 24px;" valign="top">
+							<table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+								<tr>
+									<td background="https://umbraco.com/umbraco/assets/img/application/logo.png" bgcolor="#1d1333" width="28" height="28" valign="top" style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+										<!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:30px;height:30px;"> <v:fill type="tile" src="https://umbraco.com/umbraco/assets/img/application/logo.png" color="#1d1333" /> <v:textbox inset="0,0,0,0"> <![endif]-->
+<div></div>
+<!--[if gte mso 9]> </v:textbox> </v:rect> <![endif]-->
+</td>
+<td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top"></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;' bgcolor='#1d1333'>
+<tr>
+<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'></td>
+<td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 560px; width: 560px; margin: 0 auto; padding: 10px;' valign='top'>
+<div class='content' style='box-sizing: border-box; display: block; max-width: 560px; margin: 0 auto; padding: 10px;'>
+<br>
+<table class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-radius: 3px; background: #FFFFFF;' bgcolor='#FFFFFF'>
+<tr>
+<td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 50px;' valign='top'>
+<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
+<tr>
+<td style='line-height: 24px; font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+<h1 style='color: #392F54; font-family: sans-serif; font-weight: bold; line-height: 1.4; font-size: 24px; text-align: left; text-transform: capitalize; margin: 0 0 30px;' align='left'>
+															Hej %0%,
+														</h1>
+<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															Dette er en automatisk mail for at fortælle dig, at handlingen <strong>'%1%'</strong> er blevet udført på siden <a style="color: #392F54; text-decoration: none; -ms-word-break: break-all; word-break: break-all;" href="http://%4%/section/content/workspace/document/edit/%5%"><strong>'%2%'</strong></a> af brugeren <strong>'%3%'</strong>
+</p>
+<table border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;'>
+<tbody>
+<tr>
+<td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;'><tbody><tr>
+<td style='font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background: #35C786;' align='center' bgcolor='#35C786' valign='top'>
+<a href='http://%4%/section/content/workspace/document/edit/%5%' target='_blank' rel='noopener' style='color: #FFFFFF; text-decoration: none; -ms-word-break: break-all; word-break: break-all; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; text-transform: capitalize; background: #35C786; margin: 0; padding: 12px 30px; border: 1px solid #35c786;'>REDIGER</a></td></tr></tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+<h3>Opdateringssammendrag:</h3>
+															%6%
+														</p>
+<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															Ha' en dejlig dag!<br /><br />
+															Mange hilsner fra Umbraco-robotten
+														</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<br><br><br>
+</div>
+</td>
+<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'></td>
+</tr>
+</table>
+</body>
+</html>
+	]]></key>
+    <key alias="mailBodyVariantHtmlSummary"><![CDATA[<p>Følgende sprog er blevet ændret:</p>
+        %0%
+    ]]></key>
+    <key alias="mailSubject">[%0%] Notificering om %1% udført på %2%</key>
+  </area>
+  <area alias="user">
+    <key alias="passwordMismatch">Det bekræftede kodeord matcher ikke det nye kodeord</key>
+    <key alias="inviteEmailCopySubject">Umbraco: Invitation</key>
+    <key alias="inviteEmailCopyFormat"><![CDATA[<html><body><p>Hej %0%, du er blevet inviteret af %1% til Umbraco backoffice.</p><p>Besked fra %1%: <em>%2%</em></p><p>Klik på dette <a href="%3%" target="_blank" rel="noopener">link</a> for acceptere invitationen</p><p><small>Hvis du ikke kan klikke på linket, så kopier og indsæt denne URL i dit browservindue<br/><br/>%3%</small></p></body></html>]]></key>
+  </area>
+  <area alias="validation">
+    <key alias="invalidEmail">Ugyldig e-mail</key>
+    <key alias="invalidNull">Værdien kan ikke være tom</key>
+    <key alias="invalidEmpty">Værdien kan ikke være tom</key>
+    <key alias="invalidPattern">Værdien er ugyldig, som ikke matcher det korrekte format</key>
+    <key alias="entriesShort"><![CDATA[Minimum %0% element(er), tilføj <strong>%1%</strong> mere.]]></key>
+    <key alias="entriesExceed"><![CDATA[Maksimum %0% element(er), <strong>%1%</strong> for mange.]]></key>
+    <key alias="entriesAreasMismatch">Ét eller flere områder lever ikke op til kravene for antal indholdselementer.</key>
+    <key alias="invalidMediaType">Den valgte medie type er ugyldig.</key>
+    <key alias="invalidContentType">Det valgte indhold er af en ugyldig type.</key>
+    <key alias="missingContent">Det valgte indhold eksistere ikke.</key>
+    <key alias="multipleMediaNotAllowed">Det er kun tilladt at vælge ét medie.</key>
+    <key alias="invalidStartNode">Valgt indhold kommer fra en ugyldig mappe.</key>
+    <key alias="outOfRangeMinimum">Værdien %0% er mindre end det tilladte minimum af %1%.</key>
+    <key alias="outOfRangeMaximum">Værdien %0% er større end det tilladte maksimum af %1%.</key>
+    <key alias="outOfRangeSingleItemMinimum">Den ene enhed givet er mindre end det tilladte minimum af %1%.</key>
+    <key alias="outOfRangeMultipleItemsMinimum">De %0% enheder givet er mindre end det tilladte minimum af %1%.</key>
+    <key alias="outOfRangeMultipleItemsMaximum">De %0% enheder givet er større end det tilladte minimum af %1%.</key>
+    <key alias="invalidStep">Værdien %0% passer ikke med den konfigureret trin værdi af %1% og mindste værdi af %2%.</key>
+    <key alias="unexpectedRange">Værdien %0% forventes ikke at indeholde et spænd.</key>
+    <key alias="stringLengthExceeded">Tekststrengen er længere end den tilladte længde på %0% tegn, %1% for mange.</key>
+    <key alias="invalidRange">Værdien %0% forventes at have en værdi der er større end fra værdien.</key>
+    <key alias="minimumRange">Spændet %0% opfylder ikke det minimale krævede spænd af %1%</key>
+    <key alias="invalidObjectType">Det valgte indhold er af den forkerte type.</key>
+    <key alias="notOneOfOptions">"Værdien '%0%' er ikke en af de tilgængelige valgmuligheder.</key>
+    <key alias="multipleNotOneOfOptions">Værdierne '%0%' er ikke tilstede i de tilgængelige valgmuligheder.</key>
+    <key alias="invalidColor">"Den valgte farve '%0%' er ikke en af de tilgængelige valgmuligheder.</key>
+  </area>
+  <area alias="permissions">
+    <key alias="FolderCreation">Mappeoprettelse</key>
+    <key alias="FileWritingForPackages">Filskrivning for pakker</key>
+    <key alias="FileWriting">Filskrivning</key>
+    <key alias="MediaFolderCreation">Mediemappeoprettelse</key>
+  </area>
+</language>

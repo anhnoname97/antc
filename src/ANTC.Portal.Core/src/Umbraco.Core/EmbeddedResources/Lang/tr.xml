@@ -1,0 +1,408 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language alias="tr" intName="Turkish" localName="Türkçe" lcid="" culture="tr-TR">
+  <creator>
+    <name>The Umbraco community</name>
+    <link>https://docs.umbraco.com/umbraco-cms/extending/language-files</link>
+  </creator>
+  <area alias="actions">
+    <key alias="assigndomain">Kültür ve Ana Bilgisayar Adları</key>
+    <key alias="auditTrail">Denetim Yolu</key>
+    <key alias="browse">Düğüme Göz At</key>
+    <key alias="changeDocType">Belge Türünü Değiştir</key>
+    <key alias="copy">Kopyala</key>
+    <key alias="create">Oluştur</key>
+    <key alias="export">Dışa Aktar</key>
+    <key alias="createPackage">Paket Oluştur</key>
+    <key alias="createGroup">Grup oluştur</key>
+    <key alias="delete">Sil</key>
+    <key alias="disable">Devre Dışı Bırak</key>
+    <key alias="editSettings">Ayarları düzenle</key>
+    <key alias="emptyrecyclebin">Geri dönüşüm kutusunu boşalt</key>
+    <key alias="enable">Etkinleştir</key>
+    <key alias="exportDocumentType">Belge Türünü Dışa Aktar</key>
+    <key alias="importdocumenttype">Belge Türünü İçe Aktar</key>
+    <key alias="importPackage">Paketi İçe Aktar</key>
+    <key alias="liveEdit">Kanvas'ta Düzenle</key>
+    <key alias="logout">Çıkış</key>
+    <key alias="move">Taşı</key>
+    <key alias="notify">Bildirimler</key>
+    <key alias="protect">Genel erişim</key>
+    <key alias="publish">Yayımla</key>
+    <key alias="unpublish">Yayından Kaldır</key>
+    <key alias="refreshNode">Yeniden Yükle</key>
+    <key alias="republish">Tüm siteyi yeniden yayınla</key>
+    <key alias="remove">Kaldır</key>
+    <key alias="rename" version="7.3.0">Yeniden adlandır</key>
+    <key alias="restore" version="7.3.0">Geri Yükle</key>
+    <key alias="chooseWhereToCopy">Nereye kopyalayacağınızı seçin</key>
+    <key alias="chooseWhereToMove">Taşınacağınız yeri seçin</key>
+    <key alias="toInTheTreeStructureBelow">aşağıdaki ağaç yapısına</key>
+    <key alias="infiniteEditorChooseWhereToCopy">Seçili öğelerin nereye kopyalanacağını seçin</key>
+    <key alias="infiniteEditorChooseWhereToMove">Seçili öğelerin nereye taşınacağını seçin</key>
+    <key alias="wasMovedTo">konumuna taşındı,</key>
+    <key alias="wasCopiedTo">kopyalandı,</key>
+    <key alias="wasDeleted">silindi,</key>
+    <key alias="rights">İzinler</key>
+    <key alias="rollback">Geri al</key>
+    <key alias="sendtopublish">Yayınlamak İçin Gönder</key>
+    <key alias="sendToTranslate">Çeviriye Gönder</key>
+    <key alias="setGroup">Grup ayarla</key>
+    <key alias="sort">Sırala</key>
+    <key alias="translate">Çevir</key>
+    <key alias="update">Güncelle</key>
+    <key alias="setPermissions">İzinleri ayarlayın</key>
+    <key alias="unlock">Kilidi Aç</key>
+    <key alias="createblueprint">İçerik Şablonu Oluşturun</key>
+    <key alias="resendInvite">Daveti Yeniden Gönder</key>
+  </area>
+  <area alias="content">
+    <key alias="itemNotPublished">Bu öğe yayınlanmadı</key>
+    <key alias="parentNotPublished">Bu belge yayınlandı, ancak '%0%' üst öğesi yayından kaldırıldığı için görünmüyor</key>
+    <key alias="parentCultureNotPublished">Bu kültür yayınlandı, ancak '%0%' üst öğe üzerinde yayınlanmadığı için görünmüyor</key>
+    <key alias="parentNotPublishedAnomaly">Bu belge yayınlandı, ancak önbellekte yok</key>
+    <key alias="getUrlException">URL alınamadı</key>
+    <key alias="routeError">Bu belge yayınlandı, ancak url'si %0% içeriğiyle çakışacak</key>
+    <key alias="routeErrorCannotRoute">Bu belge yayınlandı, ancak url'si yönlendirilemez</key>
+  </area>
+  <area alias="member">
+  </area>
+  <area alias="errors">
+  </area>
+  <area alias="login">
+    <key alias="resetCodeExpired">Tıkladığınız bağlantı geçersiz veya süresi dolmuş</key>
+    <key alias="resetPasswordEmailCopySubject">Umbraco: Şifreyi Yenile</key>
+    <key alias="resetPasswordEmailCopyFormat"><![CDATA[
+        <html>
+			<head>
+				<meta name='viewport' content='width=device-width'>
+				<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+			</head>
+			<body class='' style='font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; color: #392F54; line-height: 22px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background: #1d1333; margin: 0; padding: 0;' bgcolor='#1d1333'>
+				<style type='text/css'> @media only screen and (max-width: 620px) {table[class=body] h1 {font-size: 28px !important; margin-bottom: 10px !important; } table[class=body] .wrapper {padding: 32px !important; } table[class=body] .article {padding: 32px !important; } table[class=body] .content {padding: 24px !important; } table[class=body] .container {padding: 0 !important; width: 100% !important; } table[class=body] .main {border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; } table[class=body] .btn table {width: 100% !important; } table[class=body] .btn a {width: 100% !important; } table[class=body] .img-responsive {height: auto !important; max-width: 100% !important; width: auto !important; } } .btn-primary table td:hover {background-color: #34495e !important; } .btn-primary a:hover {background-color: #34495e !important; border-color: #34495e !important; } .btn  a:visited {color:#FFFFFF;} </style>
+				<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;" bgcolor="#1d1333">
+					<tr>
+						<td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 24px;" valign="top">
+							<table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+								<tr>
+									<td background="https://umbraco.com/umbraco/assets/img/application/logo.png" bgcolor="#1d1333" width="28" height="28" valign="top" style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+										<!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:30px;height:30px;"> <v:fill type="tile" src="https://umbraco.com/umbraco/assets/img/application/logo.png" color="#1d1333" /> <v:textbox inset="0,0,0,0"> <![endif]-->
+										<div> </div>
+										<!--[if gte mso 9]> </v:textbox> </v:rect> <![endif]-->
+									</td>
+									<td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top"></td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+				<table border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;' bgcolor='#1d1333'>
+					<tr>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+						<td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 560px; width: 560px; margin: 0 auto; padding: 10px;' valign='top'>
+							<div class='content' style='box-sizing: border-box; display: block; max-width: 560px; margin: 0 auto; padding: 10px;'>
+								<br>
+								<table class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-radius: 3px; background: #FFFFFF;' bgcolor='#FFFFFF'>
+									<tr>
+										<td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 50px;' valign='top'>
+											<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
+												<tr>
+													<td style='line-height: 24px; font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+														<h1 style='color: #392F54; font-family: sans-serif; font-weight: bold; line-height: 1.4; font-size: 24px; text-align: left; text-transform: capitalize; margin: 0 0 30px;' align='left'>
+															Şifre yenileme istendi
+														</h1>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															Umbraco arka ofisinde oturum açmak için kullanıcı adınız: <strong>%0%</strong>
+														</p>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;'>
+																<tbody>
+																	<tr>
+																		<td style='font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background: #35C786;' align='center' bgcolor='#35C786' valign='top'>
+																			<a href='%1%' target='_blank' rel='noopener' style='color: #FFFFFF; text-decoration: none; -ms-word-break: break-all; word-break: break-all; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; text-transform: capitalize; background: #35C786; margin: 0; padding: 12px 30px; border: 1px solid #35c786;'>
+																				Şifrenizi yenilemek için bu bağlantıyı tıklayın
+																			</a>
+																		</td>
+																	</tr>
+																</tbody>
+															</table>
+														</p>
+														<p style='max-width: 400px; display: block; color: #392F54; font-family: sans-serif; font-size: 14px; line-height: 20px; font-weight: normal; margin: 15px 0;'>Bağlantıya tıklayamazsanız, bu URL'yi kopyalayıp tarayıcı pencerenize yapıştırın:</p>
+															<table border='0' cellpadding='0' cellspacing='0'>
+																<tr>
+																	<td style='-ms-word-break: break-all; word-break: break-all; font-family: sans-serif; font-size: 11px; line-height:14px;'>
+																		<font style="-ms-word-break: break-all; word-break: break-all; font-size: 11px; line-height:14px;">
+																			<a style='-ms-word-break: break-all; word-break: break-all; color: #392F54; text-decoration: underline; font-size: 11px; line-height:15px;' href='%1%'>%1%</a>
+																		</font>
+																	</td>
+																</tr>
+															</table>
+														</p>
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
+								<br><br><br>
+							</div>
+						</td>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+					</tr>
+				</table>
+			</body>
+		</html>
+  ]]></key>
+  </area>
+  <area alias="notifications">
+    <key alias="mailBody"><![CDATA[
+      Merhaba %0%
+
+      Bu, '%1%' görevinin '%2%' sayfasında '%3%' kullanıcısı tarafından
+      gerçekleştirildiğini bildiren
+      otomatik bir e-postadır.
+
+      Düzenleme yapmak için http://%4%/section/content/workspace/document/edit/%5% adresine gidiniz.
+
+      %6%
+
+      İyi günler!
+
+      Umbraco robotundan teşekkürler
+    ]]></key>
+    <key alias="mailBodyVariantSummary">Aşağıdaki diller %0% değiştirildi</key>
+    <key alias="mailBodyHtml"><![CDATA[
+        <html>
+			<head>
+				<meta name='viewport' content='width=device-width'>
+				<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+			</head>
+        <body class='' style='font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; color: #392F54; line-height: 22px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background: #1d1333; margin: 0; padding: 0;' bgcolor='#1d1333'>
+				<style type='text/css'> @media only screen and (max-width: 620px) {table[class=body] h1 {font-size: 28px !important; margin-bottom: 10px !important; } table[class=body] .wrapper {padding: 32px !important; } table[class=body] .article {padding: 32px !important; } table[class=body] .content {padding: 24px !important; } table[class=body] .container {padding: 0 !important; width: 100% !important; } table[class=body] .main {border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; } table[class=body] .btn table {width: 100% !important; } table[class=body] .btn a {width: 100% !important; } table[class=body] .img-responsive {height: auto !important; max-width: 100% !important; width: auto !important; } } .btn-primary table td:hover {background-color: #34495e !important; } .btn-primary a:hover {background-color: #34495e !important; border-color: #34495e !important; } .btn  a:visited {color:#FFFFFF;} </style>
+				<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;" bgcolor="#1d1333">
+					<tr>
+						<td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 24px;" valign="top">
+							<table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+								<tr>
+									<td background="https://umbraco.com/umbraco/assets/img/application/logo.png" bgcolor="#1d1333" width="28" height="28" valign="top" style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+										<!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:30px;height:30px;"> <v:fill type="tile" src="https://umbraco.com/umbraco/assets/img/application/logo.png" color="#1d1333" /> <v:textbox inset="0,0,0,0"> <![endif]-->
+										<div> </div>
+										<!--[if gte mso 9]> </v:textbox> </v:rect> <![endif]-->
+									</td>
+									<td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top"></td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+				<table border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;' bgcolor='#1d1333'>
+					<tr>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+						<td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 560px; width: 560px; margin: 0 auto; padding: 10px;' valign='top'>
+							<div class='content' style='box-sizing: border-box; display: block; max-width: 560px; margin: 0 auto; padding: 10px;'>
+								<br>
+								<table class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-radius: 3px; background: #FFFFFF;' bgcolor='#FFFFFF'>
+									<tr>
+										<td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 50px;' valign='top'>
+											<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
+												<tr>
+													<td style='line-height: 24px; font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+														<h1 style='color: #392F54; font-family: sans-serif; font-weight: bold; line-height: 1.4; font-size: 24px; text-align: left; text-transform: capitalize; margin: 0 0 30px;' align='left'>
+															Merhaba %0%,
+														</h1>
+                                                        <p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+                                                            Bu, <strong>'%1%'</strong> görevinin <a style="color: #392F54; text-decoration: none; -ms-word-break: break-all; word-break: break-all;" href="http://%4%/section/content/workspace/document/edit/%5%"><strong>'%2%'</strong></a> sayfasında <strong>'%3%'</strong> kullanıcısı tarafından gerçekleştirildiğini size bildirmek için otomatik bir postadır.
+														</p>
+														<table border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;'>
+															<tbody>
+																<tr>
+																	<td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+																		<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;'><tbody><tr>
+																			<td style='font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background: #35C786;' align='center' bgcolor='#35C786' valign='top'>
+																				<a href='http://%4%/section/content/workspace/document/edit/%5%' target='_blank' rel='noopener' style='color: #FFFFFF; text-decoration: none; -ms-word-break: break-all; word-break: break-all; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; text-transform: capitalize; background: #35C786; margin: 0; padding: 12px 30px; border: 1px solid #35c786;'>DÜZENLE</a> </td> </tr></tbody></table>
+																	</td>
+																</tr>
+															</tbody>
+														</table>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															<h3>Güncelleme Özeti:</h3>
+															%6%
+														</p>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															İyi günler dilerim!<br /><br />
+															Umbraco robotundan teşekkürler
+														</p>
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
+								<br><br><br>
+							</div>
+						</td>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+					</tr>
+				</table>
+			</body>
+		</html>
+	]]></key>
+    <key alias="mailBodyVariantHtmlSummary"><![CDATA[<p> Aşağıdaki diller değiştirildi: </p>
+       %0%
+    ]]></key>
+    <key alias="mailSubject">[ %0%]%1% ile ilgili bildirim%2% üzerinde gerçekleştirildi</key>
+  </area>
+  <area alias="user">
+    <key alias="passwordMismatch">Onaylanan şifre yeni şifreyle eşleşmiyor!</key>
+    <key alias="inviteEmailCopySubject">Umbraco: Davet</key>
+    <key alias="inviteEmailCopyFormat"><![CDATA[
+    <html>
+    <head>
+        <meta name='viewport' content='width=device-width'>
+        <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+    </head>
+    <body class='' style='font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; color: #392F54; line-height: 22px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background: #1d1333; margin: 0; padding: 0;' bgcolor='#1d1333'>
+        <style type='text/css'> @media only screen and (max-width: 620px) {table[class=body] h1 {font-size: 28px !important; margin-bottom: 10px !important; } table[class=body] .wrapper {padding: 32px !important; } table[class=body] .article {padding: 32px !important; } table[class=body] .content {padding: 24px !important; } table[class=body] .container {padding: 0 !important; width: 100% !important; } table[class=body] .main {border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; } table[class=body] .btn table {width: 100% !important; } table[class=body] .btn a {width: 100% !important; } table[class=body] .img-responsive {height: auto !important; max-width: 100% !important; width: auto !important; } } .btn-primary table td:hover {background-color: #34495e !important; } .btn-primary a:hover {background-color: #34495e !important; border-color: #34495e !important; } .btn  a:visited {color:#FFFFFF;} </style>
+        <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;" bgcolor="#1d1333">
+            <tr>
+                <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 24px;" valign="top">
+                    <table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+                        <tr>
+                            <td background="https://umbraco.com/umbraco/assets/img/application/logo.png" bgcolor="#1d1333" width="28" height="28" valign="top" style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+                                <!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:30px;height:30px;"> <v:fill type="tile" src="https://umbraco.com/umbraco/assets/img/application/logo.png" color="#1d1333" /> <v:textbox inset="0,0,0,0"> <![endif]-->
+                                <div> </div>
+                                <!--[if gte mso 9]> </v:textbox> </v:rect> <![endif]-->
+                            </td>
+                            <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <table border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;' bgcolor='#1d1333'>
+            <tr>
+                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+                <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 560px; width: 560px; margin: 0 auto; padding: 10px;' valign='top'>
+                    <div class='content' style='box-sizing: border-box; display: block; max-width: 560px; margin: 0 auto; padding: 10px;'>
+                        <br>
+                        <table class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-radius: 3px; background: #FFFFFF;' bgcolor='#FFFFFF'>
+                            <tr>
+                                <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 50px;' valign='top'>
+                                    <table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
+                                        <tr>
+                                            <td style='line-height: 24px; font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+                                                <h1 style='color: #392F54; font-family: sans-serif; font-weight: bold; line-height: 1.4; font-size: 24px; text-align: left; text-transform: capitalize; margin: 0 0 30px;' align='left'>
+                                                    Merhaba %0%,
+                                                </h1>
+                                                <p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+                                                    <a href="mailto:%4%" style="text-decoration: underline; color: #392F54; -ms-word-break: break-all; word-break: break-all;">%1%</a> tarafından Umbraco Arka Ofisine davet edildiniz.
+                                                </p>
+                                                <p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+                                                    <a href="mailto:%1%" style="text-decoration: none; color: #392F54; -ms-word-break: break-all; word-break: break-all;">%1%</a> tarafından gönderilen mesaj:
+                                                    <br/>
+                                                    <em>%2%</em>
+                                                </p>
+                                                <table border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;'>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+                                                                <table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;'>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background: #35C786;' align='center' bgcolor='#35C786' valign='top'>
+                                                                                <a href='%3%' target='_blank' rel='noopener' style='color: #FFFFFF; text-decoration: none; -ms-word-break: break-all; word-break: break-all; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; text-transform: capitalize; background: #35C786; margin: 0; padding: 12px 30px; border: 1px solid #35c786;'>
+                                                                                    Daveti Kabul Etmek İçin Bu Bağlantıyı Tıklayın
+                                                                                </a>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <p style='max-width: 400px; display: block; color: #392F54; font-family: sans-serif; font-size: 14px; line-height: 20px; font-weight: normal; margin: 15px 0;'>Bağlantıya tıklayamazsanız, bu URL'yi kopyalayıp tarayıcı pencerenize yapıştırın:</p>
+                                                    <table border='0' cellpadding='0' cellspacing='0'>
+                                                        <tr>
+                                                            <td style='-ms-word-break: break-all; word-break: break-all; font-family: sans-serif; font-size: 11px; line-height:14px;'>
+                                                                <font style="-ms-word-break: break-all; word-break: break-all; font-size: 11px; line-height:14px;">
+                                                                    <a style='-ms-word-break: break-all; word-break: break-all; color: #392F54; text-decoration: underline; font-size: 11px; line-height:15px;' href='%3%'>%3%</a>
+                                                                </font>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <br><br><br>
+                    </div>
+                </td>
+                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+            </tr>
+        </table>
+    </body>
+</html>]]></key>
+  </area>
+  <area alias="validation">
+    <key alias="invalidEmail">Geçersiz e-posta</key>
+    <key alias="entriesShort"><![CDATA[Minimum %0% giriş, <strong>%1% </strong> daha fazla gerektirir.]]></key>
+    <key alias="entriesExceed"><![CDATA[Maksimum %0% giriş, <strong>%1% </strong> çok fazla.]]></key>
+  </area>
+  <area alias="healthcheck">
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+		   2: XPath
+		   3: Configuration file path
+	  -->
+    <key alias="checkSuccessMessage">Değer, önerilen değere ayarlandı: '%0%'.</key>
+    <key alias="checkErrorMessageDifferentExpectedValue">'%3%' yapılandırma dosyasında '%2%' için '%1%' değeri bekleniyordu, ancak '%0%' bulundu.</key>
+    <key alias="checkErrorMessageUnexpectedValue">'%3%' yapılandırma dosyasında '%2%' için beklenmeyen '%0%' değeri bulundu.</key>
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+	  -->
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+		   2: Server version
+	  -->
+    <!-- The following keys get predefined tokens passed in that are not all the same, like above -->
+    <key alias="httpsCheckValidCertificate">Web sitenizin sertifikası geçerlidir.</key>
+    <key alias="httpsCheckInvalidCertificate">Sertifika doğrulama hatası: '%0%'</key>
+    <key alias="httpsCheckExpiredCertificate">Web sitenizin SSL sertifikasının süresi doldu.</key>
+    <key alias="httpsCheckExpiringCertificate">Web sitenizin SSL sertifikasının süresi %0% gün içinde doluyor.</key>
+    <key alias="healthCheckInvalidUrl">URL %0% - '%1%' pinglenirken hata oluştu</key>
+    <key alias="httpsCheckIsCurrentSchemeHttps">Şu anda HTTPS şemasını kullanarak siteyi %0% görüntülüyorsunuz.</key>
+    <!-- The following keys don't get tokens passed in -->
+    <key alias="compilationDebugCheckSuccessMessage">Hata ayıklama derleme modu devre dışı.</key>
+    <key alias="compilationDebugCheckErrorMessage">Hata ayıklama derleme modu şu anda etkin. Yayınlanmadan önce bu ayarı devre dışı bırakmanız önerilir.</key>
+    <!-- The following keys get these tokens passed in:
+	    0: Comma delimitted list of failed folder paths
+  	-->
+    <!-- The following keys get these tokens passed in:
+	    0: Comma delimitted list of failed folder paths
+  	-->
+    <!-- The following key get these tokens passed in:
+	    0: Comma delimitted list of headers found
+  	-->
+    <key alias="clickJackingCheckHeaderFound">​​<![CDATA[Bir sitenin başka bir site tarafından IFRAMEd olup olmadığını kontrol etmek için kullanılan başlık veya meta etiketi <strong> X-Frame-Options </strong>.]]></key>
+    <key alias="clickJackingCheckHeaderNotFound"><![CDATA[Bir sitenin başka bir site tarafından IFRAMEd olup olmadığını kontrol etmek için kullanılan başlık veya meta etiketi <strong> X-Frame-Options </strong> bulunamadı.]]></key>
+    <key alias="noSniffCheckHeaderFound">​​<![CDATA[MIME koklama güvenlik açıklarına karşı koruma sağlamak için kullanılan başlık veya meta etiketi <strong> X-Content-Type-Options </strong> bulundu.]]></key>
+    <key alias="noSniffCheckHeaderNotFound">​​<![CDATA[MIME koklama güvenlik açıklarına karşı koruma sağlamak için kullanılan başlık veya meta etiketi <strong> X-Content-Type-Options </strong> bulunamadı.]]></key>
+    <key alias="hSTSCheckHeaderFound">​​<![CDATA[HSTS başlığı olarak da bilinen <strong> Strict-Transport-Security </strong> başlığı bulundu.]]></key>
+    <key alias="hSTSCheckHeaderNotFound">​​<![CDATA[<strong> Strict-Transport-Security </strong> başlığı bulunamadı.]]></key>
+    <key alias="xssProtectionCheckHeaderFound">​​<![CDATA[<strong> X-XSS-Protection </strong> başlığı bulundu.]]></key>
+    <key alias="xssProtectionCheckHeaderNotFound">​​<![CDATA[<strong> X-XSS-Protection </strong> başlığı bulunamadı.]]></key>
+    <key alias="excessiveHeadersFound">​​<![CDATA[Web sitesi teknolojisi hakkında bilgi veren şu başlıklar bulundu: <strong>%0%</strong>.]]></key>
+    <key alias="excessiveHeadersNotFound">​​Web sitesi teknolojisi hakkında bilgi veren hiçbir başlık bulunamadı.</key>
+    <key alias="smtpMailSettingsConnectionSuccess">SMTP ayarları doğru yapılandırıldı ve hizmet beklendiği gibi çalışıyor.</key>
+    <key alias="notificationEmailsCheckSuccessMessage"><![CDATA[Bildirim e-postası <strong>%0%</strong> olarak ayarlandı]]></key>
+    <key alias="notificationEmailsCheckErrorMessage"><![CDATA[Bildirim e-postası hâlâ varsayılan değer olan <strong>%0%</strong>.]]></key>
+    <key alias="scheduledHealthCheckEmailBody"><![CDATA[<html><body><p>%0% tarihinde %1% ile çalıştırılan planlanmış Umbraco Sağlık Kontrollerinin sonuçları aşağıdaki gibidir: </p>%2%</body></html>]]></key>
+    <key alias="scheduledHealthCheckEmailSubject">Umbraco Sağlık Kontrolü Durumu: %0%</key>
+  </area>
+</language>

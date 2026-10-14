@@ -1,0 +1,114 @@
+// ReSharper disable once CheckNamespace
+
+using Umbraco.Cms.Core.Runtime;
+
+namespace Umbraco.Cms.Core;
+
+public static partial class Constants
+{
+    /// <summary>
+    ///     Defines lock objects.
+    /// </summary>
+    public static class Locks
+    {
+        /// <summary>
+        ///     The <see cref="IMainDom" /> lock
+        /// </summary>
+        public const int MainDom = -1000;
+
+        /// <summary>
+        ///     All servers.
+        /// </summary>
+        public const int Servers = -331;
+
+        /// <summary>
+        ///     All content and media types.
+        /// </summary>
+        public const int ContentTypes = -332;
+
+        /// <summary>
+        ///     The entire content tree, i.e. all content items.
+        /// </summary>
+        public const int ContentTree = -333;
+
+        /// <summary>
+        ///     The entire media tree, i.e. all media items.
+        /// </summary>
+        public const int MediaTree = -334;
+
+        /// <summary>
+        ///     The entire member tree, i.e. all members.
+        /// </summary>
+        public const int MemberTree = -335;
+
+        /// <summary>
+        ///     All media types.
+        /// </summary>
+        public const int MediaTypes = -336;
+
+        /// <summary>
+        ///     All member types.
+        /// </summary>
+        public const int MemberTypes = -337;
+
+        /// <summary>
+        ///     All domains.
+        /// </summary>
+        public const int Domains = -338;
+
+        /// <summary>
+        ///     All key-values.
+        /// </summary>
+        public const int KeyValues = -339;
+
+        /// <summary>
+        ///     All languages.
+        /// </summary>
+        public const int Languages = -340;
+
+        /// <summary>
+        ///     ScheduledPublishing job.
+        /// </summary>
+        public const int ScheduledPublishing = -341;
+
+        /// <summary>
+        ///    All Webhook requests.
+        /// </summary>
+        public const int WebhookRequest = -342;
+
+        /// <summary>
+        ///     All webhook logs.
+        /// </summary>
+        public const int WebhookLogs = -343;
+
+        /// <summary>
+        ///     Long-running operations.
+        /// </summary>
+        public const int LongRunningOperations = -344;
+
+        /// <summary>
+        ///     All document URLs.
+        /// </summary>
+        public const int DocumentUrls = -345;
+
+        /// <summary>
+        ///    The cache version.
+        /// </summary>
+        public const int CacheVersion = -346;
+
+        /// <summary>
+        ///     All distributed jobs.
+        /// </summary>
+        public const int DistributedJobs = -347;
+
+        /// <summary>
+        ///     All document URL aliases.
+        /// </summary>
+        public const int DocumentUrlAliases = -348;
+
+        /// <summary>
+        ///     The entire element tree, i.e. all element items.
+        /// </summary>
+        public const int ElementTree = -349;
+    }
+}

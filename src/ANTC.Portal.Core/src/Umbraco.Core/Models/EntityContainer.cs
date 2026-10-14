@@ -1,0 +1,95 @@
+using System.Collections.Frozen;
+using Umbraco.Cms.Core.Models.Entities;
+
+namespace Umbraco.Cms.Core.Models;
+
+/// <summary>
+///     Represents a folder for organizing entities such as content types and data types.
+/// </summary>
+public sealed class EntityContainer : TreeEntityBase, IUmbracoEntity
+{
+    private static readonly FrozenDictionary<Guid, Guid> _objectTypeMap = new Dictionary<Guid, Guid>
+    {
+        { Constants.ObjectTypes.DataType, Constants.ObjectTypes.DataTypeContainer },
+        { Constants.ObjectTypes.DocumentBlueprint, Constants.ObjectTypes.DocumentBlueprintContainer },
+        { Constants.ObjectTypes.DocumentType, Constants.ObjectTypes.DocumentTypeContainer },
+        { Constants.ObjectTypes.MediaType, Constants.ObjectTypes.MediaTypeContainer },
+        { Constants.ObjectTypes.MemberType, Constants.ObjectTypes.MemberTypeContainer },
+        { Constants.ObjectTypes.Element, Constants.ObjectTypes.ElementContainer },
+    }.ToFrozenDictionary();
+
+    /// <summary>
+    ///     Initializes a new instance of an <see cref="EntityContainer" /> class.
+    /// </summary>
+    public EntityContainer(Guid containedObjectType)
+    {
+        if (_objectTypeMap.ContainsKey(containedObjectType) == false)
+        {
+            throw new ArgumentException("Not a contained object type.", nameof(containedObjectType));
+        }
+
+        ContainedObjectType = containedObjectType;
+
+        ParentId = -1;
+        Path = "-1";
+        Level = 1;
+        SortOrder = 0;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of an <see cref="EntityContainer" /> class.
+    /// </summary>
+    public EntityContainer(int id, Guid uniqueId, int parentId, string path, int level, int sortOrder, Guid containedObjectType, string? name, int userId)
+        : this(containedObjectType)
+    {
+        Id = id;
+        Key = uniqueId;
+        ParentId = parentId;
+        Name = name;
+        Path = path;
+        Level = level;
+        SortOrder = sortOrder;
+        CreatorId = userId;
+    }
+
+    /// <summary>
+    ///     Gets or sets the node object type of the contained objects.
+    /// </summary>
+    public Guid ContainedObjectType { get; }
+
+    /// <summary>
+    ///     Gets the node object type of the container objects.
+    /// </summary>
+    public Guid ContainerObjectType => _objectTypeMap[ContainedObjectType];
+
+    /// <summary>
+    ///     Gets the container object type corresponding to a contained object type.
+    /// </summary>
+    /// <param name="containedObjectType">The contained object type.</param>
+    /// <returns>The object type of containers containing objects of the contained object type.</returns>
+    public static Guid GetContainerObjectType(Guid containedObjectType)
+    {
+        if (_objectTypeMap.TryGetValue(containedObjectType, out Guid containerObjectType) == false)
+        {
+            throw new ArgumentException("Not a contained object type.", nameof(containedObjectType));
+        }
+
+        return containerObjectType;
+    }
+
+    /// <summary>
+    ///     Gets the contained object type corresponding to a container object type.
+    /// </summary>
+    /// <param name="containerObjectType">The container object type.</param>
+    /// <returns>The object type of objects that containers of the container object type can contain.</returns>
+    public static Guid GetContainedObjectType(Guid containerObjectType)
+    {
+        Guid contained = _objectTypeMap.FirstOrDefault(x => x.Value == containerObjectType).Key;
+        if (contained == default)
+        {
+            throw new ArgumentException("Not a container object type.", nameof(containerObjectType));
+        }
+
+        return contained;
+    }
+}

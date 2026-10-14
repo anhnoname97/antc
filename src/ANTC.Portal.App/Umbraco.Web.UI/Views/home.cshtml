@@ -1,0 +1,6 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+}
+@* Trang tam. Thay toan bo noi dung duoi day khi dung trang that (FE-05, FE-06, FE-07 (FE1) · BE-06 (BE1)). *@
+@await Html.PartialAsync("_PageStub", ("Giới thiệu về website", "Website giúp người dân nhận ra dấu hiệu lừa đảo và rủi ro tài chính, biết cách tự kiểm tra và tự bảo vệ mình.", "FE-05, FE-06, FE-07 (FE1) · BE-06 (BE1)", "gt-02 … gt-09"))

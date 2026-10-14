@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Umbraco.Cms.Web.Common</PackageId>
+    <Title>Umbraco CMS - Web</Title>
+    <Description>Contains the web assembly needed to run Umbraco CMS.</Description>
+    <RootNamespace>Umbraco.Cms.Web.Common</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      TODO: Fix and remove overrides:
+      [SA1117] params all on same line
+      [SA1401] make fields private
+      [SA1134] own line attributes
+      [CS0618]/[SYSLIB0051] adjust obsolete references
+      [IDE0040]/[SA1400] access modifiers
+      [SA1405] Debug assert message text
+      [CS0419]/[CS1574] cref ambiguities
+    -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors),SA1117,SA1401,SA1134,CS0618,SYSLIB0051,IDE0040,SA1400,SA1405,CS0419,CS1574</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+    <PackageReference Include="Dazinator.Extensions.FileProviders" />
+    <PackageReference Include="MiniProfiler.AspNetCore.Mvc" />
+    <PackageReference Include="Serilog.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Umbraco.Examine.Lucene\Umbraco.Examine.Lucene.csproj" />
+    <ProjectReference Include="..\Umbraco.PublishedCache.HybridCache\Umbraco.PublishedCache.HybridCache.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Umbraco.Tests.UnitTests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Umbraco.Tests.Integration</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

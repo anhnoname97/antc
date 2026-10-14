@@ -1,0 +1,81 @@
+// Copyright (c) Umbraco.
+// See LICENSE for more details.
+
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using Umbraco.Cms.Core.Models;
+
+namespace Umbraco.Cms.Core.Configuration.Models;
+
+/// <summary>
+///     Typed configuration options for unattended settings.
+/// </summary>
+[UmbracoOptions(Constants.Configuration.ConfigUnattended)]
+public class UnattendedSettings
+{
+    private const bool StaticInstallUnattended = false;
+    private const bool StaticUpgradeUnattended = false;
+    private const TelemetryLevel StaticTelemetryLevel = TelemetryLevel.Detailed;
+    private const string StaticMigrationClaimTimeout = "02:00:00";
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether unattended installs are enabled.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         By default, when a database connection string is configured and it is possible to connect to
+    ///         the database, but the database is empty, the runtime enters the <c>Install</c> level.
+    ///         If this option is set to <c>true</c> an unattended install will be performed and the runtime enters
+    ///         the <c>Run</c> level.
+    ///     </para>
+    /// </remarks>
+    [DefaultValue(StaticInstallUnattended)]
+    public bool InstallUnattended { get; set; } = StaticInstallUnattended;
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether unattended upgrades are enabled.
+    /// </summary>
+    [DefaultValue(StaticUpgradeUnattended)]
+    public bool UpgradeUnattended { get; set; } = StaticUpgradeUnattended;
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether unattended package migrations are enabled.
+    /// </summary>
+    /// <remarks>
+    ///     This is true by default.
+    /// </remarks>
+    public bool PackageMigrationsUnattended { get; set; } = true;
+
+    /// <summary>
+    ///     Gets or sets the maximum time a migration leadership claim is considered valid before
+    ///     another server may take over. Protects against a leader crashing mid-migration.
+    /// </summary>
+    /// <remarks>
+    ///     Only relevant in load-balanced deployments with <see cref="UpgradeUnattended"/> enabled.
+    ///     Default is 2 hours, which should exceed the longest reasonable migration run time.
+    /// </remarks>
+    [DefaultValue(StaticMigrationClaimTimeout)]
+    public TimeSpan MigrationClaimTimeout { get; set; } = TimeSpan.Parse(StaticMigrationClaimTimeout);
+
+    /// <summary>
+    ///     Gets or sets a value to use for creating a user with a name for Unattended Installs
+    /// </summary>
+    public string? UnattendedUserName { get; set; } = null;
+
+    /// <summary>
+    ///     Gets or sets a value to use for creating a user with an email for Unattended Installs
+    /// </summary>
+    [EmailAddress]
+    public string? UnattendedUserEmail { get; set; } = null;
+
+    /// <summary>
+    ///     Gets or sets a value to use for creating a user with a password for Unattended Installs
+    /// </summary>
+    public string? UnattendedUserPassword { get; set; } = null;
+
+    /// <summary>
+    ///     Gets or sets a telemetry level to use for Unattended Installs
+    /// </summary>
+    [DefaultValue(StaticTelemetryLevel)]
+    public TelemetryLevel UnattendedTelemetryLevel { get; set; } = StaticTelemetryLevel;
+}

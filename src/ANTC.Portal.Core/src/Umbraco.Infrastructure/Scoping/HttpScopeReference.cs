@@ -1,0 +1,60 @@
+// Copyright (c) Umbraco.
+// See LICENSE for more details.
+
+using Umbraco.Cms.Infrastructure.Scoping;
+
+namespace Umbraco.Cms.Core.Scoping;
+
+/// <summary>
+///     Disposed at the end of the request to cleanup any orphaned Scopes.
+/// </summary>
+/// <remarks>Registered as Scoped in DI (per request)</remarks>
+internal sealed class HttpScopeReference : IHttpScopeReference
+{
+    private readonly ScopeProvider _scopeProvider;
+    private bool _disposedValue;
+    private bool _registered;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Umbraco.Cms.Core.Scoping.HttpScopeReference"/> class,
+    /// associating it with the specified <paramref name="scopeProvider"/>.
+    /// </summary>
+    /// <param name="scopeProvider">The <see cref="ScopeProvider"/> used to manage the scope for this reference.</param>
+    public HttpScopeReference(ScopeProvider scopeProvider) => _scopeProvider = scopeProvider;
+
+    /// <summary>
+    /// Disposes the current <see cref="HttpScopeReference"/>, releasing any resources associated with the scope.
+    /// </summary>
+    public void Dispose() =>
+
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(true);
+
+    /// <summary>
+    /// Marks this HTTP scope reference as registered, indicating it is now active within the current HTTP context.
+    /// </summary>
+    public void Register() => _registered = true;
+
+    private void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                if (_registered)
+                {
+                    // dispose the entire chain (if any)
+                    // reset (don't commit by default)
+                    Scope? scope;
+                    while ((scope = _scopeProvider.AmbientScope) != null)
+                    {
+                        scope.Reset();
+                        scope.Dispose();
+                    }
+                }
+            }
+
+            _disposedValue = true;
+        }
+    }
+}

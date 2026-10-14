@@ -1,0 +1,139 @@
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Cms.Api.Common.Configuration;
+using Umbraco.Cms.Api.Common.DependencyInjection;
+using Umbraco.Cms.Api.Common.OpenApi;
+using Umbraco.Cms.Api.Management.DependencyInjection;
+using Umbraco.Cms.Api.Management.Middleware;
+using Umbraco.Cms.Api.Management.OpenApi;
+using Umbraco.Cms.Api.Management.OpenApi.Transformers;
+using Umbraco.Cms.Api.Management.Routing;
+using Umbraco.Cms.Api.Management.Serialization;
+using Umbraco.Cms.Api.Management.Services;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Web.Common.ApplicationBuilder;
+
+namespace Umbraco.Extensions;
+
+public static partial class UmbracoBuilderExtensions
+{
+    /// <summary>
+    /// Registers and configures all services, controllers, and options required for the Umbraco Management API.
+    /// This includes endpoints and features for managing Umbraco backoffice resources via HTTP APIs.
+    /// </summary>
+    /// <param name="builder">The <see cref="IUmbracoBuilder"/> to add the Management API services to.</param>
+    /// <returns>The <see cref="IUmbracoBuilder"/> instance with Management API services configured.</returns>
+    public static IUmbracoBuilder AddUmbracoManagementApi(this IUmbracoBuilder builder)
+    {
+        IServiceCollection services = builder.Services;
+        builder.Services.AddSingleton<BackOfficeAreaRoutes>();
+        builder.Services.AddSingleton<BackOfficeExternalLoginProviderErrorMiddleware>();
+        builder.Services.AddSingleton<IManagementApiRouteBuilder, ManagementApiRouteBuilder>();
+        builder.Services.AddUnique<IConflictingRouteService, ConflictingRouteService>();
+        builder.AddUmbracoOpenApi();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (!services.Any(x => !x.IsKeyedService && x.ImplementationType == typeof(JsonPatchService)))
+#pragma warning restore CS0618 // Type or member is obsolete
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            ModelsBuilderBuilderExtensions.AddModelsBuilder(builder)
+                .AddJson()
+#pragma warning restore CS0618 // Type or member is obsolete
+                .AddInstaller()
+                .AddUpgrader()
+                .AddSearchManagement()
+                .AddTrees()
+                .AddAuditLogs()
+                .AddConfigurationFactories()
+                .AddDocuments()
+                .AddDocumentTypes()
+                .AddElements()
+                .AddMedia()
+                .AddMediaTypes()
+                .AddMemberGroups()
+                .AddMember()
+                .AddMemberTypes()
+                .AddLanguages()
+                .AddDictionary()
+                .AddHealthChecks()
+                .AddRedirectUrl()
+                .AddTags()
+                .AddTrackedReferences()
+                .AddTemporaryFiles()
+                .AddDynamicRoot()
+                .AddDataTypes()
+                .AddTemplates()
+                .AddRelationTypes()
+                .AddLogViewer()
+                .AddUsers()
+                .AddUserGroups()
+                .AddPackages()
+                .AddManifests()
+                .AddEntities()
+                .AddScripts()
+                .AddPartialViews()
+                .AddStylesheets()
+                .AddWebhooks()
+                .AddServer()
+                .AddCorsPolicy()
+                .AddPreview()
+                .AddServerEvents()
+                .AddPasswordConfiguration()
+                .AddSupplemenataryLocalizedTextFileSources()
+                .AddUserData()
+                .AddSegment()
+                .AddExport()
+                .AddImport()
+                .AddNewsDashboard();
+
+            services
+                .ConfigureOptions<ConfigureApiBehaviorOptions>()
+                .AddControllers()
+                .AddJsonOptions(_ =>
+                {
+                    // any generic JSON options go here
+                })
+                .AddJsonOptions(Constants.JsonOptionsNames.BackOffice, _ => { });
+
+            builder.Services.ConfigureOptions<ConfigureUmbracoBackofficeJsonOptions>();
+
+            // Configures the JSON options for the Open API schema generation (based on the back-office MVC JSON options)
+            builder.Services.ConfigureOptions<ConfigureUmbracoBackofficeHttpJsonOptions>();
+
+            builder.AddBackOfficeOpenApiDocument(
+                ManagementApiConfiguration.ApiName,
+                document => document
+                    .WithTitle(ManagementApiConfiguration.ApiTitle)
+                    .WithBackOfficeAuthentication()
+                    .WithJsonOptions(Constants.JsonOptionsNames.BackOffice)
+                    .ConfigureOpenApiOptions(options =>
+                    {
+                        options.AddDocumentTransformer((doc, _, _) =>
+                        {
+                            doc.Info.Version = "Latest";
+                            doc.Info.Description = "This shows all APIs available in this version of Umbraco - including all the legacy apis that are available for backward compatibility";
+                            doc.Servers?.Clear();
+                            return Task.CompletedTask;
+                        });
+                        options.AddSchemaTransformer<FixFileReturnTypesTransformer>();
+                        options.AddOperationTransformer<ResponseHeaderTransformer>();
+                        options.AddOperationTransformer<NotificationHeaderTransformer>();
+                    }));
+
+            services.Configure<UmbracoPipelineOptions>(options =>
+            {
+                options.AddFilter(
+                    new UmbracoPipelineFilter(
+                    "BackOfficeManagementApiFilter",
+                    applicationBuilder => applicationBuilder.UseProblemDetailsExceptionHandling(),
+                    preMapEndpoints: endpoints => endpoints.MapManagementApiEndpoints()));
+            });
+        }
+
+        builder.AddCollectionBuilders();
+
+        return builder;
+    }
+}

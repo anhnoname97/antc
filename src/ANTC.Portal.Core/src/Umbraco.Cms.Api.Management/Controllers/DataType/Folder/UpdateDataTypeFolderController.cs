@@ -1,0 +1,40 @@
+using Asp.Versioning;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Management.ViewModels.Folder;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Core.Services;
+
+namespace Umbraco.Cms.Api.Management.Controllers.DataType.Folder;
+
+/// <summary>
+/// API controller responsible for handling requests to update data type folders in the Umbraco CMS.
+/// </summary>
+[ApiVersion("1.0")]
+public class UpdateDataTypeFolderController : DataTypeFolderControllerBase
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateDataTypeFolderController"/> class.
+    /// </summary>
+    /// <param name="backOfficeSecurityAccessor">Accessor for back office security context and authentication.</param>
+    /// <param name="dataTypeContainerService">Service used to manage data type folders (containers).</param>
+    public UpdateDataTypeFolderController(
+        IBackOfficeSecurityAccessor backOfficeSecurityAccessor,
+        IDataTypeContainerService dataTypeContainerService)
+        : base(backOfficeSecurityAccessor, dataTypeContainerService)
+    {
+    }
+
+    [HttpPut("{id:guid}")]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [EndpointSummary("Updates a data type folder.")]
+    [EndpointDescription("Updates a data type folder identified by the provided Id with the details provided in the request model.")]
+    public async Task<IActionResult> Update(
+        CancellationToken cancellationToken,
+        Guid id,
+        UpdateFolderResponseModel updateFolderResponseModel)
+        => await UpdateFolderAsync(id, updateFolderResponseModel);
+}

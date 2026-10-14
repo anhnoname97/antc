@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language alias="zh_tw" intName="Chinese (Taiwan)" localName="中文（正體，台灣）" lcid="0404" culture="zh-TW">
+  <creator>
+    <name>The Umbraco community</name>
+    <link>https://docs.umbraco.com/umbraco-cms/extending/language-files</link>
+  </creator>
+  <area alias="actions">
+    <key alias="assigndomain">管理主機名稱</key>
+    <key alias="auditTrail">跟蹤審計</key>
+    <key alias="browse">流覽節點</key>
+    <key alias="changeDocType">改變文檔類型</key>
+    <key alias="copy">複製</key>
+    <key alias="create">創建</key>
+    <key alias="createPackage">創建擴展包</key>
+    <key alias="delete">刪除</key>
+    <key alias="disable">禁用</key>
+    <key alias="emptyrecyclebin">清空回收站</key>
+    <key alias="exportDocumentType">匯出文檔類型</key>
+    <key alias="importdocumenttype">導入文檔類型</key>
+    <key alias="importPackage">導入擴展包</key>
+    <key alias="liveEdit">即時編輯模式</key>
+    <key alias="logout">退出</key>
+    <key alias="move">移動</key>
+    <key alias="notify">提醒</key>
+    <key alias="protect">公眾存取權限</key>
+    <key alias="publish">發佈</key>
+    <key alias="unpublish">取消發佈</key>
+    <key alias="refreshNode">重新載入節點</key>
+    <key alias="republish">重新發佈整站</key>
+    <key alias="restore" version="7.3.0">回復</key>
+    <key alias="rights">許可權</key>
+    <key alias="rollback">回滾</key>
+    <key alias="sendtopublish">提交至發佈者</key>
+    <key alias="sendToTranslate">發送給翻譯</key>
+    <key alias="sort">排序</key>
+    <key alias="translate">翻譯</key>
+    <key alias="update">更新</key>
+  </area>
+  <area alias="content">
+    <key alias="itemNotPublished">該項沒有發佈</key>
+    <key alias="parentNotPublished">該文檔不可見，因為其上級 '%0%' 未發佈。</key>
+    <key alias="parentNotPublishedAnomaly">糟糕：該文檔已發佈，但是沒有更新至緩存（內部錯誤）</key>
+    <key alias="getUrlException">糟糕：沒辦法連結到此網址（內部錯誤-請參見記錄）</key>
+    <key alias="routeError">糟糕：此文件已經發表，但是網址和其他內容相衝 %0%</key>
+  </area>
+  <area alias="member">
+  </area>
+  <area alias="errors">
+  </area>
+  <area alias="login">
+    <key alias="resetCodeExpired">您點選的連結是無效或過期的</key>
+    <key alias="resetPasswordEmailCopySubject">Umbraco：重設密碼</key>
+    <key alias="resetPasswordEmailCopyFormat"><![CDATA[<p>您登入到後台的使用者名稱是：<strong>%0%</strong></p><p>點選<a href="%1%"><strong>這裡</strong></a>來重設您的密碼或將此連結複製/貼上到您的瀏覽器：</p><p><em>%1%</em></p>]]></key>
+  </area>
+  <area alias="notifications">
+    <key alias="mailBody"><![CDATA[
+      哈嘍 %0%
+
+      這是一封自動產生的信件來通知您 %1% 工作
+      已經在頁面 %2% 上由使用者 %3% 執行完成
+
+
+      請移至下列網址編輯： http://%4%/section/content/workspace/document/edit/%5%
+
+      祝您有美好的一天！
+
+      Umbraco機器人 謹上
+    ]]></key>
+    <key alias="mailBodyHtml"><![CDATA[<p>哈嘍 %0%</p>
+
+		  <p>這是一封自動產生的信件來通知您<strong> %1% </strong>工作
+		 已經在頁面 <strong>%2%</strong> 上由使用者 <strong>%3%</strong> 執行完成
+	  </p>
+		  <div style="margin: 8px 0; padding: 8px; display: block;">
+				<br />
+				<a style="color: white; font-weight: bold; background-color: #5372c3; text-decoration : none; margin-right: 20px; border: 8px solid #5372c3; width: 150px;" href="http://%4%/section/content/workspace/document/edit/%5%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;編輯&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a> &nbsp;
+				<br />
+		  </div>
+		  <p>
+			  <h3>更新摘要：</h3>
+			  <table style="width: 100%;">
+						   %6%
+				</table>
+			 </p>
+
+		  <div style="margin: 8px 0; padding: 8px; display: block;">
+				<br />
+				<a style="color: white; font-weight: bold; background-color: #5372c3; text-decoration : none; margin-right: 20px; border: 8px solid #5372c3; width: 150px;" href="http://%4%/section/content/workspace/document/edit/%5%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;編輯&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a> &nbsp;
+				<br />
+		  </div>
+
+		  <p>祝您有美好的一天！<br /><br />
+			  Umbraco機器人 謹上
+		  </p>]]></key>
+    <key alias="mailSubject">在 %2%，[%0%] 關於 %1% 的通告已執行。</key>
+  </area>
+  <area alias="user">
+    <key alias="passwordMismatch">重輸的密碼和原密碼不一致！</key>
+  </area>
+  <area alias="validation">
+  </area>
+  <area alias="healthcheck">
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+		   2: XPath
+		   3: Configuration file path
+	  -->
+    <key alias="checkSuccessMessage">數值已設為推薦值：%0%</key>
+    <key alias="checkErrorMessageDifferentExpectedValue">在設定檔 %3% 中XPath %2% 的預期值設為 %1% ，但卻是 %0%。</key>
+    <key alias="checkErrorMessageUnexpectedValue">在設定檔 %3% 中XPath %2% 的值為非預期值 %0%。</key>
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+	  -->
+    <!-- The following keys get these tokens passed in:
+	     0: Current value
+		   1: Recommended value
+		   2: Server version
+	  -->
+    <!-- The following keys get predefined tokens passed in that are not all the same, like above -->
+    <key alias="httpsCheckInvalidCertificate">憑證驗證錯誤：%0%</key>
+    <key alias="healthCheckInvalidUrl">網址探查錯誤：%0% - '%1%'</key>
+    <key alias="httpsCheckIsCurrentSchemeHttps">您目前使用HTTPS瀏覽本站：%0%</key>
+    <!-- The following keys don't get tokens passed in -->
+    <key alias="compilationDebugCheckSuccessMessage">偵錯編輯模式關閉。</key>
+    <key alias="compilationDebugCheckErrorMessage">偵錯編輯模式目前已開啟。上線前建議將其關閉。</key>
+    <!-- The following keys get these tokens passed in:
+	    0: Comma delimitted list of failed folder paths
+  	-->
+    <!-- The following keys get these tokens passed in:
+	    0: Path to the file not found
+  	-->
+    <!-- The following keys get these tokens passed in:
+	    0: Comma delimitted list of failed folder paths
+  	-->
+    <!-- The following key get these tokens passed in:
+	    0: Comma delimitted list of headers found
+  	-->
+    <key alias="clickJackingCheckHeaderFound"><![CDATA[標頭或meta-tag的 <strong>X-Frame-Options</strong> 設定能控制網站是否可以被其他人IFRAMEd已找到。]]></key>
+    <key alias="clickJackingCheckHeaderNotFound"><![CDATA[標頭或meta-tag的 <strong>X-Frame-Options</strong> 設定能控制網站是否可以被其他人IFRAMEd沒有找到。]]></key>
+    <key alias="excessiveHeadersFound"><![CDATA[在標頭中有找到揭露網站技術的資訊：<strong>%0%</strong>。]]></key>
+    <key alias="excessiveHeadersNotFound">在標頭中沒有找到揭露網站技術的資訊。</key>
+    <key alias="smtpMailSettingsConnectionSuccess">SMTP設定正確，而且服務正常運作。</key>
+    <key alias="notificationEmailsCheckSuccessMessage"><![CDATA[提醒郵件已經設為 <strong>%0%</strong>。]]></key>
+    <key alias="notificationEmailsCheckErrorMessage"><![CDATA[提醒郵件仍為預設值<strong>%0%</strong>。]]></key>
+  </area>
+</language>

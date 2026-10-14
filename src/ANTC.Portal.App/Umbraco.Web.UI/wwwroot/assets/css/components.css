@@ -1,0 +1,57 @@
+/* Thanh phan dung chung: nut, o nhap, the. FE1 mo rong trong task FE-01. */
+
+/* ---- Nut ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 24px;
+  font: inherit; font-size: 0.9375rem; font-weight: 700; text-decoration: none;
+  border: 0; border-radius: var(--radius-sm); cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.btn--sm { min-height: 40px; padding: 0 16px; font-size: var(--fs-small); }
+.btn--lg { min-height: 52px; padding: 0 26px; }
+.btn--primary { background: var(--c-brand); color: #fff; }             /* fbtn */
+.btn--primary:hover { background: var(--c-brand-600); color: #fff; }
+.btn--danger { background: var(--c-danger); color: #fff; }             /* rbtn */
+.btn--danger:hover { background: var(--c-danger-600); color: #fff; }
+.btn--outline { background: #fff; color: var(--c-brand); border: 1px solid var(--c-border); } /* obtn */
+.btn--outline:hover { border-color: var(--c-brand); background: var(--c-tint); color: var(--c-brand); }
+.btn--white { background: #fff; color: var(--c-brand); }               /* wbtn */
+.btn--white:hover { background: var(--c-tint); color: var(--c-brand); }
+.btn:disabled { background: #E7DCDB; color: var(--c-text-4); cursor: not-allowed; }
+
+/* ---- O nhap ---- */
+.field {
+  width: 100%; min-width: 0; height: 48px; padding: 0 14px;
+  font: inherit; color: var(--c-text); background: #fff;
+  border: 1px solid var(--c-border-input); border-radius: var(--radius-sm);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+textarea.field { height: auto; padding: 12px 14px; }
+.field:focus { outline: none; border-color: var(--c-brand); box-shadow: 0 0 0 3px rgba(229, 57, 53, .22); }
+
+/* ---- The ---- */
+.card { background: #fff; border: 1px solid var(--c-border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
+.lift { transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease); }
+.lift:hover, .lift:focus-visible, .lift:focus-within { transform: translateY(-6px); border-color: var(--c-accent); box-shadow: var(--shadow-hover); }
+
+/* ---- Khung trang tam (xoa dan khi FE dung trang that) ---- */
+.site-topbar { background: var(--c-bg-soft); border-bottom: 1px solid var(--c-border); font-size: 0.78125rem; color: var(--c-text-3); }
+.site-topbar .container { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 6px; padding-bottom: 6px; }
+.site-header { background: #fff; border-bottom: 1px solid var(--c-border); }
+.site-header .container { display: flex; align-items: center; gap: 32px; height: var(--header-h); }
+.site-logo { font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; color: var(--c-text); text-decoration: none; }
+.site-logo span { color: var(--c-brand); }
+.site-nav { display: flex; gap: 28px; height: 100%; font-size: 0.9375rem; font-weight: 600; }
+.site-nav a { display: flex; align-items: center; text-decoration: none; color: var(--c-text); }
+.site-nav a:hover { color: var(--c-brand); }
+.site-nav a[aria-current="page"] { color: var(--c-brand); box-shadow: inset 0 -3px 0 var(--c-accent); }
+.site-header .btn { margin-left: auto; }
+.site-footer { background: var(--c-brand); color: var(--c-on-brand); font-size: 0.90625rem; padding: 48px 0; }
+.site-footer a { color: var(--c-on-brand); }
+.page-hero { background: var(--c-brand); color: #fff; padding: 88px 0; }
+.page-hero h1 { font-size: var(--fs-hero); line-height: 1.15; letter-spacing: -.03em; margin-top: 16px; }
+.page-hero p { margin-top: 16px; font-size: var(--fs-lead); color: var(--c-on-brand-muted); max-width: 560px; }
+.stub { margin: 48px 0; padding: 24px 28px; border: 1px dashed var(--c-border-input); border-radius: var(--radius); color: var(--c-text-3); }
+.stub code { background: var(--c-bg-soft-2); padding: 2px 6px; border-radius: 3px; }
+@media (max-width: 1080px) { .site-nav { display: none; } }

@@ -1,0 +1,215 @@
+using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.Extensions;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Web;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Core.Routing;
+
+/// <summary>
+///     Provides the default implementation of <see cref="IPublishedUrlInfoProvider" />.
+/// </summary>
+public class PublishedUrlInfoProvider : IPublishedUrlInfoProvider
+{
+    private const string UrlProviderAlias = Constants.UrlProviders.Content;
+
+    private readonly IPublishedUrlProvider _publishedUrlProvider;
+    private readonly ILanguageService _languageService;
+    private readonly IPublishedRouter _publishedRouter;
+    private readonly IUmbracoContextAccessor _umbracoContextAccessor;
+    private readonly ILocalizedTextService _localizedTextService;
+    private readonly ILogger<PublishedUrlInfoProvider> _logger;
+    private readonly UriUtility _uriUtility;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PublishedUrlInfoProvider" /> class.
+    /// </summary>
+    /// <param name="publishedUrlProvider">The published URL provider.</param>
+    /// <param name="languageService">The language service.</param>
+    /// <param name="publishedRouter">The published router.</param>
+    /// <param name="umbracoContextAccessor">The Umbraco context accessor.</param>
+    /// <param name="localizedTextService">The localized text service.</param>
+    /// <param name="logger">The logger.</param>
+    /// <param name="uriUtility">The URI utility.</param>
+    public PublishedUrlInfoProvider(
+        IPublishedUrlProvider publishedUrlProvider,
+        ILanguageService languageService,
+        IPublishedRouter publishedRouter,
+        IUmbracoContextAccessor umbracoContextAccessor,
+        ILocalizedTextService localizedTextService,
+        ILogger<PublishedUrlInfoProvider> logger,
+        UriUtility uriUtility)
+    {
+        _publishedUrlProvider = publishedUrlProvider;
+        _languageService = languageService;
+        _publishedRouter = publishedRouter;
+        _umbracoContextAccessor = umbracoContextAccessor;
+        _localizedTextService = localizedTextService;
+        _logger = logger;
+        _uriUtility = uriUtility;
+    }
+
+    /// <inheritdoc />
+    public Task<ISet<UrlInfo>> GetAllAsync(IContent content)
+        => GetAllAsync(content, culture: null);
+
+    /// <inheritdoc />
+    public async Task<ISet<UrlInfo>> GetAllAsync(IContent content, string? culture)
+    {
+        var isInvariant = !content.ContentType.VariesByCulture();
+
+        // Variant content restricted to a single culture, matched against the installed cultures (using their casing).
+        if (isInvariant is false && culture is not null)
+        {
+            var matchedCulture = (await _languageService.GetAllIsoCodesAsync())
+                .FirstOrDefault(x => x.InvariantEquals(culture));
+
+            // A specific culture was requested that is not an installed culture - there are no urls to report.
+            return matchedCulture is null
+                ? new HashSet<UrlInfo>()
+                : await BuildUrlInfosAsync(content, [matchedCulture], scopedCulture: matchedCulture, isInvariant);
+        }
+
+        // Invariant content (culture ignored), or all cultures.
+        IReadOnlyCollection<string> cultures = (await GetCulturesForUrlLookupAsync(content)).ToArray();
+        return await BuildUrlInfosAsync(content, cultures, scopedCulture: null, isInvariant);
+    }
+
+    /// <summary>
+    /// Builds the set of <see cref="UrlInfo" /> for the given cultures, plus the "other" URLs (unless the content is
+    /// trashed). When <paramref name="scopedCulture" /> is set, the "other" URLs are filtered to that culture.
+    /// </summary>
+    private async Task<ISet<UrlInfo>> BuildUrlInfosAsync(
+        IContent content,
+        IReadOnlyCollection<string> cultures,
+        string? scopedCulture,
+        bool isInvariant)
+    {
+        var urlInfos = new HashSet<UrlInfo>();
+        foreach (var contentCulture in cultures)
+        {
+            UrlInfo? urlInfo = await GetCultureUrlInfoAsync(content, contentCulture, isInvariant);
+            if (urlInfo is not null)
+            {
+                urlInfos.Add(urlInfo);
+            }
+        }
+
+        // If the content is trashed, we can't get the other URLs, as we have no parent structure to navigate through.
+        if (content.Trashed)
+        {
+            return urlInfos;
+        }
+
+        foreach (UrlInfo otherUrl in GetOtherUrls(content, scopedCulture))
+        {
+            urlInfos.Add(otherUrl);
+        }
+
+        return urlInfos;
+    }
+
+    /// <summary>
+    /// Gets the <see cref="UrlInfo" /> for a single culture, or <c>null</c> if there is nothing to report
+    /// (an unroutable URL on invariant content). Reports a message for an unroutable URL or a collision.
+    /// </summary>
+    private async Task<UrlInfo?> GetCultureUrlInfoAsync(IContent content, string culture, bool isInvariant)
+    {
+        var url = _publishedUrlProvider.GetUrl(content.Key, culture: culture);
+
+        if (url is Constants.Routing.Unroutable or Constants.Routing.UrlProviderException)
+        {
+            // For invariant content, a missing URL just means there's no domain for this culture - not worth reporting.
+            return isInvariant
+                ? null
+                : UrlInfo.AsMessage(_localizedTextService.Localize("content", "getUrlException"), UrlProviderAlias, culture);
+        }
+
+        Attempt<UrlInfo?> hasCollision = await VerifyCollisionAsync(content, url, culture);
+        return hasCollision is { Success: true, Result: not null }
+            ? hasCollision.Result
+            : UrlInfo.AsUrl(url, UrlProviderAlias, culture);
+    }
+
+    /// <summary>
+    /// Gets the "other" URLs - i.e. not what you'd get with GetUrl(), including all the URLs registered using domains.
+    /// These are not checked for routability or collisions - they are just reported. When scoped to a single culture,
+    /// only the other URLs for that culture are returned.
+    /// </summary>
+    private IEnumerable<UrlInfo> GetOtherUrls(IContent content, string? scopedCulture)
+        => _publishedUrlProvider.GetOtherUrls(content.Id)
+            .Where(x => scopedCulture is null || string.Equals(x.Culture, scopedCulture, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.Message)
+            .ThenBy(x => x.Culture);
+
+    /// <summary>
+    /// Gets the cultures to query URLs for.
+    /// For invariant content, returns only cultures that have a domain assigned to the content
+    /// or one of its ancestors. If no domains exist, returns only the default culture.
+    /// For variant content, returns all cultures.
+    /// </summary>
+    private async Task<IEnumerable<string>> GetCulturesForUrlLookupAsync(IContent content)
+    {
+        if (content.ContentType.VariesByCulture())
+        {
+            return await _languageService.GetAllIsoCodesAsync();
+        }
+
+        IUmbracoContext umbracoContext = _umbracoContextAccessor.GetRequiredUmbracoContext();
+        var ancestorOrSelfIds = content.AncestorIds().Append(content.Id).ToHashSet();
+        var domainCultures = umbracoContext.Domains.GetAll(true)
+            .Where(d => ancestorOrSelfIds.Contains(d.ContentId))
+            .Select(d => d.Culture)
+            .WhereNotNull()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return domainCultures.Count > 0
+            ? domainCultures
+            : [await _languageService.GetDefaultIsoCodeAsync()];
+    }
+
+    private async Task<Attempt<UrlInfo?>> VerifyCollisionAsync(IContent content, string url, string culture)
+    {
+        var uri = new Uri(url.TrimEnd('/'), UriKind.RelativeOrAbsolute);
+        if (uri.IsAbsoluteUri is false)
+        {
+            uri = uri.MakeAbsolute(_umbracoContextAccessor.GetRequiredUmbracoContext().CleanedUmbracoUrl);
+        }
+
+        uri = _uriUtility.UriToUmbraco(uri);
+        IPublishedRequestBuilder builder = await _publishedRouter.CreateRequestAsync(uri);
+        IPublishedRequest publishedRequest = await _publishedRouter.RouteRequestAsync(builder, new RouteRequestOptions(RouteDirection.Outbound));
+
+        if (publishedRequest.HasPublishedContent() is false)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                const string logMsg = nameof(VerifyCollisionAsync) +
+                                      " did not resolve a content item for original url: {Url}, translated to {TranslatedUrl} and culture: {Culture}";
+                _logger.LogDebug(logMsg, url, uri, culture);
+            }
+
+            var urlInfo = UrlInfo.AsMessage(_localizedTextService.Localize("content", "routeErrorCannotRoute"), UrlProviderAlias, culture);
+            return Attempt.Succeed(urlInfo);
+        }
+
+        if (publishedRequest.IgnorePublishedContentCollisions)
+        {
+            return Attempt<UrlInfo?>.Fail();
+        }
+
+        if (publishedRequest.PublishedContent?.Id != content.Id)
+        {
+            var collidingContent = publishedRequest.PublishedContent?.Key.ToString();
+
+            var urlInfo = UrlInfo.AsMessage(_localizedTextService.Localize("content", "routeError", [collidingContent]), UrlProviderAlias, culture);
+            return Attempt.Succeed(urlInfo);
+        }
+
+        // No collision
+        return Attempt<UrlInfo?>.Fail();
+    }
+}

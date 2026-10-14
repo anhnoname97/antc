@@ -1,0 +1,174 @@
+using Umbraco.Cms.Api.Management.ViewModels.DataType.Item;
+using Umbraco.Cms.Api.Management.ViewModels.Dictionary.Item;
+using Umbraco.Cms.Api.Management.ViewModels.DocumentType.Item;
+using Umbraco.Cms.Api.Management.ViewModels.Folder.Item;
+using Umbraco.Cms.Api.Management.ViewModels.Item;
+using Umbraco.Cms.Api.Management.ViewModels.Language.Item;
+using Umbraco.Cms.Api.Management.ViewModels.MediaType.Item;
+using Umbraco.Cms.Api.Management.ViewModels.MemberGroup.Item;
+using Umbraco.Cms.Api.Management.ViewModels.MemberType.Item;
+using Umbraco.Cms.Api.Management.ViewModels.RelationType.Item;
+using Umbraco.Cms.Api.Management.ViewModels.Template.Item;
+using Umbraco.Cms.Api.Management.ViewModels.UserGroup.Item;
+using Umbraco.Cms.Api.Management.ViewModels.Webhook.Item;
+using Umbraco.Cms.Core.Mapping;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.ContentTypeEditing;
+using Umbraco.Cms.Core.Models.Entities;
+using Umbraco.Cms.Core.Models.Membership;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Api.Management.Mapping.Item;
+
+/// <summary>
+/// Provides mapping configuration for item types in the Umbraco CMS Management API.
+/// </summary>
+public class ItemTypeMapDefinition : IMapDefinition
+{
+    /// <summary>
+    /// Configures the object mappings between various Umbraco item types and their corresponding response models.
+    /// This method registers the mapping definitions for languages, data types, dictionary items, content types, media types,
+    /// member groups, templates, member types, relation types, user groups, and webhooks, enabling the mapper to convert
+    /// domain entities to their API response representations.
+    /// </summary>
+    /// <param name="mapper">The <see cref="IUmbracoMapper"/> instance used to define the mappings.</param>
+    public void DefineMaps(IUmbracoMapper mapper)
+    {
+        mapper.Define<ILanguage, LanguageItemResponseModel>((_, _) => new LanguageItemResponseModel(), Map);
+        mapper.Define<IDataType, DataTypeItemResponseModel>((_, _) => new DataTypeItemResponseModel(), Map);
+        mapper.Define<IDictionaryItem, DictionaryItemItemResponseModel>((_, _) => new DictionaryItemItemResponseModel(), Map);
+        mapper.Define<IContentType, DocumentTypeItemResponseModel>((_, _) => new DocumentTypeItemResponseModel(), Map);
+        mapper.Define<IMediaType, MediaTypeItemResponseModel>((_, _) => new MediaTypeItemResponseModel(), Map);
+        mapper.Define<MediaTypeFileExtensionMatchResult, AllowedMediaTypeItemResponseModel>((_, _) => new AllowedMediaTypeItemResponseModel(), Map);
+        mapper.Define<IEntitySlim, MemberGroupItemResponseModel>((_, _) => new MemberGroupItemResponseModel(), Map);
+        mapper.Define<IMemberGroup, MemberGroupItemResponseModel>((_, _) => new MemberGroupItemResponseModel(), Map);
+        mapper.Define<ITemplate, TemplateItemResponseModel>((_, _) => new TemplateItemResponseModel { Alias = string.Empty }, Map);
+        mapper.Define<IMemberType, MemberTypeItemResponseModel>((_, _) => new MemberTypeItemResponseModel(), Map);
+        mapper.Define<IRelationType, RelationTypeItemResponseModel>((_, _) => new RelationTypeItemResponseModel(), Map);
+        mapper.Define<IUserGroup, UserGroupItemResponseModel>((_, _) => new UserGroupItemResponseModel(), Map);
+        mapper.Define<IWebhook, WebhookItemResponseModel>((_, _) => new WebhookItemResponseModel(), Map);
+        mapper.Define<IEntitySlim, NamedItemResponseModel>((_, _) => new NamedItemResponseModel(), Map);
+        mapper.Define<IEntitySlim, FolderItemResponseModel>((_, _) => new FolderItemResponseModel(), Map);
+    }
+
+    // Umbraco.Code.MapAll
+    private static void Map(ILanguage source, LanguageItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.CultureName;
+        target.IsoCode = source.IsoCode;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IDataType source, DataTypeItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.Name ?? string.Empty;
+        target.Id = source.Key;
+        target.EditorUiAlias = source.EditorUiAlias;
+        target.EditorAlias = source.EditorAlias;
+        target.IsDeletable = source.IsDeletableDataType();
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IDictionaryItem source, DictionaryItemItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.ItemKey;
+        target.Id = source.Key;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IContentType source, DocumentTypeItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.Name ?? string.Empty;
+        target.Id = source.Key;
+        target.Icon = source.Icon;
+        target.IsElement = source.IsElement;
+        target.AllowedInLibrary = source.AllowedInLibrary;
+        target.Description = source.Description;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IMediaType source, MediaTypeItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.Name ?? string.Empty;
+        target.Id = source.Key;
+        target.Icon = source.Icon;
+    }
+
+    // Umbraco.Code.MapAll -Flags -Icon -Id -Name
+    private static void Map(MediaTypeFileExtensionMatchResult source, AllowedMediaTypeItemResponseModel target, MapperContext context)
+    {
+        Map(source.MediaType, target, context);
+        target.MatchedFileExtension = source.IsSpecificMatch;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IEntitySlim source, MemberGroupItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.Name ?? string.Empty;
+        target.Id = source.Key;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IMemberGroup source, MemberGroupItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.Name ?? string.Empty;
+        target.Id = source.Key;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(ITemplate source, TemplateItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.Name ?? string.Empty;
+        target.Id = source.Key;
+        target.Alias = source.Alias;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IMemberType source, MemberTypeItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.Name ?? string.Empty;
+        target.Id = source.Key;
+        target.Icon = source.Icon;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IRelationType source, RelationTypeItemResponseModel target, MapperContext context)
+    {
+        target.Id = source.Key;
+        target.Name = source.Name ?? string.Empty;
+        target.IsDeletable = source.IsDeletableRelationType();
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IUserGroup source, UserGroupItemResponseModel target, MapperContext context)
+    {
+        target.Id = source.Key;
+        target.Name = source.Name ?? source.Alias;
+        target.Icon = source.Icon;
+        target.Alias = source.Alias;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IWebhook source, WebhookItemResponseModel target, MapperContext context)
+    {
+        target.Id = source.Key;
+        target.Name = source.Name ?? source.Url;
+        target.Url = source.Url;
+        target.Enabled = source.Enabled;
+        target.Events = string.Join(",", source.Events);
+        target.Types = string.Join(",", source.ContentTypeKeys);
+    }
+
+    private static void Map(IEntitySlim source, NamedItemResponseModel target, MapperContext context)
+    {
+        target.Id = source.Key;
+        target.Name = source.Name ?? string.Empty;
+    }
+
+    // Umbraco.Code.MapAll -Flags
+    private static void Map(IEntitySlim source, FolderItemResponseModel target, MapperContext context)
+    {
+        target.Name = source.Name ?? string.Empty;
+        target.Id = source.Key;
+    }
+}

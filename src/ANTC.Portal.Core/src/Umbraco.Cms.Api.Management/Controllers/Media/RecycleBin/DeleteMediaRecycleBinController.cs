@@ -1,0 +1,83 @@
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Management.Factories;
+using Umbraco.Cms.Api.Management.Security.Authorization.Media;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Core.Security.Authorization;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Cms.Web.Common.Authorization;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Api.Management.Controllers.Media.RecycleBin;
+
+/// <summary>
+/// Controller for deleting items from the media recycle bin.
+/// </summary>
+[ApiVersion("1.0")]
+public class DeleteMediaRecycleBinController : MediaRecycleBinControllerBase
+{
+    private readonly IAuthorizationService _authorizationService;
+    private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
+    private readonly IMediaEditingService _mediaEditingService;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DeleteMediaRecycleBinController"/> class.
+    /// </summary>
+    /// <param name="entityService">Service for managing entities within the Umbraco CMS.</param>
+    /// <param name="authorizationService">Service used to authorize user actions.</param>
+    /// <param name="backOfficeSecurityAccessor">Accessor for back office security context.</param>
+    /// <param name="mediaEditingService">Service for editing media items.</param>
+    /// <param name="mediaPresentationFactory">Factory for creating media presentation models.</param>
+    public DeleteMediaRecycleBinController(
+        IEntityService entityService,
+        IAuthorizationService authorizationService,
+        IBackOfficeSecurityAccessor backOfficeSecurityAccessor,
+        IMediaEditingService mediaEditingService,
+        IMediaPresentationFactory mediaPresentationFactory)
+        : base(entityService,mediaPresentationFactory)
+    {
+        _authorizationService = authorizationService;
+        _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
+        _mediaEditingService = mediaEditingService;
+    }
+
+    /// <summary>
+    /// Permanently deletes a media item from the recycle bin, identified by its unique identifier.
+    /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <param name="id">The unique identifier (GUID) of the media item to permanently delete from the recycle bin.</param>
+    /// <returns>
+    /// An <see cref="IActionResult"/> indicating the result of the operation:
+    /// returns <c>200 OK</c> if successful, <c>400 Bad Request</c> if the request is invalid, or <c>404 Not Found</c> if the media item does not exist.
+    /// </returns>
+    [HttpDelete("{id:guid}")]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [EndpointSummary("Deletes a media item from the recycle bin.")]
+    [EndpointDescription("Permanently deletes a media item from the recycle bin identified by the provided Id.")]
+    public async Task<IActionResult> Delete(CancellationToken cancellationToken, Guid id)
+    {
+        AuthorizationResult authorizationResult = await _authorizationService.AuthorizeResourceAsync(
+            User,
+            MediaPermissionResource.WithKeys(id),
+            AuthorizationPolicies.MediaPermissionByResource);
+
+        if (!authorizationResult.Succeeded)
+        {
+            return Forbidden();
+        }
+
+        Attempt<IMedia?, ContentEditingOperationStatus> result = await _mediaEditingService.DeleteFromRecycleBinAsync(id, CurrentUserKey(_backOfficeSecurityAccessor));
+
+        return result.Success
+            ? Ok()
+            : ContentEditingOperationStatusResult(result.Status);
+    }
+}

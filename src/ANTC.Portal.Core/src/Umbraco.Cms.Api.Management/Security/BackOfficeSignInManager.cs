@@ -1,0 +1,354 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Notifications;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Web.Common.Security;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Api.Management.Security;
+
+/// <summary>
+///     The sign in manager for back office users
+/// </summary>
+public class BackOfficeSignInManager : UmbracoSignInManager<BackOfficeIdentityUser>, IBackOfficeSignInManager
+{
+    private readonly IEventAggregator _eventAggregator;
+    private readonly IOptions<BackOfficeAuthenticationTypeSettings> _backOfficeAuthenticationTypeSettings;
+    private readonly IBackOfficeExternalLoginProviders _externalLogins;
+    private readonly GlobalSettings _globalSettings;
+    private readonly BackOfficeUserManager _userManager;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Umbraco.Cms.Api.Management.Security.BackOfficeSignInManager"/> class.
+    /// </summary>
+    /// <param name="userManager">The <see cref="BackOfficeUserManager"/> responsible for managing back office users.</param>
+    /// <param name="contextAccessor">The <see cref="IHttpContextAccessor"/> used to access the current HTTP context.</param>
+    /// <param name="externalLogins">The <see cref="IBackOfficeExternalLoginProviders"/> for handling external login providers.</param>
+    /// <param name="claimsFactory">The <see cref="IUserClaimsPrincipalFactory{BackOfficeIdentityUser}"/> for creating claims principals.</param>
+    /// <param name="optionsAccessor">The <see cref="IOptions{IdentityOptions}"/> accessor for identity options.</param>
+    /// <param name="globalSettings">The <see cref="IOptions{GlobalSettings}"/> accessor for global settings.</param>
+    /// <param name="logger">The <see cref="ILogger{SignInManager{BackOfficeIdentityUser}}"/> instance for logging.</param>
+    /// <param name="schemes">The <see cref="IAuthenticationSchemeProvider"/> for authentication schemes.</param>
+    /// <param name="confirmation">The <see cref="IUserConfirmation{BackOfficeIdentityUser}"/> service for user confirmation.</param>
+    /// <param name="eventAggregator">The <see cref="IEventAggregator"/> for publishing and subscribing to events.</param>
+    /// <param name="securitySettings">The <see cref="IOptions{SecuritySettings}"/> accessor for security settings.</param>
+    /// <param name="backOfficeAuthenticationTypeSettings">The <see cref="IOptions{BackOfficeAuthenticationTypeSettings}"/> accessor for back office authentication type settings.</param>
+    /// <param name="requestCache">The <see cref="IRequestCache"/> for caching request data.</param>
+    public BackOfficeSignInManager(
+        BackOfficeUserManager userManager,
+        IHttpContextAccessor contextAccessor,
+        IBackOfficeExternalLoginProviders externalLogins,
+        IUserClaimsPrincipalFactory<BackOfficeIdentityUser> claimsFactory,
+        IOptions<IdentityOptions> optionsAccessor,
+        IOptions<GlobalSettings> globalSettings,
+        ILogger<SignInManager<BackOfficeIdentityUser>> logger,
+        IAuthenticationSchemeProvider schemes,
+        IUserConfirmation<BackOfficeIdentityUser> confirmation,
+        IEventAggregator eventAggregator,
+        IOptions<SecuritySettings> securitySettings,
+        IOptions<BackOfficeAuthenticationTypeSettings> backOfficeAuthenticationTypeSettings,
+        IRequestCache requestCache)
+        : base(userManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation, securitySettings, requestCache)
+    {
+        _userManager = userManager;
+        _externalLogins = externalLogins;
+        _eventAggregator = eventAggregator;
+        _backOfficeAuthenticationTypeSettings = backOfficeAuthenticationTypeSettings;
+        _globalSettings = globalSettings.Value;
+    }
+
+    protected override bool AllowConcurrentLoginsEnabled => SecuritySettings.GetUserAllowConcurrentLogins();
+
+    protected override string AuthenticationType => _backOfficeAuthenticationTypeSettings.Value.AuthenticationType;
+
+    protected override string ExternalAuthenticationType => _backOfficeAuthenticationTypeSettings.Value.ExternalAuthenticationType;
+
+    protected override string TwoFactorAuthenticationType => _backOfficeAuthenticationTypeSettings.Value.TwoFactorAuthenticationType;
+
+    protected override string TwoFactorRememberMeAuthenticationType =>_backOfficeAuthenticationTypeSettings.Value.TwoFactorRememberMeAuthenticationType;
+
+    /// <summary>
+    ///     Custom ExternalLoginSignInAsync overload for handling external sign in with auto-linking
+    /// </summary>
+    /// <param name="loginInfo">The external login information.</param>
+    /// <param name="isPersistent">Whether the sign-in should be persistent.</param>
+    /// <param name="bypassTwoFactor">Whether to bypass two-factor authentication.</param>
+    /// <returns>The sign-in result.</returns>
+    public async Task<SignInResult> ExternalLoginSignInAsync(ExternalLoginInfo loginInfo, bool isPersistent, bool bypassTwoFactor = false)
+    {
+        // borrowed from https://github.com/dotnet/aspnetcore/blob/master/src/Identity/Core/src/SignInManager.cs
+        // to be able to deal with auto-linking and reduce duplicate lookups
+
+        ExternalSignInAutoLinkOptions? autoLinkOptions = (await _externalLogins.GetAsync(loginInfo.LoginProvider))
+            ?.ExternalLoginProvider?.Options?.AutoLinkOptions;
+        BackOfficeIdentityUser? user =
+            await UserManager.FindByLoginAsync(loginInfo.LoginProvider, loginInfo.ProviderKey);
+        if (user == null)
+        {
+            // user doesn't exist so see if we can auto link
+            return await AutoLinkAndSignInExternalAccount(loginInfo, autoLinkOptions);
+        }
+
+        if (autoLinkOptions != null && autoLinkOptions.OnExternalLogin != null)
+        {
+            var shouldSignIn = autoLinkOptions.OnExternalLogin(user, loginInfo);
+            if (shouldSignIn == false)
+            {
+                LogFailedExternalLogin(loginInfo, user);
+                return ExternalLoginSignInResult.NotAllowed;
+            }
+        }
+
+        SignInResult? error = await PreSignInCheck(user);
+        if (error != null)
+        {
+            return error;
+        }
+
+        return await SignInOrTwoFactorAsync(user, isPersistent, loginInfo.LoginProvider, bypassTwoFactor);
+    }
+
+    /// <summary>
+    ///     Configures the redirect URL and user identifier for the specified external login <paramref name="provider" />.
+    /// </summary>
+    /// <param name="provider">The provider to configure.</param>
+    /// <param name="redirectUrl">The external login URL users should be redirected to during the login flow.</param>
+    /// <param name="userId">The current user's identifier, which will be used to provide CSRF protection.</param>
+    /// <returns>A configured <see cref="AuthenticationProperties" />.</returns>
+    public override AuthenticationProperties ConfigureExternalAuthenticationProperties(string? provider, string? redirectUrl, string? userId = null)
+    {
+        // borrowed from https://github.com/dotnet/aspnetcore/blob/master/src/Identity/Core/src/SignInManager.cs
+        // to be able to use our own XsrfKey/LoginProviderKey because the default is private :/
+
+        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        properties.Items[UmbracoSignInMgrLoginProviderKey] = provider;
+        if (userId != null)
+        {
+            properties.Items[UmbracoSignInMgrXsrfKey] = userId;
+        }
+
+        return properties;
+    }
+
+    /// <summary>
+    /// Gets the external authentication schemes available for back office sign-in.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a collection of external authentication schemes.</returns>
+    public override Task<IEnumerable<AuthenticationScheme>> GetExternalAuthenticationSchemesAsync() =>
+        // TODO: We can filter these so that they only include the back office ones.
+        // That can be done by either checking the scheme (maybe) or comparing it to what we have registered in the collection of BackOfficeExternalLoginProvider
+        base.GetExternalAuthenticationSchemesAsync();
+
+    /// <summary>
+    ///     Overridden to deal with events/notificiations
+    /// </summary>
+    /// <param name="user">The user being signed in.</param>
+    /// <param name="username">The username.</param>
+    /// <param name="result">The sign-in result from the base implementation.</param>
+    /// <returns>The sign-in result after handling notifications.</returns>
+    protected override async Task<SignInResult> HandleSignIn(BackOfficeIdentityUser? user, string? username, SignInResult result)
+    {
+        result = await base.HandleSignIn(user, username, result);
+
+        if (result.Succeeded)
+        {
+            if (user != null)
+            {
+                _userManager.NotifyLoginSuccess(Context.User, user.Id);
+            }
+        }
+        else if (result.IsLockedOut)
+        {
+            _userManager.NotifyAccountLocked(Context.User, user?.Id);
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            _userManager.NotifyLoginRequiresVerification(Context.User, user?.Id);
+        }
+        else if (!result.Succeeded || result.IsNotAllowed)
+        {
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException();
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Used for auto linking/creating user accounts for external logins
+    /// </summary>
+    /// <param name="loginInfo">The external login information.</param>
+    /// <param name="autoLinkOptions">The auto-link options for external accounts.</param>
+    /// <returns>The sign-in result.</returns>
+    private async Task<SignInResult> AutoLinkAndSignInExternalAccount(ExternalLoginInfo loginInfo, ExternalSignInAutoLinkOptions? autoLinkOptions)
+    {
+        // If there are no autolink options then the attempt is failed (user does not exist)
+        if (autoLinkOptions == null || !autoLinkOptions.AutoLinkExternalAccount)
+        {
+            Logger.LogInformation(
+                "External login auto-link skipped for provider '{LoginProvider}': auto-linking is not enabled for this provider.",
+                loginInfo.LoginProvider);
+            return SignInResult.Failed;
+        }
+
+        var email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+
+        // We are allowing auto-linking/creating of local accounts
+        if (email.IsNullOrWhiteSpace())
+        {
+            // Only claim *types* are logged here, never claim values, to avoid leaking personal
+            // information such as email addresses or names into the logs.
+            Logger.LogWarning(
+                "External login auto-link failed for provider '{LoginProvider}': no claim resolving to ClaimTypes.Email was present. Available claim types: {ClaimTypes}",
+                loginInfo.LoginProvider,
+                string.Join(", ", loginInfo.Principal.Claims.Select(c => c.Type).Distinct()));
+            return AutoLinkSignInResult.FailedNoEmail;
+        }
+
+        // Now we need to perform the auto-link, so first we need to lookup/create a user with the email address
+        BackOfficeIdentityUser? autoLinkUser = await UserManager.FindByEmailAsync(email!);
+        if (autoLinkUser != null)
+        {
+            try
+            {
+                // Call the callback if one is assigned
+                autoLinkOptions.OnAutoLinking?.Invoke(autoLinkUser, loginInfo);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Could not link login provider {LoginProvider}.", loginInfo.LoginProvider);
+                return AutoLinkSignInResult.FailedException(ex.Message);
+            }
+
+            var shouldLinkUser = autoLinkOptions.OnExternalLogin == null ||
+                                 autoLinkOptions.OnExternalLogin(autoLinkUser, loginInfo);
+            if (shouldLinkUser)
+            {
+                return await LinkUser(autoLinkUser, loginInfo);
+            }
+
+            LogFailedExternalLogin(loginInfo, autoLinkUser);
+            return ExternalLoginSignInResult.NotAllowed;
+        }
+
+        var name = loginInfo.Principal?.Identity?.Name;
+        if (name.IsNullOrWhiteSpace())
+        {
+            Logger.LogWarning(
+                "External login auto-link failed for provider '{LoginProvider}': a Name value could not be resolved for the new user, and creating a user without a name is not supported.",
+                loginInfo.LoginProvider);
+            return AutoLinkSignInResult.FailedNoName;
+        }
+
+        autoLinkUser = BackOfficeIdentityUser.CreateNew(_globalSettings, email, email!, autoLinkOptions.GetUserAutoLinkCulture(_globalSettings), name);
+
+        foreach (var userGroup in autoLinkOptions.DefaultUserGroups)
+        {
+            autoLinkUser.AddRole(userGroup);
+        }
+
+        // Call the callback if one is assigned
+        try
+        {
+            autoLinkOptions.OnAutoLinking?.Invoke(autoLinkUser, loginInfo);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Could not link login provider {LoginProvider}.", loginInfo.LoginProvider);
+            return AutoLinkSignInResult.FailedException(ex.Message);
+        }
+
+        IdentityResult? userCreationResult = await _userManager.CreateAsync(autoLinkUser);
+
+        if (!userCreationResult.Succeeded)
+        {
+            return AutoLinkSignInResult.FailedCreatingUser(
+                userCreationResult.Errors.Select(x => x.Description).ToList());
+        }
+
+        {
+            var shouldLinkUser = autoLinkOptions.OnExternalLogin == null ||
+                                 autoLinkOptions.OnExternalLogin(autoLinkUser, loginInfo);
+            if (shouldLinkUser)
+            {
+                return await LinkUser(autoLinkUser, loginInfo);
+            }
+
+            LogFailedExternalLogin(loginInfo, autoLinkUser);
+            return ExternalLoginSignInResult.NotAllowed;
+        }
+    }
+
+    private async Task<SignInResult> LinkUser(BackOfficeIdentityUser autoLinkUser, ExternalLoginInfo loginInfo)
+    {
+        IList<UserLoginInfo>? existingLogins = await _userManager.GetLoginsAsync(autoLinkUser);
+        UserLoginInfo? exists = existingLogins.FirstOrDefault(x =>
+            x.LoginProvider == loginInfo.LoginProvider && x.ProviderKey == loginInfo.ProviderKey);
+
+        // if it already exists (perhaps it was added in the AutoLink callbak) then we just continue
+        if (exists != null)
+        {
+            //sign in
+            return await SignInOrTwoFactorAsync(autoLinkUser, false, loginInfo.LoginProvider);
+        }
+
+        IdentityResult? linkResult = await _userManager.AddLoginAsync(autoLinkUser, loginInfo);
+        if (linkResult.Succeeded)
+        {
+            //we're good! sign in
+            return await SignInOrTwoFactorAsync(autoLinkUser, false, loginInfo.LoginProvider);
+        }
+
+        //If this fails, we should really delete the user since it will be in an inconsistent state!
+        IdentityResult? deleteResult = await _userManager.DeleteAsync(autoLinkUser);
+        if (deleteResult.Succeeded)
+        {
+            var errors = linkResult.Errors.Select(x => x.Description).ToList();
+            return AutoLinkSignInResult.FailedLinkingUser(errors);
+        }
+        else
+        {
+            //DOH! ... this isn't good, combine all errors to be shown
+            var errors = linkResult.Errors.Concat(deleteResult.Errors).Select(x => x.Description).ToList();
+            return AutoLinkSignInResult.FailedLinkingUser(errors);
+        }
+    }
+
+    protected override async Task<SignInResult> SignInOrTwoFactorAsync(BackOfficeIdentityUser user, bool isPersistent, string? loginProvider = null, bool bypassTwoFactor = false)
+    {
+        SignInResult result = await base.SignInOrTwoFactorAsync(user, isPersistent, loginProvider, bypassTwoFactor);
+
+        if (result.RequiresTwoFactor)
+        {
+            NotifyRequiresTwoFactor(user);
+        }
+
+        return result;
+    }
+
+    protected void NotifyRequiresTwoFactor(BackOfficeIdentityUser user) => Notify(user, currentUser => new UserTwoFactorRequestedNotification(currentUser.Key));
+
+    private T Notify<T>(BackOfficeIdentityUser currentUser, Func<BackOfficeIdentityUser, T> createNotification)
+        where T : INotification
+    {
+        T notification = createNotification(currentUser);
+        _eventAggregator.Publish(notification);
+        return notification;
+    }
+
+    private void LogFailedExternalLogin(ExternalLoginInfo loginInfo, BackOfficeIdentityUser user) =>
+        Logger.LogWarning(
+            "The AutoLinkOptions of the external authentication provider '{LoginProvider}' have refused the login based on the OnExternalLogin method. Affected user id: '{UserId}', key: '{UserKey}'",
+            loginInfo.LoginProvider,
+            user.Id,
+            user.Key);
+}

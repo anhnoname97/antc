@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cau hinh chung cho tang ANTC.Portal.App.
+  Core Umbraco duoc tham chieu qua NuGet tu feed noi bo (../ANTC.Portal.Lib/Build.Core),
+  khong build tu source o day.
+-->
+<Project>
+  <PropertyGroup>
+    <!-- Version core Umbraco trong feed noi bo. Chi sua O DAY (hoac chay core_build -Version ...). -->
+    <UmbracoCoreVersion Condition="'$(UmbracoCoreVersion)' == ''">18.2.1-antc</UmbracoCoreVersion>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+</Project>

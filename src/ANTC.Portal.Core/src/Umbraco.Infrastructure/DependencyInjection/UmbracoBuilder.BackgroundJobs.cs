@@ -1,0 +1,51 @@
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Notifications;
+using Umbraco.Cms.Core.Services.Navigation;
+using Umbraco.Cms.Infrastructure.BackgroundJobs;
+using Umbraco.Cms.Infrastructure.BackgroundJobs.Jobs;
+using Umbraco.Cms.Infrastructure.BackgroundJobs.Jobs.DistributedJobs;
+using Umbraco.Cms.Infrastructure.BackgroundJobs.Jobs.ServerRegistration;
+using Umbraco.Cms.Infrastructure.HostedServices;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Infrastructure.DependencyInjection;
+
+public static partial class UmbracoBuilderExtensions
+{
+    /// <summary>
+    /// Registers the default set of Umbraco background jobs and related hosted services with the specified builder.
+    /// </summary>
+    /// <param name="builder">The <see cref="IUmbracoBuilder"/> to which background jobs will be added.</param>
+    /// <returns>The same <see cref="IUmbracoBuilder"/> instance so that additional calls can be chained.</returns>
+    public static IUmbracoBuilder AddBackgroundJobs(this IUmbracoBuilder builder)
+    {
+        // Add background jobs
+        builder.Services.AddRecurringBackgroundJob<TempFileCleanupJob>();
+        builder.Services.AddRecurringBackgroundJob<InstructionProcessJob>();
+        builder.Services.AddRecurringBackgroundJob<TouchServerJob>();
+        builder.Services.AddRecurringBackgroundJob<ReportSiteJob>();
+        builder.Services.AddRecurringBackgroundJob<MemoryCacheSizeReportingJob>();
+
+        builder.Services.AddSingleton<IDistributedBackgroundJob, WebhookFiring>();
+        builder.Services.AddSingleton<IDistributedBackgroundJob, ContentVersionCleanupJob>();
+        builder.Services.AddSingleton<IDistributedBackgroundJob, HealthCheckNotifierJob>();
+        builder.Services.AddSingleton<IDistributedBackgroundJob, LogScrubberJob>();
+        builder.Services.AddSingleton<IDistributedBackgroundJob, ScheduledPublishingJob>();
+        builder.Services.AddSingleton<IDistributedBackgroundJob, TemporaryFileCleanupJob>();
+        builder.Services.AddSingleton<IDistributedBackgroundJob, WebhookLoggingCleanup>();
+        builder.Services.AddSingleton<IDistributedBackgroundJob, CacheInstructionsPruningJob>();
+        builder.Services.AddSingleton<IDistributedBackgroundJob, LongRunningOperationsCleanupJob>();
+        builder.Services.AddHostedService<DistributedBackgroundJobHostedService>();
+
+        builder.Services.AddSingleton(RecurringBackgroundJobHostedService.CreateHostedServiceFactory);
+        builder.Services.AddSingleton<RecurringBackgroundJobHostedServiceRunner>();
+        builder.Services.AddHostedService(sp => sp.GetRequiredService<RecurringBackgroundJobHostedServiceRunner>());
+        builder.Services.AddSingleton(typeof(IRecurringBackgroundJobTrigger<>), typeof(RecurringBackgroundJobTrigger<>));
+        builder.Services.AddHostedService<QueuedHostedService>();
+        builder.AddNotificationAsyncHandler<PostRuntimePremigrationsUpgradeNotification, NavigationInitializationNotificationHandler>();
+        builder.AddNotificationAsyncHandler<PostRuntimePremigrationsUpgradeNotification, PublishStatusInitializationNotificationHandler>();
+
+        return builder;
+    }
+}

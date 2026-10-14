@@ -1,0 +1,137 @@
+using System.Text.RegularExpressions;
+using Umbraco.Cms.Api.Management.ViewModels.Webhook;
+using Umbraco.Cms.Api.Management.ViewModels.Webhook.Logs;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Hosting;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Webhooks;
+
+namespace Umbraco.Cms.Api.Management.Factories;
+
+internal sealed partial class WebhookPresentationFactory : IWebhookPresentationFactory
+{
+    private readonly WebhookEventCollection _webhookEventCollection;
+    private readonly IHostingEnvironment _hostingEnvironment;
+    private readonly ILocalizedTextService _localizedTextService;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WebhookPresentationFactory"/> class with the specified dependencies.
+    /// </summary>
+    /// <param name="webhookEventCollection">The <see cref="WebhookEventCollection"/> containing the webhook events.</param>
+    /// <param name="hostingEnvironment">The <see cref="IHostingEnvironment"/> representing the hosting environment.</param>
+    /// <param name="localizedTextService">The <see cref="ILocalizedTextService"/> used for localized text.</param>
+    public WebhookPresentationFactory(
+        WebhookEventCollection webhookEventCollection,
+        IHostingEnvironment hostingEnvironment,
+        ILocalizedTextService localizedTextService)
+    {
+        _webhookEventCollection = webhookEventCollection;
+        _hostingEnvironment = hostingEnvironment;
+        _localizedTextService = localizedTextService;
+    }
+
+    public WebhookResponseModel CreateResponseModel(IWebhook webhook)
+    {
+        var target = new WebhookResponseModel
+        {
+            Events = webhook.Events.Select(Create).ToArray(),
+            Name = webhook.Name,
+            Description = webhook.Description,
+            Url = webhook.Url,
+            Enabled = webhook.Enabled,
+            Id = webhook.Key,
+            Headers = webhook.Headers,
+            ContentTypeKeys = webhook.ContentTypeKeys,
+        };
+
+        return target;
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="IWebhook"/> instance from the specified <see cref="CreateWebhookRequestModel"/>.
+    /// </summary>
+    /// <param name="webhookRequestModel">The model containing the webhook creation details.</param>
+    /// <returns>A new <see cref="IWebhook"/> instance initialized with the provided data.</returns>
+    public IWebhook CreateWebhook(CreateWebhookRequestModel webhookRequestModel)
+    {
+        var target = new Webhook(webhookRequestModel.Url, webhookRequestModel.Enabled, webhookRequestModel.ContentTypeKeys, webhookRequestModel.Events, webhookRequestModel.Headers)
+        {
+            Key = webhookRequestModel.Id ?? Guid.NewGuid(),
+            Name = webhookRequestModel.Name,
+            Description = webhookRequestModel.Description,
+        };
+        return target;
+    }
+
+    public IWebhook CreateWebhook(UpdateWebhookRequestModel webhookRequestModel, Guid existingWebhookkey)
+    {
+        var target = new Webhook(webhookRequestModel.Url, webhookRequestModel.Enabled, webhookRequestModel.ContentTypeKeys, webhookRequestModel.Events, webhookRequestModel.Headers)
+        {
+            Key = existingWebhookkey,
+            Name = webhookRequestModel.Name,
+            Description = webhookRequestModel.Description,
+        };
+        return target;
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="WebhookLogResponseModel"/> based on the specified <see cref="WebhookLog"/>.
+    /// </summary>
+    /// <param name="webhookLog">The <see cref="WebhookLog"/> instance from which to create the response model.</param>
+    /// <returns>A <see cref="WebhookLogResponseModel"/> populated with data from the provided webhook log.</returns>
+    public WebhookLogResponseModel CreateResponseModel(WebhookLog webhookLog)
+    {
+        var webhookLogResponseModel = new WebhookLogResponseModel
+        {
+            Date = webhookLog.Date,
+            EventAlias = webhookLog.EventAlias,
+            Key = webhookLog.Key,
+            RequestBody = webhookLog.RequestBody ?? string.Empty,
+            RetryCount = webhookLog.RetryCount,
+            Url = webhookLog.Url,
+            RequestHeaders = webhookLog.RequestHeaders,
+            WebhookKey = webhookLog.WebhookKey,
+            IsSuccessStatusCode = webhookLog.IsSuccessStatusCode,
+            StatusCode = webhookLog.StatusCode,
+            HttpStatusCode = ParseHttpStatusCode(webhookLog.StatusCode),
+            ExceptionOccured = webhookLog.ExceptionOccured,
+        };
+
+        if (_hostingEnvironment.IsDebugMode)
+        {
+            webhookLogResponseModel.ResponseBody = webhookLog.ResponseBody;
+            webhookLogResponseModel.ResponseHeaders = webhookLog.ResponseHeaders;
+        }
+        else
+        {
+            webhookLogResponseModel.ResponseBody = _localizedTextService.Localize("webhooks", "toggleDebug", Thread.CurrentThread.CurrentUICulture);
+        }
+
+        return webhookLogResponseModel;
+    }
+
+    // Status codes are persisted as a formatted string, e.g. "OK (200)" or "NotFound (404)", so the numeric
+    // code is parsed back out of the parentheses. Delivery failures without an HTTP response (e.g. a connection
+    // error) are stored as a plain string with no code, in which case null is returned.
+    private static int? ParseHttpStatusCode(string statusCode)
+    {
+        Match match = StatusCodePattern().Match(statusCode);
+        return match.Success && int.TryParse(match.Groups[1].Value, out var code) ? code : null;
+    }
+
+    private WebhookEventResponseModel Create(string alias)
+    {
+        IWebhookEvent? webhookEvent = _webhookEventCollection.FirstOrDefault(x => x.Alias == alias);
+
+        return new WebhookEventResponseModel
+        {
+            EventName = webhookEvent?.EventName ?? alias,
+            EventType = webhookEvent?.EventType ?? Constants.WebhookEvents.Types.Other,
+            Alias = alias,
+        };
+    }
+
+    [GeneratedRegex(@"\((\d+)\)")]
+    private static partial Regex StatusCodePattern();
+}

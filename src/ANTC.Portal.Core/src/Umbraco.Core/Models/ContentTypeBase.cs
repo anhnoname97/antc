@@ -1,0 +1,608 @@
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Runtime.Serialization;
+using Umbraco.Cms.Core.Models.Entities;
+using Umbraco.Cms.Core.Strings;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Core.Models;
+
+/// <summary>
+///     Represents an abstract class for base ContentType properties and methods
+/// </summary>
+[Serializable]
+[DataContract(IsReference = true)]
+[DebuggerDisplay("Id: {Id}, Name: {Name}, Alias: {Alias}")]
+public abstract class ContentTypeBase : TreeEntityBase, IContentTypeBase
+{
+    // Custom comparer for enumerable
+    private static readonly DelegateEqualityComparer<IEnumerable<ContentTypeSort>> _contentTypeSortComparer =
+        new(
+            (sorts, enumerable) => sorts.UnsortedSequenceEqual(enumerable),
+            sorts => sorts.GetHashCode());
+
+    private readonly IShortStringHelper _shortStringHelper;
+
+    private string _alias;
+    private bool _allowedAsRoot; // note: only one that's not 'pure element type'
+    private IEnumerable<ContentTypeSort>? _allowedContentTypes;
+    private string? _description;
+    private bool _hasPropertyTypeBeenRemoved;
+    private string? _icon = "icon-folder";
+    private Guid? _listView;
+    private bool _isElement;
+    private bool _allowedInLibrary;
+    private PropertyGroupCollection _propertyGroups;
+    private string? _thumbnail = "folder.png";
+    private ContentVariation _variations;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ContentTypeBase" /> class with a parent identifier.
+    /// </summary>
+    /// <param name="shortStringHelper">The short string helper for alias generation.</param>
+    /// <param name="parentId">The identifier of the parent content type.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="parentId" /> is zero.</exception>
+    protected ContentTypeBase(IShortStringHelper shortStringHelper, int parentId)
+    {
+        _alias = string.Empty;
+        _shortStringHelper = shortStringHelper;
+        if (parentId == 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(parentId));
+        }
+
+        ParentId = parentId;
+
+        _allowedContentTypes = new List<ContentTypeSort>();
+        _propertyGroups = new PropertyGroupCollection();
+
+        // actually OK as IsPublishing is constant
+        // ReSharper disable once VirtualMemberCallInConstructor
+        PropertyTypeCollection = new PropertyTypeCollection(SupportsPublishing);
+        PropertyTypeCollection.CollectionChanged += PropertyTypesChanged;
+
+        _variations = ContentVariation.Nothing;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ContentTypeBase" /> class with a parent content type.
+    /// </summary>
+    /// <param name="shortStringHelper">The short string helper for alias generation.</param>
+    /// <param name="parent">The parent content type.</param>
+    protected ContentTypeBase(IShortStringHelper shortStringHelper, IContentTypeBase parent)
+        : this(shortStringHelper, parent, string.Empty)
+    {
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ContentTypeBase" /> class with a parent content type and alias.
+    /// </summary>
+    /// <param name="shortStringHelper">The short string helper for alias generation.</param>
+    /// <param name="parent">The parent content type.</param>
+    /// <param name="alias">The alias for this content type.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="parent" /> is null.</exception>
+    protected ContentTypeBase(IShortStringHelper shortStringHelper, IContentTypeBase parent, string alias)
+    {
+        if (parent == null)
+        {
+            throw new ArgumentNullException(nameof(parent));
+        }
+
+        SetParent(parent);
+
+        _shortStringHelper = shortStringHelper;
+        _alias = alias;
+        _allowedContentTypes = new List<ContentTypeSort>();
+        _propertyGroups = new PropertyGroupCollection();
+
+        // actually OK as IsPublishing is constant
+        // ReSharper disable once VirtualMemberCallInConstructor
+        PropertyTypeCollection = new PropertyTypeCollection(SupportsPublishing);
+        PropertyTypeCollection.CollectionChanged += PropertyTypesChanged;
+
+        _variations = ContentVariation.Nothing;
+    }
+
+    /// <summary>
+    ///     Gets a value indicating whether the content type supports publishing.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         A publishing content type supports draft and published values for properties.
+    ///         It is possible to retrieve either the draft (default) or published value of a property.
+    ///         Setting the value always sets the draft value, which then needs to be published.
+    ///     </para>
+    ///     <para>
+    ///         A non-publishing content type only supports one value for properties. Getting
+    ///         the draft or published value of a property returns the same thing, and publishing
+    ///         a value property has no effect.
+    ///     </para>
+    /// </remarks>
+    public abstract bool SupportsPublishing { get; }
+
+    /// <summary>
+    ///     The Alias of the ContentType
+    /// </summary>
+    [DataMember]
+    public virtual string Alias
+    {
+        get => _alias;
+        set => SetPropertyValueAndDetectChanges(
+            value.ToCleanString(_shortStringHelper, CleanStringType.Alias | CleanStringType.UmbracoCase),
+            ref _alias!,
+            nameof(Alias));
+    }
+
+    /// <summary>
+    ///     A boolean flag indicating if a property type has been removed from this instance.
+    /// </summary>
+    /// <remarks>
+    ///     This is currently (specifically) used in order to know that we need to refresh the content cache which
+    ///     needs to occur when a property has been removed from a content type
+    /// </remarks>
+    [IgnoreDataMember]
+    internal bool HasPropertyTypeBeenRemoved
+    {
+        get => _hasPropertyTypeBeenRemoved;
+        private set
+        {
+            _hasPropertyTypeBeenRemoved = value;
+            OnPropertyChanged(nameof(HasPropertyTypeBeenRemoved));
+        }
+    }
+
+    /// <summary>
+    ///     PropertyTypes that are not part of a PropertyGroup
+    /// </summary>
+    [IgnoreDataMember]
+
+    // TODO: should we mark this as EditorBrowsable hidden since it really isn't ever used?
+    internal PropertyTypeCollection PropertyTypeCollection { get; private set; }
+
+    /// <summary>
+    ///     Converts this content type to a simple content type representation.
+    /// </summary>
+    /// <returns>A simple content type representation.</returns>
+    public abstract ISimpleContentType ToSimple();
+
+    /// <summary>
+    ///     Description for the ContentType
+    /// </summary>
+    [DataMember]
+    public string? Description
+    {
+        get => _description;
+        set => SetPropertyValueAndDetectChanges(value, ref _description, nameof(Description));
+    }
+
+    /// <summary>
+    ///     Name of the icon (sprite class) used to identify the ContentType
+    /// </summary>
+    [DataMember]
+    public string? Icon
+    {
+        get => _icon;
+        set => SetPropertyValueAndDetectChanges(value, ref _icon, nameof(Icon));
+    }
+
+    /// <summary>
+    ///     Name of the thumbnail used to identify the ContentType
+    /// </summary>
+    [DataMember]
+    public string? Thumbnail
+    {
+        get => _thumbnail;
+        set => SetPropertyValueAndDetectChanges(value, ref _thumbnail, nameof(Thumbnail));
+    }
+
+    /// <summary>
+    ///     Gets or Sets a boolean indicating whether this ContentType is allowed at the root
+    /// </summary>
+    [DataMember]
+    public bool AllowedAsRoot
+    {
+        get => _allowedAsRoot;
+        set => SetPropertyValueAndDetectChanges(value, ref _allowedAsRoot, nameof(AllowedAsRoot));
+    }
+
+
+    /// <inheritdoc />
+    [DataMember]
+    public Guid? ListView
+    {
+        get => _listView;
+        set => SetPropertyValueAndDetectChanges(value, ref _listView, nameof(ListView));
+    }
+
+    /// <inheritdoc />
+    [DataMember]
+    public bool IsElement
+    {
+        get => _isElement;
+        set => SetPropertyValueAndDetectChanges(value, ref _isElement, nameof(IsElement));
+    }
+
+    /// <inheritdoc />
+    [DataMember]
+    public bool AllowedInLibrary
+    {
+        get => _allowedInLibrary;
+        set => SetPropertyValueAndDetectChanges(value, ref _allowedInLibrary, nameof(AllowedInLibrary));
+    }
+
+    /// <summary>
+    ///     Gets or sets a list of integer Ids for allowed ContentTypes
+    /// </summary>
+    [DataMember]
+    public IEnumerable<ContentTypeSort>? AllowedContentTypes
+    {
+        get => _allowedContentTypes;
+        set => SetPropertyValueAndDetectChanges(value, ref _allowedContentTypes, nameof(AllowedContentTypes), _contentTypeSortComparer);
+    }
+
+    /// <summary>
+    ///     Gets or sets the content variation of the content type.
+    /// </summary>
+    public virtual ContentVariation Variations
+    {
+        get => _variations;
+        set => SetPropertyValueAndDetectChanges(value, ref _variations, nameof(Variations));
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    ///     <para>A PropertyGroup corresponds to a Tab in the UI</para>
+    ///     <para>Marked DoNotClone because we will manually deal with cloning and the event handlers</para>
+    /// </remarks>
+    [DataMember]
+    [DoNotClone]
+    public PropertyGroupCollection PropertyGroups
+    {
+        get => _propertyGroups;
+        set
+        {
+            _propertyGroups = value;
+            _propertyGroups.CollectionChanged += PropertyGroupsChanged;
+            PropertyGroupsChanged(
+                _propertyGroups,
+                new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
+    }
+
+    /// <inheritdoc />
+    public bool SupportsVariation(string culture, string segment, bool wildcards = false) =>
+
+        // exact validation: cannot accept a 'null' culture if the property type varies
+        //  by culture, and likewise for segment
+        // wildcard validation: can accept a '*' culture or segment
+        Variations.ValidateVariation(culture, segment, true, wildcards, false);
+
+    /// <inheritdoc />
+    public bool SupportsPropertyVariation(string culture, string segment, bool wildcards = false) =>
+
+        // non-exact validation: can accept a 'null' culture if the property type varies
+        //  by culture, and likewise for segment
+        // wildcard validation: can accept a '*' culture or segment
+        Variations.ValidateVariation(culture, segment, false, true, false);
+
+    /// <inheritdoc />
+    [IgnoreDataMember]
+    [DoNotClone]
+    public IEnumerable<IPropertyType> PropertyTypes =>
+        PropertyTypeCollection.Union(PropertyGroups.SelectMany(x => x.PropertyTypes!));
+
+    /// <inheritdoc />
+    [DoNotClone]
+    public IEnumerable<IPropertyType> NoGroupPropertyTypes
+    {
+        get => PropertyTypeCollection;
+        set
+        {
+            PropertyTypeCollection?.ClearCollectionChangedEvents();
+
+            PropertyTypeCollection = new PropertyTypeCollection(SupportsPublishing, value);
+            PropertyTypeCollection.CollectionChanged += PropertyTypesChanged;
+            PropertyTypesChanged(
+                PropertyTypeCollection,
+                new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
+    }
+
+    /// <summary>
+    ///     Checks whether a PropertyType with a given alias already exists
+    /// </summary>
+    /// <param name="alias">Alias of the PropertyType</param>
+    /// <returns>Returns <c>True</c> if a PropertyType with the passed in alias exists, otherwise <c>False</c></returns>
+    public abstract bool PropertyTypeExists(string? alias);
+
+    /// <inheritdoc />
+    public abstract bool AddPropertyGroup(string alias, string name);
+
+    /// <inheritdoc />
+    public abstract bool AddPropertyType(IPropertyType propertyType, string propertyGroupAlias, string? propertyGroupName = null);
+
+    /// <summary>
+    ///     Adds a PropertyType, which does not belong to a PropertyGroup.
+    /// </summary>
+    /// <param name="propertyType"><see cref="IPropertyType" /> to add</param>
+    /// <returns>Returns <c>True</c> if PropertyType was added, otherwise <c>False</c></returns>
+    public bool AddPropertyType(IPropertyType propertyType)
+    {
+        if (PropertyTypeExists(propertyType.Alias) == false)
+        {
+            PropertyTypeCollection.Add(propertyType);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Moves a PropertyType to a specified PropertyGroup
+    /// </summary>
+    /// <param name="propertyTypeAlias">Alias of the PropertyType to move</param>
+    /// <param name="propertyGroupAlias">Alias of the PropertyGroup to move the PropertyType to</param>
+    /// <returns>
+    ///     Returns <c>True</c> if the PropertyType was moved, otherwise <c>False</c>.
+    /// </returns>
+    /// <remarks>
+    ///     If <paramref name="propertyGroupAlias" /> is null then the property is moved back to
+    ///     "generic properties" ie does not have a tab anymore.
+    /// </remarks>
+    public bool MovePropertyType(string propertyTypeAlias, string? propertyGroupAlias)
+    {
+        // get property, ensure it exists
+        IPropertyType? propertyType = PropertyTypes.FirstOrDefault(x => x.Alias == propertyTypeAlias);
+        if (propertyType == null)
+        {
+            return false;
+        }
+
+        // get new group, if required, and ensure it exists
+        PropertyGroup? newPropertyGroup = null;
+        if (propertyGroupAlias is not null)
+        {
+            var index = PropertyGroups.IndexOfKey(propertyGroupAlias);
+            if (index == -1)
+            {
+                return false;
+            }
+
+            newPropertyGroup = PropertyGroups[index];
+        }
+
+        // get old group
+        PropertyGroup? oldPropertyGroup = PropertyGroups.FirstOrDefault(x => x.PropertyTypes?.Any(y => y.Alias == propertyTypeAlias) ?? false);
+
+        // set new group
+        propertyType.PropertyGroupId =
+            newPropertyGroup == null ? null : new Lazy<int>(() => newPropertyGroup.Id, false);
+
+        // remove from the old group, if any, and add to the new group - or, when there's no new
+        // group, to the collection of properties that do not belong to a group
+        oldPropertyGroup?.PropertyTypes?.RemoveItem(propertyTypeAlias);
+
+        if (newPropertyGroup is not null)
+        {
+            PropertyTypeCollection.RemoveItem(propertyTypeAlias);
+
+            // the group's collection is nullable, and a null-conditional add would silently drop
+            // the property instead of moving it, so ensure the collection exists first
+            newPropertyGroup.PropertyTypes ??= new PropertyTypeCollection(SupportsPublishing);
+            newPropertyGroup.PropertyTypes.Add(propertyType);
+        }
+        else if (PropertyTypeCollection.Contains(propertyTypeAlias) is false)
+        {
+            PropertyTypeCollection.Add(propertyType);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    ///     Removes a PropertyType from the current ContentType
+    /// </summary>
+    /// <param name="alias">Alias of the <see cref="IPropertyType" /> to remove</param>
+    public void RemovePropertyType(string alias)
+    {
+        // check through each property group to see if we can remove the property type by alias from it
+        foreach (PropertyGroup propertyGroup in PropertyGroups)
+        {
+            if (propertyGroup.PropertyTypes?.RemoveItem(alias) ?? false)
+            {
+                if (!HasPropertyTypeBeenRemoved)
+                {
+                    HasPropertyTypeBeenRemoved = true;
+                    OnPropertyChanged(nameof(PropertyTypes));
+                }
+
+                break;
+            }
+        }
+
+        // check through each local property type collection (not assigned to a tab)
+        if (PropertyTypeCollection.RemoveItem(alias))
+        {
+            if (!HasPropertyTypeBeenRemoved)
+            {
+                HasPropertyTypeBeenRemoved = true;
+                OnPropertyChanged(nameof(PropertyTypes));
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Removes a PropertyGroup from the current ContentType
+    /// </summary>
+    /// <param name="alias">Alias of the <see cref="PropertyGroup" /> to remove</param>
+    public void RemovePropertyGroup(string alias)
+    {
+        // if no group exists with that alias, do nothing
+        var index = PropertyGroups.IndexOfKey(alias);
+        if (index == -1)
+        {
+            return;
+        }
+
+        PropertyGroup group = PropertyGroups[index];
+
+        // first remove the group
+        PropertyGroups.Remove(group);
+
+        if (group.PropertyTypes is not null)
+        {
+            // Then re-assign the group's properties to no group
+            foreach (IPropertyType property in group.PropertyTypes)
+            {
+                property.PropertyGroupId = null;
+                PropertyTypeCollection.Add(property);
+            }
+        }
+
+        OnPropertyChanged(nameof(PropertyGroups));
+    }
+
+    /// <summary>
+    ///     Indicates whether the current entity is dirty.
+    /// </summary>
+    /// <returns>True if entity is dirty, otherwise False</returns>
+    public override bool IsDirty()
+    {
+        var dirtyEntity = base.IsDirty();
+
+        var dirtyGroups = PropertyGroups.Any(x => x.IsDirty());
+        var dirtyTypes = PropertyTypes.Any(x => x.IsDirty());
+
+        return dirtyEntity || dirtyGroups || dirtyTypes;
+    }
+
+    /// <summary>
+    ///     Resets dirty properties, cascading into property groups and property types.
+    /// </summary>
+    /// <param name="rememberDirty">
+    ///     If <c>true</c>, the properties that were dirty are remembered so <see cref="IRememberBeingDirty.WasPropertyDirty"/>
+    ///     can still report them after the reset; if <c>false</c>, both the current and remembered dirty state are cleared.
+    /// </param>
+    /// <remarks>
+    ///     Please note that resetting the dirty properties could potentially
+    ///     obstruct the saving of a new or updated entity.
+    /// </remarks>
+    public override void ResetDirtyProperties(bool rememberDirty)
+    {
+        base.ResetDirtyProperties(rememberDirty);
+
+        var propertiesReset = new List<int>();
+
+        foreach (PropertyGroup propertyGroup in PropertyGroups)
+        {
+            propertyGroup.ResetDirtyProperties(rememberDirty);
+            if (propertyGroup.PropertyTypes is null)
+            {
+                continue;
+            }
+
+            foreach (IPropertyType propertyType in propertyGroup.PropertyTypes)
+            {
+                propertyType.ResetDirtyProperties(rememberDirty);
+                propertiesReset.Add(propertyType.Id);
+            }
+        }
+
+        foreach (IPropertyType propertyType in PropertyTypes.Where(x => propertiesReset.Contains(x.Id) == false))
+        {
+            propertyType.ResetDirtyProperties(rememberDirty);
+        }
+    }
+
+    /// <summary>
+    ///     Creates a deep clone of this content type with reset identities.
+    /// </summary>
+    /// <param name="alias">The alias for the cloned content type.</param>
+    /// <returns>A deep clone with reset identities.</returns>
+    public IContentTypeBase DeepCloneWithResetIdentities(string alias)
+    {
+        var clone = (IContentTypeBase)DeepClone();
+
+        // ResetIdentity() must be called before setting the alias, because HasIdentity
+        // is used by system content types to guard against alias changes.
+        clone.ResetIdentity();
+        clone.Alias = alias;
+        foreach (PropertyGroup propertyGroup in clone.PropertyGroups)
+        {
+            propertyGroup.ResetIdentity();
+            propertyGroup.ResetDirtyProperties(false);
+        }
+
+        foreach (IPropertyType propertyType in clone.PropertyTypes)
+        {
+            propertyType.ResetIdentity();
+            propertyType.ResetDirtyProperties(false);
+        }
+
+        clone.ResetDirtyProperties(false);
+        return clone;
+    }
+
+    /// <summary>
+    ///     Handles changes to the property groups collection.
+    /// </summary>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="e">The event arguments.</param>
+    protected void PropertyGroupsChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+        OnPropertyChanged(nameof(PropertyGroups));
+
+    /// <summary>
+    ///     Handles changes to the property types collection.
+    /// </summary>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="e">The event arguments.</param>
+    protected void PropertyTypesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // enable this to detect duplicate property aliases. We do want this, however making this change in a
+        // patch release might be a little dangerous
+        ////detect if there are any duplicate aliases - this cannot be allowed
+        // if (e.Action == NotifyCollectionChangedAction.Add
+        //    || e.Action == NotifyCollectionChangedAction.Replace)
+        // {
+        //    var allAliases = _noGroupPropertyTypes.Concat(PropertyGroups.SelectMany(x => x.PropertyTypes)).Select(x => x.Alias);
+        //    if (allAliases.HasDuplicates(false))
+        //    {
+        //        var newAliases = string.Join(", ", e.NewItems.Cast<PropertyType>().Select(x => x.Alias));
+        //        throw new InvalidOperationException($"Other property types already exist with the aliases: {newAliases}");
+        //    }
+        // }
+        OnPropertyChanged(nameof(PropertyTypes));
+
+        // Also mark NoGroupPropertyTypes as dirty so the persistence layer
+        // detects changes to properties without containers (tabs/groups).
+        OnPropertyChanged(nameof(NoGroupPropertyTypes));
+    }
+
+    /// <inheritdoc />
+    protected override void PerformDeepClone(object clone)
+    {
+        base.PerformDeepClone(clone);
+
+        var clonedEntity = (ContentTypeBase)clone;
+
+        if (clonedEntity.PropertyTypeCollection != null)
+        {
+            // need to manually wire up the event handlers for the property type collections - we've ensured
+            // its ignored from the auto-clone process because its return values are unions, not raw and
+            // we end up with duplicates, see: http://issues.umbraco.org/issue/U4-4842
+            clonedEntity.PropertyTypeCollection.ClearCollectionChangedEvents(); // clear this event handler if any
+            clonedEntity.PropertyTypeCollection =
+                (PropertyTypeCollection)PropertyTypeCollection.DeepClone(); // manually deep clone
+            clonedEntity.PropertyTypeCollection.CollectionChanged +=
+                clonedEntity.PropertyTypesChanged; // re-assign correct event handler
+        }
+
+        if (clonedEntity._propertyGroups != null)
+        {
+            clonedEntity._propertyGroups.ClearCollectionChangedEvents(); // clear this event handler if any
+            clonedEntity._propertyGroups = (PropertyGroupCollection)_propertyGroups.DeepClone(); // manually deep clone
+            clonedEntity._propertyGroups.CollectionChanged +=
+                clonedEntity.PropertyGroupsChanged; // re-assign correct event handler
+        }
+    }
+}

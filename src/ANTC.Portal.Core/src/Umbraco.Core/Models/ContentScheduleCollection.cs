@@ -1,0 +1,323 @@
+using System.Collections.Specialized;
+
+namespace Umbraco.Cms.Core.Models;
+
+/// <summary>
+///     Represents a collection of content schedules for publishing and unpublishing content.
+/// </summary>
+/// <remarks>
+///     The underlying storage is backed by a sorted list so that the schedule is always in order of date
+///     and duplicate dates per culture are not allowed.
+/// </remarks>
+public class ContentScheduleCollection : INotifyCollectionChanged, IDeepCloneable, IEquatable<ContentScheduleCollection>
+{
+    // underlying storage for the collection backed by a sorted list so that the schedule is always in order of date and that duplicate dates per culture are not allowed
+    private readonly Dictionary<string, SortedList<DateTime, ContentSchedule>> _schedule
+        = new(StringComparer.InvariantCultureIgnoreCase);
+
+    /// <inheritdoc />
+    public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
+    /// <summary>
+    ///     Returns all schedules registered
+    /// </summary>
+    /// <returns></returns>
+    public IReadOnlyList<ContentSchedule> FullSchedule => _schedule.SelectMany(x => x.Value.Values).ToList();
+
+    /// <inheritdoc />
+    public object DeepClone()
+    {
+        var clone = new ContentScheduleCollection();
+        foreach (KeyValuePair<string, SortedList<DateTime, ContentSchedule>> cultureSched in _schedule)
+        {
+            var list = new SortedList<DateTime, ContentSchedule>();
+            foreach (KeyValuePair<DateTime, ContentSchedule> schedEntry in cultureSched.Value)
+            {
+                list.Add(schedEntry.Key, (ContentSchedule)schedEntry.Value.DeepClone());
+            }
+
+            clone._schedule[cultureSched.Key] = list;
+        }
+
+        return clone;
+    }
+
+    /// <inheritdoc />
+    public bool Equals(ContentScheduleCollection? other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        Dictionary<string, SortedList<DateTime, ContentSchedule>> thisSched = _schedule;
+        Dictionary<string, SortedList<DateTime, ContentSchedule>> thatSched = other._schedule;
+
+        if (thisSched.Count != thatSched.Count)
+        {
+            return false;
+        }
+
+        foreach ((var culture, SortedList<DateTime, ContentSchedule> thisList) in thisSched)
+        {
+            // if culture is missing, or actions differ, false
+            if (!thatSched.TryGetValue(culture, out SortedList<DateTime, ContentSchedule>? thatList) ||
+                !thatList.SequenceEqual(thisList))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    ///     Creates a new <see cref="ContentScheduleCollection" /> with a schedule entry for invariant content.
+    /// </summary>
+    /// <param name="release">The release date, or null if no release is scheduled.</param>
+    /// <param name="expire">The expiration date, or null if no expiration is scheduled.</param>
+    /// <returns>A new content schedule collection with the specified entry.</returns>
+    public static ContentScheduleCollection CreateWithEntry(DateTime? release, DateTime? expire)
+    {
+        var schedule = new ContentScheduleCollection();
+        schedule.Add(Constants.System.InvariantCulture, release, expire);
+        return schedule;
+    }
+
+    /// <summary>
+    ///     Clears all <see cref="CollectionChanged" /> event handlers
+    /// </summary>
+    public void ClearCollectionChangedEvents() => CollectionChanged = null;
+
+    /// <summary>
+    ///     Add an existing schedule
+    /// </summary>
+    /// <param name="schedule"></param>
+    public void Add(ContentSchedule schedule)
+    {
+        if (!_schedule.TryGetValue(schedule.Culture, out SortedList<DateTime, ContentSchedule>? changes))
+        {
+            changes = new SortedList<DateTime, ContentSchedule>();
+            _schedule[schedule.Culture] = changes;
+        }
+
+        // TODO: Below will throw if there are duplicate dates added, validate/return bool?
+        changes.Add(schedule.Date, schedule);
+
+        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, schedule));
+    }
+
+    private void OnCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
+
+    /// <summary>
+    ///     Adds a new schedule for invariant content
+    /// </summary>
+    /// <param name="releaseDate"></param>
+    /// <param name="expireDate"></param>
+    public bool Add(DateTime? releaseDate, DateTime? expireDate) => Add(Constants.System.InvariantCulture, releaseDate, expireDate);
+
+    /// <summary>
+    ///     Adds a new schedule for a culture
+    /// </summary>
+    /// <param name="culture"></param>
+    /// <param name="releaseDate"></param>
+    /// <param name="expireDate"></param>
+    /// <returns>true if successfully added, false if validation fails</returns>
+    public bool Add(string? culture, DateTime? releaseDate, DateTime? expireDate)
+    {
+        if (culture == null)
+        {
+            throw new ArgumentNullException(nameof(culture));
+        }
+
+        if (releaseDate.HasValue && expireDate.HasValue && releaseDate >= expireDate)
+        {
+            return false;
+        }
+
+        if (!releaseDate.HasValue && !expireDate.HasValue)
+        {
+            return false;
+        }
+
+        // TODO: Do we allow passing in a release or expiry date that is before now?
+        if (!_schedule.TryGetValue(culture, out SortedList<DateTime, ContentSchedule>? changes))
+        {
+            changes = new SortedList<DateTime, ContentSchedule>();
+            _schedule[culture] = changes;
+        }
+
+        // TODO: Below will throw if there are duplicate dates added, should validate/return bool?
+        // but the bool won't indicate which date was in error, maybe have 2 diff methods to schedule start/end?
+        if (releaseDate.HasValue)
+        {
+            var entry = new ContentSchedule(culture, releaseDate.Value, ContentScheduleAction.Release);
+            changes.Add(releaseDate.Value, entry);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, entry));
+        }
+
+        if (expireDate.HasValue)
+        {
+            var entry = new ContentSchedule(culture, expireDate.Value, ContentScheduleAction.Expire);
+            changes.Add(expireDate.Value, entry);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, entry));
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    ///     Remove a scheduled change
+    /// </summary>
+    /// <param name="change"></param>
+    public void Remove(ContentSchedule change)
+    {
+        if (_schedule.TryGetValue(change.Culture, out SortedList<DateTime, ContentSchedule>? s))
+        {
+            var removed = s.Remove(change.Date);
+            if (removed)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, change));
+                if (s.Count == 0)
+                {
+                    _schedule.Remove(change.Culture);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Removes a schedule entry for the specified culture and action if it exists.
+    /// </summary>
+    /// <param name="culture">The culture of the schedule to remove.</param>
+    /// <param name="action">The action type (release or expire) to remove.</param>
+    public void RemoveIfExists(string culture, ContentScheduleAction action)
+    {
+        ContentSchedule? changeToRemove = FullSchedule.FirstOrDefault(change =>
+            change.Culture == culture
+            && change.Action == action);
+        if (changeToRemove is not null)
+        {
+            Remove(changeToRemove);
+        }
+    }
+
+    /// <summary>
+    ///     Adds or updates a schedule entry for the specified culture and action.
+    /// </summary>
+    /// <param name="culture">The culture for the schedule.</param>
+    /// <param name="dateTime">The date and time for the scheduled action.</param>
+    /// <param name="action">The action type (release or expire).</param>
+    public void AddOrUpdate(string culture, DateTime dateTime, ContentScheduleAction action)
+    {
+        // we need to remove the old one as ContentSchedule.Date is immutable
+        ContentSchedule? changeToRemove = FullSchedule.FirstOrDefault(change =>
+            change.Culture == culture
+            && change.Action == action);
+
+        if (changeToRemove is not null)
+        {
+            Remove(changeToRemove);
+        }
+
+        Add(new ContentSchedule(culture, dateTime, action));
+    }
+
+    /// <summary>
+    ///     Clear all of the scheduled change type for invariant content
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="changeDate">If specified, will clear all entries with dates less than or equal to the value</param>
+    public void Clear(ContentScheduleAction action, DateTime? changeDate = null) =>
+        Clear(Constants.System.InvariantCulture, action, changeDate);
+
+    /// <summary>
+    ///     Clear all of the scheduled change type for the culture
+    /// </summary>
+    /// <param name="culture"></param>
+    /// <param name="action"></param>
+    /// <param name="date">If specified, will clear all entries with dates less than or equal to the value</param>
+    public void Clear(string? culture, ContentScheduleAction action, DateTime? date = null)
+    {
+        if (culture is null || !_schedule.TryGetValue(culture, out SortedList<DateTime, ContentSchedule>? schedules))
+        {
+            return;
+        }
+
+        var removes = schedules.Where(x => x.Value.Action == action && (!date.HasValue || x.Value.Date <= date.Value))
+            .ToList();
+
+        foreach (KeyValuePair<DateTime, ContentSchedule> remove in removes)
+        {
+            var removed = schedules.Remove(remove.Value.Date);
+            if (!removed)
+            {
+                continue;
+            }
+
+            OnCollectionChanged(
+                new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, remove.Value));
+        }
+
+        if (schedules.Count == 0)
+        {
+            _schedule.Remove(culture);
+        }
+    }
+
+    /// <summary>
+    ///     Returns all pending schedules based on the date and type provided
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="date"></param>
+    /// <returns></returns>
+    public IReadOnlyList<ContentSchedule> GetPending(ContentScheduleAction action, DateTime date) =>
+        _schedule.Values.SelectMany(x => x.Values).Where(x => x.Date <= date).ToList();
+
+    /// <summary>
+    ///     Gets the schedule for invariant content
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<ContentSchedule> GetSchedule(ContentScheduleAction? action = null) =>
+        GetSchedule(Constants.System.InvariantCulture, action);
+
+    /// <summary>
+    ///     Gets the schedule for a culture
+    /// </summary>
+    /// <param name="culture"></param>
+    /// <param name="action"></param>
+    /// <returns></returns>
+    public IEnumerable<ContentSchedule> GetSchedule(string? culture, ContentScheduleAction? action = null)
+    {
+        if (culture is not null && _schedule.TryGetValue(culture, out SortedList<DateTime, ContentSchedule>? changes))
+        {
+            return action == null ? changes.Values : changes.Values.Where(x => x.Action == action.Value);
+        }
+
+        return Enumerable.Empty<ContentSchedule>();
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+        => obj is ContentScheduleCollection other && Equals(other);
+
+    /// <summary>
+    ///     Creates a new <see cref="ContentScheduleCollection" /> with a schedule entry for a specific culture.
+    /// </summary>
+    /// <param name="culture">The culture for the schedule.</param>
+    /// <param name="release">The release date, or null if no release is scheduled.</param>
+    /// <param name="expire">The expiration date, or null if no expiration is scheduled.</param>
+    /// <returns>A new content schedule collection with the specified entry.</returns>
+    public static ContentScheduleCollection CreateWithEntry(string culture, DateTime? release, DateTime? expire)
+    {
+        var schedule = new ContentScheduleCollection();
+        schedule.Add(culture, release, expire);
+        return schedule;
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
+}

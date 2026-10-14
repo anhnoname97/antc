@@ -1,0 +1,161 @@
+using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.DeliveryApi;
+using Umbraco.Cms.Core.Media;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.PublishedCache;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Infrastructure.DeliveryApi;
+
+internal sealed class ApiRichTextMarkupParser : ApiRichTextParserBase, IApiRichTextMarkupParser
+{
+    private readonly IPublishedContentCache _publishedContentCache;
+    private readonly IPublishedMediaCache _publishedMediaCache;
+    private readonly IImageUrlTokenGenerator _imageUrlTokenGenerator;
+    private readonly ILogger<ApiRichTextMarkupParser> _logger;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApiRichTextMarkupParser"/> class.
+    /// </summary>
+    /// <param name="apiContentRouteBuilder">The <see cref="IApiContentRouteBuilder"/> used to build API content routes.</param>
+    /// <param name="mediaUrlProvider">The <see cref="IApiMediaUrlProvider"/> used to provide media URLs for the API.</param>
+    /// <param name="publishedContentCache">The <see cref="IPublishedContentCache"/> for accessing published content.</param>
+    /// <param name="publishedMediaCache">The <see cref="IPublishedMediaCache"/> for accessing published media.</param>
+    /// <param name="imageUrlTokenGenerator">Used to re-sign rendered image URLs against the current HMAC secret key.</param>
+    /// <param name="logger">The <see cref="ILogger{ApiRichTextMarkupParser}"/> instance for logging.</param>
+    public ApiRichTextMarkupParser(
+        IApiContentRouteBuilder apiContentRouteBuilder,
+        IApiMediaUrlProvider mediaUrlProvider,
+        IPublishedContentCache publishedContentCache,
+        IPublishedMediaCache publishedMediaCache,
+        IImageUrlTokenGenerator imageUrlTokenGenerator,
+        ILogger<ApiRichTextMarkupParser> logger)
+        : base(apiContentRouteBuilder, mediaUrlProvider)
+    {
+        _publishedContentCache = publishedContentCache;
+        _publishedMediaCache = publishedMediaCache;
+        _imageUrlTokenGenerator = imageUrlTokenGenerator;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Parses the specified HTML rich text, replacing local links and images with appropriate markup and cleaning up block elements.
+    /// </summary>
+    /// <param name="html">The HTML string containing the rich text to parse and transform.</param>
+    /// <returns>The processed HTML string with local links and images replaced, and block elements cleaned up.</returns>
+    public string Parse(string html)
+    {
+        try
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+
+            ReplaceLocalLinks(doc, _publishedContentCache, _publishedMediaCache);
+
+            ReplaceLocalImages(doc, _publishedMediaCache);
+
+            CleanUpBlocks(doc);
+
+            return doc.DocumentNode.InnerHtml;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not parse rich text HTML, see exception for details");
+            return html;
+        }
+    }
+
+    private void ReplaceLocalLinks(HtmlDocument doc, IPublishedContentCache contentCache, IPublishedMediaCache mediaCache)
+    {
+        HtmlNode[] links = doc.DocumentNode.SelectNodes("//a")?.ToArray() ?? Array.Empty<HtmlNode>();
+        foreach (HtmlNode link in links)
+        {
+            // Normalize the type to lower case to tolerate historic mis-cased values written by the (now fixed)
+            // ConvertLocalLinks migration for Umbraco 15 (see #22597). Constants.UdiEntityType.* values are lower case.
+            ReplaceLocalLinks(
+                    contentCache,
+                    mediaCache,
+                link.GetAttributeValue("href", string.Empty),
+                link.GetAttributeValue("type", "unknown").ToLowerInvariant(),
+                (route, content) =>
+                {
+                    link.SetAttributeValue("href", $"{route.Path}{route.QueryString}");
+                    link.SetAttributeValue("data-destination-id", content.Key.ToString("D"));
+                    link.SetAttributeValue("data-destination-type", content.ContentType.Alias);
+                    link.SetAttributeValue("data-start-item-path", route.StartItem.Path);
+                    link.SetAttributeValue("data-start-item-id", route.StartItem.Id.ToString("D"));
+                    link.Attributes["type"]?.Remove();
+                    link.SetAttributeValue("data-link-type", nameof(LinkType.Content));
+                },
+                (url, media) =>
+                {
+                    link.SetAttributeValue("href", url);
+                    link.SetAttributeValue("data-destination-id", media.Key.ToString("D"));
+                    link.SetAttributeValue("data-destination-type", media.ContentType.Alias);
+                    link.Attributes["type"]?.Remove();
+                    link.SetAttributeValue("data-link-type", nameof(LinkType.Media));
+                },
+                () =>
+                {
+                    link.Attributes.Remove("href");
+                    link.Attributes["type"]?.Remove();
+                });
+        }
+    }
+
+    private void ReplaceLocalImages(HtmlDocument doc, IPublishedMediaCache mediaCache)
+    {
+        HtmlNode[] images = doc.DocumentNode.SelectNodes("//img")?.ToArray() ?? Array.Empty<HtmlNode>();
+        foreach (HtmlNode image in images)
+        {
+            var dataUdi = image.GetAttributeValue("data-udi", string.Empty);
+            if (dataUdi.IsNullOrWhiteSpace())
+            {
+                continue;
+            }
+
+            ReplaceLocalImages(mediaCache, dataUdi, mediaUrl =>
+            {
+                // the image source likely contains query string parameters for image cropping; we need to
+                // preserve those, so let's extract the image query string (if present).
+                var currentImageSource = image.GetAttributeValue("src", string.Empty);
+                var currentImageQueryString = currentImageSource.Contains('?')
+                    ? $"?{currentImageSource.Split('?').Last()}"
+                    : null;
+
+                // Re-sign the URL so a rotated HMAC secret key doesn't break previously-authored images.
+                // No-op when HMAC isn't configured.
+                var refreshedSrc = _imageUrlTokenGenerator.RefreshSignature(
+                    currentImageQueryString.IsNullOrWhiteSpace()
+                        ? mediaUrl
+                        : mediaUrl.AppendQueryStringToUrl(currentImageQueryString));
+                image.SetAttributeValue("src", refreshedSrc);
+                image.Attributes.Remove("data-udi");
+
+                // we don't want the "data-caption" attribute, it's already part of the output as <figcaption>
+                image.Attributes.Remove("data-caption");
+            });
+        }
+    }
+
+    private void CleanUpBlocks(HtmlDocument doc)
+    {
+        HtmlNode[] blocks = doc.DocumentNode.SelectNodes("//*[starts-with(local-name(),'umb-rte-block')]")?.ToArray() ?? Array.Empty<HtmlNode>();
+        foreach (HtmlNode block in blocks)
+        {
+            var dataKey = block.GetAttributeValue(BlockContentKeyAttribute, string.Empty);
+            if (Guid.TryParse(dataKey, out Guid key) is false)
+            {
+                continue;
+            }
+
+            // swap the content UDI for the content ID
+            block.Attributes.Remove(BlockContentKeyAttribute);
+            block.SetAttributeValue("data-content-id", key.ToString("D"));
+
+            // remove the inner comment placed by the RTE
+            block.RemoveAllChildren();
+        }
+    }
+}

@@ -1,0 +1,491 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Net;
+using Umbraco.Cms.Core.Notifications;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Web.Common.Security;
+
+/// <summary>
+///     The sign in manager for members
+/// </summary>
+public class MemberSignInManager : UmbracoSignInManager<MemberIdentityUser>, IMemberSignInManager
+{
+    private readonly IEventAggregator _eventAggregator;
+    private readonly IIpResolver _ipResolver;
+    private readonly IMemberExternalLoginProviders _memberExternalLoginProviders;
+
+    [Obsolete("Please use the constructor taking all parameters. Scheduled for removal in Umbraco 19.")]
+    public MemberSignInManager(
+        UserManager<MemberIdentityUser> memberManager,
+        IHttpContextAccessor contextAccessor,
+        IUserClaimsPrincipalFactory<MemberIdentityUser> claimsFactory,
+        IOptions<IdentityOptions> optionsAccessor,
+        ILogger<SignInManager<MemberIdentityUser>> logger,
+        IAuthenticationSchemeProvider schemes,
+        IUserConfirmation<MemberIdentityUser> confirmation,
+        IMemberExternalLoginProviders memberExternalLoginProviders,
+        IEventAggregator eventAggregator,
+        IOptions<SecuritySettings> securitySettings,
+        IRequestCache requestCache)
+        : this(memberManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation, memberExternalLoginProviders, eventAggregator, securitySettings, requestCache, StaticServiceProvider.Instance.GetRequiredService<IIpResolver>())
+    {
+    }
+
+    public MemberSignInManager(
+        UserManager<MemberIdentityUser> memberManager,
+        IHttpContextAccessor contextAccessor,
+        IUserClaimsPrincipalFactory<MemberIdentityUser> claimsFactory,
+        IOptions<IdentityOptions> optionsAccessor,
+        ILogger<SignInManager<MemberIdentityUser>> logger,
+        IAuthenticationSchemeProvider schemes,
+        IUserConfirmation<MemberIdentityUser> confirmation,
+        IMemberExternalLoginProviders memberExternalLoginProviders,
+        IEventAggregator eventAggregator,
+        IOptions<SecuritySettings> securitySettings,
+        IRequestCache requestCache,
+        IIpResolver ipResolver)
+        : base(memberManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation, securitySettings, requestCache)
+    {
+        _memberExternalLoginProviders = memberExternalLoginProviders;
+        _eventAggregator = eventAggregator;
+        _ipResolver = ipResolver;
+    }
+
+    protected override bool AllowConcurrentLoginsEnabled => SecuritySettings.GetMemberAllowConcurrentLogins();
+
+    /// <inheritdoc />
+    public override async Task<SignInResult> PasswordSignInAsync(MemberIdentityUser user, string password, bool isPersistent, bool lockoutOnFailure)
+    {
+        SignInResult result = await base.PasswordSignInAsync(user, password, isPersistent, lockoutOnFailure);
+
+        if (result.Succeeded is false && result.RequiresTwoFactor is false)
+        {
+            var ipAddress = _ipResolver.GetCurrentRequestIpAddress();
+            var reason = GetFailedLoginReason(result);
+            _eventAggregator.Publish(new MemberLoginFailedNotification(ipAddress, user.Key, reason));
+        }
+
+        return result;
+    }
+
+    // use default scheme for members
+    protected override string AuthenticationType => IdentityConstants.ApplicationScheme;
+
+    // use default scheme for members
+    protected override string ExternalAuthenticationType => IdentityConstants.ExternalScheme;
+
+    // use default scheme for members
+    protected override string TwoFactorAuthenticationType => IdentityConstants.TwoFactorUserIdScheme;
+
+    // use default scheme for members
+    protected override string TwoFactorRememberMeAuthenticationType => IdentityConstants.TwoFactorRememberMeScheme;
+
+    public override async Task<ExternalLoginInfo?> GetExternalLoginInfoAsync(string? expectedXsrf = null)
+    {
+        // borrowed from https://github.com/dotnet/aspnetcore/blob/master/src/Identity/Core/src/SignInManager.cs#L422
+        // to replace the auth scheme
+        AuthenticateResult auth = await Context.AuthenticateAsync(ExternalAuthenticationType);
+        IDictionary<string, string?>? items = auth.Properties?.Items;
+        if (auth.Principal == null || items == null)
+        {
+            if (Logger.IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+            {
+                Logger.LogDebug(
+                auth.Failure ??
+                new NullReferenceException("Context.AuthenticateAsync(ExternalAuthenticationType) is null"),
+                "The external login authentication failed. No user Principal or authentication items was resolved.");
+            }
+            return null;
+        }
+
+        if (!items.ContainsKey(UmbracoSignInMgrLoginProviderKey))
+        {
+            throw new InvalidOperationException(
+                $"The external login authenticated successfully but the key {UmbracoSignInMgrLoginProviderKey} was not found in the authentication properties. Ensure you call SignInManager.ConfigureExternalAuthenticationProperties before issuing a ChallengeResult.");
+        }
+
+        if (expectedXsrf != null)
+        {
+            if (!items.ContainsKey(UmbracoSignInMgrXsrfKey))
+            {
+                return null;
+            }
+
+            var userId = items[UmbracoSignInMgrXsrfKey];
+            if (userId != expectedXsrf)
+            {
+                return null;
+            }
+        }
+
+        var providerKey = auth.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var provider = items[UmbracoSignInMgrLoginProviderKey];
+        if (providerKey == null || provider is null)
+        {
+            return null;
+        }
+
+        var providerDisplayName =
+            (await GetExternalAuthenticationSchemesAsync()).FirstOrDefault(p => p.Name == provider)?.DisplayName ??
+            provider;
+        return new ExternalLoginInfo(auth.Principal, provider, providerKey, providerDisplayName)
+        {
+            AuthenticationTokens = auth.Properties?.GetTokens(),
+            AuthenticationProperties = auth.Properties,
+        };
+    }
+
+    /// <summary>
+    ///     Custom ExternalLoginSignInAsync overload for handling external sign in with auto-linking
+    /// </summary>
+    public virtual async Task<SignInResult> ExternalLoginSignInAsync(ExternalLoginInfo loginInfo, bool isPersistent, bool bypassTwoFactor = false)
+    {
+        // borrowed from https://github.com/dotnet/aspnetcore/blob/master/src/Identity/Core/src/SignInManager.cs
+        // to be able to deal with auto-linking and reduce duplicate lookups
+        MemberExternalSignInAutoLinkOptions? autoLinkOptions =
+            (await _memberExternalLoginProviders.GetAsync(loginInfo.LoginProvider))?.ExternalLoginProvider.Options.AutoLinkOptions;
+        MemberIdentityUser? user = await UserManager.FindByLoginAsync(loginInfo.LoginProvider, loginInfo.ProviderKey);
+        if (user == null)
+        {
+            // user doesn't exist so see if we can auto link
+            return await AutoLinkAndSignInExternalAccount(loginInfo, autoLinkOptions);
+        }
+
+        // For external-only members, sync identity fields from the external provider's claims
+        // on each login. The external provider is the source of truth for these fields.
+        if (user.IsExternalOnly)
+        {
+            SyncExternalMemberIdentityFields(user, loginInfo);
+        }
+
+        if (autoLinkOptions != null && autoLinkOptions.OnExternalLogin != null)
+        {
+            var shouldSignIn = autoLinkOptions.OnExternalLogin(user, loginInfo);
+            if (shouldSignIn == false)
+            {
+                LogFailedExternalLogin(loginInfo, user);
+                return ExternalLoginSignInResult.NotAllowed;
+            }
+        }
+
+        // Changes from SyncExternalMemberIdentityFields and OnExternalLogin are persisted
+        // by ASP.NET Identity's own UpdateAsync call during sign-in (security stamp update).
+
+        SignInResult? error = await PreSignInCheck(user);
+        if (error != null)
+        {
+            return error;
+        }
+
+        return await SignInOrTwoFactorAsync(user, isPersistent, loginInfo.LoginProvider, bypassTwoFactor);
+    }
+
+    public override AuthenticationProperties ConfigureExternalAuthenticationProperties(
+        string? provider,
+        string? redirectUrl,
+        string? userId = null)
+    {
+        // borrowed from https://github.com/dotnet/aspnetcore/blob/master/src/Identity/Core/src/SignInManager.cs
+        // to be able to use our own XsrfKey/LoginProviderKey because the default is private :/
+        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        properties.Items[UmbracoSignInMgrLoginProviderKey] = provider;
+        if (userId != null)
+        {
+            properties.Items[UmbracoSignInMgrXsrfKey] = userId;
+        }
+
+        return properties;
+    }
+
+
+    protected override async Task<SignInResult> SignInOrTwoFactorAsync(MemberIdentityUser user, bool isPersistent, string? loginProvider = null, bool bypassTwoFactor = false)
+    {
+        SignInResult result = await base.SignInOrTwoFactorAsync(user, isPersistent, loginProvider, bypassTwoFactor);
+
+        if (result.RequiresTwoFactor)
+        {
+            NotifyRequiresTwoFactor(user);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Used for auto linking/creating user accounts for external logins
+    /// </summary>
+    /// <param name="loginInfo"></param>
+    /// <param name="autoLinkOptions"></param>
+    /// <returns></returns>
+    private async Task<SignInResult> AutoLinkAndSignInExternalAccount(
+        ExternalLoginInfo loginInfo,
+        MemberExternalSignInAutoLinkOptions? autoLinkOptions)
+    {
+        // If there are no autolink options then the attempt is failed (user does not exist)
+        if (autoLinkOptions == null || !autoLinkOptions.AutoLinkExternalAccount)
+        {
+            Logger.LogInformation(
+                "External login auto-link skipped for provider '{LoginProvider}': auto-linking is not enabled for this provider.",
+                loginInfo.LoginProvider);
+            return SignInResult.Failed;
+        }
+
+        var email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+
+        // we are allowing auto-linking/creating of local accounts
+        if (email.IsNullOrWhiteSpace())
+        {
+            // Only claim *types* are logged here, never claim values, to avoid leaking personal
+            // information such as email addresses or names into the logs.
+            Logger.LogWarning(
+                "External login auto-link failed for provider '{LoginProvider}': no claim resolving to ClaimTypes.Email was present. Available claim types: {ClaimTypes}",
+                loginInfo.LoginProvider,
+                string.Join(", ", loginInfo.Principal.Claims.Select(c => c.Type).Distinct()));
+            return AutoLinkSignInResult.FailedNoEmail;
+        }
+
+        // Now we need to perform the auto-link, so first we need to lookup/create a user with the email address
+        MemberIdentityUser? autoLinkUser = await UserManager.FindByEmailAsync(email!);
+        if (autoLinkUser != null)
+        {
+            try
+            {
+                // call the callback if one is assigned
+                autoLinkOptions.OnAutoLinking?.Invoke(autoLinkUser, loginInfo);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Could not link login provider {LoginProvider}.", loginInfo.LoginProvider);
+                return AutoLinkSignInResult.FailedException(ex.Message);
+            }
+
+            var shouldLinkUser = autoLinkOptions.OnExternalLogin == null ||
+                                 autoLinkOptions.OnExternalLogin(autoLinkUser, loginInfo);
+            if (shouldLinkUser)
+            {
+                return await LinkUser(autoLinkUser, loginInfo);
+            }
+
+            LogFailedExternalLogin(loginInfo, autoLinkUser);
+            return ExternalLoginSignInResult.NotAllowed;
+        }
+
+        var name = loginInfo.Principal?.Identity?.Name;
+        if (name.IsNullOrWhiteSpace())
+        {
+            Logger.LogWarning(
+                "External login auto-link failed for provider '{LoginProvider}': a Name value could not be resolved for the new user, and creating a user without a name is not supported.",
+                loginInfo.LoginProvider);
+            return AutoLinkSignInResult.FailedNoName;
+        }
+
+        autoLinkUser = MemberIdentityUser.CreateNew(email!, email!, autoLinkOptions.DefaultMemberTypeAlias, autoLinkOptions.DefaultIsApproved, name);
+
+        // When ExternalOnly is enabled, the member is stored as a lightweight identity record
+        // in the umbracoExternalMember table, bypassing the content system entirely.
+        if (autoLinkOptions.ExternalOnly)
+        {
+            autoLinkUser.IsExternalOnly = true;
+        }
+
+        foreach (var userGroup in autoLinkOptions.DefaultMemberGroups)
+        {
+            autoLinkUser.AddRole(userGroup);
+        }
+
+        // call the callback if one is assigned
+        try
+        {
+            autoLinkOptions.OnAutoLinking?.Invoke(autoLinkUser, loginInfo);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Could not link login provider {LoginProvider}.", loginInfo.LoginProvider);
+            return AutoLinkSignInResult.FailedException(ex.Message);
+        }
+
+        IdentityResult? userCreationResult = await UserManager.CreateAsync(autoLinkUser);
+
+        if (!userCreationResult.Succeeded)
+        {
+            return AutoLinkSignInResult.FailedCreatingUser(
+                userCreationResult.Errors.Select(x => x.Description).ToList());
+        }
+
+        {
+            var shouldLinkUser = autoLinkOptions.OnExternalLogin == null ||
+                                 autoLinkOptions.OnExternalLogin(autoLinkUser, loginInfo);
+            if (shouldLinkUser)
+            {
+                return await LinkUser(autoLinkUser, loginInfo);
+            }
+
+            LogFailedExternalLogin(loginInfo, autoLinkUser);
+            return ExternalLoginSignInResult.NotAllowed;
+        }
+    }
+
+    private async Task<SignInResult> LinkUser(MemberIdentityUser autoLinkUser, ExternalLoginInfo loginInfo)
+    {
+        IList<UserLoginInfo>? existingLogins = await UserManager.GetLoginsAsync(autoLinkUser);
+        UserLoginInfo? exists = existingLogins.FirstOrDefault(x =>
+            x.LoginProvider == loginInfo.LoginProvider && x.ProviderKey == loginInfo.ProviderKey);
+
+        // if it already exists (perhaps it was added in the AutoLink callbak) then we just continue
+        if (exists != null)
+        {
+            // sign in
+            return await SignInOrTwoFactorAsync(autoLinkUser, false, loginInfo.LoginProvider);
+        }
+
+        IdentityResult? linkResult = await UserManager.AddLoginAsync(autoLinkUser, loginInfo);
+        if (linkResult.Succeeded)
+        {
+            // we're good! sign in
+            return await SignInOrTwoFactorAsync(autoLinkUser, false, loginInfo.LoginProvider);
+        }
+
+        // If this fails, we should disapprove the member,as it is now in an inconsistent state.
+        return await HandleFailedLinkingUser(autoLinkUser, linkResult);
+    }
+
+    protected Task<AutoLinkSignInResult> HandleFailedLinkingUser(MemberIdentityUser autoLinkUser, IdentityResult linkResult)
+    {
+        var errors = linkResult.Errors.Select(x => x.Description).ToList();
+
+        Logger.LogError("Failed to external link user. The following errors happened: {errors}", errors);
+        return Task.FromResult(AutoLinkSignInResult.FailedLinkingUser(errors));
+    }
+
+    /// <summary>
+    ///     Syncs identity fields on an external-only member from the external provider's claims.
+    ///     The external provider is the source of truth for these fields.
+    /// </summary>
+    private static void SyncExternalMemberIdentityFields(MemberIdentityUser user, ExternalLoginInfo loginInfo)
+    {
+        var email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+        if (email.IsNullOrWhiteSpace() is false)
+        {
+            user.Email = email;
+            user.UserName = email;
+        }
+
+        var name = loginInfo.Principal?.Identity?.Name;
+        if (name.IsNullOrWhiteSpace() is false)
+        {
+            user.Name = name;
+        }
+    }
+
+    private void LogFailedExternalLogin(ExternalLoginInfo loginInfo, MemberIdentityUser user) =>
+        Logger.LogWarning(
+            "The AutoLinkOptions of the external authentication provider '{LoginProvider}' have refused the login based on the OnExternalLogin method. Affected user id: '{UserId}', key: '{UserKey}'",
+            loginInfo.LoginProvider,
+            user.Id,
+            user.Key);
+
+    /// <inheritdoc />
+    protected override async Task<SignInResult> HandleSignIn(MemberIdentityUser? user, string? username, SignInResult result)
+    {
+        result = await base.HandleSignIn(user, username, result);
+
+        var ipAddress = _ipResolver.GetCurrentRequestIpAddress();
+
+        if (result.Succeeded)
+        {
+            if (user is not null)
+            {
+                _eventAggregator.Publish(new MemberLoginSuccessNotification(ipAddress, user.Key));
+            }
+        }
+        else if (result.RequiresTwoFactor is false)
+        {
+            // RequiresTwoFactor means "2FA is now required" (not a failure) — so we don't publish a failed notification.
+
+            // All other failures reach here:
+            // - User not found (user is null) via PasswordSignInAsync(string)
+            // - Failed 2FA verification (user is not null) via TwoFactorSignInAsync
+            // Note: password failures for existing users are handled by PasswordSignInAsync(TUser) override.
+            var reason = user is null ? MemberLoginFailedReason.MemberNotFound : GetFailedLoginReason(result);
+            _eventAggregator.Publish(new MemberLoginFailedNotification(ipAddress, user?.Key, reason));
+        }
+
+        return result;
+    }
+
+    /// <inheritdoc />
+    public override async Task SignOutAsync()
+    {
+        MemberIdentityUser? user = await UserManager.GetUserAsync(Context.User);
+        var ipAddress = _ipResolver.GetCurrentRequestIpAddress();
+
+        await base.SignOutAsync();
+
+        if (user is not null)
+        {
+            _eventAggregator.Publish(new MemberLogoutSuccessNotification(ipAddress, user.Key));
+        }
+    }
+
+    private static string GetFailedLoginReason(SignInResult result) => result switch
+    {
+        { IsLockedOut: true } => MemberLoginFailedReason.LockedOut,
+        { IsNotAllowed: true } => MemberLoginFailedReason.NotAllowed,
+        _ => MemberLoginFailedReason.InvalidCredentials,
+    };
+
+    protected void NotifyRequiresTwoFactor(MemberIdentityUser user) => Notify(
+        user,
+        currentUser => new MemberTwoFactorRequestedNotification(currentUser.Key));
+
+    private T Notify<T>(MemberIdentityUser currentUser, Func<MemberIdentityUser, T> createNotification)
+        where T : INotification
+    {
+        T notification = createNotification(currentUser);
+        _eventAggregator.Publish(notification);
+        return notification;
+    }
+
+    // TODO in v10 we can share this with backoffice by moving the backoffice into common.
+    public class ExternalLoginSignInResult : SignInResult
+    {
+        public static new ExternalLoginSignInResult NotAllowed { get; } = new() { Succeeded = false };
+    }
+
+    // TODO in v10 we can share this with backoffice by moving the backoffice into common.
+    public class AutoLinkSignInResult : SignInResult
+    {
+        public AutoLinkSignInResult(IReadOnlyCollection<string> errors) =>
+            Errors = errors ?? throw new ArgumentNullException(nameof(errors));
+
+        public AutoLinkSignInResult()
+        {
+        }
+
+        public static AutoLinkSignInResult FailedNotLinked { get; } = new() { Succeeded = false };
+
+        public static AutoLinkSignInResult FailedNoEmail { get; } = new() { Succeeded = false };
+
+        public static AutoLinkSignInResult FailedNoName { get; } = new() { Succeeded = false };
+
+        public IReadOnlyCollection<string> Errors { get; } = Array.Empty<string>();
+
+        public static AutoLinkSignInResult FailedException(string error) => new(new[] { error }) { Succeeded = false };
+
+        public static AutoLinkSignInResult FailedCreatingUser(IReadOnlyCollection<string> errors) =>
+            new(errors) { Succeeded = false };
+
+        public static AutoLinkSignInResult FailedLinkingUser(IReadOnlyCollection<string> errors) =>
+            new(errors) { Succeeded = false };
+    }
+}

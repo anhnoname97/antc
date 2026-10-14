@@ -1,0 +1,2395 @@
+using System.Globalization;
+using System.Net;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Collections;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Entities;
+using Umbraco.Cms.Core.Models.FileSystem;
+using Umbraco.Cms.Core.Models.Packaging;
+using Umbraco.Cms.Core.Packaging;
+using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Cms.Core.Serialization;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.FileSystem;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Cms.Core.Strings;
+using Umbraco.Cms.Infrastructure.IO;
+using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Infrastructure.Packaging
+{
+    /// <summary>
+    /// Handles the installation of package data in the Umbraco CMS, managing the import and setup of content, files, and other resources included in a package.
+    /// </summary>
+    public class PackageDataInstallation : IPackageDataInstallation
+    {
+        private readonly IDataValueEditorFactory _dataValueEditorFactory;
+        private readonly ILogger<PackageDataInstallation> _logger;
+        private readonly IPartialViewService _partialViewService;
+        private readonly IPartialViewFolderService _partialViewFolderService;
+        private readonly ILanguageService _languageService;
+        private readonly IDictionaryItemService _dictionaryItemService;
+        private readonly IStylesheetService _stylesheetService;
+        private readonly IStylesheetFolderService _stylesheetFolderService;
+        private readonly IScriptService _scriptService;
+        private readonly IScriptFolderService _scriptFolderService;
+        private readonly IUserIdKeyResolver _userIdKeyResolver;
+        private readonly IDataTypeService _dataTypeService;
+        private readonly IDataTypeContainerService _dataTypeContainerService;
+        private readonly PropertyEditorCollection _propertyEditors;
+        private readonly IScopeProvider _scopeProvider;
+        private readonly IShortStringHelper _shortStringHelper;
+        private readonly IConfigurationEditorJsonSerializer _serializer;
+        private readonly IMediaService _mediaService;
+        private readonly IMediaTypeService _mediaTypeService;
+        private readonly ITemplateContentParserService _templateContentParserService;
+        private readonly ITemplateService _templateService;
+        private readonly IEntityService _entityService;
+        private readonly IContentTypeService _contentTypeService;
+        private readonly IContentService _contentService;
+        private readonly IMemberTypeService _memberTypeService;
+        private readonly IElementService _elementService;
+        private readonly IElementContainerService _elementContainerService;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PackageDataInstallation"/> class.
+        /// </summary>
+        /// <param name="dataValueEditorFactory">The data value editor factory.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="partialViewService">The partial view service.</param>
+        /// <param name="partialViewFolderService">The partial view folder service.</param>
+        /// <param name="languageService">The language service.</param>
+        /// <param name="dictionaryItemService">The dictionary item service.</param>
+        /// <param name="userIdKeyResolver">The user ID key resolver.</param>
+        /// <param name="dataTypeService">The data type service.</param>
+        /// <param name="entityService">The entity service.</param>
+        /// <param name="contentTypeService">The content type service.</param>
+        /// <param name="contentService">The content service.</param>
+        /// <param name="propertyEditors">The collection of property editors.</param>
+        /// <param name="scopeProvider">The scope provider.</param>
+        /// <param name="shortStringHelper">The short string helper.</param>
+        /// <param name="serializer">The configuration editor JSON serializer.</param>
+        /// <param name="mediaService">The media service.</param>
+        /// <param name="mediaTypeService">The media type service.</param>
+        /// <param name="templateContentParserService">The template content parser service.</param>
+        /// <param name="templateService">The template service.</param>
+        /// <param name="stylesheetService">The stylesheet service.</param>
+        /// <param name="stylesheetFolderService">The stylesheet folder service.</param>
+        /// <param name="scriptService">The script service.</param>
+        /// <param name="scriptFolderService">The script folder service.</param>
+        /// <param name="memberTypeService">The member type service.</param>
+        /// <param name="dataTypeContainerService">The data type container service for resolving data type folders.</param>
+        /// <param name="elementService">The element service for installing element instances.</param>
+        /// <param name="elementContainerService">The element container service for managing element folders.</param>
+        public PackageDataInstallation(
+            IDataValueEditorFactory dataValueEditorFactory,
+            ILogger<PackageDataInstallation> logger,
+            IPartialViewService partialViewService,
+            IPartialViewFolderService partialViewFolderService,
+            ILanguageService languageService,
+            IDictionaryItemService dictionaryItemService,
+            IUserIdKeyResolver userIdKeyResolver,
+            IDataTypeService dataTypeService,
+            IEntityService entityService,
+            IContentTypeService contentTypeService,
+            IContentService contentService,
+            PropertyEditorCollection propertyEditors,
+            IScopeProvider scopeProvider,
+            IShortStringHelper shortStringHelper,
+            IConfigurationEditorJsonSerializer serializer,
+            IMediaService mediaService,
+            IMediaTypeService mediaTypeService,
+            ITemplateContentParserService templateContentParserService,
+            ITemplateService templateService,
+            IStylesheetService stylesheetService,
+            IStylesheetFolderService stylesheetFolderService,
+            IScriptService scriptService,
+            IScriptFolderService scriptFolderService,
+            IMemberTypeService memberTypeService,
+            IDataTypeContainerService dataTypeContainerService,
+            IElementService elementService,
+            IElementContainerService elementContainerService)
+        {
+            _dataValueEditorFactory = dataValueEditorFactory;
+            _logger = logger;
+            _partialViewService = partialViewService;
+            _partialViewFolderService = partialViewFolderService;
+            _languageService = languageService;
+            _dictionaryItemService = dictionaryItemService;
+            _dataTypeService = dataTypeService;
+            _entityService = entityService;
+            _contentTypeService = contentTypeService;
+            _contentService = contentService;
+            _propertyEditors = propertyEditors;
+            _scopeProvider = scopeProvider;
+            _shortStringHelper = shortStringHelper;
+            _serializer = serializer;
+            _mediaService = mediaService;
+            _mediaTypeService = mediaTypeService;
+            _templateContentParserService = templateContentParserService;
+            _templateService = templateService;
+            _stylesheetService = stylesheetService;
+            _stylesheetFolderService = stylesheetFolderService;
+            _scriptService = scriptService;
+            _scriptFolderService = scriptFolderService;
+            _memberTypeService = memberTypeService;
+            _dataTypeContainerService = dataTypeContainerService;
+            _userIdKeyResolver = userIdKeyResolver;
+            _elementService = elementService;
+            _elementContainerService = elementContainerService;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PackageDataInstallation"/> class.
+        /// </summary>
+        /// <param name="dataValueEditorFactory">The data value editor factory.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="partialViewService">The partial view service.</param>
+        /// <param name="partialViewFolderService">The partial view folder service.</param>
+        /// <param name="languageService">The language service.</param>
+        /// <param name="dictionaryItemService">The dictionary item service.</param>
+        /// <param name="userIdKeyResolver">The user ID key resolver.</param>
+        /// <param name="dataTypeService">The data type service.</param>
+        /// <param name="entityService">The entity service.</param>
+        /// <param name="contentTypeService">The content type service.</param>
+        /// <param name="contentService">The content service.</param>
+        /// <param name="propertyEditors">The collection of property editors.</param>
+        /// <param name="scopeProvider">The scope provider.</param>
+        /// <param name="shortStringHelper">The short string helper.</param>
+        /// <param name="serializer">The configuration editor JSON serializer.</param>
+        /// <param name="mediaService">The media service.</param>
+        /// <param name="mediaTypeService">The media type service.</param>
+        /// <param name="templateContentParserService">The template content parser service.</param>
+        /// <param name="templateService">The template service.</param>
+        /// <param name="stylesheetService">The stylesheet service.</param>
+        /// <param name="stylesheetFolderService">The stylesheet folder service.</param>
+        /// <param name="scriptService">The script service.</param>
+        /// <param name="scriptFolderService">The script folder service.</param>
+        /// <param name="memberTypeService">The member type service.</param>
+        /// <param name="dataTypeContainerService">The data type container service.</param>
+        [Obsolete("Please use the constructor with all parameters. Scheduled for removal in Umbraco 20.")]
+        public PackageDataInstallation(
+            IDataValueEditorFactory dataValueEditorFactory,
+            ILogger<PackageDataInstallation> logger,
+            IPartialViewService partialViewService,
+            IPartialViewFolderService partialViewFolderService,
+            ILanguageService languageService,
+            IDictionaryItemService dictionaryItemService,
+            IUserIdKeyResolver userIdKeyResolver,
+            IDataTypeService dataTypeService,
+            IEntityService entityService,
+            IContentTypeService contentTypeService,
+            IContentService contentService,
+            PropertyEditorCollection propertyEditors,
+            IScopeProvider scopeProvider,
+            IShortStringHelper shortStringHelper,
+            IConfigurationEditorJsonSerializer serializer,
+            IMediaService mediaService,
+            IMediaTypeService mediaTypeService,
+            ITemplateContentParserService templateContentParserService,
+            ITemplateService templateService,
+            IStylesheetService stylesheetService,
+            IStylesheetFolderService stylesheetFolderService,
+            IScriptService scriptService,
+            IScriptFolderService scriptFolderService,
+            IMemberTypeService memberTypeService,
+            IDataTypeContainerService dataTypeContainerService)
+            : this(
+                dataValueEditorFactory,
+                logger,
+                partialViewService,
+                partialViewFolderService,
+                languageService,
+                dictionaryItemService,
+                userIdKeyResolver,
+                dataTypeService,
+                entityService,
+                contentTypeService,
+                contentService,
+                propertyEditors,
+                scopeProvider,
+                shortStringHelper,
+                serializer,
+                mediaService,
+                mediaTypeService,
+                templateContentParserService,
+                templateService,
+                stylesheetService,
+                stylesheetFolderService,
+                scriptService,
+                scriptFolderService,
+                memberTypeService,
+                dataTypeContainerService,
+                StaticServiceProvider.Instance.GetRequiredService<IElementService>(),
+                StaticServiceProvider.Instance.GetRequiredService<IElementContainerService>())
+        {
+        }
+
+        #region Install/Uninstall
+
+        /// <summary>
+        /// Installs all supported data (such as data types, templates, languages, dictionary items, document types, media types, stylesheets, scripts, partial views, content, and media) from the specified compiled package into the system.
+        /// </summary>
+        /// <param name="compiledPackage">The compiled package containing the data to install.</param>
+        /// <param name="userId">The ID of the user performing the installation. This is used for audit and ownership purposes.</param>
+        /// <returns>
+        /// An <see cref="InstallationSummary"/> that summarizes the results of the installation, including details about which items were installed and any warnings encountered.
+        /// </returns>
+        public InstallationSummary InstallPackageData(CompiledPackage compiledPackage, int userId)
+        {
+            using (IScope scope = _scopeProvider.CreateScope())
+            {
+                var installationSummary = new InstallationSummary(compiledPackage.Name)
+                {
+                    Warnings = compiledPackage.Warnings,
+                    DataTypesInstalled =
+                        ImportDataTypes(
+                            compiledPackage.DataTypes.ToList(),
+                            userId,
+                            out IEnumerable<EntityContainer> dataTypeEntityContainersInstalled),
+                    LanguagesInstalled = ImportLanguages(compiledPackage.Languages, userId),
+                    DictionaryItemsInstalled = ImportDictionaryItems(compiledPackage.DictionaryItems, userId),
+                    TemplatesInstalled = ImportTemplatesAsync(compiledPackage.Templates.ToList(), userId).GetAwaiter().GetResult(),
+                    DocumentTypesInstalled =
+                        ImportDocumentTypes(
+                            compiledPackage.DocumentTypes,
+                            userId,
+                            out IEnumerable<EntityContainer> documentTypeEntityContainersInstalled),
+                    MediaTypesInstalled =
+                        ImportMediaTypes(
+                            compiledPackage.MediaTypes,
+                            userId,
+                            out IEnumerable<EntityContainer> mediaTypeEntityContainersInstalled),
+                    StylesheetsInstalled = ImportStylesheets(compiledPackage.Stylesheets, userId),
+                    ScriptsInstalled = ImportScripts(compiledPackage.Scripts, userId),
+                    PartialViewsInstalled = ImportPartialViews(compiledPackage.PartialViews, userId)
+                };
+
+                var entityContainersInstalled = new List<EntityContainer>();
+                entityContainersInstalled.AddRange(dataTypeEntityContainersInstalled);
+                entityContainersInstalled.AddRange(documentTypeEntityContainersInstalled);
+                entityContainersInstalled.AddRange(mediaTypeEntityContainersInstalled);
+                installationSummary.EntityContainersInstalled = entityContainersInstalled;
+
+                // We need a reference to the imported doc types to continue
+                var importedDocTypes = installationSummary.DocumentTypesInstalled.ToDictionary(x => x.Alias, x => x);
+                var importedMediaTypes = installationSummary.MediaTypesInstalled.ToDictionary(x => x.Alias, x => x);
+
+                installationSummary.ContentInstalled = ImportContentBase(
+                    compiledPackage.Documents,
+                    importedDocTypes,
+                    userId,
+                    _contentTypeService,
+                    _contentService);
+                installationSummary.MediaInstalled = ImportContentBase(
+                    compiledPackage.Media,
+                    importedMediaTypes,
+                    userId,
+                    _mediaTypeService,
+                    _mediaService);
+
+                // Element types live in the DocumentTypes section, so reuse the already-imported document types.
+                (IReadOnlyList<IElement> importedElements, IEnumerable<EntityContainer> elementEntityContainersInstalled) =
+                    ImportElementsAsync(compiledPackage.Elements, importedDocTypes, userId).GetAwaiter().GetResult();
+                installationSummary.ElementsInstalled = importedElements;
+                entityContainersInstalled.AddRange(elementEntityContainersInstalled);
+
+                scope.Complete();
+
+                return installationSummary;
+            }
+        }
+
+        /// <inheritdoc/>
+        public IReadOnlyList<IMediaType> ImportMediaTypes(IEnumerable<XElement> docTypeElements, int userId)
+#pragma warning disable CS0618 // Type or member is obsolete
+            => ImportMediaTypes(docTypeElements, userId, out _);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        /// <summary>
+        /// Imports media types from the provided XML elements and installs any associated entity containers.
+        /// </summary>
+        /// <param name="docTypeElements">A collection of <see cref="XElement"/> objects representing the media types to import.</param>
+        /// <param name="userId">The identifier of the user performing the import operation.</param>
+        /// <param name="entityContainersInstalled">When this method returns, contains the collection of <see cref="EntityContainer"/> objects that were installed as part of the import process.</param>
+        /// <returns>A read-only list of the imported <see cref="IMediaType"/> objects.</returns>
+        [Obsolete("This method is not used in Umbraco outside of this class so will be made private in Umbraco 19.")]
+        public IReadOnlyList<IMediaType> ImportMediaTypes(
+            IEnumerable<XElement> docTypeElements,
+            int userId,
+            out IEnumerable<EntityContainer> entityContainersInstalled)
+            => ImportDocumentTypes(
+                docTypeElements.ToList(),
+                true,
+                userId,
+                _mediaTypeService,
+                out entityContainersInstalled);
+
+        /// <inheritdoc/>
+        public IReadOnlyList<IMemberType> ImportMemberTypes(IEnumerable<XElement> docTypeElements, int userId)
+            => ImportMemberTypes(docTypeElements, userId, out _);
+
+        private IReadOnlyList<IMemberType> ImportMemberTypes(
+            IEnumerable<XElement> docTypeElements,
+            int userId,
+            out IEnumerable<EntityContainer> entityContainersInstalled)
+            => ImportDocumentTypes(
+                docTypeElements.ToList(),
+                true,
+                userId,
+                _memberTypeService,
+                out entityContainersInstalled);
+
+        #endregion
+
+        #region Content
+
+        /// <summary>
+        /// Imports content base items of a specified type from the provided compiled package content documents.
+        /// </summary>
+        /// <typeparam name="TContentBase">The type of content base item to import, which must implement <see cref="IContentBase"/>.</typeparam>
+        /// <typeparam name="TContentTypeComposition">The type of content type composition, which must implement <see cref="IContentTypeComposition"/>.</typeparam>
+        /// <param name="docs">A collection of <see cref="CompiledPackageContentBase"/> documents to import content from.</param>
+        /// <param name="importedDocumentTypes">A dictionary mapping document type aliases to their imported <typeparamref name="TContentTypeComposition"/> instances.</param>
+        /// <param name="userId">The identifier of the user performing the import operation.</param>
+        /// <param name="typeService">The service used to manage content type compositions.</param>
+        /// <param name="service">The service used to manage content base items.</param>
+        /// <returns>A read-only list containing the imported content base items of type <typeparamref name="TContentBase"/>.</returns>
+        public IReadOnlyList<TContentBase> ImportContentBase<TContentBase, TContentTypeComposition>(
+            IEnumerable<CompiledPackageContentBase> docs,
+            IDictionary<string, TContentTypeComposition> importedDocumentTypes,
+            int userId,
+            IContentTypeBaseService<TContentTypeComposition> typeService,
+            IContentServiceBase<TContentBase> service)
+            where TContentBase : class, IContentBase
+            where TContentTypeComposition : IContentTypeComposition
+            => docs.SelectMany(x =>
+                ImportContentBase(
+                    x.XmlData.Elements().Where(doc => (string?)doc.Attribute("isDoc") == string.Empty),
+                    -1,
+                    importedDocumentTypes,
+                    userId,
+                    typeService,
+                    service)).ToList();
+
+        /// <summary>
+        /// Imports and saves package xml as <see cref="IContent"/>
+        /// </summary>
+        /// <param name="roots">The root contents to import from</param>
+        /// <param name="typeService">The content type base service</param>
+        /// <param name="parentId">Optional parent Id for the content being imported</param>
+        /// <param name="importedDocumentTypes">A dictionary of already imported document types (basically used as a cache)</param>
+        /// <param name="userId">Optional Id of the user performing the import</param>
+        /// <param name="service">The content service base</param>
+        /// <returns>An enumerable list of generated content</returns>
+        public IEnumerable<TContentBase> ImportContentBase<TContentBase, TContentTypeComposition>(
+            IEnumerable<XElement> roots,
+            int parentId,
+            IDictionary<string, TContentTypeComposition> importedDocumentTypes,
+            int userId,
+            IContentTypeBaseService<TContentTypeComposition> typeService,
+            IContentServiceBase<TContentBase> service)
+            where TContentBase : class, IContentBase
+            where TContentTypeComposition : IContentTypeComposition
+        {
+            var contents = ParseContentBaseRootXml(roots, parentId, importedDocumentTypes, typeService, service)
+                .ToList();
+            if (contents.Any())
+            {
+                service.Save(contents, userId);
+            }
+
+            return contents;
+
+            //var attribute = element.Attribute("isDoc");
+            //if (attribute != null)
+            //{
+            //    //This is a single doc import
+            //    var elements = new List<XElement> { element };
+            //    var contents = ParseContentBaseRootXml(elements, parentId, importedDocumentTypes).ToList();
+            //    if (contents.Any())
+            //        _contentService.Save(contents, userId);
+
+            //    return contents;
+            //}
+
+            //throw new ArgumentException(
+            //    "The passed in XElement is not valid! It does not contain a root element called " +
+            //    "'DocumentSet' (for structured imports) nor is the first element a Document (for single document import).");
+        }
+
+        private IEnumerable<TContentBase> ParseContentBaseRootXml<TContentBase, TContentTypeComposition>(
+            IEnumerable<XElement> roots,
+            int parentId,
+            IDictionary<string, TContentTypeComposition> importedContentTypes,
+            IContentTypeBaseService<TContentTypeComposition> typeService,
+            IContentServiceBase<TContentBase> service)
+            where TContentBase : class, IContentBase
+            where TContentTypeComposition : IContentTypeComposition
+        {
+            var contents = new List<TContentBase>();
+            foreach (XElement root in roots)
+            {
+                var contentTypeAlias = root.Name.LocalName;
+
+                if (!importedContentTypes.ContainsKey(contentTypeAlias))
+                {
+                    TContentTypeComposition contentType = FindContentTypeByAlias(contentTypeAlias, typeService)
+                        ?? throw new InvalidOperationException("Could not find content type with alias "
+                        + contentTypeAlias);
+
+                    importedContentTypes.Add(contentTypeAlias, contentType);
+                }
+
+                if (TryCreateContentFromXml(root, importedContentTypes[contentTypeAlias], null, parentId, service, out TContentBase content))
+                {
+                    contents.Add(content);
+                }
+
+                var children = root.Elements().Where(doc => (string?)doc.Attribute("isDoc") == string.Empty).ToList();
+                if (children.Count > 0)
+                {
+                    contents.AddRange(
+                        CreateContentFromXml(children, content, importedContentTypes, typeService, service)
+                            .WhereNotNull());
+                }
+            }
+
+            return contents;
+        }
+
+        private IEnumerable<TContentBase> CreateContentFromXml<TContentBase, TContentTypeComposition>(
+            IEnumerable<XElement> children,
+            TContentBase parent,
+            IDictionary<string, TContentTypeComposition> importedContentTypes,
+            IContentTypeBaseService<TContentTypeComposition> typeService,
+            IContentServiceBase<TContentBase> service)
+            where TContentBase : class, IContentBase
+            where TContentTypeComposition : IContentTypeComposition
+        {
+            var list = new List<TContentBase>();
+
+            foreach (XElement child in children)
+            {
+                string contentTypeAlias = child.Name.LocalName;
+                if (importedContentTypes.ContainsKey(contentTypeAlias) == false)
+                {
+                    TContentTypeComposition contentType = FindContentTypeByAlias(contentTypeAlias, typeService);
+
+                    importedContentTypes.Add(contentTypeAlias, contentType);
+                }
+
+                // Create and add the child to the list
+                if (TryCreateContentFromXml(
+                        child,
+                        importedContentTypes[contentTypeAlias],
+                        parent,
+                        default,
+                        service,
+                        out TContentBase content))
+                {
+                    list.Add(content);
+                }
+
+                // Recursive call
+                var grandChildren = child.Elements().Where(x => (string?)x.Attribute("isDoc") == string.Empty).ToList();
+                if (grandChildren.Any())
+                {
+                    list.AddRange(CreateContentFromXml(
+                        grandChildren,
+                        content,
+                        importedContentTypes,
+                        typeService,
+                        service));
+                }
+            }
+
+            return list;
+        }
+
+        private bool TryCreateContentFromXml<TContentBase, TContentTypeComposition>(
+            XElement element,
+            TContentTypeComposition contentType,
+            TContentBase? parent,
+            int parentId,
+            IContentServiceBase<TContentBase> service,
+            out TContentBase output)
+            where TContentBase : class?, IContentBase
+            where TContentTypeComposition : IContentTypeComposition
+        {
+            Guid key = element.RequiredAttributeValue<Guid>("key");
+
+            // we need to check if the content already exists and if so we ignore the installation for this item
+            TContentBase? value = service.GetById(key);
+            if (value != null)
+            {
+                output = value;
+                return false;
+            }
+
+            var level = element.Attribute("level")?.Value ?? string.Empty;
+            var sortOrder = element.Attribute("sortOrder")?.Value ?? string.Empty;
+            var nodeName = element.Attribute("nodeName")?.Value ?? string.Empty;
+            var templateId = element.AttributeValue<int?>("template");
+            var templateAlias = element.AttributeValue<string?>("templateAlias");
+
+            IEnumerable<XElement>? properties = from property in element.Elements()
+                                                where property.Attribute("isDoc") == null
+                                                select property;
+
+            // Resolve template by alias (stable across installs). Fall back to int ID for packages
+            // exported before templateAlias was introduced, though that lookup will rarely succeed
+            // since int IDs are database-specific and won't match across systems.
+            ITemplate? template = null;
+            if (!string.IsNullOrEmpty(templateAlias))
+            {
+                template = _templateService.GetAsync(templateAlias).GetAwaiter().GetResult();
+            }
+            else if (templateId.HasValue)
+            {
+                template = _templateService.GetAsync(templateId.Value).GetAwaiter().GetResult();
+            }
+
+            //now double check this is correct since its an INT it could very well be pointing to an invalid template :/
+            if (template != null && contentType is IContentType contentTypex)
+            {
+                if (!contentTypex.IsAllowedTemplate(template.Alias))
+                {
+                    //well this is awkward, we'll set the template to null and it will be wired up to the default template
+                    // when it's persisted in the document repository
+                    template = null;
+                }
+            }
+
+            TContentBase? content = CreateContent(
+                nodeName,
+                parent,
+                parentId,
+                contentType,
+                key,
+                int.Parse(level, CultureInfo.InvariantCulture),
+                int.Parse(sortOrder, CultureInfo.InvariantCulture),
+                template?.Id) ?? throw new InvalidOperationException("Cloud not create content");
+
+            // Handle culture specific node names
+            const string nodeNamePrefix = "nodeName-";
+            // Get the installed culture iso names, we create a localized content node with a culture that does not exist in the project
+            // We have to use Invariant comparisons, because when we get them from ContentBase in EntityXmlSerializer they're all lowercase.
+            var installedLanguages = _languageService.GetAllAsync().GetAwaiter().GetResult().Select(l => l.IsoCode).ToArray();
+            foreach (XAttribute localizedNodeName in element.Attributes()
+                         .Where(a => a.Name.LocalName.InvariantStartsWith(nodeNamePrefix)))
+            {
+                var newCulture = localizedNodeName.Name.LocalName[nodeNamePrefix.Length..];
+                // Skip the culture if it does not exist in the current project
+                if (installedLanguages.InvariantContains(newCulture))
+                {
+                    content.SetCultureName(localizedNodeName.Value, newCulture);
+                }
+            }
+
+            //Here we make sure that we take composition properties in account as well
+            //otherwise we would skip them and end up losing content
+            Dictionary<string, IPropertyType> propTypes = contentType.CompositionPropertyTypes.Any()
+                ? contentType.CompositionPropertyTypes.ToDictionary(x => x.Alias, x => x)
+                : contentType.PropertyTypes.ToDictionary(x => x.Alias, x => x);
+
+            var foundLanguages = new HashSet<string?>();
+            foreach (XElement property in properties)
+            {
+                string propertyTypeAlias = property.Name.LocalName;
+                if (content.HasProperty(propertyTypeAlias))
+                {
+                    var propertyValue = property.Value;
+
+                    // Handle properties language attributes
+                    var propertyLang = property.Attribute(XName.Get("lang"))?.Value ?? null;
+                    foundLanguages.Add(propertyLang);
+                    if (propTypes.TryGetValue(propertyTypeAlias, out _))
+                    {
+                        // set property value
+                        // Skip unsupported language variation, otherwise we'll get a "not supported error"
+                        // We allow null, because that's invariant
+                        if (propertyLang is null || installedLanguages.InvariantContains(propertyLang))
+                        {
+                            content.SetValue(propertyTypeAlias, propertyValue, propertyLang);
+                        }
+                    }
+                }
+            }
+
+            foreach (var propertyLang in foundLanguages)
+            {
+                if (string.IsNullOrEmpty(content.GetCultureName(propertyLang)) && propertyLang is not null &&
+                    installedLanguages.InvariantContains(propertyLang))
+                {
+                    content.SetCultureName(nodeName, propertyLang);
+                }
+            }
+
+            output = content;
+            return true;
+        }
+
+        private TContentBase? CreateContent<TContentBase, TContentTypeComposition>(
+            string name,
+            TContentBase? parent,
+            int parentId,
+            TContentTypeComposition contentType,
+            Guid key,
+            int level,
+            int sortOrder,
+            int? templateId)
+            where TContentBase : class?, IContentBase
+            where TContentTypeComposition : IContentTypeComposition
+        {
+            switch (contentType)
+            {
+                case IContentType c when typeof(IElement).IsAssignableFrom(typeof(TContentBase)):
+                    var element = new Element(name, parentId, c)
+                    {
+                        Key = key,
+                        Level = level,
+                        SortOrder = sortOrder,
+                    };
+                    return element as TContentBase;
+
+                case IContentType c:
+                    if (parent is null)
+                    {
+                        return new Content(name, parentId, c)
+                        {
+                            Key = key,
+                            Level = level,
+                            SortOrder = sortOrder,
+                            TemplateId = templateId,
+                        }
+                        as TContentBase;
+                    }
+                    else
+                    {
+                        return new Content(name, (IContent)parent, c)
+                        {
+                            Key = key,
+                            Level = level,
+                            SortOrder = sortOrder,
+                            TemplateId = templateId,
+                        }
+                        as TContentBase;
+                    }
+
+                case IMediaType m:
+                    if (parent is null)
+                    {
+                        return new Core.Models.Media(name, parentId, m)
+                        {
+                            Key = key,
+                            Level = level,
+                            SortOrder = sortOrder,
+                        }
+                        as TContentBase;
+                    }
+                    else
+                    {
+                        return new Core.Models.Media(name, (IMedia)parent, m)
+                        {
+                            Key = key,
+                            Level = level,
+                            SortOrder = sortOrder,
+                        }
+                        as TContentBase;
+                    }
+
+                default:
+                    throw new NotSupportedException($"Type {typeof(TContentTypeComposition)} is not supported");
+            }
+        }
+
+        #endregion
+
+        #region Elements
+
+        private async Task<(IReadOnlyList<IElement> Elements, IEnumerable<EntityContainer> ContainersInstalled)>
+            ImportElementsAsync(
+                IEnumerable<CompiledPackageContentBase> elementSets,
+                IDictionary<string, IContentType> importedDocumentTypes,
+                int userId)
+        {
+            // Each ElementSet wraps a single element root (flagged with isDoc=""); elements never nest.
+            var roots = elementSets
+                .SelectMany(x => x.XmlData.Elements()
+                    .Where(e => (string?)e.Attribute("isDoc") == string.Empty))
+                .ToList();
+
+            (Dictionary<Guid, int> elementParentIds, IEnumerable<EntityContainer> containersInstalled) =
+                await CreateElementFolderStructureAsync(roots);
+
+            var installed = new List<IElement>();
+            foreach (IGrouping<int, XElement> group in roots
+                         .GroupBy(root => GetElementParentId(root, elementParentIds)))
+            {
+                installed.AddRange(
+                    ImportContentBase(
+                        group.AsEnumerable(),
+                        group.Key,
+                        importedDocumentTypes,
+                        userId,
+                        _contentTypeService,
+                        _elementService));
+            }
+
+            return (installed, containersInstalled);
+        }
+
+        private async Task<(Dictionary<Guid, int> ElementParentIds, IEnumerable<EntityContainer> ContainersInstalled)>
+            CreateElementFolderStructureAsync(IEnumerable<XElement> elements)
+        {
+            var elementParentIds = new Dictionary<Guid, int>();
+            var trackEntityContainersInstalled = new List<EntityContainer>();
+
+            foreach (XElement element in elements)
+            {
+                await ProcessElementFolderAsync(element, elementParentIds, trackEntityContainersInstalled);
+            }
+
+            return (elementParentIds, trackEntityContainersInstalled);
+        }
+
+        private async Task ProcessElementFolderAsync(
+            XElement element,
+            Dictionary<Guid, int> elementParentIds,
+            List<EntityContainer> trackEntityContainersInstalled)
+        {
+            if (Guid.TryParse(element.Attribute("key")?.Value, out Guid elementKey) is false)
+            {
+                return;
+            }
+
+            var folderNames = element.Attribute("Folders")?.Value
+                .Split(Constants.CharArrays.ForwardSlash) ?? [];
+            if (folderNames.Length == 0)
+            {
+                return;
+            }
+
+            Guid[] folderKeys = element.Attribute("FolderKeys")?.Value
+                .Split(Constants.CharArrays.ForwardSlash)
+                .Select(s => Guid.TryParse(s, out Guid g) ? g : Guid.NewGuid())
+                .ToArray() ?? [];
+
+            EntityContainer? current = null;
+            for (var i = 0; i < folderNames.Length; i++)
+            {
+                var folderName = WebUtility.UrlDecode(folderNames[i]);
+                Guid folderKey = folderKeys.Length > i ? folderKeys[i] : Guid.NewGuid();
+                current = await CreateOrGetElementFolderAsync(folderName, folderKey, current, trackEntityContainersInstalled);
+            }
+
+            elementParentIds[elementKey] = current!.Id;
+        }
+
+        private async Task<EntityContainer?> CreateOrGetElementFolderAsync(
+            string folderName,
+            Guid folderKey,
+            EntityContainer? parent,
+            List<EntityContainer> trackEntityContainersInstalled)
+        {
+            EntityContainer? existing;
+            if (parent is null)
+            {
+                // Match by key first (more reliable when folders have been renamed in the destination), then by name.
+                // Level 1 = root level folders, there can only be one with the same name.
+                existing = await _elementContainerService.GetAsync(folderKey)
+                           ?? (await _elementContainerService.GetAsync(folderName, 1)).FirstOrDefault();
+            }
+            else
+            {
+                // Match among children by key first (more reliable when folders have been renamed), then by name.
+                // Filter to containers only — GetChildren also returns element instances stored in the folder.
+                IEntitySlim[] children = _entityService.GetChildren(parent.Id)
+                    .Where(x => x.NodeObjectType == Constants.ObjectTypes.ElementContainer)
+                    .ToArray();
+                IEntitySlim? matchingChild = children.FirstOrDefault(x => x.Key == folderKey)
+                                             ?? children.FirstOrDefault(x => x.Name.InvariantEquals(folderName));
+                existing = matchingChild is not null
+                    ? await _elementContainerService.GetAsync(matchingChild.Key)
+                    : null;
+            }
+
+            if (existing is not null)
+            {
+                return existing;
+            }
+
+            Attempt<EntityContainer?, EntityContainerOperationStatus> tryCreateFolder =
+                await _elementContainerService.CreateAsync(folderKey, folderName, parent?.Key, Constants.Security.SuperUserKey);
+            if (tryCreateFolder.Success is false)
+            {
+                _logger.LogError(
+                    "Could not create element folder: {FolderName}. Status: {Status}",
+                    folderName,
+                    tryCreateFolder.Status);
+                throw new InvalidOperationException($"Could not create element folder '{folderName}'. Status: {tryCreateFolder.Status}");
+            }
+
+            trackEntityContainersInstalled.Add(tryCreateFolder.Result!);
+            return tryCreateFolder.Result;
+        }
+
+        private static int GetElementParentId(XElement element, Dictionary<Guid, int> elementParentIds)
+        {
+            if (Guid.TryParse(element.Attribute("key")?.Value, out Guid key)
+                && elementParentIds.TryGetValue(key, out var containerId))
+            {
+                return containerId;
+            }
+
+            return Constants.System.Root;
+        }
+
+        #endregion
+
+        #region DocumentTypes
+
+        /// <summary>
+        /// Imports a single document type from the specified XML element.
+        /// </summary>
+        /// <param name="docTypeElement">The <see cref="XElement"/> representing the document type to import.</param>
+        /// <param name="userId">The identifier of the user performing the import operation.</param>
+        /// <returns>A read-only list containing the imported <see cref="IContentType"/> objects.</returns>
+        public IReadOnlyList<IContentType> ImportDocumentType(XElement docTypeElement, int userId)
+            => ImportDocumentTypes(new[] { docTypeElement }, userId, out _);
+
+        /// <summary>
+        /// Imports and saves package xml as <see cref="IContentType"/>
+        /// </summary>
+        /// <param name="docTypeElements">Xml to import</param>
+        /// <param name="userId">Optional id of the User performing the operation. Default is zero (admin).</param>
+        /// <returns>An enumerable list of generated ContentTypes</returns>
+        public IReadOnlyList<IContentType> ImportDocumentTypes(IEnumerable<XElement> docTypeElements, int userId)
+            => ImportDocumentTypes(docTypeElements.ToList(), true, userId, _contentTypeService, out _);
+
+        /// <summary>
+        /// Imports and saves package xml as <see cref="IContentType"/>
+        /// </summary>
+        /// <param name="docTypeElements">Xml to import</param>
+        /// <param name="userId">Optional id of the User performing the operation. Default is zero (admin).</param>
+        /// <param name="entityContainersInstalled">Collection of entity containers installed by the package to be populated with those created in installing data types.</param>
+        /// <returns>An enumerable list of generated ContentTypes</returns>
+        public IReadOnlyList<IContentType> ImportDocumentTypes(
+            IEnumerable<XElement> docTypeElements,
+            int userId,
+            out IEnumerable<EntityContainer> entityContainersInstalled)
+            => ImportDocumentTypes(
+                docTypeElements.ToList(),
+                true,
+                userId,
+                _contentTypeService,
+                out entityContainersInstalled);
+
+        /// <summary>
+        /// Imports and saves package xml as <see cref="IContentType"/>
+        /// </summary>
+        /// <param name="unsortedDocumentTypes">Xml to import</param>
+        /// <param name="importStructure">Boolean indicating whether or not to import the </param>
+        /// <param name="userId">Optional id of the User performing the operation. Default is zero (admin).</param>
+        /// <param name="service">The content type service.</param>
+        /// <returns>An enumerable list of generated ContentTypes</returns>
+        public IReadOnlyList<T> ImportDocumentTypes<T>(IReadOnlyCollection<XElement> unsortedDocumentTypes, bool importStructure, int userId, IContentTypeBaseService<T> service)
+            where T : class, IContentTypeComposition
+            => ImportDocumentTypes(unsortedDocumentTypes, importStructure, userId, service);
+
+        /// <summary>
+        /// Imports and saves package xml as <see cref="IContentType"/>
+        /// </summary>
+        /// <param name="unsortedDocumentTypes">Xml to import</param>
+        /// <param name="importStructure">Boolean indicating whether or not to import the </param>
+        /// <param name="userId">Optional id of the User performing the operation. Default is zero (admin).</param>
+        /// <param name="service">The content type service</param>
+        /// <param name="entityContainersInstalled">Collection of entity containers installed by the package to be populated with those created in installing data types.</param>
+        /// <returns>An enumerable list of generated ContentTypes</returns>
+        public IReadOnlyList<T> ImportDocumentTypes<T>(
+            IReadOnlyCollection<XElement> unsortedDocumentTypes,
+            bool importStructure,
+            int userId,
+            IContentTypeBaseService<T> service,
+            out IEnumerable<EntityContainer> entityContainersInstalled)
+            where T : class, IContentTypeComposition
+        {
+            var importedContentTypes = new Dictionary<string, T>();
+
+            //When you are importing a single doc type we have to assume that the dependencies are already there.
+            //Otherwise something like uSync won't work.
+            var graph = new TopoGraph<string, TopoGraph.Node<string, XElement>>(x => x.Key, x => x.Dependencies);
+            var isSingleDocTypeImport = unsortedDocumentTypes.Count == 1;
+
+            Dictionary<string, int> importedFolders =
+                CreateContentTypeFolderStructure(unsortedDocumentTypes, out entityContainersInstalled);
+
+            if (isSingleDocTypeImport == false)
+            {
+                //NOTE Here we sort the doctype XElements based on dependencies
+                //before creating the doc types - this should also allow for a better structure/inheritance support.
+                foreach (XElement documentType in unsortedDocumentTypes)
+                {
+                    XElement elementCopy = documentType;
+                    XElement? infoElement = elementCopy.Element("Info");
+                    var dependencies = new HashSet<string>();
+
+                    //Add the Master as a dependency
+                    if (string.IsNullOrEmpty((string?)infoElement?.Element("Master")) == false)
+                    {
+                        dependencies.Add(infoElement.Element("Master")?.Value!);
+                    }
+
+                    //Add compositions as dependencies
+                    XElement? compositionsElement = infoElement?.Element("Compositions");
+                    if (compositionsElement != null && compositionsElement.HasElements)
+                    {
+                        IEnumerable<XElement>? compositions = compositionsElement.Elements("Composition").ToArray();
+                        if (compositions.Any())
+                        {
+                            foreach (XElement composition in compositions)
+                            {
+                                dependencies.Add(composition.Value);
+                            }
+                        }
+                    }
+
+                    graph.AddItem(TopoGraph.CreateNode(
+                        infoElement!.Element("Alias")!.Value,
+                        elementCopy,
+                        dependencies.ToArray()));
+                }
+            }
+
+            //Sorting the Document Types based on dependencies - if its not a single doc type import ref. #U4-5921
+            List<XElement> documentTypes = isSingleDocTypeImport
+                ? unsortedDocumentTypes.ToList()
+                : graph.GetSortedItems().Select(x => x.Item).ToList();
+
+            //Iterate the sorted document types and create them as IContentType objects
+            foreach (XElement documentType in documentTypes)
+            {
+                var alias = GetEntityTypeAlias(documentType);
+
+                if (alias is not null && importedContentTypes.ContainsKey(alias) == false)
+                {
+                    T? contentType = service.Get(alias);
+
+                    importedContentTypes.Add(alias, contentType == null
+                        ? CreateContentTypeFromXml(documentType, importedContentTypes, service)
+                        : UpdateContentTypeFromXml(documentType, contentType, importedContentTypes, service));
+                }
+            }
+
+            foreach (KeyValuePair<string, T> contentType in importedContentTypes)
+            {
+                T ct = contentType.Value;
+                if (importedFolders.ContainsKey(ct.Alias))
+                {
+                    ct.ParentId = importedFolders[ct.Alias];
+                }
+            }
+
+            //Save the newly created/updated IContentType objects.
+            //Note: this fires one save notification per item, where the legacy bulk Save fired one for the whole batch.
+            //That's acceptable here as package import is an infrequent install-time operation running inside an outer scope.
+            var list = importedContentTypes.Select(x => x.Value).ToList();
+            Guid performingUserKey = _userIdKeyResolver.GetAsync(userId).GetAwaiter().GetResult();
+            foreach (T item in list)
+            {
+                if (item.HasIdentity)
+                {
+                    service.UpdateAsync(item, performingUserKey).GetAwaiter().GetResult();
+                }
+                else
+                {
+                    service.CreateAsync(item, performingUserKey).GetAwaiter().GetResult();
+                }
+            }
+
+            //Now we can finish the import by updating the 'structure',
+            //which requires the doc types to be saved/available in the db
+            if (importStructure)
+            {
+                var updatedContentTypes = new List<T>();
+                //Update the structure here - we can't do it until all DocTypes have been created
+                foreach (XElement documentType in documentTypes)
+                {
+                    var alias = GetEntityTypeAlias(documentType);
+                    XElement? structureElement = documentType.Element("Structure");
+                    //Ensure that we only update ContentTypes which has actual structure-elements
+                    if (structureElement == null || structureElement.Elements().Any() == false || alias is null)
+                    {
+                        continue;
+                    }
+
+                    T updated = UpdateContentTypesStructure(
+                        importedContentTypes[alias],
+                        structureElement,
+                        importedContentTypes,
+                        service);
+                    updatedContentTypes.Add(updated);
+                }
+
+                //Update ContentTypes with a newly added structure/list of allowed children
+                if (updatedContentTypes.Any())
+                {
+                    foreach (T item in updatedContentTypes)
+                    {
+                        service.UpdateAsync(item, performingUserKey).GetAwaiter().GetResult();
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        private Dictionary<string, int> CreateContentTypeFolderStructure(
+            IEnumerable<XElement> unsortedDocumentTypes,
+            out IEnumerable<EntityContainer> entityContainersInstalled)
+        {
+            var importedFolders = new Dictionary<string, int>();
+            var trackEntityContainersInstalled = new List<EntityContainer>();
+
+            foreach (XElement documentType in unsortedDocumentTypes)
+            {
+                XAttribute? foldersAttribute = documentType.Attribute("Folders");
+                XElement? infoElement = documentType.Element("Info");
+                if (foldersAttribute != null && infoElement != null
+                                             // don't import any folder if this is a child doc type - the parent doc type will need to
+                                             // exist which contains it's folders
+                                             && ((string?)infoElement.Element("Master")).IsNullOrWhiteSpace())
+                {
+                    var alias = GetEntityTypeAlias(documentType);
+                    var folders = foldersAttribute.Value.Split(Constants.CharArrays.ForwardSlash);
+
+                    XAttribute? folderKeysAttribute = documentType.Attribute("FolderKeys");
+
+                    Guid[] folderKeys = Array.Empty<Guid>();
+                    if (folderKeysAttribute != null)
+                    {
+                        folderKeys = folderKeysAttribute.Value.Split(Constants.CharArrays.ForwardSlash)
+                            .Select(x => Guid.Parse(x)).ToArray();
+                    }
+
+                    var rootFolder = WebUtility.UrlDecode(folders[0]);
+
+                    EntityContainer? current = null;
+                    Guid? rootFolderKey = null;
+                    if (folderKeys.Length == folders.Length && folderKeys.Length > 0)
+                    {
+                        rootFolderKey = folderKeys[0];
+                        current = _contentTypeService.GetContainer(rootFolderKey.Value);
+                    }
+
+                    // The folder might already exist, but with a different key, so check if it exists, even if there is a key.
+                    // Level 1 = root level folders, there can only be one with the same name
+                    current ??= _contentTypeService.GetContainers(rootFolder, 1).FirstOrDefault();
+
+                    if (current == null)
+                    {
+                        Attempt<OperationResult<OperationResultType, EntityContainer>?> tryCreateFolder =
+                            _contentTypeService.CreateContainer(-1, rootFolderKey ?? Guid.NewGuid(), rootFolder);
+
+                        if (tryCreateFolder == false)
+                        {
+                            _logger.LogError(
+                                tryCreateFolder.Exception,
+                                "Could not create folder: {FolderName}",
+                                rootFolder);
+                            throw tryCreateFolder.Exception!;
+                        }
+
+                        var rootFolderId = tryCreateFolder.Result?.Entity?.Id;
+                        if (rootFolderId is not null)
+                        {
+                            current = _contentTypeService.GetContainer(rootFolderId.Value);
+                            trackEntityContainersInstalled.Add(current!);
+                        }
+                    }
+
+                    importedFolders.Add(alias!, current!.Id);
+
+                    for (var i = 1; i < folders.Length; i++)
+                    {
+                        var folderName = WebUtility.UrlDecode(folders[i]);
+                        Guid? folderKey = folderKeys.Length == folders.Length ? folderKeys[i] : null;
+                        current = CreateContentTypeChildFolder(folderName, folderKey ?? Guid.NewGuid(), current);
+                        trackEntityContainersInstalled.Add(current!);
+                        importedFolders[alias!] = current!.Id;
+                    }
+                }
+            }
+
+            entityContainersInstalled = trackEntityContainersInstalled;
+            return importedFolders;
+        }
+
+        private EntityContainer? CreateContentTypeChildFolder(string folderName, Guid folderKey, IUmbracoEntity current)
+        {
+            IEntitySlim[] children = _entityService.GetChildren(current.Id).ToArray();
+
+            // Match by key first (more reliable when folders have been renamed in the destination), then fall back to name.
+            IEntitySlim? matchingChild = children.FirstOrDefault(x => x.Key == folderKey)
+                                         ?? children.FirstOrDefault(x => x.Name.InvariantEquals(folderName));
+            if (matchingChild is not null)
+            {
+                return _contentTypeService.GetContainer(matchingChild.Id);
+            }
+
+            Attempt<OperationResult<OperationResultType, EntityContainer>?> tryCreateFolder = _contentTypeService.CreateContainer(current.Id, folderKey, folderName);
+            if (tryCreateFolder == false)
+            {
+                _logger.LogError(tryCreateFolder.Exception, "Could not create folder: {FolderName}", folderName);
+                throw tryCreateFolder.Exception!;
+            }
+
+            return _contentTypeService.GetContainer(tryCreateFolder.Result!.Entity!.Id);
+        }
+
+        /// <summary>
+        /// Gets the content type key from the specified content type XML element.
+        /// </summary>
+        /// <param name="contentType">The XML element representing the content type.</param>
+        /// <returns>The GUID key of the content type.</returns>
+        public Guid GetContentTypeKey(XElement contentType)
+            => Guid.Parse(contentType.Element("Info")!.Element("Key")!.Value);
+
+        /// <summary>
+        /// Gets the alias of the entity type from the provided XML element.
+        /// </summary>
+        /// <param name="entityType">The XML element representing the entity type.</param>
+        /// <returns>The alias string if found; otherwise, null.</returns>
+        public string? GetEntityTypeAlias(XElement entityType)
+            => entityType.Element("Info")?.Element("Alias")?.Value;
+
+        private T CreateContentTypeFromXml<T>(
+            XElement documentType,
+            IReadOnlyDictionary<string, T> importedContentTypes,
+            IContentTypeBaseService<T> service)
+            where T : class, IContentTypeComposition
+        {
+            Guid key = GetContentTypeKey(documentType);
+
+            XElement infoElement = documentType.Element("Info")!;
+
+            //Name of the master corresponds to the parent
+            XElement? masterElement = infoElement.Element("Master");
+
+            T? parent = default;
+            if (masterElement != null)
+            {
+                var masterAlias = masterElement.Value;
+                parent = importedContentTypes.ContainsKey(masterAlias)
+                    ? importedContentTypes[masterAlias]
+                    : service.Get(masterAlias);
+            }
+
+            var alias = infoElement?.Element("Alias")?.Value;
+            T? contentType = CreateContentType(key, parent, -1, alias!);
+
+            if (parent != null)
+            {
+                contentType?.AddContentType(parent);
+            }
+
+            return UpdateContentTypeFromXml<T>(documentType, contentType, importedContentTypes, service);
+        }
+
+        private T? CreateContentType<T>(Guid key, T? parent, int parentId, string alias)
+            where T : class, IContentTypeComposition
+        {
+            if (typeof(T) == typeof(IContentType))
+            {
+                return parent is null
+                    ? new ContentType(_shortStringHelper, parentId) { Alias = alias, Key = key } as T
+                    : new ContentType(_shortStringHelper, (IContentType)parent, alias) { Key = key } as T;
+            }
+
+            if (typeof(T) == typeof(IMediaType))
+            {
+                return parent is null
+                    ? new MediaType(_shortStringHelper, parentId) { Alias = alias, Key = key } as T
+                    : new MediaType(_shortStringHelper, (IMediaType)parent, alias) { Key = key } as T;
+            }
+
+            if (typeof(T) == typeof(IMemberType))
+            {
+                return parent is null
+                    ? new MemberType(_shortStringHelper, parentId) { Alias = alias, Key = key } as T
+                    : new MemberType(_shortStringHelper, (IMemberType)parent, alias) { Key = key } as T;
+            }
+
+            throw new NotSupportedException($"Type {typeof(T)} is not supported");
+        }
+
+        private T UpdateContentTypeFromXml<T>(
+            XElement documentType,
+            T? contentType,
+            IReadOnlyDictionary<string, T> importedContentTypes,
+            IContentTypeBaseService<T> service)
+            where T : IContentTypeComposition
+        {
+            var key = Guid.Parse(documentType.Element("Info")!.Element("Key")!.Value);
+
+            XElement? infoElement = documentType.Element("Info");
+            XElement? defaultTemplateElement = infoElement?.Element("DefaultTemplate");
+
+            if (contentType is null)
+            {
+                throw new InvalidOperationException("Content type was null");
+            }
+
+            // Only set Key on new entities - existing entities already have their Key from the database
+            // and it should not be changed (Key is immutable once persisted).
+            if (contentType.HasIdentity is false)
+            {
+                contentType.Key = key;
+            }
+
+            contentType.Name = infoElement!.Element("Name")!.Value;
+
+            contentType.Icon = infoElement.Element("Icon")?.Value;
+            contentType.Thumbnail = infoElement.Element("Thumbnail")?.Value;
+            contentType.Description = infoElement.Element("Description")?.Value;
+
+            //NOTE AllowAtRoot, IsElement and Variations are new properties in the package xml so we need to verify it exists before using it.
+            XElement? allowAtRoot = infoElement.Element("AllowAtRoot");
+            if (allowAtRoot != null)
+            {
+                contentType.AllowedAsRoot = allowAtRoot.Value.InvariantEquals("true");
+            }
+
+            if (Guid.TryParse(infoElement.Element("ListView")?.Value, out Guid listView))
+            {
+                contentType.ListView = listView;
+            }
+
+            XElement? isElement = infoElement.Element("IsElement");
+            if (isElement != null)
+            {
+                contentType.IsElement = isElement.Value.InvariantEquals("true");
+            }
+
+            XElement? allowedInLibrary = infoElement.Element("AllowedInLibrary");
+            if (allowedInLibrary != null)
+            {
+                contentType.AllowedInLibrary = allowedInLibrary.Value.InvariantEquals("true");
+            }
+
+            XElement? variationsElement = infoElement.Element("Variations");
+            if (variationsElement != null)
+            {
+                contentType.Variations =
+                    (ContentVariation)Enum.Parse(typeof(ContentVariation), variationsElement.Value);
+            }
+
+            //Name of the master corresponds to the parent and we need to ensure that the Parent Id is set
+            XElement? masterElement = infoElement.Element("Master");
+            if (masterElement != null)
+            {
+                var masterAlias = masterElement.Value;
+                T? parent = importedContentTypes.ContainsKey(masterAlias)
+                    ? importedContentTypes[masterAlias]
+                    : service.Get(masterAlias);
+
+                contentType.SetParent(parent);
+            }
+
+            //Update Compositions on the ContentType to ensure that they are as is defined in the package xml
+            XElement? compositionsElement = infoElement.Element("Compositions");
+            if (compositionsElement != null && compositionsElement.HasElements)
+            {
+                XElement[] compositions = compositionsElement.Elements("Composition").ToArray();
+                if (compositions.Any())
+                {
+                    foreach (XElement composition in compositions)
+                    {
+                        var compositionAlias = composition.Value;
+                        T? compositionContentType = importedContentTypes.ContainsKey(compositionAlias)
+                            ? importedContentTypes[compositionAlias]
+                            : service.Get(compositionAlias);
+                        contentType.AddContentType(compositionContentType);
+                    }
+                }
+            }
+
+            if (contentType is IContentType contentTypex)
+            {
+                UpdateContentTypesAllowedTemplates(
+                    contentTypex,
+                    infoElement.Element("AllowedTemplates"),
+                    defaultTemplateElement);
+            }
+
+            UpdateContentTypesPropertyGroups(contentType, documentType.Element("Tabs"));
+            UpdateContentTypesProperties(contentType, documentType.Element("GenericProperties"));
+
+            if (contentType is IContentType withCleanup)
+            {
+                UpdateHistoryCleanupPolicy(withCleanup, documentType.Element("HistoryCleanupPolicy"));
+            }
+
+            return contentType;
+        }
+
+        private void UpdateHistoryCleanupPolicy(IContentType withCleanup, XElement? element)
+        {
+            if (element == null)
+            {
+                return;
+            }
+
+            withCleanup.HistoryCleanup ??= new Core.Models.ContentEditing.HistoryCleanup();
+
+            if (bool.TryParse(element.Attribute("preventCleanup")?.Value, out var preventCleanup))
+            {
+                withCleanup.HistoryCleanup.PreventCleanup = preventCleanup;
+            }
+
+            if (int.TryParse(element.Attribute("keepAllVersionsNewerThanDays")?.Value, out var keepAll))
+            {
+                withCleanup.HistoryCleanup.KeepAllVersionsNewerThanDays = keepAll;
+            }
+            else
+            {
+                withCleanup.HistoryCleanup.KeepAllVersionsNewerThanDays = null;
+            }
+
+            if (int.TryParse(element.Attribute("keepLatestVersionPerDayForDays")?.Value, out var keepLatest))
+            {
+                withCleanup.HistoryCleanup.KeepLatestVersionPerDayForDays = keepLatest;
+            }
+            else
+            {
+                withCleanup.HistoryCleanup.KeepLatestVersionPerDayForDays = null;
+            }
+        }
+
+        private void UpdateContentTypesAllowedTemplates(
+            IContentType contentType,
+            XElement? allowedTemplatesElement,
+            XElement? defaultTemplateElement)
+        {
+            if (allowedTemplatesElement != null && allowedTemplatesElement.Elements("Template").Any())
+            {
+                var allowedTemplates = contentType.AllowedTemplates?.ToList();
+                foreach (XElement templateElement in allowedTemplatesElement.Elements("Template"))
+                {
+                    var alias = templateElement.Value;
+                    ITemplate? template = _templateService.GetAsync(alias.ToSafeAlias(_shortStringHelper)).GetAwaiter().GetResult();
+                    if (template != null)
+                    {
+                        if (allowedTemplates?.Any(x => x.Id == template.Id) ?? true)
+                        {
+                            continue;
+                        }
+
+                        allowedTemplates.Add(template);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Packager: Error handling allowed templates. Template with alias '{TemplateAlias}' could not be found.",
+                            alias);
+                    }
+                }
+
+                contentType.AllowedTemplates = allowedTemplates;
+            }
+
+            if (string.IsNullOrEmpty((string?)defaultTemplateElement) == false)
+            {
+                ITemplate? defaultTemplate =
+                    _templateService.GetAsync(defaultTemplateElement.Value.ToSafeAlias(_shortStringHelper)).GetAwaiter().GetResult();
+                if (defaultTemplate != null)
+                {
+                    contentType.SetDefaultTemplate(defaultTemplate);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Packager: Error handling default template. Default template with alias '{DefaultTemplateAlias}' could not be found.",
+                        defaultTemplateElement.Value);
+                }
+            }
+        }
+
+        private void UpdateContentTypesPropertyGroups<T>(T contentType, XElement? propertyGroupsContainer)
+            where T : IContentTypeComposition
+        {
+            if (propertyGroupsContainer == null)
+            {
+                return;
+            }
+
+            IEnumerable<XElement> propertyGroupElements = propertyGroupsContainer.Elements("Tab");
+            foreach (XElement propertyGroupElement in propertyGroupElements)
+            {
+                var name = propertyGroupElement.Element("Caption")!
+                    .Value; // TODO Rename to Name (same in EntityXmlSerializer)
+
+                var alias = propertyGroupElement.Element("Alias")?.Value;
+                if (string.IsNullOrEmpty(alias))
+                {
+                    alias = name.ToSafeAlias(_shortStringHelper, true);
+                }
+
+                contentType.AddPropertyGroup(alias, name);
+                PropertyGroup propertyGroup = contentType.PropertyGroups[alias];
+
+                // Only set Key on new property groups - existing ones already have their Key from the database
+                if (propertyGroup.HasIdentity is false &&
+                    Guid.TryParse(propertyGroupElement.Element("Key")?.Value, out Guid key))
+                {
+                    propertyGroup.Key = key;
+                }
+
+                if (Enum.TryParse<PropertyGroupType>(propertyGroupElement.Element("Type")?.Value, out PropertyGroupType type))
+                {
+                    propertyGroup.Type = type;
+                }
+
+                if (int.TryParse(
+                        propertyGroupElement.Element("SortOrder")?.Value,
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out var sortOrder))
+                {
+                    // Override the sort order with the imported value
+                    propertyGroup.SortOrder = sortOrder;
+                }
+            }
+        }
+
+        private void UpdateContentTypesProperties<T>(T contentType, XElement? genericPropertiesElement)
+            where T : IContentTypeComposition
+        {
+            if (genericPropertiesElement is null)
+            {
+                return;
+            }
+            IEnumerable<XElement> properties = genericPropertiesElement.Elements("GenericProperty");
+            foreach (XElement property in properties)
+            {
+                var dataTypeDefinitionId =
+                    new Guid(property.Element("Definition")!.Value); //Unique Id for a DataTypeDefinition
+
+                IDataType? dataTypeDefinition = _dataTypeService.GetAsync(dataTypeDefinitionId).GetAwaiter().GetResult();
+
+                //If no DataTypeDefinition with the guid from the xml wasn't found OR the ControlId on the DataTypeDefinition didn't match the DataType Id
+                //We look up a DataTypeDefinition that matches
+
+
+                //get the alias as a string for use below
+                var propertyEditorAlias = property.Element("Type")!.Value.Trim();
+
+                //If no DataTypeDefinition with the guid from the xml wasn't found OR the ControlId on the DataTypeDefinition didn't match the DataType Id
+                //We look up a DataTypeDefinition that matches
+
+                if (dataTypeDefinition == null)
+                {
+                    IDataType[]? dataTypeDefinitions = _dataTypeService.GetByEditorAliasAsync(propertyEditorAlias).GetAwaiter().GetResult().ToArray();
+                    if (dataTypeDefinitions != null && dataTypeDefinitions.Any())
+                    {
+                        dataTypeDefinition = dataTypeDefinitions.FirstOrDefault();
+                    }
+                }
+                else if (dataTypeDefinition.EditorAlias != propertyEditorAlias)
+                {
+                    IDataType[]? dataTypeDefinitions = _dataTypeService.GetByEditorAliasAsync(propertyEditorAlias).GetAwaiter().GetResult().ToArray();
+                    if (dataTypeDefinitions != null && dataTypeDefinitions.Any())
+                    {
+                        dataTypeDefinition = dataTypeDefinitions.FirstOrDefault();
+                    }
+                }
+
+                // For backwards compatibility, if no datatype with that ID can be found, we're letting this fail silently.
+                // This means that the property will not be created.
+                if (dataTypeDefinition == null)
+                {
+                    // TODO: We should expose this to the UI during install!
+                    _logger.LogWarning(
+                        "Packager: Error handling creation of PropertyType '{PropertyType}'. Could not find DataTypeDefintion with unique id '{DataTypeDefinitionId}' nor one referencing the DataType with a property editor alias (or legacy control id) '{PropertyEditorAlias}'. Did the package creator forget to package up custom datatypes? This property will be converted to a label/readonly editor if one exists.",
+                        property.Element("Name")?.Value,
+                        dataTypeDefinitionId,
+                        property.Element("Type")?.Value.Trim());
+
+                    //convert to a label!
+                    dataTypeDefinition = _dataTypeService.GetByEditorAliasAsync(Constants.PropertyEditors.Aliases.Label).GetAwaiter().GetResult()?
+                        .FirstOrDefault();
+                    //if for some odd reason this isn't there then ignore
+                    if (dataTypeDefinition == null)
+                    {
+                        continue;
+                    }
+                }
+
+                var sortOrder = 0;
+                XElement? sortOrderElement = property.Element("SortOrder");
+                if (sortOrderElement != null)
+                {
+                    int.TryParse(
+                        sortOrderElement.Value,
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out sortOrder);
+                }
+
+                var propertyType =
+                    new PropertyType(_shortStringHelper, dataTypeDefinition, property.Element("Alias")!.Value)
+                    {
+                        Name = property.Element("Name")!.Value,
+                        Description = (string?)property.Element("Description"),
+                        Mandatory = property.Element("Mandatory") is not null && property.Element("Mandatory")!.Value.ToLowerInvariant().Equals("true"),
+                        MandatoryMessage = property.Element("MandatoryMessage") != null
+                            ? (string?)property.Element("MandatoryMessage")
+                            : string.Empty,
+                        ValidationRegExp = (string?)property.Element("Validation"),
+                        ValidationRegExpMessage = property.Element("ValidationRegExpMessage") != null
+                            ? (string?)property.Element("ValidationRegExpMessage")
+                            : string.Empty,
+                        SortOrder = sortOrder,
+                        Variations = property.Element("Variations") != null
+                            ? (ContentVariation)Enum.Parse(
+                                typeof(ContentVariation),
+                                property.Element("Variations")!.Value)
+                            : ContentVariation.Nothing,
+                        LabelOnTop = property.Element("LabelOnTop") != null && property.Element("LabelOnTop")!.Value.ToLowerInvariant().Equals("true")
+                    };
+
+                if (property.Element("Key") != null)
+                {
+                    propertyType.Key = new Guid(property.Element("Key")!.Value);
+                }
+
+                XElement? propertyGroupElement = property.Element("Tab");
+                if (propertyGroupElement == null || string.IsNullOrEmpty(propertyGroupElement.Value))
+                {
+                    contentType.AddPropertyType(propertyType);
+                }
+                else
+                {
+                    var propertyGroupName = propertyGroupElement.Value;
+                    var propertyGroupAlias = propertyGroupElement.Attribute("Alias")?.Value;
+                    if (string.IsNullOrEmpty(propertyGroupAlias))
+                    {
+                        propertyGroupAlias = propertyGroupName.ToSafeAlias(_shortStringHelper, true);
+                    }
+
+                    contentType.AddPropertyType(propertyType, propertyGroupAlias, propertyGroupName);
+                }
+            }
+        }
+
+        private T UpdateContentTypesStructure<T>(
+            T contentType,
+            XElement structureElement,
+            IReadOnlyDictionary<string, T> importedContentTypes,
+            IContentTypeBaseService<T> service)
+            where T : IContentTypeComposition
+        {
+            var allowedChildren = contentType.AllowedContentTypes?.ToList();
+            int sortOrder = allowedChildren?.Any() ?? false ? allowedChildren.Last().SortOrder : 0;
+            foreach (XElement element in structureElement.Elements())
+            {
+                var alias = element.Value;
+
+                T? allowedChild = importedContentTypes.ContainsKey(alias)
+                    ? importedContentTypes[alias]
+                    : service.Get(alias);
+                if (allowedChild == null)
+                {
+                    _logger.LogWarning(
+                        "Packager: Error handling DocumentType structure. DocumentType with alias '{DoctypeAlias}' could not be found and was not added to the structure for '{DoctypeStructureAlias}'.",
+                        alias,
+                        contentType.Alias);
+                    continue;
+                }
+
+                if (allowedChildren?.Any(x => x.Key == allowedChild.Key) ?? false)
+                {
+                    continue;
+                }
+
+                allowedChildren?.Add(new ContentTypeSort(allowedChild.Key, sortOrder, allowedChild.Alias));
+                sortOrder++;
+            }
+
+            contentType.AllowedContentTypes = allowedChildren;
+            return contentType;
+        }
+
+        /// <summary>
+        /// Used during Content import to ensure that the ContentType of a content item exists
+        /// </summary>
+        /// <returns></returns>
+        private T FindContentTypeByAlias<T>(string contentTypeAlias, IContentTypeBaseService<T> typeService)
+            where T : IContentTypeComposition
+        {
+            T? contentType = typeService.Get(contentTypeAlias)
+                ?? throw new Exception($"ContentType matching the passed in Alias: '{contentTypeAlias}' " +
+                $"was null");
+
+            return contentType;
+        }
+
+        #endregion
+
+        #region DataTypes
+
+        /// <summary>
+        /// Imports and saves package xml as <see cref="IDataType"/>
+        /// </summary>
+        /// <param name="dataTypeElements">Xml to import</param>
+        /// <param name="userId">Optional id of the user</param>
+        /// <returns>An enumerable list of generated DataTypeDefinitions</returns>
+        public IReadOnlyList<IDataType> ImportDataTypes(IReadOnlyCollection<XElement> dataTypeElements, int userId)
+            => ImportDataTypes(dataTypeElements, userId, out _);
+
+        /// <summary>
+        /// Imports and saves package xml as <see cref="IDataType"/>
+        /// </summary>
+        /// <param name="dataTypeElements">Xml to import</param>
+        /// <param name="userId">Optional id of the user</param>
+        /// <param name="entityContainersInstalled">Collection of entity containers installed by the package to be populated with those created in installing data types.</param>
+        /// <returns>An enumerable list of generated DataTypeDefinitions</returns>
+        public IReadOnlyList<IDataType> ImportDataTypes(
+            IReadOnlyCollection<XElement> dataTypeElements,
+            int userId,
+            out IEnumerable<EntityContainer> entityContainersInstalled)
+        {
+            var dataTypes = new List<IDataType>();
+
+            Dictionary<string, int> importedFolders = CreateDataTypeFolderStructure(dataTypeElements, out entityContainersInstalled);
+
+            // Resolve the performing user key once for the whole import.
+            Guid performingUserKey = _userIdKeyResolver.GetAsync(userId).GetAwaiter().GetResult();
+
+            foreach (XElement dataTypeElement in dataTypeElements)
+            {
+                var dataTypeDefinitionName = dataTypeElement.AttributeValue<string>("Name");
+
+                Guid dataTypeDefinitionId = dataTypeElement.RequiredAttributeValue<Guid>("Definition");
+                XAttribute? databaseTypeAttribute = dataTypeElement.Attribute("DatabaseType");
+
+                var parentId = -1;
+                if (dataTypeDefinitionName is not null && importedFolders.ContainsKey(dataTypeDefinitionName))
+                {
+                    parentId = importedFolders[dataTypeDefinitionName];
+                }
+
+                IDataType? definition = _dataTypeService.GetAsync(dataTypeDefinitionId).GetAwaiter().GetResult();
+                //If the datatype definition doesn't already exist we create a new according to the one in the package xml
+                if (definition == null)
+                {
+                    ValueStorageType databaseType = databaseTypeAttribute?.Value.EnumParse<ValueStorageType>(true) ??
+                                                    ValueStorageType.Ntext;
+
+                    // the Id field is actually the string property editor Alias
+                    // however, the actual editor with this alias could be installed with the package, and
+                    // therefore not yet part of the _propertyEditors collection, so we cannot try and get
+                    // the actual editor - going with a void editor
+
+                    var editorAlias = dataTypeElement.Attribute("Id")?.Value?.Trim();
+                    if (!_propertyEditors.TryGet(editorAlias, out IDataEditor? editor))
+                    {
+                        editor = new VoidEditor(_dataValueEditorFactory) { Alias = editorAlias ?? string.Empty };
+                    }
+
+                    var editorUiAlias = dataTypeElement.Attribute("EditorUiAlias")?.Value?.Trim() ?? editorAlias;
+
+                    var dataType = new DataType(editor, _serializer)
+                    {
+                        Key = dataTypeDefinitionId,
+                        Name = dataTypeDefinitionName,
+                        DatabaseType = databaseType,
+                        ParentId = parentId,
+                        EditorUiAlias = editorUiAlias,
+                    };
+
+                    var configurationAttributeValue = dataTypeElement.Attribute("Configuration")?.Value;
+                    if (!string.IsNullOrWhiteSpace(configurationAttributeValue))
+                    {
+                        dataType.ConfigurationData = editor.GetConfigurationEditor().FromDatabase(configurationAttributeValue, _serializer);
+                    }
+
+                    dataTypes.Add(dataType);
+                }
+                else
+                {
+                    definition.ParentId = parentId;
+                    _dataTypeService.UpdateAsync(definition, performingUserKey).GetAwaiter().GetResult();
+                }
+            }
+
+            if (dataTypes.Count > 0)
+            {
+                // Note: the obsolete IDataTypeService.Save(IEnumerable<IDataType>) was a single batch operation
+                // that fired one combined notification for all entities. The new CreateAsync/UpdateAsync methods
+                // operate on a single entity at a time, so notifications now fire per item instead of as a batch.
+                // This is acceptable here because package installation is a one-off bulk import and existing
+                // notification handlers have been verified to handle per-item events correctly.
+                foreach (IDataType dataType in dataTypes)
+                {
+                    if (dataType.HasIdentity)
+                    {
+                        _dataTypeService.UpdateAsync(dataType, performingUserKey).GetAwaiter().GetResult();
+                    }
+                    else
+                    {
+                        _dataTypeService.CreateAsync(dataType, performingUserKey).GetAwaiter().GetResult();
+                    }
+                }
+            }
+
+            return dataTypes;
+        }
+
+        private Dictionary<string, int> CreateDataTypeFolderStructure(
+            IEnumerable<XElement> datatypeElements,
+            out IEnumerable<EntityContainer> entityContainersInstalled)
+        {
+            var importedFolders = new Dictionary<string, int>();
+            var trackEntityContainersInstalled = new List<EntityContainer>();
+            foreach (XElement datatypeElement in datatypeElements)
+            {
+                XAttribute? foldersAttribute = datatypeElement.Attribute("Folders");
+
+                if (foldersAttribute != null)
+                {
+                    var name = datatypeElement.Attribute("Name")?.Value;
+                    var folders = foldersAttribute.Value.Split(Constants.CharArrays.ForwardSlash);
+                    XAttribute? folderKeysAttribute = datatypeElement.Attribute("FolderKeys");
+
+                    Guid[] folderKeys = Array.Empty<Guid>();
+                    if (folderKeysAttribute != null)
+                    {
+                        folderKeys = folderKeysAttribute.Value.Split(Constants.CharArrays.ForwardSlash)
+                            .Select(x => Guid.Parse(x)).ToArray();
+                    }
+
+                    var rootFolder = WebUtility.UrlDecode(folders[0]);
+                    Guid rootFolderKey = folderKeys.Length > 0 ? folderKeys[0] : Guid.NewGuid();
+                    //there will only be a single result by name for level 1 (root) containers
+                    EntityContainer? current = _dataTypeContainerService.GetAsync(rootFolder, 1).GetAwaiter().GetResult().FirstOrDefault();
+
+                    if (current == null)
+                    {
+                        Attempt<EntityContainer?, EntityContainerOperationStatus> tryCreateFolder = _dataTypeContainerService
+                            .CreateAsync(rootFolderKey, rootFolder, parentKey: null, Constants.Security.SuperUserKey)
+                            .GetAwaiter()
+                            .GetResult();
+                        if (tryCreateFolder.Success is false)
+                        {
+                            _logger.LogError(
+                                "Could not create folder: {FolderName}. Status: {Status}",
+                                rootFolder,
+                                tryCreateFolder.Status);
+                            throw new InvalidOperationException($"Could not create folder '{rootFolder}'. Status: {tryCreateFolder.Status}");
+                        }
+
+                        current = tryCreateFolder.Result;
+                        trackEntityContainersInstalled.Add(current!);
+                    }
+
+                    importedFolders.Add(name!, current!.Id);
+
+                    for (var i = 1; i < folders.Length; i++)
+                    {
+                        var folderName = WebUtility.UrlDecode(folders[i]);
+                        Guid? folderKey = folderKeys.Length == folders.Length ? folderKeys[i] : null;
+                        current = CreateDataTypeChildFolder(folderName, folderKey ?? Guid.NewGuid(), current);
+                        trackEntityContainersInstalled.Add(current!);
+                        importedFolders[name!] = current!.Id;
+                    }
+                }
+            }
+
+            entityContainersInstalled = trackEntityContainersInstalled;
+            return importedFolders;
+        }
+
+        private EntityContainer? CreateDataTypeChildFolder(string folderName, Guid folderKey, IUmbracoEntity current)
+        {
+            IEntitySlim[] children = _entityService.GetChildren(current.Id).ToArray();
+
+            // Match by key first (more reliable when folders have been renamed in the destination), then fall back to name.
+            IEntitySlim? matchingChild = children.FirstOrDefault(x => x.Key == folderKey)
+                                         ?? children.FirstOrDefault(x => x.Name.InvariantEquals(folderName));
+            if (matchingChild is not null)
+            {
+                return _dataTypeContainerService.GetAsync(matchingChild.Key).GetAwaiter().GetResult();
+            }
+
+            Attempt<EntityContainer?, EntityContainerOperationStatus> tryCreateFolder = _dataTypeContainerService
+                .CreateAsync(folderKey, folderName, current.Key, Constants.Security.SuperUserKey)
+                .GetAwaiter()
+                .GetResult();
+            if (tryCreateFolder.Success is false)
+            {
+                _logger.LogError("Could not create folder: {FolderName}. Status: {Status}", folderName, tryCreateFolder.Status);
+                throw new InvalidOperationException($"Could not create folder '{folderName}'. Status: {tryCreateFolder.Status}");
+            }
+
+            return tryCreateFolder.Result;
+        }
+
+        #endregion
+
+        #region Dictionary Items
+
+        /// <summary>
+        /// Imports and saves the 'DictionaryItems' part of the package xml as a list of <see cref="IDictionaryItem"/>
+        /// </summary>
+        /// <param name="dictionaryItemElementList">Xml to import</param>
+        /// <param name="userId"></param>
+        /// <returns>An enumerable list of dictionary items</returns>
+        public IReadOnlyList<IDictionaryItem> ImportDictionaryItems(
+            IEnumerable<XElement> dictionaryItemElementList,
+            int userId)
+        {
+            var languages = _languageService.GetAllAsync().GetAwaiter().GetResult().ToList();
+            return ImportDictionaryItems(dictionaryItemElementList, languages, null, userId);
+        }
+
+        /// <summary>
+        /// Imports a dictionary item and its translations from the specified XML element into the system.
+        /// </summary>
+        /// <param name="dictionaryItemElement">The <see cref="XElement"/> representing the dictionary item to import, including its translations.</param>
+        /// <param name="userId">The identifier of the user performing the import operation.</param>
+        /// <param name="parentId">The optional unique identifier of the parent dictionary item, if this item is a child; otherwise, <c>null</c>.</param>
+        /// <returns>An <see cref="IEnumerable{IDictionaryItem}"/> containing the imported dictionary item(s), including any nested child items.</returns>
+        public IEnumerable<IDictionaryItem> ImportDictionaryItem(XElement dictionaryItemElement, int userId, Guid? parentId)
+        {
+            var languages = _languageService.GetAllAsync().GetAwaiter().GetResult().ToList();
+            return ImportDictionaryItem(dictionaryItemElement, languages, parentId, userId);
+        }
+
+        private IReadOnlyList<IDictionaryItem> ImportDictionaryItems(
+            IEnumerable<XElement> dictionaryItemElementList,
+            List<ILanguage> languages,
+            Guid? parentId,
+            int userId)
+        {
+            var items = new List<IDictionaryItem>();
+            foreach (XElement dictionaryItemElement in dictionaryItemElementList)
+            {
+                items.AddRange(ImportDictionaryItem(dictionaryItemElement, languages, parentId, userId));
+            }
+
+            return items;
+        }
+
+        private IEnumerable<IDictionaryItem> ImportDictionaryItem(
+            XElement dictionaryItemElement,
+            List<ILanguage> languages,
+            Guid? parentId,
+            int userId)
+        {
+            var items = new List<IDictionaryItem>();
+
+            IDictionaryItem? dictionaryItem;
+            var itemName = dictionaryItemElement.Attribute("Name")?.Value;
+            Guid key = dictionaryItemElement.RequiredAttributeValue<Guid>("Key");
+
+            dictionaryItem = _dictionaryItemService.GetAsync(key).GetAwaiter().GetResult();
+            var isUpdate = dictionaryItem != null;
+            if (isUpdate)
+            {
+                dictionaryItem = UpdateDictionaryItem(dictionaryItem!, dictionaryItemElement, languages);
+            }
+            else
+            {
+                dictionaryItem = CreateNewDictionaryItem(key, itemName!, dictionaryItemElement, languages, parentId);
+            }
+
+            Guid currentUserKey = ResolveUserKey(userId);
+            Attempt<IDictionaryItem, DictionaryItemOperationStatus> saveResult = isUpdate
+                ? _dictionaryItemService.UpdateAsync(dictionaryItem!, currentUserKey).GetAwaiter().GetResult()
+                : _dictionaryItemService.CreateAsync(dictionaryItem!, currentUserKey).GetAwaiter().GetResult();
+
+            if (saveResult.Success is false)
+            {
+                _logger.LogWarning(
+                    "Failed to {Operation} dictionary item {Key} during package import: {Status}",
+                    isUpdate ? "update" : "create",
+                    key,
+                    saveResult.Status);
+                return items;
+            }
+
+            IDictionaryItem savedItem = saveResult.Result;
+            items.Add(savedItem);
+
+            items.AddRange(ImportDictionaryItems(
+                dictionaryItemElement.Elements("DictionaryItem"),
+                languages,
+                savedItem.Key,
+                userId));
+            return items;
+        }
+
+        private IDictionaryItem UpdateDictionaryItem(
+            IDictionaryItem dictionaryItem,
+            XElement dictionaryItemElement,
+            List<ILanguage> languages)
+        {
+            var translations = dictionaryItem.Translations.ToList();
+            foreach (XElement valueElement in dictionaryItemElement.Elements("Value")
+                         .Where(v => DictionaryValueIsNew(translations, v)))
+            {
+                AddDictionaryTranslation(translations, valueElement, languages);
+            }
+
+            dictionaryItem.Translations = translations;
+            return dictionaryItem;
+        }
+
+        private static DictionaryItem CreateNewDictionaryItem(
+            Guid itemId,
+            string itemName,
+            XElement dictionaryItemElement,
+            List<ILanguage> languages,
+            Guid? parentId)
+        {
+            DictionaryItem dictionaryItem = parentId.HasValue
+                ? new DictionaryItem(parentId.Value, itemName)
+                : new DictionaryItem(itemName);
+            dictionaryItem.Key = itemId;
+
+            var translations = new List<IDictionaryTranslation>();
+
+            foreach (XElement valueElement in dictionaryItemElement.Elements("Value"))
+            {
+                AddDictionaryTranslation(translations, valueElement, languages);
+            }
+
+            dictionaryItem.Translations = translations;
+            return dictionaryItem;
+        }
+
+        private static bool DictionaryValueIsNew(
+            IEnumerable<IDictionaryTranslation> translations,
+            XElement valueElement)
+            => translations.All(t => string.Compare(
+                t.LanguageIsoCode,
+                valueElement.Attribute("LanguageCultureAlias")?.Value,
+                StringComparison.InvariantCultureIgnoreCase) != 0);
+
+        private static void AddDictionaryTranslation(
+            ICollection<IDictionaryTranslation> translations,
+            XElement valueElement,
+            IEnumerable<ILanguage> languages)
+        {
+            var languageId = valueElement.Attribute("LanguageCultureAlias")?.Value;
+            ILanguage? language = languages.SingleOrDefault(l => l.IsoCode == languageId);
+            if (language == null)
+            {
+                return;
+            }
+
+            var translation = new DictionaryTranslation(language, valueElement.Value);
+            translations.Add(translation);
+        }
+
+        #endregion
+
+        #region Languages
+
+        /// <summary>
+        /// Imports and saves the 'Languages' part of a package xml as a list of <see cref="ILanguage"/>
+        /// </summary>
+        /// <param name="languageElements">Xml to import</param>
+        /// <param name="userId">Optional id of the User performing the operation</param>
+        /// <returns>An enumerable list of generated languages</returns>
+        public IReadOnlyList<ILanguage> ImportLanguages(IEnumerable<XElement> languageElements, int userId)
+        {
+            var list = new List<ILanguage>();
+            foreach (XElement languageElement in languageElements)
+            {
+                var isoCode = languageElement.AttributeValue<string>("CultureAlias");
+                if (string.IsNullOrEmpty(isoCode))
+                {
+                    continue;
+                }
+
+                ILanguage? existingLanguage = _languageService.GetAsync(isoCode).GetAwaiter().GetResult();
+                if (existingLanguage != null)
+                {
+                    continue;
+                }
+
+                var cultureName = languageElement.AttributeValue<string>("FriendlyName") ?? isoCode;
+
+                var language = new Language(isoCode, cultureName);
+                Attempt<ILanguage, LanguageOperationStatus> saveResult = _languageService.CreateAsync(language, ResolveUserKey(userId)).GetAwaiter().GetResult();
+                if (saveResult.Success is false)
+                {
+                    _logger.LogWarning(
+                        "Failed to create language {IsoCode} during package import: {Status}",
+                        isoCode,
+                        saveResult.Status);
+                    continue;
+                }
+
+                list.Add(saveResult.Result);
+            }
+
+            return list;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Imports scripts from the specified XML elements, saving new scripts using the provided user ID.
+        /// Only scripts that do not already exist are imported and saved; existing scripts are skipped.
+        /// </summary>
+        /// <param name="scriptElements">A collection of XML elements, each representing a script to import. Each element must have a <c>path</c> attribute and script content as its value.</param>
+        /// <param name="userId">The ID of the user performing the import operation.</param>
+        /// <returns>A read-only list of <see cref="IScript"/> objects that were newly imported and saved.</returns>
+        public IReadOnlyList<IScript> ImportScripts(IEnumerable<XElement> scriptElements, int userId)
+        {
+            var result = new List<IScript>();
+            Guid userKey = ResolveUserKey(userId);
+
+            foreach (XElement scriptXml in scriptElements)
+            {
+                var path = scriptXml.AttributeValue<string>("path");
+                if (path.IsNullOrWhiteSpace())
+                {
+                    continue;
+                }
+
+                IScript? script = _scriptService.GetAsync(path!).GetAwaiter().GetResult();
+
+                // only update if it doesn't exist
+                if (script == null)
+                {
+                    var content = scriptXml.Value;
+                    if (content == null)
+                    {
+                        continue;
+                    }
+
+                    (var name, var parentPath) = FileSystemPath.Split(path!);
+                    EnsureFolderHierarchy(
+                        parentPath,
+                        path!,
+                        p => _scriptFolderService.GetAsync(p).GetAwaiter().GetResult() is not null,
+                        (folderName, folderParent) => _scriptFolderService
+                            .CreateAsync(new ScriptFolderCreateModel { Name = folderName, ParentPath = folderParent })
+                            .GetAwaiter().GetResult().Success);
+
+                    var createModel = new ScriptCreateModel
+                    {
+                        Name = name,
+                        ParentPath = parentPath,
+                        Content = content,
+                    };
+
+                    Attempt<IScript?, ScriptOperationStatus> createAttempt = _scriptService.CreateAsync(createModel, userKey).GetAwaiter().GetResult();
+                    if (createAttempt.Success && createAttempt.Result is not null)
+                    {
+                        result.Add(createAttempt.Result);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Skipping script '{Path}' during package install: {Status}", path, createAttempt.Status);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Imports partial views from the specified XML elements, creating and saving each partial view only if it does not already exist.
+        /// </summary>
+        /// <param name="partialViewElements">A collection of <see cref="XElement"/> objects, each representing a partial view to import. Each element must have a <c>path</c> attribute and contain the partial view content as its value.</param>
+        /// <param name="userId">The identifier of the user performing the import operation.</param>
+        /// <returns>A read-only list of <see cref="IPartialView"/> instances that were newly imported and saved. Existing partial views are not modified or returned.</returns>
+        public IReadOnlyList<IPartialView> ImportPartialViews(IEnumerable<XElement> partialViewElements, int userId)
+        {
+            var result = new List<IPartialView>();
+            Guid userKey = ResolveUserKey(userId);
+
+            foreach (XElement partialViewXml in partialViewElements)
+            {
+                var path = partialViewXml.AttributeValue<string>("path")
+                    ?? throw new InvalidOperationException("No path attribute found");
+
+                IPartialView? partialView = _partialViewService.GetAsync(path).GetAwaiter().GetResult();
+
+                // only update if it doesn't exist
+                if (partialView == null)
+                {
+                    var content = partialViewXml.Value ?? string.Empty;
+
+                    (var name, var parentPath) = FileSystemPath.Split(path);
+                    EnsureFolderHierarchy(
+                        parentPath,
+                        path,
+                        p => _partialViewFolderService.GetAsync(p).GetAwaiter().GetResult() is not null,
+                        (folderName, folderParent) => _partialViewFolderService
+                            .CreateAsync(new PartialViewFolderCreateModel { Name = folderName, ParentPath = folderParent })
+                            .GetAwaiter().GetResult().Success);
+
+                    var createModel = new PartialViewCreateModel
+                    {
+                        Name = name,
+                        ParentPath = parentPath,
+                        Content = content,
+                    };
+
+                    Attempt<IPartialView?, PartialViewOperationStatus> createAttempt = _partialViewService.CreateAsync(createModel, userKey).GetAwaiter().GetResult();
+                    if (createAttempt.Success && createAttempt.Result is not null)
+                    {
+                        result.Add(createAttempt.Result);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Skipping partial view '{Path}' during package install: {Status}", path, createAttempt.Status);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        #region Stylesheets
+
+        /// <summary>
+        /// Imports stylesheets from the provided XML elements, creating new stylesheets or updating existing ones, and saves them using the specified user ID.
+        /// </summary>
+        /// <param name="stylesheetElements">A collection of XML elements, each representing a stylesheet to import. Each element should contain a <c>FileName</c> and <c>Content</c>, and may contain <c>Properties</c> with <c>Alias</c>, <c>Name</c>, and <c>Value</c> sub-elements.</param>
+        /// <param name="userId">The ID of the user performing the import operation.</param>
+        /// <returns>A read-only list of the imported or updated <see cref="IFile"/> stylesheet files.</returns>
+        /// <remarks>
+        /// If a stylesheet with the specified file name already exists, its properties are updated or added as needed. If it does not exist, a new stylesheet is created. Each stylesheet and its properties are saved using the provided user ID.
+        /// </remarks>
+        public IReadOnlyList<IFile> ImportStylesheets(IEnumerable<XElement> stylesheetElements, int userId)
+        {
+            var result = new List<IFile>();
+            Guid userKey = ResolveUserKey(userId);
+
+            foreach (XElement n in stylesheetElements)
+            {
+                var stylesheetPath = n.Element("FileName")?.Value;
+                if (stylesheetPath.IsNullOrWhiteSpace())
+                {
+                    continue;
+                }
+
+                IStylesheet? s = _stylesheetService.GetAsync(stylesheetPath!).GetAwaiter().GetResult();
+                if (s == null)
+                {
+                    var content = n.Element("Content")?.Value;
+                    if (content == null)
+                    {
+                        continue;
+                    }
+
+                    (var name, var parentPath) = FileSystemPath.Split(stylesheetPath!);
+                    EnsureFolderHierarchy(
+                        parentPath,
+                        stylesheetPath!,
+                        p => _stylesheetFolderService.GetAsync(p).GetAwaiter().GetResult() is not null,
+                        (folderName, folderParent) => _stylesheetFolderService
+                            .CreateAsync(new StylesheetFolderCreateModel { Name = folderName, ParentPath = folderParent })
+                            .GetAwaiter().GetResult().Success);
+
+                    var createModel = new StylesheetCreateModel
+                    {
+                        Name = name,
+                        ParentPath = parentPath,
+                        Content = content,
+                    };
+
+                    Attempt<IStylesheet?, StylesheetOperationStatus> createAttempt = _stylesheetService.CreateAsync(createModel, userKey).GetAwaiter().GetResult();
+                    if (createAttempt.Success is false || createAttempt.Result is null)
+                    {
+                        _logger.LogWarning("Skipping stylesheet '{Path}' during package install: {Status}", stylesheetPath, createAttempt.Status);
+                        continue;
+                    }
+
+                    s = createAttempt.Result;
+                }
+
+                foreach (XElement prop in n.XPathSelectElements("Properties/Property"))
+                {
+                    var alias = prop.Element("Alias")!.Value;
+                    IStylesheetProperty? sp = s.Properties?.SingleOrDefault(p => p != null && p.Alias == alias);
+                    var name = prop.Element("Name")!.Value;
+                    if (sp == null)
+                    {
+                        sp = new StylesheetProperty(name, "#" + name.ToSafeAlias(_shortStringHelper), string.Empty);
+                        s.AddProperty(sp);
+                    }
+                    else
+                    {
+                        // Changing the name requires removing the current property and then adding another new one
+                        if (sp.Name != name)
+                        {
+                            s.RemoveProperty(sp.Name);
+                            var newProp = new StylesheetProperty(name, sp.Alias, sp.Value);
+                            s.AddProperty(newProp);
+                            sp = newProp;
+                        }
+                    }
+
+                    sp.Alias = alias;
+                    sp.Value = prop.Element("Value")!.Value;
+                }
+
+                var updateModel = new StylesheetUpdateModel
+                {
+                    Content = s.Content ?? string.Empty,
+                };
+                _stylesheetService.UpdateAsync(s.Path, updateModel, userKey).GetAwaiter().GetResult();
+                result.Add(s);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Templates
+
+        /// <summary>
+        /// Asynchronously imports a template from the specified XML element.
+        /// </summary>
+        /// <param name="templateElement">The <see cref="XElement"/> representing the template to import.</param>
+        /// <param name="userId">The identifier of the user performing the import operation.</param>
+        /// <returns>A task representing the asynchronous operation, containing a collection of the imported <see cref="ITemplate"/> objects.</returns>
+        public async Task<IEnumerable<ITemplate>> ImportTemplateAsync(XElement templateElement, int userId)
+            => ImportTemplatesAsync(new[] { templateElement }, userId).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Imports and saves package xml as <see cref="ITemplate"/>
+        /// </summary>
+        /// <param name="templateElements">Xml to import</param>
+        /// <param name="userId">Optional user id</param>
+        /// <returns>An enumerable list of generated Templates</returns>
+        public async Task<IReadOnlyList<ITemplate>> ImportTemplatesAsync(IReadOnlyCollection<XElement> templateElements, int userId)
+        {
+            var templates = new List<ITemplate>();
+
+            var graph = new TopoGraph<string, TopoGraph.Node<string, XElement>>(x => x.Key, x => x.Dependencies);
+
+            foreach (XElement tempElement in templateElements)
+            {
+                var dependencies = new List<string>();
+                XElement elementCopy = tempElement;
+
+                //Ensure that the Layout of the current template is part of the import, otherwise we ignore this dependency as part of the dependency sorting.'
+                var layoutTemplate = _templateContentParserService.LayoutTemplateAlias(tempElement.Value);
+                if (layoutTemplate is not null && templateElements.Any(x => (string?)x.Element("Alias") == layoutTemplate))
+                {
+                    dependencies.Add(layoutTemplate);
+                }
+                else if (layoutTemplate is not null)
+                {
+                    // Only log when a non-null Layout was referenced but couldn't be resolved in the import.
+                    // A null Layout is legitimate (e.g. a root layout file with `Layout = null;`) and not worth logging.
+                    _logger.LogInformation(
+                        "Template '{TemplateAlias}' has an invalid Layout '{TemplateLayout}', so the reference has been ignored.",
+                        (string?)elementCopy.Element("Alias"),
+                        layoutTemplate);
+                }
+
+                graph.AddItem(TopoGraph.CreateNode((string)elementCopy.Element("Alias")!, elementCopy, dependencies));
+            }
+
+            //Sort templates by dependencies to a potential layout template
+            IEnumerable<TopoGraph.Node<string, XElement>> sorted = graph.GetSortedItems();
+            foreach (TopoGraph.Node<string, XElement>? item in sorted)
+            {
+                XElement templateElement = item.Item;
+
+                var templateName = templateElement.Element("Name")?.Value;
+                var alias = templateElement.Element("Alias")!.Value;
+                var design = templateElement.Element("Design")?.Value;
+
+                var existingTemplate = await _templateService.GetAsync(alias) as Template;
+
+                Template template = existingTemplate ?? new Template(_shortStringHelper, templateName, alias);
+
+                // For new templates, use the serialized key if avaialble.
+                if (existingTemplate == null && Guid.TryParse(templateElement.Element("Key")?.Value, out Guid key))
+                {
+                    template.Key = key;
+                }
+
+                template.Content = design;
+
+                templates.Add(template);
+            }
+
+            foreach (ITemplate template in templates)
+            {
+                if (template.Id > 0)
+                {
+                    await _templateService.UpdateAsync(template, Constants.Security.SuperUserKey);
+                }
+                else
+                {
+                    await _templateService.CreateAsync(template, Constants.Security.SuperUserKey);
+                }
+            }
+
+            return templates;
+        }
+
+
+        #endregion
+
+        // Resolves an int user id to its Guid key, falling back to SuperUserKey for unknown ids.
+        private Guid ResolveUserKey(int userId)
+        {
+            Attempt<Guid> attempt = _userIdKeyResolver.TryGetAsync(userId).GetAwaiter().GetResult();
+            return attempt.Success ? attempt.Result : Constants.Security.SuperUserKey;
+        }
+
+        // Walks a '/'-separated parent path and creates each missing folder via the supplied folder service callbacks.
+        // The legacy IFileService.Save* methods relied on the underlying file system to auto-create directories;
+        // the per-domain services validate that the parent already exists, so packages with nested files need the
+        // hierarchy materialised up-front.
+        private void EnsureFolderHierarchy(
+            string? parentPath,
+            string filePath,
+            Func<string, bool> folderExists,
+            Func<string, string?, bool> tryCreateFolder)
+        {
+            if (string.IsNullOrEmpty(parentPath))
+            {
+                return;
+            }
+
+            var segments = parentPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            string? accumulated = null;
+            foreach (var segment in segments)
+            {
+                var fullPath = accumulated is null ? segment : $"{accumulated}/{segment}";
+                if (folderExists(fullPath) is false && tryCreateFolder(segment, accumulated) is false)
+                {
+                    _logger.LogWarning(
+                        "Could not create parent folder '{FolderPath}' for package file '{FilePath}'.",
+                        fullPath,
+                        filePath);
+                    return;
+                }
+
+                accumulated = fullPath;
+            }
+        }
+    }
+}

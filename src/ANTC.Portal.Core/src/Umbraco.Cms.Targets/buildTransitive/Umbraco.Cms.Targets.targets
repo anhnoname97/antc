@@ -1,0 +1,87 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Automatically nest files (this needs to be in this file, because the props file is imported too early) -->
+  <ItemGroup>
+    <Content Update="appsettings.*.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+    </Content>
+    <Content Update="appsettings-schema.*.json">
+      <DependentUpon>appsettings-schema.json</DependentUpon>
+    </Content>
+  </ItemGroup>
+
+  <!-- Copy JSON schema files into the project directory -->
+  <Target Name="CopyUmbracoJsonSchemaFiles" BeforeTargets="Build">
+    <Message Text="Copying JSON schema files into project directory: @(UmbracoJsonSchemaFiles->'%(Filename)%(Extension)')" Importance="high" />
+    <Copy SourceFiles="@(UmbracoJsonSchemaFiles)" DestinationFolder="$(MSBuildProjectDirectory)" SkipUnchangedFiles="true" />
+
+    <Message Text="Copying JSON schema files into project directory: @(UmbracoPackageSchemaFiles->'%(Filename)%(Extension)')" Importance="high" />
+    <Copy SourceFiles="@(UmbracoPackageSchemaFiles)" DestinationFolder="$(MSBuildProjectDirectory)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <!-- Add references to the JSON schema in the project directory -->
+  <UsingTask TaskName="JsonSchemaAddReferences" AssemblyFile="$(MSBuildThisFileDirectory)..\tasks\netstandard2.0\Umbraco.JsonSchema.Extensions.dll" />
+  <Target Name="AddUmbracoJsonSchemaReferences" BeforeTargets="Build" DependsOnTargets="CopyUmbracoJsonSchemaFiles">
+    <ItemGroup>
+      <!-- Include references to JSON schema files that are copied into the project directory (if they aren't already referenced and didn't opt-out) -->
+      <UmbracoJsonSchemaReferences Include="@(UmbracoJsonSchemaFiles->'%(Filename)%(Extension)#')" Exclude="@(UmbracoJsonSchemaReferences)" Condition="'%(UmbracoJsonSchemaFiles.Reference)' != 'false'" />
+    </ItemGroup>
+    <Message Text="Adding JSON schema references to appsettings-schema.json: @(UmbracoJsonSchemaReferences)" Importance="high" />
+    <JsonSchemaAddReferences JsonSchemaFile="$(MSBuildProjectDirectory)\appsettings-schema.json" References="@(UmbracoJsonSchemaReferences)" />
+  </Target>
+
+  <!-- Include App_Plugins content in output/publish directories -->
+  <Target Name="IncludeAppPluginsContent" BeforeTargets="GetCopyToOutputDirectoryItems;GetCopyToPublishDirectoryItems">
+    <ItemGroup>
+      <_AppPluginsFiles Include="App_Plugins\**" Exclude="App_Plugins\**\node_modules\**" />
+      <ContentWithTargetPath Include="@(_AppPluginsFiles)" Exclude="@(ContentWithTargetPath)" TargetPath="%(Identity)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Include Umbraco folder content in output/publish directories -->
+  <Target Name="IncludeUmbracoFolderContent" BeforeTargets="GetCopyToOutputDirectoryItems;GetCopyToPublishDirectoryItems">
+    <ItemGroup>
+      <_UmbracoFolderFiles Include="umbraco\config\**" />
+      <_UmbracoFolderFiles Include="umbraco\PartialViewMacros\**" />
+      <_UmbracoFolderFiles Include="umbraco\UmbracoBackOffice\**" />
+      <_UmbracoFolderFiles Include="umbraco\UmbracoInstall\**" />
+      <_UmbracoFolderFiles Include="umbraco\UmbracoWebsite\**" />
+      <_UmbracoFolderFiles Include="umbraco\Licenses\**" />
+      <ContentWithTargetPath Include="@(_UmbracoFolderFiles)" Exclude="@(ContentWithTargetPath)" TargetPath="%(Identity)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    The Razor source generator needs .cshtml files in @(AdditionalFiles). The Razor SDK adds them
+    via @(RazorGenerate), but only inside a target that runs during the build — so during cohost
+    design-time builds they may not be present yet, which is what PR #21861 worked around.
+
+    Doing the include at evaluation time (as PR #21861 did) causes duplicates with the SDK during
+    dotnet watch / hot reload design-time builds: the SDK adds the same .cshtml under a different
+    item Identity (slash form / relative vs absolute) and the generator then sees two inputs that
+    derive the same hintName, which crashes it with CS8785 (see issue #22773).
+
+    Run as a target before CoreCompile (hot-reload path) and CompileDesignTime (IDE design-time path)
+    so the SDK's contribution is visible in both cases. Then add only the .cshtml files that are not already
+    present. Both sides are normalized to %(FullPath) so items with different Identity forms still compare equal.
+
+    Set EnableCohostEditorCompatibility=false in a project to opt out entirely.
+  -->
+  <Target Name="_UmbracoEnsureRazorAdditionalFilesForCohostEditor"
+          BeforeTargets="CoreCompile;CompileDesignTime"
+          Condition="'$(DesignTimeBuild)' == 'true' and '$(EnableCohostEditorCompatibility)' != 'false'">
+    <ItemGroup>
+      <_UmbracoCshtmlCandidate Include="**\*.cshtml" />
+      <_UmbracoCshtmlCandidateFull Include="@(_UmbracoCshtmlCandidate->'%(FullPath)')" />
+
+      <_UmbracoExistingAdditionalCshtmlFull
+        Include="@(AdditionalFiles->'%(FullPath)')"
+        Condition="'%(Extension)' == '.cshtml'" />
+
+      <_UmbracoCshtmlMissingFromAdditional
+        Include="@(_UmbracoCshtmlCandidateFull)"
+        Exclude="@(_UmbracoExistingAdditionalCshtmlFull)" />
+
+      <AdditionalFiles Include="@(_UmbracoCshtmlMissingFromAdditional)" />
+    </ItemGroup>
+  </Target>
+</Project>

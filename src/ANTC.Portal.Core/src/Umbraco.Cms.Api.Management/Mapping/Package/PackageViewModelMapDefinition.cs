@@ -1,0 +1,67 @@
+using Umbraco.Cms.Api.Management.ViewModels.Package;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Mapping;
+using Umbraco.Cms.Core.Packaging;
+
+namespace Umbraco.Cms.Api.Management.Mapping.Package;
+
+/// <summary>
+/// Provides mapping configuration for converting package data to and from the <see cref="PackageDefinitionResponseModel"/>.
+/// </summary>
+public class PackageViewModelMapDefinition : IMapDefinition
+{
+    /// <summary>
+    /// Configures the object-object mappings for package-related models used in the management API.
+    /// This includes mappings between <see cref="PackageModelBase"/>, <see cref="PackageDefinition"/>, and <see cref="PackageDefinitionResponseModel"/>.
+    /// </summary>
+    /// <param name="mapper">The <see cref="IUmbracoMapper"/> instance used to register the mappings.</param>
+    public void DefineMaps(IUmbracoMapper mapper)
+    {
+        mapper.Define<PackageModelBase, PackageDefinition>((_, _) => new PackageDefinition(), Map);
+        mapper.Define<PackageDefinition, PackageDefinitionResponseModel>(
+            (_, _) => new PackageDefinitionResponseModel { Name = string.Empty, PackagePath = string.Empty },
+            Map);
+    }
+
+    // Umbraco.Code.MapAll -Id -PackageId -PackagePath
+    private static void Map(PackageModelBase source, PackageDefinition target, MapperContext context)
+    {
+        target.Name = source.Name;
+        target.ContentLoadChildNodes = source.ContentLoadChildNodes;
+        target.ContentNodeId = source.ContentNodeId;
+        target.Languages = source.Languages;
+        target.DictionaryItems = source.DictionaryItems;
+        target.Templates = source.Templates;
+        target.PartialViews = source.PartialViews;
+        target.DocumentTypes = source.DocumentTypes;
+        target.MediaTypes = source.MediaTypes;
+        target.Stylesheets = source.Stylesheets;
+        target.Scripts = source.Scripts;
+        target.DataTypes = source.DataTypes;
+        target.MediaUdis = source.MediaIds.Select(x => new GuidUdi(Constants.UdiEntityType.Media, x)).ToList();
+        target.MediaLoadChildNodes = source.MediaLoadChildNodes;
+        target.Elements = source.ElementIds ?? new List<Guid>();
+    }
+
+    // Umbraco.Code.MapAll
+    private static void Map(PackageDefinition source, PackageDefinitionResponseModel target, MapperContext context)
+    {
+        target.Id = source.PackageId;
+        target.Name = source.Name;
+        target.PackagePath = source.PackagePath;
+        target.ContentNodeId = source.ContentNodeId;
+        target.ContentLoadChildNodes = source.ContentLoadChildNodes;
+        target.MediaIds = source.MediaUdis.Select(x => x.Guid).ToList();
+        target.MediaLoadChildNodes = source.MediaLoadChildNodes;
+        target.ElementIds = source.Elements;
+        target.DocumentTypes = source.DocumentTypes;
+        target.MediaTypes = source.MediaTypes;
+        target.DataTypes = source.DataTypes;
+        target.Templates = source.Templates;
+        target.PartialViews = source.PartialViews;
+        target.Stylesheets = source.Stylesheets;
+        target.Scripts = source.Scripts;
+        target.Languages = source.Languages;
+        target.DictionaryItems = source.DictionaryItems;
+    }
+}

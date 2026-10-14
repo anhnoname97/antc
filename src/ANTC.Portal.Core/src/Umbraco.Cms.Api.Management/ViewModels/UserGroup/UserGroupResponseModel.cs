@@ -1,0 +1,22 @@
+namespace Umbraco.Cms.Api.Management.ViewModels.UserGroup;
+
+/// <summary>
+/// Represents a data transfer object containing information about a user group returned by the API.
+/// </summary>
+public class UserGroupResponseModel : UserGroupBase
+{
+    /// <summary>
+    /// Gets or sets the key identifier for the user group.
+    /// </summary>
+    public required Guid Id { get; init; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this user group is required at system level (thus cannot be removed).
+    /// </summary>
+    public bool IsDeletable { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this user group is required at system level (thus alias needs to be fixed).
+    /// </summary>
+    public bool AliasCanBeChanged { get; set; }
+}

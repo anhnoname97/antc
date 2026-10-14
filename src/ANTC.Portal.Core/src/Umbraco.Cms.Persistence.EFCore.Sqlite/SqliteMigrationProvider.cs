@@ -1,0 +1,53 @@
+using Microsoft.EntityFrameworkCore;
+using Umbraco.Cms.Persistence.EFCore.Migrations;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Persistence.EFCore.Sqlite;
+
+/// <summary>
+/// Provides SQLite-specific migration functionality for Umbraco's EF Core database context.
+/// </summary>
+public class SqliteMigrationProvider : IMigrationProvider
+{
+    private readonly IDbContextFactory<UmbracoDbContext> _dbContextFactory;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SqliteMigrationProvider"/> class.
+    /// </summary>
+    /// <param name="dbContextFactory">The factory for creating database context instances.</param>
+    public SqliteMigrationProvider(IDbContextFactory<UmbracoDbContext> dbContextFactory)
+        => _dbContextFactory = dbContextFactory;
+
+    /// <inheritdoc />
+    public string ProviderName => Constants.ProviderNames.SQLLite;
+
+    /// <inheritdoc />
+    public async Task MigrateAsync(EFCoreMigration migration)
+    {
+        UmbracoDbContext context = await _dbContextFactory.CreateDbContextAsync();
+        await context.MigrateDatabaseAsync(GetMigrationType(migration));
+    }
+
+    /// <inheritdoc />
+    public async Task MigrateAllAsync()
+    {
+        UmbracoDbContext context = await _dbContextFactory.CreateDbContextAsync();
+
+        if (context.Database.CurrentTransaction is not null)
+        {
+            throw new InvalidOperationException("Cannot migrate all when a transaction is active.");
+        }
+
+        await context.Database.MigrateAsync();
+    }
+
+    private static Type GetMigrationType(EFCoreMigration migration) =>
+        migration switch
+        {
+            EFCoreMigration.InitialCreate => typeof(Migrations.InitialCreate),
+            EFCoreMigration.AddOpenIddict => typeof(Migrations.AddOpenIddict),
+            EFCoreMigration.UpdateOpenIddictToV5 => typeof(Migrations.UpdateOpenIddictToV5),
+            EFCoreMigration.UpdateOpenIddictToV7 => typeof(Migrations.UpdateOpenIddictToV7),
+            _ => throw new ArgumentOutOfRangeException(nameof(migration), $@"Not expected migration value: {migration}")
+        };
+}

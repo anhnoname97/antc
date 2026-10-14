@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language alias="cy_gb" intName="Welsh (UK)" localName="Cymraeg (UK)" lcid="1106" culture="cy-GB">
+  <creator>
+    <name>Method4 Ltd</name>
+    <link>https://www.method4.co.uk/</link>
+  </creator>
+  <area alias="actions">
+    <key alias="assigndomain">Diwylliannau ac Enwau Gwesteia</key>
+    <key alias="auditTrail">Trywydd Archwilio</key>
+    <key alias="browse">Dewis Nod</key>
+    <key alias="changeDocType">Newid Math o Ddogfen</key>
+    <key alias="changeDataType">Newid Math o Data</key>
+    <key alias="copy">Copïo</key>
+    <key alias="create">Creu</key>
+    <key alias="export">Allforio</key>
+    <key alias="createPackage">Creu Pecyn</key>
+    <key alias="createGroup">Creu grŵp</key>
+    <key alias="delete">Dileu</key>
+    <key alias="disable">Analluogi</key>
+    <key alias="editSettings">Golygu gosodiadau</key>
+    <key alias="emptyrecyclebin">Gwagu bin ailgylchu</key>
+    <key alias="enable">Galluogi</key>
+    <key alias="exportDocumentType">Allforio Math o Ddogfen</key>
+    <key alias="importdocumenttype">Mewnforio Math o Ddogfen</key>
+    <key alias="importPackage">Mewnforio Pecyn</key>
+    <key alias="liveEdit">Golygu mewn Cynfas</key>
+    <key alias="logout">Gadael</key>
+    <key alias="move">Symud</key>
+    <key alias="notify">Hysbysiadau</key>
+    <key alias="protect">Cyrchiad cyhoeddus</key>
+    <key alias="publish">Cyhoeddi</key>
+    <key alias="unpublish">Dadgyhoeddi</key>
+    <key alias="refreshNode">Ail-lwytho</key>
+    <key alias="republish">Ail-gyhoeddi yr holl safle</key>
+    <key alias="remove">Dileu</key>
+    <key alias="rename" version="7.3.0">Ailenwi</key>
+    <key alias="restore" version="7.3.0">Adfer</key>
+    <key alias="chooseWhereToCopy">Dewis ble i copïo</key>
+    <key alias="chooseWhereToMove">Dewis ble i symud</key>
+    <key alias="toInTheTreeStructureBelow">Yn y strwythyr goeden isod</key>
+    <key alias="infiniteEditorChooseWhereToCopy">Dewis ble i gopïo'r eitem(au) a ddewiswyd</key>
+    <key alias="infiniteEditorChooseWhereToMove">Dewis ble i symud yr eitem(au) a ddewiswyd</key>
+    <key alias="wasMovedTo">wedi symud i</key>
+    <key alias="wasCopiedTo">wedi copïo i</key>
+    <key alias="wasDeleted">wedi dileu</key>
+    <key alias="rights">Hawliau</key>
+    <key alias="rollback">Rolio yn ôl</key>
+    <key alias="sendtopublish">Anfon I Gyhoeddi</key>
+    <key alias="sendToTranslate">Anfon I Gyfieithu</key>
+    <key alias="setGroup">Gosod grŵp</key>
+    <key alias="sort">Trefnu</key>
+    <key alias="translate">Cyfieithu</key>
+    <key alias="update">Diweddaru</key>
+    <key alias="setPermissions">Gosod Hawliau</key>
+    <key alias="unlock">Datgloi</key>
+    <key alias="createblueprint">Creu Templed Gynnwys</key>
+    <key alias="resendInvite">Ail-anfon Gwahoddiad</key>
+    <key alias="editContent">Golygu cynnwys</key>
+    <key alias="chooseWhereToImport">Dewiswch ble i fewnforio</key>
+    <key alias="toggleHideUnavailable">Cuddio opsiynau nad ydynt ar gael</key>
+  </area>
+  <area alias="content">
+    <key alias="itemNotPublished">Nid yw'r eitem yma wedi cael ei gyhoeddi</key>
+    <key alias="parentNotPublished">Mae'r ddogfen yma wedi'i gyhoeddi ond nid yw'n weladwy gan nad yw'r rhiant '%0%' wedi'i gyhoeddi</key>
+    <key alias="parentCultureNotPublished">Mae'r diwylliant yma yn cyhoeddedig ond ddim yn weladwy oherwydd mae'n anghyhoeddedig ar rhiant '%0%'</key>
+    <key alias="parentNotPublishedAnomaly">Mae'r ddogfen yma wedi'i gyhoeddi ond nid yw'n bodoli yn y storfa</key>
+    <key alias="getUrlException">Ni ellir nôl y url</key>
+    <key alias="routeError">Mae'r ddogfen yma wedi'i gyhoeddi ond byddai'r url yn gwrthdaro gyda chynnwys %0%</key>
+    <key alias="routeErrorCannotRoute">Mae'r ddogfen yma wedi'i gyhoeddi ond mae'r url methu cael ei cyfeirio</key>
+  </area>
+  <area alias="member">
+    <key alias="duplicateMemberLogin">Mae aelod gyda'r mewngofnodi hwn yn bodoli yn barod</key>
+    <key alias="memberHasGroup">Mae'r aelod yn y grŵp '%0%' yn barod</key>
+    <key alias="memberHasPassword">Mae gan yr aelod gyfrinair yn barod</key>
+    <key alias="memberLockoutNotEnabled">Nid yw cloi allan wedi'i alluogi ar gyfer yr aelod hwn</key>
+    <key alias="memberNotInGroup">Nid yw'r aelod yn y grŵp '%0%'</key>
+  </area>
+  <area alias="errors">
+    <key alias="defaultError">Mae methiant anhysbys wedi digwydd</key>
+    <key alias="concurrencyError">Methiant cydsyniadau optimistaidd, gwrthrych wedi'i addasu</key>
+  </area>
+  <area alias="login">
+    <key alias="resetCodeExpired">Mae'r ddolen rydych wedi clicio arno naill ai yn annilys neu wedi dod i ben</key>
+    <key alias="resetPasswordEmailCopySubject">Umbraco: Ailosod Cyfrinair</key>
+    <key alias="resetPasswordEmailCopyFormat">
+      <![CDATA[
+        <html>
+			<head>
+				<meta name='viewport' content='width=device-width'>
+				<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+			</head>
+			<body class='' style='font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; color: #392F54; line-height: 22px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background: #1d1333; margin: 0; padding: 0;' bgcolor='#1d1333'>
+				<style type='text/css'> @media only screen and (max-width: 620px) {table[class=body] h1 {font-size: 28px !important; margin-bottom: 10px !important; } table[class=body] .wrapper {padding: 32px !important; } table[class=body] .article {padding: 32px !important; } table[class=body] .content {padding: 24px !important; } table[class=body] .container {padding: 0 !important; width: 100% !important; } table[class=body] .main {border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; } table[class=body] .btn table {width: 100% !important; } table[class=body] .btn a {width: 100% !important; } table[class=body] .img-responsive {height: auto !important; max-width: 100% !important; width: auto !important; } } .btn-primary table td:hover {background-color: #34495e !important; } .btn-primary a:hover {background-color: #34495e !important; border-color: #34495e !important; } .btn  a:visited {color:#FFFFFF;} </style>
+				<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;" bgcolor="#1d1333">
+					<tr>
+						<td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 24px;" valign="top">
+							<table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+								<tr>
+									<td background="https://umbraco.com/umbraco/assets/img/application/logo.png" bgcolor="#1d1333" width="28" height="28" valign="top" style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+										<!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:30px;height:30px;"> <v:fill type="tile" src="https://umbraco.com/umbraco/assets/img/application/logo.png" color="#1d1333" /> <v:textbox inset="0,0,0,0"> <![endif]-->
+										<div> </div>
+										<!--[if gte mso 9]> </v:textbox> </v:rect> <![endif]-->
+									</td>
+									<td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top"></td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+				<table border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;' bgcolor='#1d1333'>
+					<tr>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+						<td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 560px; width: 560px; margin: 0 auto; padding: 10px;' valign='top'>
+							<div class='content' style='box-sizing: border-box; display: block; max-width: 560px; margin: 0 auto; padding: 10px;'>
+								<br>
+								<table class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-radius: 3px; background: #FFFFFF;' bgcolor='#FFFFFF'>
+									<tr>
+										<td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 50px;' valign='top'>
+											<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
+												<tr>
+													<td style='line-height: 24px; font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+														<h1 style='color: #392F54; font-family: sans-serif; font-weight: bold; line-height: 1.4; font-size: 24px; text-align: left; text-transform: capitalize; margin: 0 0 30px;' align='left'>
+															Ailosod cyfrinair wedi dymuno
+														</h1>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															Eich enw defnyddiwr ar gyfer swyddfa gefn Umbraco yw: <strong>%0%</strong>
+														</p>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;'>
+																<tbody>
+																	<tr>
+																		<td style='font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background: #35C786;' align='center' bgcolor='#35C786' valign='top'>
+																			<a href='%1%' target='_blank' rel='noopener' style='color: #FFFFFF; text-decoration: none; -ms-word-break: break-all; word-break: break-all; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; text-transform: capitalize; background: #35C786; margin: 0; padding: 12px 30px; border: 1px solid #35c786;'>
+																				Cliciwch y ddolen yma er mwyn ailosod eich cyfrinair
+																			</a>
+																		</td>
+																	</tr>
+																</tbody>
+															</table>
+														</p>
+														<p style='max-width: 400px; display: block; color: #392F54; font-family: sans-serif; font-size: 14px; line-height: 20px; font-weight: normal; margin: 15px 0;'>Os na allwch glicio ar y ddolen yma, copïwch a gludwch y URL i mewn i'ch porwr:</p>
+															<table border='0' cellpadding='0' cellspacing='0'>
+																<tr>
+																	<td style='-ms-word-break: break-all; word-break: break-all; font-family: sans-serif; font-size: 11px; line-height:14px;'>
+																		<font style="-ms-word-break: break-all; word-break: break-all; font-size: 11px; line-height:14px;">
+																			<a style='-ms-word-break: break-all; word-break: break-all; color: #392F54; text-decoration: underline; font-size: 11px; line-height:15px;' href='%1%'>%1%</a>
+																		</font>
+																	</td>
+																</tr>
+															</table>
+														</p>
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
+								<br><br><br>
+							</div>
+						</td>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+					</tr>
+				</table>
+			</body>
+		</html>
+	]]>
+    </key>
+  </area>
+  <area alias="notifications">
+    <key alias="mailBody">
+      <![CDATA[
+        Helo %0%
+
+        Mae hyn yn ebost awtomatig i'ch hysbysu fod y dasg '%1%'
+        wedi'i berfformio ar y dudalen '%2%'
+        gan y defnyddiwr '%3%'
+
+        Ewch at http://%4%/section/content/workspace/document/edit/%5% i olygu.
+
+        Mwynhewch eich diwrnod!
+
+        Hwyl fawr oddi wrth y robot Umbraco
+        ]]>
+    </key>
+    <key alias="mailBodyVariantSummary">Mae'r ieithoedd canlynol wedi'u haddasu %0%</key>
+    <key alias="mailBodyHtml">
+      <![CDATA[
+        <html>
+			<head>
+				<meta name='viewport' content='width=device-width'>
+				<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+			</head>
+			<body class='' style='font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; color: #392F54; line-height: 22px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background: #1d1333; margin: 0; padding: 0;' bgcolor='#1d1333'>
+				<style type='text/css'> @media only screen and (max-width: 620px) {table[class=body] h1 {font-size: 28px !important; margin-bottom: 10px !important; } table[class=body] .wrapper {padding: 32px !important; } table[class=body] .article {padding: 32px !important; } table[class=body] .content {padding: 24px !important; } table[class=body] .container {padding: 0 !important; width: 100% !important; } table[class=body] .main {border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; } table[class=body] .btn table {width: 100% !important; } table[class=body] .btn a {width: 100% !important; } table[class=body] .img-responsive {height: auto !important; max-width: 100% !important; width: auto !important; } } .btn-primary table td:hover {background-color: #34495e !important; } .btn-primary a:hover {background-color: #34495e !important; border-color: #34495e !important; } .btn  a:visited {color:#FFFFFF;} </style>
+				<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;" bgcolor="#1d1333">
+					<tr>
+						<td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 24px;" valign="top">
+							<table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+								<tr>
+									<td background="https://umbraco.com/umbraco/assets/img/application/logo.png" bgcolor="#1d1333" width="28" height="28" valign="top" style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+										<!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:30px;height:30px;"> <v:fill type="tile" src="https://umbraco.com/umbraco/assets/img/application/logo.png" color="#1d1333" /> <v:textbox inset="0,0,0,0"> <![endif]-->
+										<div> </div>
+										<!--[if gte mso 9]> </v:textbox> </v:rect> <![endif]-->
+									</td>
+									<td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top"></td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+				<table border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;' bgcolor='#1d1333'>
+					<tr>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+						<td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 560px; width: 560px; margin: 0 auto; padding: 10px;' valign='top'>
+							<div class='content' style='box-sizing: border-box; display: block; max-width: 560px; margin: 0 auto; padding: 10px;'>
+								<br>
+								<table class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-radius: 3px; background: #FFFFFF;' bgcolor='#FFFFFF'>
+									<tr>
+										<td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 50px;' valign='top'>
+											<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
+												<tr>
+													<td style='line-height: 24px; font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+														<h1 style='color: #392F54; font-family: sans-serif; font-weight: bold; line-height: 1.4; font-size: 24px; text-align: left; text-transform: capitalize; margin: 0 0 30px;' align='left'>
+															Helo %0%,
+														</h1>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															Mae hyn yn ebost awtomatig i'ch hysbysu fod y dasg <strong>'%1%'</strong> wedi'i berfformio ar y dudalen <a style="color: #392F54; text-decoration: none; -ms-word-break: break-all; word-break: break-all;" href="http://%4%/section/content/workspace/document/edit/%5%"><strong>'%2%'</strong></a> gan y defnyddiwr <strong>'%3%'</strong>
+														</p>
+														<table border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;'>
+															<tbody>
+																<tr>
+																	<td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+																		<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;'><tbody><tr>
+																			<td style='font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background: #35C786;' align='center' bgcolor='#35C786' valign='top'>
+																				<a href='http://%4%/section/content/workspace/document/edit/%5%' target='_blank' rel='noopener' style='color: #FFFFFF; text-decoration: none; -ms-word-break: break-all; word-break: break-all; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; text-transform: capitalize; background: #35C786; margin: 0; padding: 12px 30px; border: 1px solid #35c786;'>GOLYGU</a> </td> </tr></tbody></table>
+																	</td>
+																</tr>
+															</tbody>
+														</table>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															<h3>Crynodeb diweddariad:</h3>
+															<table style="width: 100%;">
+																 %6%
+															</table>
+														</p>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															Mwynhewch eich diwrnod!<br /><br />
+															Hwyl fawr oddi wrth y robot Umbraco
+														</p>
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
+								<br><br><br>
+							</div>
+						</td>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+					</tr>
+				</table>
+			</body>
+		</html>
+	]]>
+    </key>
+    <key alias="mailBodyVariantHtmlSummary">
+      <![CDATA[<p>Mae'r ieithoedd canlynol wedi'u haddasu:</p>
+        %0%
+    ]]>
+    </key>
+    <key alias="mailSubject">[%0%] Hysbysiad am %1% wedi perfformio am %2%</key>
+  </area>
+  <area alias="user">
+    <key alias="passwordMismatch">Nid yw'r cyfrinair cadarnhau yn cyfateb â'r cyfrinair newydd!</key>
+    <key alias="inviteEmailCopySubject">Umbraco: Gwahoddiad</key>
+    <key alias="inviteEmailCopyFormat">
+      <![CDATA[
+        <html>
+			<head>
+				<meta name='viewport' content='width=device-width'>
+				<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+			</head>
+			<body class='' style='font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; color: #392F54; line-height: 22px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background: #1d1333; margin: 0; padding: 0;' bgcolor='#1d1333'>
+				<style type='text/css'> @media only screen and (max-width: 620px) {table[class=body] h1 {font-size: 28px !important; margin-bottom: 10px !important; } table[class=body] .wrapper {padding: 32px !important; } table[class=body] .article {padding: 32px !important; } table[class=body] .content {padding: 24px !important; } table[class=body] .container {padding: 0 !important; width: 100% !important; } table[class=body] .main {border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; } table[class=body] .btn table {width: 100% !important; } table[class=body] .btn a {width: 100% !important; } table[class=body] .img-responsive {height: auto !important; max-width: 100% !important; width: auto !important; } } .btn-primary table td:hover {background-color: #34495e !important; } .btn-primary a:hover {background-color: #34495e !important; border-color: #34495e !important; } .btn  a:visited {color:#FFFFFF;} </style>
+				<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;" bgcolor="#1d1333">
+					<tr>
+						<td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 24px;" valign="top">
+							<table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+								<tr>
+									<td background="https://umbraco.com/umbraco/assets/img/application/logo.png" bgcolor="#1d1333" width="28" height="28" valign="top" style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+										<!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:30px;height:30px;"> <v:fill type="tile" src="https://umbraco.com/umbraco/assets/img/application/logo.png" color="#1d1333" /> <v:textbox inset="0,0,0,0"> <![endif]-->
+										<div> </div>
+										<!--[if gte mso 9]> </v:textbox> </v:rect> <![endif]-->
+									</td>
+									<td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top"></td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+				<table border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #1d1333;' bgcolor='#1d1333'>
+					<tr>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+						<td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 560px; width: 560px; margin: 0 auto; padding: 10px;' valign='top'>
+							<div class='content' style='box-sizing: border-box; display: block; max-width: 560px; margin: 0 auto; padding: 10px;'>
+								<br>
+								<table class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-radius: 3px; background: #FFFFFF;' bgcolor='#FFFFFF'>
+									<tr>
+										<td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 50px;' valign='top'>
+											<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;'>
+												<tr>
+													<td style='line-height: 24px; font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+														<h1 style='color: #392F54; font-family: sans-serif; font-weight: bold; line-height: 1.4; font-size: 24px; text-align: left; text-transform: capitalize; margin: 0 0 30px;' align='left'>
+															Helo %0%,
+														</h1>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															Rydych wedi cael eich gwahodd gan <a href="mailto:%4%" style="text-decoration: underline; color: #392F54; -ms-word-break: break-all; word-break: break-all;">%1%</a> i'r Swyddfa Gefn Umbraco.
+														</p>
+														<p style='color: #392F54; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;'>
+															Neges oddi wrth <a href="mailto:%1%" style="text-decoration: none; color: #392F54; -ms-word-break: break-all; word-break: break-all;">%1%</a>:
+															<br/>
+															<em>%2%</em>
+														</p>
+														<table border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;'>
+															<tbody>
+																<tr>
+																	<td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+																		<table border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;'>
+																			<tbody>
+																				<tr>
+																					<td style='font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background: #35C786;' align='center' bgcolor='#35C786' valign='top'>
+																						<a href='%3%' target='_blank' rel='noopener' style='color: #FFFFFF; text-decoration: none; -ms-word-break: break-all; word-break: break-all; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; text-transform: capitalize; background: #35C786; margin: 0; padding: 12px 30px; border: 1px solid #35c786;'>
+																							Cliciwch y ddolen yma i dderbyn y gwahoddiad
+																						</a>
+																					</td>
+																				</tr>
+																			</tbody>
+																		</table>
+																	</td>
+																</tr>
+															</tbody>
+														</table>
+														<p style='max-width: 400px; display: block; color: #392F54; font-family: sans-serif; font-size: 14px; line-height: 20px; font-weight: normal; margin: 15px 0;'>Os na allwch chi glicio ar y ddolen, copiwch a gludwch y URL i mewn i'ch porwr:</p>
+															<table border='0' cellpadding='0' cellspacing='0'>
+																<tr>
+																	<td style='-ms-word-break: break-all; word-break: break-all; font-family: sans-serif; font-size: 11px; line-height:14px;'>
+																		<font style="-ms-word-break: break-all; word-break: break-all; font-size: 11px; line-height:14px;">
+																			<a style='-ms-word-break: break-all; word-break: break-all; color: #392F54; text-decoration: underline; font-size: 11px; line-height:15px;' href='%3%'>%3%</a>
+																		</font>
+																	</td>
+																</tr>
+															</table>
+														</p>
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
+								<br><br><br>
+							</div>
+						</td>
+						<td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'> </td>
+					</tr>
+				</table>
+			</body>
+    </html>]]>
+    </key>
+    <key alias="duplicateLogin">Mae defnyddiwr gyda'r mewngofnodi hwn eisoes yn bodoli</key>
+    <key alias="passwordRequiresDigit">Rhaid bod gan y cyfrinair o leiaf un digid ('0'-'9')</key>
+    <key alias="passwordRequiresLower">Rhaid bod gan y cyfrinair o leiaf un llythrennau bach ('a'-'z')</key>
+    <key alias="passwordRequiresNonAlphanumeric">Rhaid i'r cyfrinair gynnwys o leiaf un nod nad yw'n alffaniwmerig</key>
+    <key alias="passwordRequiresUniqueChars">Rhaid i'r cyfrinair ddefnyddio o leiaf %0% o nodau gwahanol</key>
+    <key alias="passwordRequiresUpper">Rhaid bod gan y cyfrinair o leiaf un priflythrennau ('A'-'Z')</key>
+    <key alias="passwordTooShort">Rhaid i'r cyfrinair fod o leiaf %0% nod</key>
+    <key alias="userHasPassword">Mae gan y defnyddiwr set cyfrinair yn barod</key>
+    <key alias="userHasGroup">Mae'r defnyddiwr yn y grŵp '%0%' yn barod </key>
+    <key alias="userLockoutNotEnabled">Nid yw cloi allan wedi'i alluogi ar gyfer y defnyddiwr hwn</key>
+    <key alias="userNotInGroup">Nid yw'r defnyddiwr yn y grŵp '%0%'</key>
+  </area>
+  <area alias="validation">
+    <key alias="invalidEmail">Ebost annilys</key>
+    <key alias="invalidNull">Ni all y gwerth fod yn null</key>
+    <key alias="invalidEmpty">Ni all y gwerth fod yn gwag</key>
+    <key alias="invalidPattern">Mae'r gwerth yn annilys, nid yw'n cyfateb i'r patrwm cywir</key>
+    <key alias="entriesShort"><![CDATA[Lleiafswm o %0% gofnodion, angen <strong>%1%</strong> mwy.]]></key>
+    <key alias="entriesExceed"><![CDATA[Uchafswm o %0% gofnodion, <strong>%1%</strong> gormod.]]></key>
+    <key alias="invalidMemberGroupName">Enw grŵp aelod annilys</key>
+    <key alias="invalidUserGroupName">Enw grŵp defnyddiwr annilys</key>
+    <key alias="invalidToken">Tocyn annilys</key>
+    <key alias="invalidUsername">Enw defnyddiwr annilys</key>
+    <key alias="duplicateEmail">Mae e-bost '%0%' wedi'i gymryd yn barod</key>
+    <key alias="duplicateUserGroupName">Mae enw grŵp defnyddiwr '%0%' wedi'i gymryd yn barod</key>
+    <key alias="duplicateMemberGroupName">Mae enw grŵp aelod '%0%' wedi'i gymryd yn barod</key>
+    <key alias="duplicateUsername">Mae'r enw defnyddiwr '%0%' wedi'i gymryd yn barod</key>
+    <key alias="entriesAreasMismatch">Nid yw'r gofynion maint cynnwys yn cael eu bodloni ar gyfer un maes neu fwy.</key>
+  </area>
+  <area alias="healthcheck">
+    <!-- The following keys get these tokens passed in:
+   0: Current value
+   1: Recommended value
+   2: XPath
+   3: Configuration file path
+-->
+    <key alias="checkSuccessMessage">Gwerth wedi'i osod at y gwerth argymhellwyd: '%0%'.</key>
+    <key alias="checkErrorMessageDifferentExpectedValue">Yn disgwyl y gwerth '%1%' ar gyfer '%2%' yn y ffeil ffurfweddu '%3%', ond darganfyddwyd '%0%'.</key>
+    <key alias="checkErrorMessageUnexpectedValue">Darganfyddwyd gwerth annisgwyl '%0%' ar gyfer '%2%' yn y ffeil ffurfweddu '%3%'.</key>
+    <!-- The following keys get these tokens passed in:
+   0: Current value
+   1: Recommended value
+-->
+    <!-- The following keys get these tokens passed in:
+   0: Current value
+   1: Recommended value
+   2: Server version
+-->
+    <!-- The following keys get predefined tokens passed in that are not all the same, like above -->
+    <key alias="httpsCheckValidCertificate">Mae tystysgrif eich gwefan yn ddilys.</key>
+    <key alias="httpsCheckInvalidCertificate">Gwall dilysu tystysgrif: '%0%'</key>
+    <key alias="httpsCheckExpiredCertificate">Mae tystysgrif SSL eich gwefan wedi terfynu.</key>
+    <key alias="httpsCheckExpiringCertificate">Mae tystysgrif SSL eich gwefan am derfynu mewn %0% diwrnod.</key>
+    <key alias="healthCheckInvalidUrl">Gwall yn pingio'r URL %0% - '%1%'</key>
+    <key alias="httpsCheckIsCurrentSchemeHttps">Rydych yn bresennol %0% yn gweld y wefan yn defnyddio'r cynllun HTTPS.</key>
+    <!-- The following keys don't get tokens passed in -->
+    <key alias="compilationDebugCheckSuccessMessage">Modd casgliad dadfygio wedi'i analluogi.</key>
+    <key alias="compilationDebugCheckErrorMessage">Modd casgliad dadfygio wedi'i alluogi. Argymhellwyd analluogi'r gosodiad yma cyn mynd yn fyw.</key>
+    <key alias="runtimeModeCheckSuccessMessage">Mae'r modd rhedeg wedi'i osod i gynhyrchu.</key>
+    <key alias="runtimeModeCheckErrorMessage">Nid yw'r modd rhedeg wedi'i osod i Gynhyrchu. Argymhellir gosod y Modd Rhedeg i Gynhyrchu ar gyfer amgylcheddau byw/cynhyrchu.</key>
+    <!-- The following keys get these tokens passed in:
+  0: Comma delimitted list of failed folder paths
+-->
+    <!-- The following key get these tokens passed in:
+  0: Comma delimitted list of headers found
+-->
+    <key alias="clickJackingCheckHeaderFound"><![CDATA[Mae'r peniad neu meta-tag <strong>X-Frame-Options</strong> sy'n cael ei ddefnyddio i reoli os mae safle'n gallu cael ei osod o fewn IFRAME gan safle arall wedi'i ganfod.]]></key>
+    <key alias="clickJackingCheckHeaderNotFound"><![CDATA[Nid yw'r peniad neu meta-tag <strong>X-Frame-Options</strong> sy'n cael ei ddefnyddio i reoli os mae safle'n gallu cael ei osod o fewn IFRAME gan safle arall wedi'i ganfod.]]></key>
+    <key alias="noSniffCheckHeaderFound"><![CDATA[Mae'r peniad neu meta-tag <strong>X-Content-Type-Options</strong> sy'n cael ei ddefnyddio i amddiffyn yn erbyn gwendidau sniffio MIME wedi'i ganfod.]]></key>
+    <key alias="noSniffCheckHeaderNotFound"><![CDATA[Nid yw'r peniad neu meta-tag <strong>X-Content-Type-Options</strong> sy'n cael ei ddefnyddio i amddiffyn yn erbyn gwendidau sniffio MIME wedi'i ganfod.]]></key>
+    <key alias="hSTSCheckHeaderFound"><![CDATA[Mae'r peniad <strong>Strict-Transport-Security</strong>, hefyd wedi'i adnabod fel HSTS-header, wedi'i ganfod.]]></key>
+    <key alias="hSTSCheckHeaderNotFound"><![CDATA[Nid yw'r peniad <strong>Strict-Transport-Security</strong> wedi'i ganfod.]]></key>
+    <key alias="hSTSCheckHeaderFoundOnLocalhost"><![CDATA[Darganfuwyd y pennyn <strong>Strict-Transport-Security</strong>, a elwir hefyd yn HSTS-header. <strong>Ni ddylai'r pennyn hwn fod yn bresennol ar localhost.</strong>]]></key>
+    <key alias="hSTSCheckHeaderNotFoundOnLocalhost"><![CDATA[Ni ddaethpwyd o hyd i'r pennyn <strong>Strict-Transport-Security</strong>. Ni ddylai'r pennyn hwn fod yn bresennol ar localhost.]]></key>
+    <key alias="xssProtectionCheckHeaderFound"><![CDATA[Mae'r peniad <strong>X-XSS-Protection</strong> wedi'i ganfod.]]></key>
+    <key alias="xssProtectionCheckHeaderNotFound"><![CDATA[Nid yw'r peniad <strong>X-XSS-Protection</strong> wedi'i ganfod.]]></key>
+    <key alias="contentSecurityPolicyCheckHeaderFound"><![CDATA[Mae'r peniad <strong>Content-Security-Policy (CSP)</strong> wedi'i ganfod.]]></key>
+    <key alias="contentSecurityPolicyCheckHeaderNotFound"><![CDATA[Nid yw'r peniad <strong>Content-Security-Policy (CSP)</strong>, a ddefnyddir i atal ymosodiadau sgriptio traws-safle (XSS) a gwendidau pigiad cod eraill, wedi'i ganfod.]]></key>
+    <key alias="excessiveHeadersFound"><![CDATA[Mae'r peniadau canlynol sy'n datgelu gwynodaeth am dechnoleg eich gwefan wedi'u canfod: <strong>%0%</strong>.]]></key>
+    <key alias="excessiveHeadersNotFound">Dim peniadau sy'n datgelu gwynodaeth am dechnoleg eich gwefan wedi'u canfod.</key>
+    <key alias="smtpMailSettingsConnectionSuccess">Gosodiadau SMTP wedi ffurfweddu'n gywir ac mae'r gwasanaeth yn gweithio fel y disgwylir.</key>
+    <key alias="notificationEmailsCheckSuccessMessage"><![CDATA[Ebost hysbusu wedi'i osod at <strong>%0%</strong>.]]></key>
+    <key alias="notificationEmailsCheckErrorMessage"><![CDATA[Ebost hysbusu yn dal wedi'i osod at y gwerth diofyn o <strong>%0%</strong>.]]></key>
+    <key alias="scheduledHealthCheckEmailBody"><![CDATA[<html><body><p>Canlyniadau'r gwiriad Statws Iechyd Umbraco ar amserlen rhedwyd ar %0% am %1% fel y ganlyn:</p>%2%</body></html>]]></key>
+    <key alias="scheduledHealthCheckEmailSubject">Statws Iechyd Umbraco: %0%</key>
+    <key alias="httpsCheckConfigurationRectifyNotPossible">Mae gosodiad ap 'Umbraco:CMS:Global:UseHttps' wedi'i osod i 'false' yn eich ffeil appSettings.json. Unwaith y byddwch yn cyrchu'r wefan hon gan ddefnyddio'r cynllun HTTPS, dylid gosod hwnnw i 'true'.</key>
+    <key alias="httpsCheckConfigurationCheckResult">Mae'r gosodiad ap 'Umbraco:CMS:Global:UseHttps' wedi'i osod i '%0%' yn eich ffeil appSettings.json, mae eich cwcis %1% wedi'u marcio'n ddiogel.</key>
+    <key alias="umbracoApplicationUrlCheckResultTrue">Mae gosodiad yr ap 'Umbraco:CMS:WebRouting:UmbracoApplicationUrl' wedi'i osod i <strong>%0%</strong>.</key>
+    <key alias="umbracoApplicationUrlCheckResultFalse"><![CDATA[Nid yw gosodiad ap 'Umbraco:CMS:WebRouting:UmbracoApplicationUrl' wedi'i osod, felly bydd URL y rhaglen yn cael ei ganfod yn awtomatig o geisiadau sy'n dod i mewn. Argymhellir ei osod yn benodol.]]></key>
+    <key alias="umbracoApplicationUrlCheckResultError"><![CDATA[Nid yw gosodiad ap 'Umbraco:CMS:WebRouting:UmbracoApplicationUrl' wedi'i osod ac mae canfod URL y rhaglen yn awtomatig wedi'i analluogi (mae 'Umbraco:CMS:WebRouting:ApplicationUrlDetection' yn 'None'). Ni fydd nodweddion sydd angen URL absoliwt, fel e-byst ailosod cyfrinair a gwahoddiadau, yn gweithio. Gosodwch URL y rhaglen yn benodol, neu galluogwch ganfod yn awtomatig.]]></key>
+    <key alias="smtpMailSettingsNotFound">Nid oedd modd dod o hyd i'r ffurfweddiad 'Umbraco:CMS:Global:Smtp'.</key>
+    <key alias="smtpMailSettingsHostNotConfigured">Nid oedd modd dod o hyd i'r ffurfweddiad 'Umbraco:CMS:Global:Smtp:Host'.</key>
+    <key alias="smtpMailSettingsConnectionFail">Methwyd cyrraedd y gweinydd SMTP a ffurfweddwyd gyda gwesteiwr '%0%' a phorth '%1%'. Gwiriwch i sicrhau bod y gosodiadau SMTP yn y ffurfweddiad 'Umbraco:CMS:Global:Smtp' yn gywir.</key>
+  </area>
+  <area alias="permissions">
+    <key alias="FolderCreation">Creu ffolder</key>
+    <key alias="FileWritingForPackages">Ysgrifennu ffeiliau ar gyfer pecynnau</key>
+    <key alias="FileWriting">Ysgrifennu ffeil</key>
+    <key alias="MediaFolderCreation">Creu ffolder cyfryngau</key>
+  </area>
+  <area alias="analytics">
+    <key alias="minimalLevelDescription">Byddwn ond yn anfon ID safle dienw i roi gwybod i ni bod y wefan yn bodoli.</key>
+    <key alias="basicLevelDescription">Byddwn yn anfon ID safle dienw, fersiwn Umbraco, a phecynnau wedi'u gosod</key>
+    <key alias="detailedLevelDescription">
+      Byddwn yn anfon:
+      <ul>
+        <li>ID safle dienw, fersiwn Umbraco, a phecynnau wedi'u gosod.</li>
+        <li>Nifer o: Nodau gwraidd, Nodau Cynnwys, Macros, Cyfryngau, Mathau o Ddogfen, Templedi, Ieithoedd, Parthau, Grŵp Defnyddwyr, Defnyddwyr, Aelodau, a Golygyddion Eiddo a ddefnyddir.</li>
+        <li>Gwybodaeth system: Webserver, gweinydd OS, fframwaith gweinydd, iaith gweinyddwr OS, a darparwr cronfa ddata.</li>
+        <li>Gosodiadau cyfluniad: Modd Modelsbuilder, os oes llwybr Umbraco arferol yn bodoli, amgylchedd ASP, ac os ydych chi yn y modd dadfygio.</li>
+      </ul>
+      <em>
+        Efallai y byddwn yn newid yr hyn a anfonwn ar y lefel Fanwl yn y dyfodol. Os felly, fe'i rhestrir uchod.
+        <br />Drwy ddewis "Manwl" rydych yn cytuno i wybodaeth ddienw yn awr ac yn y dyfodol gael ei chasglu.
+      </em>
+    </key>
+  </area>
+</language>

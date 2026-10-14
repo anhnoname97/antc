@@ -1,0 +1,6 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+}
+@* Trang tam. Thay toan bo noi dung duoi day khi dung trang that (FE-25 … FE-29 (FE2) · BE-22 … BE-24 (BE2). Dữ liệu: GET /api/v1/quiz/topics (đã chạy)). *@
+@await Html.PartialAsync("_PageStub", ("Cuộc thi trực tuyến", "Tám chuyên đề, 200 câu. Đăng ký xong là vào thi ngay.", "FE-25 … FE-29 (FE2) · BE-22 … BE-24 (BE2). Dữ liệu: GET /api/v1/quiz/topics (đã chạy)", "th-01 … th-11"))

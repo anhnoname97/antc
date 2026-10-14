@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Umbraco.Cms.Web.UI</RootNamespace>
+    <!-- Tat nen file tinh cua dotnet: file backoffice da duoc nen san -->
+    <CompressionEnabled>false</CompressionEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Umbraco core: tu feed noi bo (xem ../nuget.config). Version tu Directory.Packages.props -->
+    <PackageReference Include="Umbraco.Cms" />
+    <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" />
+    <!-- Dong bo cau truc va noi dung qua thu muc uSync/ (commit vao git) -->
+    <PackageReference Include="uSync" />
+    <!-- Code cua du an -->
+    <ProjectReference Include="..\Umbraco.Plugin.Custom.Core\Umbraco.Plugin.Custom.Core.csproj" />
+    <ProjectReference Include="..\Umbraco.Plugin.Custom.Api\Umbraco.Plugin.Custom.Api.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- ICU di kem ung dung de xu ly tieng Viet (sap xep, so sanh chuoi) giong nhau tren Windows va Linux -->
+    <UmbracoUseAppLocalIcu Condition="'$(UmbracoUseAppLocalIcu)' == '' and ($(RuntimeIdentifier.StartsWith('linux')) or $(RuntimeIdentifier.StartsWith('win')) or ('$(RuntimeIdentifier)' == '' and !$([MSBuild]::IsOSPlatform('osx'))))">true</UmbracoUseAppLocalIcu>
+    <UmbracoUseAppLocalIcu Condition="'$(UmbracoUseAppLocalIcu)' == ''">false</UmbracoUseAppLocalIcu>
+    <UmbracoAppLocalIcuVersion Condition="'$(UmbracoAppLocalIcuVersion)' == ''">72.1.0.3</UmbracoAppLocalIcuVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(UmbracoUseAppLocalIcu)' == 'true'">
+    <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" />
+    <RuntimeHostConfigurationOption Include="System.Globalization.AppLocalIcu" Value="$(UmbracoAppLocalIcuVersion)" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- File Razor can co trong ban publish de backoffice hoat dong -->
+    <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
+    <!-- Bo hai dong duoi neu KHONG dung ModelsMode InMemoryAuto -->
+    <RazorCompileOnBuild>false</RazorCompileOnBuild>
+    <RazorCompileOnPublish>false</RazorCompileOnPublish>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Cau hinh rieng tung may, khong dua vao ban publish -->
+    <Content Update="appsettings.Local.json" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+</Project>

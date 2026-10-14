@@ -1,0 +1,896 @@
+using System.Data;
+using Examine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.PublishedCache;
+using Umbraco.Cms.Core.Routing;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.Navigation;
+using Umbraco.Cms.Core.Web;
+
+namespace Umbraco.Extensions;
+
+public static class FriendlyPublishedContentExtensions
+{
+    private static IVariationContextAccessor? _variationContextAccessor;
+    private static IDomainCache? _domainCache;
+    private static IPublishedContentCache? _publishedContentCache;
+    private static IDocumentNavigationQueryService? _documentNavigationQueryService;
+    private static IMediaNavigationQueryService? _mediaNavigationQueryService;
+    private static IPublishedModelFactory? _publishedModelFactory;
+    private static IPublishedUrlProvider? _publishedUrlProvider;
+    private static IUmbracoContextAccessor? _umbracoContextAccessor;
+    private static ISiteDomainMapper? _siteDomainHelper;
+    private static IExamineManager? _examineManager;
+    private static ITemplateService? _templateService;
+    private static IOptions<WebRoutingSettings>? _webRoutingSettings;
+    private static IContentTypeService? _contentTypeService;
+    private static IPublishedValueFallback? _publishedValueFallback;
+    private static IMediaTypeService? _mediaTypeService;
+    private static IMemberTypeService? _memberTypeService;
+    private static IDocumentUrlService? _documentUrlService;
+
+    private static IVariationContextAccessor VariationContextAccessor
+    {
+        get
+        {
+            _variationContextAccessor ??= StaticServiceProvider.Instance.GetRequiredService<IVariationContextAccessor>();
+            return _variationContextAccessor;
+        }
+    }
+
+    private static IDomainCache DomainCache
+    {
+        get
+        {
+            _domainCache ??= StaticServiceProvider.Instance.GetRequiredService<IDomainCache>();
+            return _domainCache;
+        }
+    }
+
+    private static IPublishedContentCache PublishedContentCache
+    {
+        get
+        {
+            _publishedContentCache ??= StaticServiceProvider.Instance.GetRequiredService<IPublishedContentCache>();
+            return _publishedContentCache;
+        }
+    }
+
+    private static IDocumentNavigationQueryService DocumentNavigationQueryService
+    {
+        get
+        {
+            _documentNavigationQueryService ??= StaticServiceProvider.Instance.GetRequiredService<IDocumentNavigationQueryService>();
+            return _documentNavigationQueryService;
+        }
+    }
+
+    private static IMediaNavigationQueryService MediaNavigationQueryService
+    {
+        get
+        {
+            _mediaNavigationQueryService ??= StaticServiceProvider.Instance.GetRequiredService<IMediaNavigationQueryService>();
+            return _mediaNavigationQueryService;
+        }
+    }
+
+    private static IPublishedModelFactory PublishedModelFactory
+    {
+        get
+        {
+            _publishedModelFactory ??= StaticServiceProvider.Instance.GetRequiredService<IPublishedModelFactory>();
+            return _publishedModelFactory;
+        }
+    }
+
+    private static IPublishedUrlProvider PublishedUrlProvider
+    {
+        get
+        {
+            _publishedUrlProvider ??= StaticServiceProvider.Instance.GetRequiredService<IPublishedUrlProvider>();
+            return _publishedUrlProvider;
+        }
+    }
+
+    private static IUmbracoContextAccessor UmbracoContextAccessor
+    {
+        get
+        {
+            _umbracoContextAccessor ??= StaticServiceProvider.Instance.GetRequiredService<IUmbracoContextAccessor>();
+            return _umbracoContextAccessor;
+        }
+    }
+
+    private static ISiteDomainMapper SiteDomainHelper
+    {
+        get
+        {
+            _siteDomainHelper ??= StaticServiceProvider.Instance.GetRequiredService<ISiteDomainMapper>();
+            return _siteDomainHelper;
+        }
+    }
+
+    private static IExamineManager ExamineManager
+    {
+        get
+        {
+            _examineManager ??= StaticServiceProvider.Instance.GetRequiredService<IExamineManager>();
+            return _examineManager;
+        }
+    }
+
+    private static ITemplateService TemplateService
+    {
+        get
+        {
+            _templateService ??= StaticServiceProvider.Instance.GetRequiredService<ITemplateService>();
+            return _templateService;
+        }
+    }
+
+    private static IOptions<WebRoutingSettings> WebRoutingSettings
+    {
+        get
+        {
+            _webRoutingSettings ??= StaticServiceProvider.Instance.GetRequiredService<IOptions<WebRoutingSettings>>();
+            return _webRoutingSettings;
+        }
+    }
+
+    private static IContentTypeService ContentTypeService
+    {
+        get
+        {
+            _contentTypeService ??= StaticServiceProvider.Instance.GetRequiredService<IContentTypeService>();
+            return _contentTypeService;
+        }
+    }
+
+    private static IPublishedValueFallback PublishedValueFallback
+    {
+        get
+        {
+            _publishedValueFallback ??= StaticServiceProvider.Instance.GetRequiredService<IPublishedValueFallback>();
+            return _publishedValueFallback;
+        }
+    }
+
+    private static IMediaTypeService MediaTypeService
+    {
+        get
+        {
+            _mediaTypeService ??= StaticServiceProvider.Instance.GetRequiredService<IMediaTypeService>();
+            return _mediaTypeService;
+        }
+    }
+
+    private static IMemberTypeService MemberTypeService
+    {
+        get
+        {
+            _memberTypeService ??= StaticServiceProvider.Instance.GetRequiredService<IMemberTypeService>();
+            return _memberTypeService;
+        }
+    }
+
+    private static IDocumentUrlService DocumentUrlService
+    {
+        get
+        {
+            _documentUrlService ??= StaticServiceProvider.Instance.GetRequiredService<IDocumentUrlService>();
+            return _documentUrlService;
+        }
+    }
+
+    internal static void Reset()
+    {
+        _variationContextAccessor = null;
+        _domainCache = null;
+        _publishedContentCache = null;
+        _documentNavigationQueryService = null;
+        _mediaNavigationQueryService = null;
+        _publishedModelFactory = null;
+        _publishedUrlProvider = null;
+        _umbracoContextAccessor = null;
+        _siteDomainHelper = null;
+        _examineManager = null;
+        _templateService = null;
+        _webRoutingSettings = null;
+        _contentTypeService = null;
+        _publishedValueFallback = null;
+        _mediaTypeService = null;
+        _memberTypeService = null;
+        _documentUrlService = null;
+    }
+
+    private static INavigationQueryService GetNavigationQueryService(IPublishedContent content)
+    {
+        switch (content.ContentType.ItemType)
+        {
+            case PublishedItemType.Content:
+                return DocumentNavigationQueryService;
+            case PublishedItemType.Media:
+                return MediaNavigationQueryService;
+            default:
+                throw new NotSupportedException("Unsupported content type.");
+        }
+    }
+
+    private static IPublishedStatusFilteringService GetPublishedStatusFilteringService(IPublishedContent content)
+    {
+        switch (content.ContentType.ItemType)
+        {
+            case PublishedItemType.Content:
+                return StaticServiceProvider.Instance.GetRequiredService<IPublishedContentStatusFilteringService>();
+            case PublishedItemType.Media:
+                return StaticServiceProvider.Instance.GetRequiredService<IPublishedMediaStatusFilteringService>();
+            default:
+                throw new NotSupportedException("Unsupported content type.");
+        }
+    }
+
+    /// <summary>
+    ///     Creates a strongly typed published content model for an internal published content.
+    /// </summary>
+    /// <param name="content">The internal published content.</param>
+    /// <returns>The strongly typed published content model.</returns>
+    public static IPublishedContent? CreateModel(
+        this IPublishedContent content)
+        => content.CreateModel(PublishedModelFactory);
+
+    /// <summary>
+    ///     Gets the name of the content item.
+    /// </summary>
+    /// <param name="content">The content item.</param>
+    /// <param name="culture">
+    ///     The specific culture to get the name for. If null is used the current culture is used (Default is
+    ///     null).
+    /// </param>
+    public static string Name(
+        this IPublishedContent content,
+        string? culture = null)
+        => content.AsPublishedElement().Name(culture);
+
+    /// <summary>
+    ///     Gets the URL segment of the content item.
+    /// </summary>
+    /// <param name="content">The content item.</param>
+    /// <param name="culture">
+    ///     The specific culture to get the URL segment for. If null is used the current culture is used
+    ///     (Default is null).
+    /// </param>
+    /// <remarks>
+    ///     Convenience wrapper around <see cref="IDocumentUrlService.GetUrlSegment"/> for use in Razor templates
+    ///     where injecting the service directly is awkward. Preview state is detected via the ambient
+    ///     <see cref="IUmbracoContext"/>.
+    /// </remarks>
+    public static string? UrlSegment(
+        this IPublishedContent content,
+        string? culture = null)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+
+        var resolvedCulture = culture ?? VariationContextAccessor.VariationContext?.Culture ?? string.Empty;
+        var isDraft = UmbracoContextAccessor.TryGetUmbracoContext(out IUmbracoContext? umbracoContext) && umbracoContext.InPreviewMode;
+        return DocumentUrlService.GetUrlSegment(content.Key, resolvedCulture, isDraft);
+    }
+
+    /// <summary>
+    ///     Gets the culture date of the content item.
+    /// </summary>
+    /// <param name="content">The content item.</param>
+    /// <param name="culture">
+    ///     The specific culture to get the name for. If null is used the current culture is used (Default is
+    ///     null).
+    /// </param>
+    public static DateTime CultureDate(
+        this IPublishedContent content,
+        string? culture = null)
+        => content.AsPublishedElement().CultureDate(culture);
+
+    /// <summary>
+    ///     Returns the current template Alias
+    /// </summary>
+    /// <returns>Empty string if none is set.</returns>
+    public static string GetTemplateAlias(this IPublishedContent content)
+        => content.GetTemplateAlias(TemplateService);
+
+    public static bool IsAllowedTemplate(this IPublishedContent content, int templateId)
+        => content.IsAllowedTemplate(ContentTypeService, WebRoutingSettings.Value, templateId);
+
+    public static bool IsAllowedTemplate(this IPublishedContent content, string templateAlias)
+        => content.IsAllowedTemplate(
+            WebRoutingSettings.Value.DisableAlternativeTemplates,
+            WebRoutingSettings.Value.ValidateAlternativeTemplates,
+            templateAlias);
+
+    public static bool IsAllowedTemplate(
+        this IPublishedContent content,
+        bool disableAlternativeTemplates,
+        bool validateAlternativeTemplates,
+        int templateId)
+        => content.IsAllowedTemplate(
+            ContentTypeService,
+            disableAlternativeTemplates,
+            validateAlternativeTemplates,
+            templateId);
+
+    public static bool IsAllowedTemplate(
+        this IPublishedContent content,
+        bool disableAlternativeTemplates,
+        bool validateAlternativeTemplates,
+        string templateAlias)
+        => content.IsAllowedTemplate(
+            TemplateService,
+            ContentTypeService,
+            disableAlternativeTemplates,
+            validateAlternativeTemplates,
+            templateAlias);
+
+    /// <summary>
+    ///     Gets a value indicating whether the content has a value for a property identified by its alias.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="alias">The property alias.</param>
+    /// <param name="culture">The variation language.</param>
+    /// <param name="segment">The variation segment.</param>
+    /// <param name="fallback">Optional fallback strategy.</param>
+    /// <returns>A value indicating whether the content has a value for the property identified by the alias.</returns>
+    /// <remarks>Returns true if HasValue is true, or a fallback strategy can provide a value.</remarks>
+    public static bool HasValue(
+        this IPublishedContent content,
+        string alias,
+        string? culture = null,
+        string? segment = null,
+        Fallback fallback = default)
+        =>
+            content.HasValue(PublishedValueFallback, alias, culture, segment, fallback);
+
+    /// <summary>
+    ///     Gets the value of a content's property identified by its alias, if it exists, otherwise a default value.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="alias">The property alias.</param>
+    /// <param name="culture">The variation language.</param>
+    /// <param name="segment">The variation segment.</param>
+    /// <param name="fallback">Optional fallback strategy.</param>
+    /// <param name="defaultValue">The default value.</param>
+    /// <returns>The value of the content's property identified by the alias, if it exists, otherwise a default value.</returns>
+    public static object? Value(this IPublishedContent content, string alias, string? culture = null, string? segment = null, Fallback fallback = default, object? defaultValue = default)
+        => content.Value(PublishedValueFallback, alias, culture, segment, fallback, defaultValue);
+
+    /// <summary>
+    ///     Gets the value of a content's property identified by its alias, converted to a specified type.
+    /// </summary>
+    /// <typeparam name="T">The target property type.</typeparam>
+    /// <param name="content">The content.</param>
+    /// <param name="alias">The property alias.</param>
+    /// <param name="culture">The variation language.</param>
+    /// <param name="segment">The variation segment.</param>
+    /// <param name="fallback">Optional fallback strategy.</param>
+    /// <param name="defaultValue">The default value.</param>
+    /// <returns>The value of the content's property identified by the alias, converted to the specified type.</returns>
+    public static T? Value<T>(this IPublishedContent content, string alias, string? culture = null, string? segment = null, Fallback fallback = default, T? defaultValue = default)
+        => content.Value(PublishedValueFallback, alias, culture, segment, fallback, defaultValue);
+
+    /// <summary>
+    ///     Gets the root content (ancestor or self at level 1) for the specified <paramref name="content" />.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <returns>
+    ///     The root content (ancestor or self at level 1) for the specified <paramref name="content" />.
+    /// </returns>
+    /// <remarks>
+    ///     This method returns the ancestor or self at level 1, which is the root of the content tree.
+    /// </remarks>
+    public static IPublishedContent Root(this IPublishedContent content)
+        => content.Root(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the root content (ancestor or self at level 1) for the specified <paramref name="content" /> if it's of the
+    ///     specified content type <typeparamref name="T" />.
+    /// </summary>
+    /// <typeparam name="T">The content type.</typeparam>
+    /// <param name="content">The content.</param>
+    /// <returns>
+    ///     The root content (ancestor or self at level 1) for the specified <paramref name="content" /> of content type
+    ///     <typeparamref name="T" />.
+    /// </returns>
+    /// <remarks>
+    ///     This method returns the ancestor or self at level 1, which is the root of the content tree,
+    ///     if it matches the specified content type <typeparamref name="T" />.
+    /// </remarks>
+    public static T? Root<T>(this IPublishedContent content)
+        where T : class, IPublishedContent
+        => content.Root<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the parent of the content item.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <typeparam name="T">The content type.</typeparam>
+    /// <returns>The parent of content of the specified content type or <c>null</c>.</returns>
+    public static T? Parent<T>(this IPublishedContent content)
+        where T : class, IPublishedContent
+        => content.Parent<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the parent of the content item.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <returns>The parent of content or <c>null</c>.</returns>
+    public static IPublishedContent? Parent(this IPublishedContent content)
+        => content.Parent<IPublishedContent>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the ancestors of the content.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <returns>The ancestors of the content, in down-top order.</returns>
+    /// <remarks>Does not consider the content itself.</remarks>
+    public static IEnumerable<IPublishedContent> Ancestors(this IPublishedContent content)
+        => content.Ancestors(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the content and its ancestors.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <returns>The content and its ancestors, in down-top order.</returns>
+    public static IEnumerable<IPublishedContent> AncestorsOrSelf(this IPublishedContent content)
+        => content.AncestorsOrSelf(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the content and its ancestors, of a specified content type.
+    /// </summary>
+    /// <typeparam name="T">The content type.</typeparam>
+    /// <param name="content">The content.</param>
+    /// <returns>The content and its ancestors, of the specified content type, in down-top order.</returns>
+    /// <remarks>May or may not begin with the content itself, depending on its content type.</remarks>
+    public static IEnumerable<T> AncestorsOrSelf<T>(this IPublishedContent content)
+        where T : class, IPublishedContent
+        => content.AncestorsOrSelf<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the ancestor of the content, i.e. its parent.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <returns>The ancestor of the content.</returns>
+    public static IPublishedContent? Ancestor(this IPublishedContent content)
+        => content.Ancestor(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the nearest ancestor of the content, of a specified content type.
+    /// </summary>
+    /// <typeparam name="T">The content type.</typeparam>
+    /// <param name="content">The content.</param>
+    /// <returns>The nearest (in down-top order) ancestor of the content, of the specified content type.</returns>
+    /// <remarks>Does not consider the content itself. May return <c>null</c>.</remarks>
+    public static T? Ancestor<T>(this IPublishedContent content)
+        where T : class, IPublishedContent
+        => content.Ancestor<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Gets the content or its nearest ancestor, of a specified content type.
+    /// </summary>
+    /// <typeparam name="T">The content type.</typeparam>
+    /// <param name="content">The content.</param>
+    /// <returns>The content or its nearest (in down-top order) ancestor, of the specified content type.</returns>
+    /// <remarks>May or may not return the content itself depending on its content type. May return <c>null</c>.</remarks>
+    public static T? AncestorOrSelf<T>(this IPublishedContent content)
+        where T : class, IPublishedContent
+        => content.AncestorOrSelf<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content));
+
+    /// <summary>
+    ///     Returns all DescendantsOrSelf of all content referenced
+    /// </summary>
+    /// <param name="parentNodes"></param>
+    /// <param name="docTypeAlias"></param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns></returns>
+    /// <remarks>
+    ///     This can be useful in order to return all nodes in an entire site by a type when combined with ContentAtRoot.
+    /// </remarks>
+    public static IEnumerable<IPublishedContent> DescendantsOrSelfOfType(
+        this IEnumerable<IPublishedContent> parentNodes, string docTypeAlias, string? culture = null)
+    {
+        IPublishedContent[] parentNodesAsArray = parentNodes as IPublishedContent[] ?? parentNodes.ToArray();
+        if (parentNodesAsArray.Length == 0)
+        {
+            return [];
+        }
+
+        return parentNodesAsArray.DescendantsOrSelfOfType(
+            GetNavigationQueryService(parentNodesAsArray.First()),
+            GetPublishedStatusFilteringService(parentNodesAsArray.First()),
+            docTypeAlias,
+            culture);
+    }
+
+    /// <summary>
+    ///     Returns all DescendantsOrSelf of all content referenced
+    /// </summary>
+    /// <param name="parentNodes"></param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns></returns>
+    /// <remarks>
+    ///     This can be useful in order to return all nodes in an entire site by a type when combined with ContentAtRoot.
+    /// </remarks>
+    public static IEnumerable<T> DescendantsOrSelf<T>(
+        this IEnumerable<IPublishedContent> parentNodes,
+        string? culture = null)
+        where T : class, IPublishedContent
+    {
+        IPublishedContent[] parentNodesAsArray = parentNodes as IPublishedContent[] ?? parentNodes.ToArray();
+        if (parentNodesAsArray.Length == 0)
+        {
+            return [];
+        }
+
+        return parentNodesAsArray.DescendantsOrSelf<T>(
+            GetNavigationQueryService(parentNodesAsArray.First()),
+            GetPublishedStatusFilteringService(parentNodesAsArray.First()),
+            culture);
+    }
+
+    public static IEnumerable<IPublishedContent> Descendants(this IPublishedContent content, string? culture = null)
+        => content.Descendants(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static IEnumerable<IPublishedContent> Descendants(this IPublishedContent content, int level, string? culture = null)
+        => content.Descendants(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), level, culture);
+
+    public static IEnumerable<IPublishedContent> DescendantsOfType(this IPublishedContent content, string contentTypeAlias, string? culture = null)
+        => content.DescendantsOfType(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), contentTypeAlias, culture);
+
+    public static IEnumerable<T> Descendants<T>(this IPublishedContent content, string? culture = null)
+        where T : class, IPublishedContent
+        => content.Descendants<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static IEnumerable<T> Descendants<T>(this IPublishedContent content, int level, string? culture = null)
+        where T : class, IPublishedContent
+        => content.Descendants<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), level, culture);
+
+    public static IEnumerable<IPublishedContent> DescendantsOrSelf(
+        this IPublishedContent content,
+        string? culture = null)
+        => content.DescendantsOrSelf(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static IEnumerable<IPublishedContent> DescendantsOrSelf(this IPublishedContent content, int level, string? culture = null)
+        => content.DescendantsOrSelf(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), level, culture);
+
+    public static IEnumerable<IPublishedContent> DescendantsOrSelfOfType(this IPublishedContent content, string contentTypeAlias, string? culture = null)
+        => content.DescendantsOrSelfOfType(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), contentTypeAlias, culture);
+
+    public static IEnumerable<T> DescendantsOrSelf<T>(this IPublishedContent content, string? culture = null)
+        where T : class, IPublishedContent
+        => content.DescendantsOrSelf<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static IEnumerable<T> DescendantsOrSelf<T>(this IPublishedContent content, int level, string? culture = null)
+        where T : class, IPublishedContent
+        => content.DescendantsOrSelf<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), level, culture);
+
+    public static IPublishedContent? Descendant(this IPublishedContent content, string? culture = null)
+        => content.Descendant(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static IPublishedContent? Descendant(this IPublishedContent content, int level, string? culture = null)
+        => content.Descendant(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), level, culture);
+
+    public static IPublishedContent? DescendantOfType(this IPublishedContent content, string contentTypeAlias, string? culture = null)
+        => content.DescendantOfType(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), contentTypeAlias, culture);
+
+    public static T? Descendant<T>(this IPublishedContent content, string? culture = null)
+        where T : class, IPublishedContent
+        => content.Descendant<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static T? Descendant<T>(this IPublishedContent content, int level, string? culture = null)
+        where T : class, IPublishedContent
+        => content.Descendant<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), level, culture);
+
+    public static IPublishedContent DescendantOrSelf(this IPublishedContent content, string? culture = null)
+        => content.DescendantOrSelf(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static IPublishedContent? DescendantOrSelf(this IPublishedContent content, int level, string? culture = null)
+        => content.DescendantOrSelf(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), level, culture);
+
+    public static IPublishedContent? DescendantOrSelfOfType(this IPublishedContent content, string contentTypeAlias, string? culture = null)
+        => content.DescendantOrSelfOfType(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), contentTypeAlias, culture);
+
+    public static T? DescendantOrSelf<T>(this IPublishedContent content, string? culture = null)
+        where T : class, IPublishedContent
+        => content.DescendantOrSelf<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static T? DescendantOrSelf<T>(this IPublishedContent content, int level, string? culture = null)
+        where T : class, IPublishedContent
+        => content.DescendantOrSelf<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), level, culture);
+
+    /// <summary>
+    ///     Gets the children of the content item.
+    /// </summary>
+    /// <param name="content">The content item.</param>
+    /// <param name="culture">
+    ///     The specific culture to get the URL children for. Default is null which will use the current culture in
+    ///     <see cref="VariationContext" />
+    /// </param>
+    /// <remarks>
+    ///     <para>Gets children that are available for the specified culture.</para>
+    ///     <para>Children are sorted by their sortOrder.</para>
+    ///     <para>
+    ///         For culture,
+    ///         if null is used the current culture is used.
+    ///         If an empty string is used only invariant children are returned.
+    ///         If "*" is used all children are returned.
+    ///     </para>
+    ///     <para>
+    ///         If a variant culture is specified or there is a current culture in the <see cref="VariationContext" /> then the
+    ///         Children returned
+    ///         will include both the variant children matching the culture AND the invariant children because the invariant
+    ///         children flow with the current culture.
+    ///         However, if an empty string is specified only invariant children are returned.
+    ///     </para>
+    /// </remarks>
+    public static IEnumerable<IPublishedContent> Children(this IPublishedContent content, string? culture = null)
+        => content.Children(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    /// <summary>
+    ///     Gets the children of the content, filtered by a predicate.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="predicate">The predicate.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns>The children of the content, filtered by the predicate.</returns>
+    /// <remarks>
+    ///     <para>Children are sorted by their sortOrder.</para>
+    /// </remarks>
+    public static IEnumerable<IPublishedContent> Children(
+        this IPublishedContent content,
+        Func<IPublishedContent, bool> predicate,
+        string? culture = null)
+        => content.Children(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), predicate, culture);
+
+    /// <summary>
+    ///     Gets the children of the content, of any of the specified types.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <param name="contentTypeAlias">The content type alias.</param>
+    /// <returns>The children of the content, of any of the specified types.</returns>
+    public static IEnumerable<IPublishedContent> ChildrenOfType(this IPublishedContent content, string contentTypeAlias, string? culture = null)
+        => content.ChildrenOfType(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), contentTypeAlias, culture);
+
+    /// <summary>
+    ///     Gets the children of the content, of a given content type.
+    /// </summary>
+    /// <typeparam name="T">The content type.</typeparam>
+    /// <param name="content">The content.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns>The children of content, of the given content type.</returns>
+    /// <remarks>
+    ///     <para>Children are sorted by their sortOrder.</para>
+    /// </remarks>
+    public static IEnumerable<T> Children<T>(this IPublishedContent content, string? culture = null)
+        where T : class, IPublishedContent
+        => content.Children<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static IPublishedContent? FirstChild(this IPublishedContent content, string? culture = null)
+        => content.FirstChild(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    /// <summary>
+    ///     Gets the first child of the content, of a given content type.
+    /// </summary>
+    public static IPublishedContent? FirstChildOfType(this IPublishedContent content, string contentTypeAlias, string? culture = null)
+        => content.FirstChildOfType(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), contentTypeAlias, culture);
+
+    public static IPublishedContent? FirstChild(this IPublishedContent content, Func<IPublishedContent, bool> predicate, string? culture = null)
+        => content.FirstChild(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), predicate, culture);
+
+    public static IPublishedContent? FirstChild(this IPublishedContent content, Guid uniqueId, string? culture = null)
+        => content.FirstChild(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), uniqueId, culture);
+
+    public static T? FirstChild<T>(this IPublishedContent content, string? culture = null)
+        where T : class, IPublishedContent
+        => content.FirstChild<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    public static T? FirstChild<T>(this IPublishedContent content, Func<T, bool> predicate, string? culture = null)
+        where T : class, IPublishedContent
+        => content.FirstChild(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), predicate, culture);
+
+    /// <summary>
+    ///     Gets the siblings of the content.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns>The siblings of the content.</returns>
+    /// <remarks>
+    ///     <para>Note that in V7 this method also return the content node self.</para>
+    /// </remarks>
+    public static IEnumerable<IPublishedContent> Siblings(this IPublishedContent content, string? culture = null)
+        => content.Siblings(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    /// <summary>
+    ///     Gets the siblings of the content, of a given content type.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="contentTypeAlias">The content type alias.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns>The siblings of the content, of the given content type.</returns>
+    /// <remarks>
+    ///     <para>Note that in V7 this method also return the content node self.</para>
+    /// </remarks>
+    public static IEnumerable<IPublishedContent> SiblingsOfType(this IPublishedContent content, string contentTypeAlias, string? culture = null)
+        => content.SiblingsOfType(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), contentTypeAlias, culture);
+
+    /// <summary>
+    ///     Gets the siblings of the content, of a given content type.
+    /// </summary>
+    /// <typeparam name="T">The content type.</typeparam>
+    /// <param name="content">The content.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns>The siblings of the content, of the given content type.</returns>
+    /// <remarks>
+    ///     <para>Note that in V7 this method also return the content node self.</para>
+    /// </remarks>
+    public static IEnumerable<T> Siblings<T>(this IPublishedContent content, string? culture = null)
+        where T : class, IPublishedContent
+        => content.Siblings<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    /// <summary>
+    ///     Gets the siblings of the content including the node itself to indicate the position.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns>The siblings of the content including the node itself.</returns>
+    public static IEnumerable<IPublishedContent>? SiblingsAndSelf(
+        this IPublishedContent content,
+        string? culture = null)
+        => content.SiblingsAndSelf(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    /// <summary>
+    ///     Gets the siblings of the content including the node itself to indicate the position, of a given content type.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <param name="contentTypeAlias">The content type alias.</param>
+    /// <returns>The siblings of the content including the node itself, of the given content type.</returns>
+    public static IEnumerable<IPublishedContent> SiblingsAndSelfOfType(
+        this IPublishedContent content,
+        string contentTypeAlias,
+        string? culture = null)
+        => content.SiblingsAndSelfOfType(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), contentTypeAlias, culture);
+
+    /// <summary>
+    ///     Gets the siblings of the content including the node itself to indicate the position, of a given content type.
+    /// </summary>
+    /// <typeparam name="T">The content type.</typeparam>
+    /// <param name="content">The content.</param>
+    /// <param name="culture">
+    ///     The specific culture to filter for. If null is used the current culture is used. (Default is
+    ///     null)
+    /// </param>
+    /// <returns>The siblings of the content including the node itself, of the given content type.</returns>
+    public static IEnumerable<T> SiblingsAndSelf<T>(this IPublishedContent content, string? culture = null)
+        where T : class, IPublishedContent
+        => content.SiblingsAndSelf<T>(GetNavigationQueryService(content), GetPublishedStatusFilteringService(content), culture);
+
+    /// <summary>
+    ///     Gets the url of the content item.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         If the content item is a document, then this method returns the url of the
+    ///         document. If it is a media, then this methods return the media url for the
+    ///         'umbracoFile' property. Use the MediaUrl() method to get the media url for other
+    ///         properties.
+    ///     </para>
+    ///     <para>
+    ///         The value of this property is contextual. It depends on the 'current' request uri,
+    ///         if any. In addition, when the content type is multi-lingual, this is the url for the
+    ///         specified culture. Otherwise, it is the invariant url.
+    ///     </para>
+    /// </remarks>
+    public static string Url(this IPublishedContent content, string? culture = null, UrlMode mode = UrlMode.Default)
+        => content.Url(PublishedUrlProvider, culture, mode);
+
+    /// <summary>
+    ///     Gets the url for a media.
+    /// </summary>
+    /// <param name="content">The content item.</param>
+    /// <param name="culture">The culture (use current culture by default).</param>
+    /// <param name="mode">The url mode (use site configuration by default).</param>
+    /// <param name="propertyAlias">The alias of the property (use 'umbracoFile' by default).</param>
+    /// <returns>The url for the media.</returns>
+    /// <remarks>
+    ///     <para>
+    ///         The value of this property is contextual. It depends on the 'current' request uri,
+    ///         if any. In addition, when the content type is multi-lingual, this is the url for the
+    ///         specified culture. Otherwise, it is the invariant url.
+    ///     </para>
+    /// </remarks>
+    public static string MediaUrl(
+        this IPublishedContent content,
+        string? culture = null,
+        UrlMode mode = UrlMode.Default,
+        string propertyAlias = Constants.Conventions.Media.File)
+        => content.MediaUrl(PublishedUrlProvider, culture, mode, propertyAlias);
+
+    /// <summary>
+    ///     Gets the name of the content item creator.
+    /// </summary>
+    /// <param name="content">The content item.</param>
+    public static string? CreatorName(this IPublishedContent content) =>
+        content.AsPublishedElement().CreatorName();
+
+    /// <summary>
+    ///     Gets the name of the content item writer.
+    /// </summary>
+    /// <param name="content">The content item.</param>
+    public static string? WriterName(this IPublishedContent content) =>
+        content.AsPublishedElement().WriterName();
+
+    /// <summary>
+    ///     Gets the culture assigned to a document by domains, in the context of a current Uri.
+    /// </summary>
+    /// <param name="content">The document.</param>
+    /// <param name="current">An optional current Uri.</param>
+    /// <returns>The culture assigned to the document by domains.</returns>
+    /// <remarks>
+    ///     <para>
+    ///         In 1:1 multilingual setup, a document contains several cultures (there is not
+    ///         one document per culture), and domains, withing the context of a current Uri, assign
+    ///         a culture to that document.
+    ///     </para>
+    /// </remarks>
+    public static string? GetCultureFromDomains(
+        this IPublishedContent content,
+        Uri? current = null)
+        => content.GetCultureFromDomains(UmbracoContextAccessor, SiteDomainHelper, DomainCache, DocumentNavigationQueryService, GetPublishedStatusFilteringService(content), current);
+
+    public static IEnumerable<PublishedSearchResult> SearchDescendants(
+        this IPublishedContent content,
+        string term,
+        string? indexName = null)
+        => content.SearchDescendants(ExamineManager, UmbracoContextAccessor, term, indexName);
+
+    public static IEnumerable<PublishedSearchResult> SearchChildren(
+        this IPublishedContent content,
+        string term,
+        string? indexName = null)
+        => content.SearchChildren(ExamineManager, UmbracoContextAccessor, term, indexName);
+
+    // There is a lot of overlap between published content and published element extensions. To avoid duplicate code,
+    // we delegate to the published element extensions with this.
+    private static IPublishedElement AsPublishedElement(this IPublishedContent content) => content;
+}

@@ -1,0 +1,192 @@
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Cms.Core.Services;
+
+namespace Umbraco.Cms.Core.Models.PublishedContent;
+
+/// <summary>
+///     Provides a default implementation for <see cref="IPublishedContentTypeFactory" />.
+/// </summary>
+public class PublishedContentTypeFactory : IPublishedContentTypeFactory
+{
+    private readonly IDataTypeService _dataTypeService;
+    private readonly IIdKeyMap _idKeyMap;
+    private readonly PropertyValueConverterCollection _propertyValueConverters;
+    private readonly IPublishedModelFactory _publishedModelFactory;
+    private object _publishedDataTypesLocker = new();
+    private Dictionary<int, PublishedDataType>? _publishedDataTypes;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PublishedContentTypeFactory"/> class.
+    /// </summary>
+    /// <param name="publishedModelFactory">The published model factory.</param>
+    /// <param name="propertyValueConverters">The property value converters.</param>
+    /// <param name="dataTypeService">The data type service.</param>
+    /// <param name="idKeyMap">The cached id-to-key map used to resolve int data type IDs to GUID keys.</param>
+    public PublishedContentTypeFactory(
+        IPublishedModelFactory publishedModelFactory,
+        PropertyValueConverterCollection propertyValueConverters,
+        IDataTypeService dataTypeService,
+        IIdKeyMap idKeyMap)
+    {
+        _publishedModelFactory = publishedModelFactory;
+        _propertyValueConverters = propertyValueConverters;
+        _dataTypeService = dataTypeService;
+        _idKeyMap = idKeyMap;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PublishedContentTypeFactory"/> class.
+    /// </summary>
+    [Obsolete("Use the constructor with all parameters. Scheduled for removal in Umbraco 19.")]
+    public PublishedContentTypeFactory(
+        IPublishedModelFactory publishedModelFactory,
+        PropertyValueConverterCollection propertyValueConverters,
+        IDataTypeService dataTypeService)
+        : this(
+            publishedModelFactory,
+            propertyValueConverters,
+            dataTypeService,
+            StaticServiceProvider.Instance.GetRequiredService<IIdKeyMap>())
+    {
+    }
+
+    /// <inheritdoc />
+    public IPublishedContentType CreateContentType(IContentTypeComposition contentType) =>
+        new PublishedContentType(contentType, this);
+
+    /// <inheritdoc />
+    public IPublishedPropertyType CreatePropertyType(IPublishedContentType contentType, IPropertyType propertyType) =>
+        new PublishedPropertyType(contentType, propertyType, _propertyValueConverters, _publishedModelFactory, this);
+
+    /// <inheritdoc />
+    public IPublishedPropertyType CreatePropertyType(
+        IPublishedContentType contentType,
+        string propertyTypeAlias,
+        int dataTypeId,
+        ContentVariation variations = ContentVariation.Nothing) =>
+        new PublishedPropertyType(
+        contentType, propertyTypeAlias, dataTypeId, true, variations, _propertyValueConverters, _publishedModelFactory, this);
+
+    /// <inheritdoc />
+    public IPublishedPropertyType CreateCorePropertyType(
+        IPublishedContentType contentType,
+        string propertyTypeAlias,
+        int dataTypeId,
+        ContentVariation variations = ContentVariation.Nothing) =>
+        new PublishedPropertyType(contentType, propertyTypeAlias, dataTypeId, false, variations, _propertyValueConverters, _publishedModelFactory, this);
+
+    /// <inheritdoc />
+    public PublishedDataType GetDataType(int id)
+    {
+        Dictionary<int, PublishedDataType> publishedDataTypes = LazyInitializer.EnsureInitialized(
+            ref _publishedDataTypes,
+            ref _publishedDataTypesLocker,
+            () => _dataTypeService.GetAllAsync().GetAwaiter().GetResult().ToDictionary(x => x.Id, CreatePublishedDataType));
+
+        if (!publishedDataTypes.TryGetValue(id, out PublishedDataType? dataType))
+        {
+            throw new ArgumentException($"Could not find a datatype with identifier {id}.", nameof(id));
+        }
+
+        return dataType;
+    }
+
+    /// <inheritdoc />
+    public void ClearDataTypeCache()
+    {
+        if (_publishedDataTypes is null)
+        {
+            // Not initialized yet, so skip and avoid lock
+            return;
+        }
+
+        lock (_publishedDataTypesLocker)
+        {
+            // Clear cache (and let it lazy initialize again later)
+            _publishedDataTypes = null;
+        }
+    }
+
+    /// <inheritdoc />
+    public void NotifyDataTypeChanges(params int[] ids)
+    {
+        if (_publishedDataTypes is null)
+        {
+            // Not initialized yet, so skip and avoid lock
+            return;
+        }
+
+        lock (_publishedDataTypesLocker)
+        {
+            if (ids.Length == 0)
+            {
+                // Clear cache (and let it lazy initialize again later)
+                _publishedDataTypes = null;
+            }
+            else
+            {
+                // Remove items from cache (in case the data type is removed)
+                foreach (var id in ids)
+                {
+                    _publishedDataTypes.Remove(id);
+                }
+
+                // Convert int IDs to Guid keys via IIdKeyMap (filter out failed lookups), then load by keys.
+                Guid[] keys = ids
+                    .Select(id => _idKeyMap.GetKeyForId(id, UmbracoObjectTypes.DataType))
+                    .Where(attempt => attempt.Success)
+                    .Select(attempt => attempt.Result)
+                    .ToArray();
+
+                // Update cacheB
+                foreach (IDataType dataType in _dataTypeService.GetAllAsync(keys).GetAwaiter().GetResult())
+                {
+                    _publishedDataTypes[dataType.Id] = CreatePublishedDataType(dataType);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///     This method is for tests and is not intended to be used directly from application code.
+    /// </summary>
+    /// <remarks>Values are assumed to be consisted and are not checked.</remarks>
+    internal IPublishedContentType CreateContentType(
+        Guid key,
+        int id,
+        string alias,
+        Func<IPublishedContentType, IEnumerable<IPublishedPropertyType>> propertyTypes,
+        ContentVariation variations = ContentVariation.Nothing,
+        bool isElement = false) =>
+        new PublishedContentType(key, id, alias, PublishedItemType.Content, Enumerable.Empty<string>(), propertyTypes, variations, isElement);
+
+    /// <summary>
+    ///     This method is for tests and is not intended to be used directly from application code.
+    /// </summary>
+    /// <remarks>Values are assumed to be consisted and are not checked.</remarks>
+    internal IPublishedContentType CreateContentType(
+        Guid key,
+        int id,
+        string alias,
+        IEnumerable<string> compositionAliases,
+        Func<IPublishedContentType, IEnumerable<IPublishedPropertyType>> propertyTypes,
+        ContentVariation variations = ContentVariation.Nothing,
+        bool isElement = false) =>
+        new PublishedContentType(key, id, alias, PublishedItemType.Content, compositionAliases, propertyTypes, variations, isElement);
+
+    /// <summary>
+    ///     This method is for tests and is not intended to be used directly from application code.
+    /// </summary>
+    /// <remarks>Values are assumed to be consisted and are not checked.</remarks>
+    internal IPublishedPropertyType CreatePropertyType(
+        string propertyTypeAlias,
+        int dataTypeId,
+        bool umbraco = false,
+        ContentVariation variations = ContentVariation.Nothing) =>
+        new PublishedPropertyType(propertyTypeAlias, dataTypeId, umbraco, variations, _propertyValueConverters, _publishedModelFactory, this);
+
+    private PublishedDataType CreatePublishedDataType(IDataType dataType)
+        => new(dataType.Id, dataType.EditorAlias, dataType.EditorUiAlias, dataType is DataType d ? d.GetLazyConfigurationObject() : new Lazy<object?>(() => dataType.ConfigurationObject));
+}

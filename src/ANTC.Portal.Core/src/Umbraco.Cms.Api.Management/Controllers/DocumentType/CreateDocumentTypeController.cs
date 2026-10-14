@@ -1,0 +1,62 @@
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Management.Factories;
+using Umbraco.Cms.Api.Management.ViewModels.DocumentType;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.ContentTypeEditing;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Core.Services.ContentTypeEditing;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Cms.Web.Common.Authorization;
+
+namespace Umbraco.Cms.Api.Management.Controllers.DocumentType;
+
+/// <summary>
+/// API controller responsible for handling requests to create new document types in Umbraco CMS.
+/// </summary>
+[ApiVersion("1.0")]
+[Authorize(Policy = AuthorizationPolicies.TreeAccessDocumentTypes)]
+public class CreateDocumentTypeController : DocumentTypeControllerBase
+{
+    private readonly IDocumentTypeEditingPresentationFactory _documentTypeEditingPresentationFactory;
+    private readonly IContentTypeEditingService _contentTypeEditingService;
+    private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateDocumentTypeController"/> class, which is responsible for handling API requests related to creating document types in the Umbraco CMS.
+    /// </summary>
+    /// <param name="documentTypeEditingPresentationFactory">Factory used to create presentation models for editing document types.</param>
+    /// <param name="contentTypeEditingService">Service that provides operations for editing content types.</param>
+    /// <param name="backOfficeSecurityAccessor">Accessor for managing back office security context.</param>
+    public CreateDocumentTypeController(
+        IDocumentTypeEditingPresentationFactory documentTypeEditingPresentationFactory,
+        IContentTypeEditingService contentTypeEditingService,
+        IBackOfficeSecurityAccessor backOfficeSecurityAccessor)
+    {
+        _documentTypeEditingPresentationFactory = documentTypeEditingPresentationFactory;
+        _contentTypeEditingService = contentTypeEditingService;
+        _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
+    }
+
+    [HttpPost]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [EndpointSummary("Creates a new document type.")]
+    [EndpointDescription("Creates a new document type with the configuration specified in the request model.")]
+    public async Task<IActionResult> Create(
+        CancellationToken cancellationToken,
+        CreateDocumentTypeRequestModel requestModel)
+    {
+        ContentTypeCreateModel model = _documentTypeEditingPresentationFactory.MapCreateModel(requestModel);
+        Attempt<IContentType?, ContentTypeOperationStatus> result = await _contentTypeEditingService.CreateAsync(model, CurrentUserKey(_backOfficeSecurityAccessor));
+
+        return result.Success
+            ? CreatedAtId<ByKeyDocumentTypeController>(controller => nameof(controller.ByKey), result.Result!.Key)
+            : OperationStatusResult(result.Status);
+    }
+}

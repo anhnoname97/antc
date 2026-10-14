@@ -1,0 +1,658 @@
+using System.Text;
+using Microsoft.Extensions.Logging;
+using NPoco;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Persistence.Querying;
+using Umbraco.Cms.Core.Persistence.Repositories;
+using Umbraco.Cms.Infrastructure.Persistence.Dtos;
+using Umbraco.Cms.Infrastructure.Persistence.Factories;
+using Umbraco.Cms.Infrastructure.Persistence.Querying;
+using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Extensions;
+using static Umbraco.Cms.Core.Persistence.SqlExtensionsStatics;
+
+namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement;
+
+internal sealed class TagRepository : EntityRepositoryBase<int, ITag>, ITagRepository
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement.TagRepository"/> class.
+    /// </summary>
+    /// <param name="scopeAccessor">Provides access to the current database scope for repository operations.</param>
+    /// <param name="cache">The application-level caches used for optimizing repository queries.</param>
+    /// <param name="logger">The logger used for logging repository events and errors.</param>
+    /// <param name="repositoryCacheVersionService">Service for managing cache versioning for repository data.</param>
+    /// <param name="cacheSyncService">Service responsible for synchronizing cache across distributed environments.</param>
+    public TagRepository(
+        IScopeAccessor scopeAccessor,
+        AppCaches cache,
+        ILogger<TagRepository> logger,
+        IRepositoryCacheVersionService repositoryCacheVersionService,
+        ICacheSyncService cacheSyncService)
+        : base(
+            scopeAccessor,
+            cache,
+            logger,
+            repositoryCacheVersionService,
+            cacheSyncService)
+    {
+    }
+
+    #region Manage Tag Entities
+
+    /// <inheritdoc />
+    protected override ITag? PerformGet(int id)
+    {
+        Sql<ISqlContext> sql = Sql().Select<TagDto>().From<TagDto>().Where<TagDto>(x => x.Id == id);
+        TagDto? dto = Database.FirstOrDefault<TagDto>(sql);
+        return dto == null ? null : TagFactory.BuildEntity(dto);
+    }
+
+    /// <inheritdoc />
+    protected override IEnumerable<ITag> PerformGetAll(params int[]? ids)
+    {
+        IEnumerable<TagDto> dtos = ids?.Length == 0
+            ? Database.Fetch<TagDto>(Sql().Select<TagDto>().From<TagDto>())
+            : Database.FetchByGroups<TagDto, int>(
+                ids!,
+                Constants.Sql.MaxParameterCount,
+                batch => Sql().Select<TagDto>().From<TagDto>().WhereIn<TagDto>(x => x.Id, batch));
+
+        return dtos.Select(TagFactory.BuildEntity).ToList();
+    }
+
+    /// <inheritdoc />
+    protected override IEnumerable<ITag> PerformGetByQuery(IQuery<ITag> query)
+    {
+        Sql<ISqlContext> sql = Sql().Select<TagDto>().From<TagDto>();
+        var translator = new SqlTranslator<ITag>(sql, query);
+        sql = translator.Translate();
+
+        return Database.Fetch<TagDto>(sql).Select(TagFactory.BuildEntity).ToList();
+    }
+
+    /// <inheritdoc />
+    protected override Sql<ISqlContext> GetBaseQuery(bool isCount) =>
+        isCount ? Sql().SelectCount().From<TagDto>() : GetBaseQuery();
+
+    private Sql<ISqlContext> GetBaseQuery() => Sql().Select<TagDto>().From<TagDto>();
+
+    /// <inheritdoc />
+    protected override string GetBaseWhereClause() => "id = @id";
+
+    /// <inheritdoc />
+    protected override IEnumerable<string> GetDeleteClauses()
+    {
+        var list = new List<string>
+        {
+            $"DELETE FROM {QuoteTableName("cmsTagRelationship")} WHERE {QuoteColumnName("tagId")} = @id",
+            $"DELETE FROM {QuoteTableName("cmsTags")} WHERE id = @id"
+        };
+        return list;
+    }
+
+    /// <inheritdoc />
+    protected override void PersistNewItem(ITag entity)
+    {
+        entity.AddingEntity();
+
+        TagDto dto = TagFactory.BuildDto(entity);
+        var id = Convert.ToInt32(Database.Insert(dto));
+        entity.Id = id;
+
+        entity.ResetDirtyProperties();
+    }
+
+    /// <inheritdoc />
+    protected override void PersistUpdatedItem(ITag entity)
+    {
+        entity.UpdatingEntity();
+
+        TagDto dto = TagFactory.BuildDto(entity);
+        Database.Update(dto);
+
+        entity.ResetDirtyProperties();
+    }
+
+    #endregion
+
+    #region Assign and Remove Tags
+
+    /// <inheritdoc />
+    // only invoked from ContentRepositoryBase with all cultures + replaceTags being true
+    public void Assign(int contentId, int propertyTypeId, IEnumerable<ITag> tags, bool replaceTags = true)
+    {
+        // to no-duplicates array
+        ITag[] tagsA = tags.Distinct(new TagComparer()).ToArray();
+
+        // replacing = clear all
+        if (replaceTags)
+        {
+            Sql<ISqlContext> sql = Sql().Delete<TagRelationshipDto>()
+                .Where<TagRelationshipDto>(x => x.NodeId == contentId && x.PropertyTypeId == propertyTypeId);
+            Database.Execute(sql);
+        }
+
+        // no tags? nothing else to do
+        if (tagsA.Length == 0)
+        {
+            return;
+        }
+
+        // tags
+        // using some clever logic (?) to insert tags that don't exist in 1 query
+        // must coalesce languageId because equality of NULLs does not exist
+
+        var tagSetSql = GetTagSet(tagsA);
+        var cmsTags = QuoteTableName("cmsTags");
+        var group = QuoteColumnName("group");
+        var nodeId = QuoteColumnName("nodeId");
+        var languageIdCol = QuoteColumnName("languageId");
+        var cmsTagsLanguageIdCol = $"{QuoteTableName("cmsTags")}.{QuoteColumnName("languageId")}";
+        // insert tags
+        // - Note we are checking in the subquery for the existence of the tag, so we don't insert duplicates, using a case-insensitive comparison (the
+        //   LOWER keyword is consistent across SQLite and SQLServer). This ensures consistent behavior across databases as by default, SQLServer will
+        //   perform a case-insensitive comparison, while SQLite will not.
+        var sql1 = $@"INSERT INTO {cmsTags} (tag, {group}, {languageIdCol})
+SELECT tagset.tag, tagset.{group}, tagset.languageid
+FROM {tagSetSql}
+LEFT OUTER JOIN {cmsTags}
+ON (LOWER(tagset.tag) = LOWER({cmsTags}.tag) AND LOWER(tagset.{group}) = LOWER({cmsTags}.{group}) AND COALESCE(tagset.languageid, -1) = COALESCE({cmsTagsLanguageIdCol}, -1))
+WHERE {cmsTags}.id IS NULL";
+
+        Database.Execute(sql1);
+
+        // insert relations
+        var sql2 = $@"INSERT INTO {QuoteTableName(TagRelationshipDto.TableName)} ({nodeId}, {QuoteColumnName("propertyTypeId")}, {QuoteColumnName("tagId")})
+SELECT {contentId}, {propertyTypeId}, tagset2.Id
+FROM (
+    SELECT t.id
+    FROM {tagSetSql}
+    INNER JOIN {cmsTags} as t ON (LOWER(tagset.tag) = LOWER(t.tag) AND LOWER(tagset.{group}) = LOWER(t.{group}) AND COALESCE(tagset.languageid, -1) = COALESCE(t.{languageIdCol}, -1))
+) AS tagset2
+LEFT OUTER JOIN {QuoteTableName(TagRelationshipDto.TableName)} r
+ON (tagset2.id = r.{QuoteColumnName("tagId")} AND r.{nodeId} = {contentId} AND r.{QuoteColumnName("propertyTypeId")} = {propertyTypeId})
+WHERE r.{QuoteColumnName("tagId")} IS NULL";
+
+        Database.Execute(sql2);
+    }
+
+    /// <inheritdoc />
+    // only invoked from tests
+    public void Remove(int contentId, int propertyTypeId, IEnumerable<ITag> tags)
+    {
+        var tagSetSql = GetTagSet(tags);
+        var group = QuoteColumnName("group");
+        var nodeId = QuoteColumnName("nodeId");
+        var cmsTags = QuoteTableName("cmsTags");
+        var cmsTagsLanguageIdCol = $"{QuoteTableName("cmsTags")}.{QuoteColumnName("languageId")}";
+
+        var deleteSql =
+$@"DELETE FROM {QuoteTableName(TagRelationshipDto.TableName)} WHERE {nodeId} = {contentId} AND {QuoteColumnName("propertyTypeId")} = {propertyTypeId} AND {QuoteColumnName("tagId")} IN
+(SELECT id FROM {cmsTags} INNER JOIN {tagSetSql}
+ON (tagset.tag = {cmsTags}.tag AND tagset.{group} = {cmsTags}.{group} AND COALESCE(tagset.languageid, -1) = COALESCE({cmsTagsLanguageIdCol}, -1))
+)";
+        Database.Execute(deleteSql);
+    }
+
+    /// <inheritdoc />
+    public void RemoveAll(int contentId, int propertyTypeId)
+    {
+        Sql<ISqlContext> sql = Sql().Delete<TagRelationshipDto>()
+            .Where<TagRelationshipDto>(x => x.NodeId == contentId && x.PropertyTypeId == propertyTypeId);
+        Database.Execute(sql);
+    }
+
+    /// <inheritdoc />
+    public void RemoveAll(int contentId)
+    {
+        Sql<ISqlContext> sql = Sql().Delete<TagRelationshipDto>()
+            .Where<TagRelationshipDto>(x => x.NodeId == contentId);
+        Database.Execute(sql);
+    }
+
+    // this is a clever way to produce an SQL statement like this:
+    //
+    // (
+    //   SELECT 'Spacesdd' AS Tag, 'default' AS [group]
+    //   UNION
+    //   SELECT 'Cool' AS tag, 'default' AS [group]
+    // ) AS tagSet
+    //
+    // which we can then use to reduce queries
+    //
+    private string GetTagSet(IEnumerable<ITag> tags)
+    {
+        var sql = new StringBuilder();
+        var group = QuoteColumnName("group");
+        var first = true;
+
+        sql.Append("(");
+
+        foreach (ITag tag in tags)
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                sql.Append(" UNION ");
+            }
+
+            // HACK: SQLite (or rather SQL server setup was a hack)
+            if (SqlContext.DatabaseType.IsSqlServer())
+            {
+                sql.Append("SELECT N'");
+            }
+            else
+            {
+                sql.Append("SELECT '");
+            }
+
+            sql.Append(SqlSyntax.EscapeString(tag.Text));
+            sql.Append("' AS tag, '");
+            sql.Append(SqlSyntax.EscapeString(tag.Group));
+            sql.Append("' AS ");
+            sql.Append(group);
+            sql.Append(" , ");
+            if (tag.LanguageId.HasValue)
+            {
+                sql.Append(tag.LanguageId);
+            }
+            else
+            {
+                sql.Append("NULL" + SqlSyntax.GetNullCastSuffix<int?>());
+            }
+            sql.Append(" AS languageid");
+        }
+
+        sql.Append($") AS tagset");
+
+        return sql.ToString();
+    }
+
+    // used to run Distinct() on tags
+    private sealed class TagComparer : IEqualityComparer<ITag>
+    {
+        /// <summary>
+        /// Determines whether the specified tags are equal by comparing their <c>Text</c> and <c>Group</c> properties (case-insensitive), and their <c>LanguageId</c>.
+        /// </summary>
+        /// <param name="x">The first tag to compare.</param>
+        /// <param name="y">The second tag to compare.</param>
+        /// <returns><c>true</c> if both tags are non-null and have equal <c>Text</c>, <c>Group</c> (case-insensitive), and <c>LanguageId</c>; or if both are <c>null</c>. Otherwise, <c>false</c>.</returns>
+        public bool Equals(ITag? x, ITag? y) =>
+            ReferenceEquals(x, y) // takes care of both being null
+            || (x != null &&
+                y != null &&
+                string.Equals(x.Text, y.Text, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(x.Group, y.Group, StringComparison.OrdinalIgnoreCase) &&
+            x.LanguageId == y.LanguageId);
+
+        /// <summary>
+        /// Returns a hash code for the specified <see cref="Umbraco.Cms.Core.Models.ITag"/> object.
+        /// The hash code is computed using the tag's <c>Text</c> and <c>Group</c> properties (case-insensitive),
+        /// and the <c>LanguageId</c> property if present.
+        /// </summary>
+        /// <param name="obj">The tag object to get the hash code for.</param>
+        /// <returns>A hash code for the specified tag, based on its text, group, and language ID.</returns>
+        public int GetHashCode(ITag obj)
+        {
+            unchecked
+            {
+                var h = StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Text);
+                h = (h * 397) ^ StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Group);
+                h = (h * 397) ^ (obj.LanguageId?.GetHashCode() ?? 0);
+                return h;
+            }
+        }
+    }
+
+    #endregion
+
+    #region Queries
+
+    // TODO: consider caching implications
+    // add lookups for parentId or path (ie get content in tag group, that are descendants of x)
+
+    // ReSharper disable once ClassNeverInstantiated.Local
+    // ReSharper disable UnusedAutoPropertyAccessor.Local
+    private sealed class TaggedEntityDto
+    {
+        /// <summary>
+        /// Gets or sets the identifier of the node associated with the tag.
+        /// </summary>
+        public int NodeId { get; set; }
+
+        /// <summary>Gets or sets the alias of the property type associated with the tagged entity.</summary>
+        public string? PropertyTypeAlias { get; set; }
+
+        /// <summary>
+        /// Gets or sets the identifier of the property type associated with the tagged entity.
+        /// </summary>
+        public int PropertyTypeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the identifier of the tag.
+        /// </summary>
+        public int TagId { get; set; }
+
+        /// <summary>Gets or sets the text of the tag.</summary>
+        public string TagText { get; set; } = null!;
+
+        /// <summary>Gets or sets the tag group associated with the tagged entity.</summary>
+        public string TagGroup { get; set; } = null!;
+
+        /// <summary>Gets or sets the language identifier associated with the tag.</summary>
+        public int? TagLanguage { get; set; }
+    }
+    // ReSharper restore UnusedAutoPropertyAccessor.Local
+
+    /// <inheritdoc />
+    public TaggedEntity? GetTaggedEntityByKey(Guid key)
+    {
+        Sql<ISqlContext> sql = GetTaggedEntitiesSql(TaggableObjectTypes.All, "*");
+
+        sql = sql
+            .Where<NodeDto>(dto => dto.UniqueId == key);
+
+        return Map(Database.Fetch<TaggedEntityDto>(sql)).FirstOrDefault();
+    }
+
+    /// <inheritdoc />
+    public TaggedEntity? GetTaggedEntityById(int id)
+    {
+        Sql<ISqlContext> sql = GetTaggedEntitiesSql(TaggableObjectTypes.All, "*");
+
+        sql = sql
+            .Where<NodeDto>(dto => dto.NodeId == id);
+
+        return Map(Database.Fetch<TaggedEntityDto>(sql)).FirstOrDefault();
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<TaggedEntity> GetTaggedEntitiesByTagGroup(
+        TaggableObjectTypes objectType,
+        string group,
+        string? culture = null)
+    {
+        Sql<ISqlContext> sql = GetTaggedEntitiesSql(objectType, culture);
+
+        sql = sql
+            .Where<TagDto>(x => x.Group == group);
+
+        return Map(Database.Fetch<TaggedEntityDto>(sql));
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<TaggedEntity> GetTaggedEntitiesByTag(
+        TaggableObjectTypes objectType,
+        string tag,
+        string? group = null,
+        string? culture = null)
+    {
+        Sql<ISqlContext> sql = GetTaggedEntitiesSql(objectType, culture);
+
+        sql = sql
+            .Where<TagDto>(dto => dto.Text == tag);
+
+        if (group.IsNullOrWhiteSpace() == false)
+        {
+            sql = sql
+                .Where<TagDto>(dto => dto.Group == group);
+        }
+
+        return Map(Database.Fetch<TaggedEntityDto>(sql));
+    }
+
+    private Sql<ISqlContext> GetTaggedEntitiesSql(TaggableObjectTypes objectType, string? culture)
+    {
+        Sql<ISqlContext> sql = Sql()
+            .Select<TagRelationshipDto>(x => Alias(x.NodeId, "NodeId"))
+            .AndSelect<PropertyTypeDto>(
+                x => Alias(x.Alias, "PropertyTypeAlias"),
+                x => Alias(x.Id, "PropertyTypeId"))
+            .AndSelect<TagDto>(
+                x => Alias(x.Id, "TagId"),
+                x => Alias(x.Text, "TagText"),
+                x => Alias(x.Group, "TagGroup"),
+                x => Alias(x.LanguageId, "TagLanguage"))
+            .From<TagDto>()
+            .InnerJoin<TagRelationshipDto>().On<TagDto, TagRelationshipDto>((tag, rel) => tag.Id == rel.TagId)
+            .InnerJoin<ContentDto>()
+            .On<TagRelationshipDto, ContentDto>((rel, content) => rel.NodeId == content.NodeId)
+            .InnerJoin<PropertyTypeDto>()
+            .On<TagRelationshipDto, PropertyTypeDto>((rel, prop) => rel.PropertyTypeId == prop.Id)
+            .InnerJoin<NodeDto>().On<ContentDto, NodeDto>((content, node) => content.NodeId == node.NodeId);
+
+        if (culture == null)
+        {
+            sql = sql
+                .Where<TagDto>(dto => dto.LanguageId == null);
+        }
+        else if (culture != "*")
+        {
+            sql = sql
+                .InnerJoin<LanguageDto>().On<TagDto, LanguageDto>((tag, lang) => tag.LanguageId == lang.Id)
+                .Where<LanguageDto>(x => x.IsoCode == culture);
+        }
+
+        if (objectType != TaggableObjectTypes.All)
+        {
+            Guid nodeObjectType = GetNodeObjectType(objectType);
+            sql = sql.Where<NodeDto>(dto => dto.NodeObjectType == nodeObjectType);
+        }
+
+        return sql;
+    }
+
+    private static IEnumerable<TaggedEntity> Map(IEnumerable<TaggedEntityDto> dtos) =>
+        dtos.GroupBy(x => x.NodeId).Select(dtosForNode =>
+        {
+            var taggedProperties = dtosForNode.GroupBy(x => x.PropertyTypeId).Select(dtosForProperty =>
+            {
+                string? propertyTypeAlias = null;
+                var tags = dtosForProperty.Select(dto =>
+                {
+                    propertyTypeAlias = dto.PropertyTypeAlias;
+                    return new Tag(dto.TagId, dto.TagGroup, dto.TagText, dto.TagLanguage);
+                }).ToList();
+                return new TaggedProperty(dtosForProperty.Key, propertyTypeAlias, tags);
+            }).ToList();
+
+            return new TaggedEntity(dtosForNode.Key, taggedProperties);
+        }).ToList();
+
+    /// <inheritdoc />
+    public IEnumerable<ITag> GetTagsForEntityType(
+        TaggableObjectTypes objectType,
+        string? group = null,
+        string? culture = null)
+    {
+        Sql<ISqlContext> sql = GetTagsSql(culture, true);
+
+        AddTagsSqlWhere(sql, culture);
+
+        if (objectType != TaggableObjectTypes.All)
+        {
+            Guid nodeObjectType = GetNodeObjectType(objectType);
+            sql = sql
+                .Where<NodeDto>(dto => dto.NodeObjectType == nodeObjectType);
+        }
+
+        sql = sql
+            .Where<NodeDto>(dto => !dto.Trashed);
+
+        if (group.IsNullOrWhiteSpace() == false)
+        {
+            sql = sql
+                .Where<TagDto>(dto => dto.Group == group);
+        }
+
+        sql = sql
+            .GroupBy<TagDto>(x => x.Id, x => x.Text, x => x.Group, x => x.LanguageId)
+            .OrderBy<TagDto>(o => o.Text);
+
+        return ExecuteTagsQuery(sql);
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<ITag> GetTagsForEntity(int contentId, string? group = null, string? culture = null)
+    {
+        Sql<ISqlContext> sql = GetTagsSql(culture);
+
+        AddTagsSqlWhere(sql, culture);
+
+        sql = sql
+            .Where<NodeDto>(dto => dto.NodeId == contentId);
+
+        if (group.IsNullOrWhiteSpace() == false)
+        {
+            sql = sql
+                .Where<TagDto>(dto => dto.Group == group);
+        }
+
+        sql = sql
+            .OrderBy<TagDto>(o => o.Text);
+
+        return ExecuteTagsQuery(sql);
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<ITag> GetTagsForEntity(Guid contentId, string? group = null, string? culture = null)
+    {
+        Sql<ISqlContext> sql = GetTagsSql(culture);
+
+        AddTagsSqlWhere(sql, culture);
+
+        sql = sql
+            .Where<NodeDto>(dto => dto.UniqueId == contentId);
+
+        if (group.IsNullOrWhiteSpace() == false)
+        {
+            sql = sql
+                .Where<TagDto>(dto => dto.Group == group);
+        }
+
+        return ExecuteTagsQuery(sql);
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<ITag> GetTagsForProperty(
+        int contentId,
+        string propertyTypeAlias,
+        string? group = null,
+        string? culture = null)
+    {
+        Sql<ISqlContext> sql = GetTagsSql(culture);
+
+        sql = sql
+            .InnerJoin<PropertyTypeDto>()
+            .On<PropertyTypeDto, TagRelationshipDto>((prop, rel) => prop.Id == rel.PropertyTypeId)
+            .Where<NodeDto>(x => x.NodeId == contentId)
+            .Where<PropertyTypeDto>(x => x.Alias == propertyTypeAlias);
+
+        AddTagsSqlWhere(sql, culture);
+
+        if (group.IsNullOrWhiteSpace() == false)
+        {
+            sql = sql
+                .Where<TagDto>(dto => dto.Group == group);
+        }
+
+        return ExecuteTagsQuery(sql);
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<ITag> GetTagsForProperty(
+        Guid contentId,
+        string propertyTypeAlias,
+        string? group = null,
+        string? culture = null)
+    {
+        Sql<ISqlContext> sql = GetTagsSql(culture);
+
+        sql = sql
+            .InnerJoin<PropertyTypeDto>()
+            .On<PropertyTypeDto, TagRelationshipDto>((prop, rel) => prop.Id == rel.PropertyTypeId)
+            .Where<NodeDto>(dto => dto.UniqueId == contentId)
+            .Where<PropertyTypeDto>(dto => dto.Alias == propertyTypeAlias);
+
+        AddTagsSqlWhere(sql, culture);
+
+        if (group.IsNullOrWhiteSpace() == false)
+        {
+            sql = sql
+                .Where<TagDto>(dto => dto.Group == group);
+        }
+
+        return ExecuteTagsQuery(sql);
+    }
+
+    private Sql<ISqlContext> GetTagsSql(string? culture, bool withGrouping = false)
+    {
+        Sql<ISqlContext> sql = Sql()
+            .Select<TagDto>();
+
+        if (withGrouping)
+        {
+            sql = sql
+                .AndSelectCount("NodeCount");
+        }
+
+        sql = sql
+            .From<TagDto>()
+            .InnerJoin<TagRelationshipDto>().On<TagRelationshipDto, TagDto>((rel, tag) => tag.Id == rel.TagId)
+            .InnerJoin<ContentDto>()
+            .On<ContentDto, TagRelationshipDto>((content, rel) => content.NodeId == rel.NodeId)
+            .InnerJoin<NodeDto>().On<NodeDto, ContentDto>((node, content) => node.NodeId == content.NodeId);
+
+        if (culture != null && culture != "*")
+        {
+            sql = sql
+                .InnerJoin<LanguageDto>().On<TagDto, LanguageDto>((tag, lang) => tag.LanguageId == lang.Id);
+        }
+
+        return sql;
+    }
+
+    private static Sql<ISqlContext> AddTagsSqlWhere(Sql<ISqlContext> sql, string? culture)
+    {
+        if (culture == null)
+        {
+            sql = sql
+                .Where<TagDto>(dto => dto.LanguageId == null);
+        }
+        else if (culture != "*")
+        {
+            sql = sql
+                .Where<LanguageDto>(x => x.IsoCode == culture);
+        }
+
+        return sql;
+    }
+
+    private IEnumerable<ITag> ExecuteTagsQuery(Sql sql) =>
+        Database.Fetch<TagDto>(sql).Select(TagFactory.BuildEntity);
+
+    private static Guid GetNodeObjectType(TaggableObjectTypes type)
+    {
+        switch (type)
+        {
+            case TaggableObjectTypes.Content:
+                return Constants.ObjectTypes.Document;
+            case TaggableObjectTypes.Media:
+                return Constants.ObjectTypes.Media;
+            case TaggableObjectTypes.Member:
+                return Constants.ObjectTypes.Member;
+            case TaggableObjectTypes.Element:
+                return Constants.ObjectTypes.Element;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(type));
+        }
+    }
+
+    #endregion
+}

@@ -1,0 +1,331 @@
+// Copyright (c) Umbraco.
+// See LICENSE for more details.
+
+using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Cms.Core.Notifications;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Core.Events;
+
+/// <summary>
+///     Default implementation of <see cref="IEventAggregator" /> that channels events from multiple objects into a single object.
+/// </summary>
+public partial class EventAggregator : IEventAggregator
+{
+    private static readonly ConcurrentDictionary<Type, NotificationAsyncHandlerWrapper> _notificationAsyncHandlers = new();
+    private static readonly ConcurrentDictionary<Type, NotificationHandlerWrapper> _notificationHandlers = new();
+    private readonly ServiceFactory _serviceFactory;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EventAggregator" /> class.
+    /// </summary>
+    /// <param name="serviceFactory">The service instance factory.</param>
+    public EventAggregator(ServiceFactory serviceFactory)
+        => _serviceFactory = serviceFactory;
+
+    /// <summary>
+    ///     Publishes notifications synchronously to registered handlers.
+    /// </summary>
+    /// <typeparam name="TNotification">The type of notification being handled.</typeparam>
+    /// <typeparam name="TNotificationHandler">The type of the notification handler.</typeparam>
+    /// <param name="notifications">The notifications to publish.</param>
+    private void PublishNotifications<TNotification, TNotificationHandler>(IEnumerable<TNotification> notifications)
+        where TNotification : INotification
+        where TNotificationHandler : INotificationHandler
+    {
+        foreach (var notificationsByType in ChunkByType(notifications))
+        {
+            var notificationHandler = _notificationHandlers.GetOrAdd(notificationsByType.Key, x =>
+            {
+                var instance = Activator.CreateInstance(typeof(NotificationHandlerWrapperImpl<>).MakeGenericType(x));
+
+                return instance is not null
+                    ? (NotificationHandlerWrapper)instance
+                    : throw new InvalidCastException("Activator could not create instance of NotificationHandler");
+            });
+
+            notificationHandler.Handle<TNotification, TNotificationHandler>(notificationsByType, _serviceFactory, PublishCore);
+        }
+    }
+
+    /// <summary>
+    ///     Publishes notifications asynchronously to registered handlers.
+    /// </summary>
+    /// <typeparam name="TNotification">The type of notification being handled.</typeparam>
+    /// <typeparam name="TNotificationHandler">The type of the notification handler.</typeparam>
+    /// <param name="notifications">The notifications to publish.</param>
+    /// <param name="cancellationToken">An optional cancellation token.</param>
+    /// <returns>A task that represents the publish operation.</returns>
+    private async Task PublishNotificationsAsync<TNotification, TNotificationHandler>(IEnumerable<TNotification> notifications, CancellationToken cancellationToken = default)
+        where TNotification : INotification
+        where TNotificationHandler : INotificationHandler
+    {
+        foreach (var notificationsByType in ChunkByType(notifications))
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+
+            var notificationAsyncHandler = _notificationAsyncHandlers.GetOrAdd(notificationsByType.Key, x =>
+            {
+                var instance = Activator.CreateInstance(typeof(NotificationAsyncHandlerWrapperImpl<>).MakeGenericType(x));
+
+                return instance is not null
+                    ? (NotificationAsyncHandlerWrapper)instance
+                    : throw new InvalidCastException("Activator could not create instance of NotificationAsyncHandler.");
+            });
+
+            await notificationAsyncHandler.HandleAsync<TNotification, TNotificationHandler>(notificationsByType, cancellationToken, _serviceFactory, PublishCoreAsync);
+        }
+    }
+
+    /// <summary>
+    ///     Invokes all synchronous handlers with the provided notifications.
+    /// </summary>
+    /// <typeparam name="TNotification">The type of notification being handled.</typeparam>
+    /// <param name="allHandlers">The handlers to invoke.</param>
+    /// <param name="notifications">The notifications to handle.</param>
+    private static void PublishCore<TNotification>(IEnumerable<Action<IEnumerable<TNotification>>> allHandlers, IEnumerable<TNotification> notifications)
+    {
+        foreach (Action<IEnumerable<TNotification>> handler in allHandlers)
+        {
+            handler(notifications);
+        }
+    }
+
+    /// <summary>
+    ///     Invokes all asynchronous handlers with the provided notifications.
+    /// </summary>
+    /// <typeparam name="TNotification">The type of notification being handled.</typeparam>
+    /// <param name="allHandlers">The handlers to invoke.</param>
+    /// <param name="notifications">The notifications to handle.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    private static async Task PublishCoreAsync<TNotification>(IEnumerable<Func<IEnumerable<TNotification>, CancellationToken, Task>> allHandlers, IEnumerable<TNotification> notifications, CancellationToken cancellationToken)
+    {
+        foreach (Func<IEnumerable<TNotification>, CancellationToken, Task> handler in allHandlers)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+
+            await handler(notifications, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    ///     Chunks a sequence of items into groups by their runtime type.
+    /// </summary>
+    /// <typeparam name="T">The type of items in the sequence.</typeparam>
+    /// <param name="source">The source sequence to chunk.</param>
+    /// <returns>An enumerable of groupings by type.</returns>
+    private static IEnumerable<IGrouping<Type, T>> ChunkByType<T>(IEnumerable<T> source)
+        where T : notnull
+    {
+        IEnumerator<T> enumerator = source.GetEnumerator();
+
+        if (!enumerator.MoveNext())
+        {
+            // Skip empty source
+            yield break;
+        }
+
+        // Create first grouping
+        Type previousType = enumerator.Current.GetType();
+        var grouping = new ChunkGrouping<Type, T>(previousType)
+        {
+            enumerator.Current
+        };
+
+        // Return chunks when type changes
+        while (enumerator.MoveNext())
+        {
+            // Check against previous type
+            Type currentType = enumerator.Current.GetType();
+            if (previousType != currentType)
+            {
+                yield return grouping;
+
+                // Reinitialize to ensure we're always adding to groupings of the same type
+                previousType = currentType;
+                grouping = new ChunkGrouping<Type, T>(previousType);
+            }
+
+            grouping.Add(enumerator.Current);
+        }
+
+        // Return final grouping
+        yield return grouping;
+    }
+
+    /// <summary>
+    ///     A helper class for grouping items by a key while implementing <see cref="IGrouping{TKey, TElement}" />.
+    /// </summary>
+    /// <typeparam name="TKey">The type of the grouping key.</typeparam>
+    /// <typeparam name="TElement">The type of elements in the group.</typeparam>
+    private sealed class ChunkGrouping<TKey, TElement> : List<TElement>, IGrouping<TKey, TElement>
+    {
+        /// <summary>
+        ///     Gets the key of the grouping.
+        /// </summary>
+        public TKey Key { get; }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="ChunkGrouping{TKey, TElement}" /> class.
+        /// </summary>
+        /// <param name="key">The key for this grouping.</param>
+        public ChunkGrouping(TKey key)
+            => Key = key;
+    }
+}
+
+/// <summary>
+///     Abstract wrapper for synchronous notification handlers.
+/// </summary>
+internal abstract class NotificationHandlerWrapper
+{
+    /// <summary>
+    ///     Handles the notifications by invoking the appropriate handlers.
+    /// </summary>
+    /// <typeparam name="TNotification">The type of notification being handled.</typeparam>
+    /// <typeparam name="TNotificationHandler">The type of the notification handler.</typeparam>
+    /// <param name="notifications">The notifications to handle.</param>
+    /// <param name="serviceFactory">The service factory for resolving handlers.</param>
+    /// <param name="publish">The publish action to invoke handlers.</param>
+    public abstract void Handle<TNotification, TNotificationHandler>(
+        IEnumerable<TNotification> notifications,
+        ServiceFactory serviceFactory,
+        Action<IEnumerable<Action<IEnumerable<TNotification>>>, IEnumerable<TNotification>> publish)
+        where TNotification : INotification
+        where TNotificationHandler : INotificationHandler;
+}
+
+/// <summary>
+///     Abstract wrapper for asynchronous notification handlers.
+/// </summary>
+internal abstract class NotificationAsyncHandlerWrapper
+{
+    /// <summary>
+    ///     Handles the notifications asynchronously by invoking the appropriate handlers.
+    /// </summary>
+    /// <typeparam name="TNotification">The type of notification being handled.</typeparam>
+    /// <typeparam name="TNotificationHandler">The type of the notification handler.</typeparam>
+    /// <param name="notifications">The notifications to handle.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="serviceFactory">The service factory for resolving handlers.</param>
+    /// <param name="publish">The publish function to invoke handlers.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public abstract Task HandleAsync<TNotification, TNotificationHandler>(
+        IEnumerable<TNotification> notifications,
+        CancellationToken cancellationToken,
+        ServiceFactory serviceFactory,
+        Func<IEnumerable<Func<IEnumerable<TNotification>, CancellationToken, Task>>, IEnumerable<TNotification>, CancellationToken, Task> publish)
+        where TNotification : INotification
+        where TNotificationHandler : INotificationHandler;
+}
+
+/// <summary>
+///     Implementation of <see cref="NotificationAsyncHandlerWrapper" /> for a specific notification type.
+/// </summary>
+/// <typeparam name="TNotificationType">The type of notification being handled.</typeparam>
+internal sealed class NotificationAsyncHandlerWrapperImpl<TNotificationType> : NotificationAsyncHandlerWrapper
+    where TNotificationType : INotification
+{
+    /// <remarks>
+    ///     <para>
+    ///         Background - During v9 build we wanted an in-process message bus to facilitate removal of the old static event
+    ///         handlers. <br />
+    ///         Instead of taking a dependency on MediatR we (the community) implemented our own using MediatR as inspiration.
+    ///     </para>
+    ///     <para>
+    ///         Some things worth knowing about MediatR.
+    ///         <list type="number">
+    ///             <item>
+    ///                 All handlers are by default registered with transient lifetime, but can easily depend on services
+    ///                 with state.
+    ///             </item>
+    ///             <item>
+    ///                 Both the Mediatr instance and its handler resolver are registered transient and as such it is always
+    ///                 possible to depend on scoped services in a handler.
+    ///             </item>
+    ///         </list>
+    ///     </para>
+    ///     <para>
+    ///         Our EventAggregator started out registered with a transient lifetime but later (before initial release) the
+    ///         registration was changed to singleton, presumably
+    ///         because there are a lot of singleton services in Umbraco which like to publish notifications and it's a pain to
+    ///         use scoped services from a singleton.
+    ///         <br />
+    ///         The problem with a singleton EventAggregator is it forces handlers to create a service scope and service locate
+    ///         any scoped services
+    ///         they wish to make use of e.g. a unit of work (think entity framework DBContext).
+    ///     </para>
+    ///     <para>
+    ///         Moving forwards it probably makes more sense to register EventAggregator transient but doing so now would mean
+    ///         an awful lot of service location to avoid breaking changes.
+    ///         <br />
+    ///         For now we can do the next best thing which is to create a scope for each published notification, thus enabling
+    ///         the transient handlers to take a dependency on a scoped service.
+    ///     </para>
+    ///     <para>
+    ///         Did discuss using HttpContextAccessor/IScopedServiceProvider to enable sharing of scopes when publisher has
+    ///         http context,
+    ///         but decided against because it's inconsistent with what happens in background threads and will just cause
+    ///         confusion.
+    ///     </para>
+    /// </remarks>
+    public override async Task HandleAsync<TNotification, TNotificationHandler>(
+        IEnumerable<TNotification> notifications,
+        CancellationToken cancellationToken,
+        ServiceFactory serviceFactory,
+        Func<IEnumerable<Func<IEnumerable<TNotification>, CancellationToken, Task>>, IEnumerable<TNotification>, CancellationToken, Task> publish)
+    {
+        // Create a new service scope from which to resolve handlers and ensure it's disposed when it goes out of scope.
+        // TODO: go back to using ServiceFactory to resolve
+        IServiceScopeFactory scopeFactory = serviceFactory.GetInstance<IServiceScopeFactory>();
+        using IServiceScope scope = scopeFactory.CreateScope();
+        IServiceProvider container = scope.ServiceProvider;
+
+        IEnumerable<Func<IEnumerable<TNotification>, CancellationToken, Task>> handlers = container
+            .GetServices<INotificationAsyncHandler<TNotificationType>>()
+            .Where(x => x is TNotificationHandler)
+            .Select(x => new Func<IEnumerable<TNotification>, CancellationToken, Task>(
+                (handlerNotifications, handlerCancellationToken) => x.HandleAsync(handlerNotifications.Cast<TNotificationType>(), handlerCancellationToken)));
+
+        await publish(handlers, notifications, cancellationToken);
+    }
+}
+
+/// <summary>
+///     Implementation of <see cref="NotificationHandlerWrapper" /> for a specific notification type.
+/// </summary>
+/// <typeparam name="TNotificationType">The type of notification being handled.</typeparam>
+internal sealed class NotificationHandlerWrapperImpl<TNotificationType> : NotificationHandlerWrapper
+    where TNotificationType : INotification
+{
+    /// <remarks>
+    ///     See remarks on <see cref="NotificationAsyncHandlerWrapperImpl{T}.HandleAsync" /> for explanation on
+    ///     what's going on with the IServiceProvider stuff here.
+    /// </remarks>
+    public override void Handle<TNotification, TNotificationHandler>(
+        IEnumerable<TNotification> notifications,
+        ServiceFactory serviceFactory,
+        Action<IEnumerable<Action<IEnumerable<TNotification>>>, IEnumerable<TNotification>> publish)
+    {
+        // Create a new service scope from which to resolve handlers and ensure it's disposed when it goes out of scope.
+        // TODO: go back to using ServiceFactory to resolve
+        IServiceScopeFactory scopeFactory = serviceFactory.GetInstance<IServiceScopeFactory>();
+        using IServiceScope scope = scopeFactory.CreateScope();
+        IServiceProvider container = scope.ServiceProvider;
+
+        IEnumerable<Action<IEnumerable<TNotification>>> handlers = container
+            .GetServices<INotificationHandler<TNotificationType>>()
+            .Where(x => x is TNotificationHandler)
+            .Select(x => new Action<IEnumerable<TNotification>>(handlerNotifications => x.Handle(handlerNotifications.Cast<TNotificationType>())));
+
+        publish(handlers, notifications);
+    }
+}

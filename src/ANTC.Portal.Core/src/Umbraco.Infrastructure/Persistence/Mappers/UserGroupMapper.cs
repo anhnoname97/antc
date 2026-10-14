@@ -1,0 +1,35 @@
+using Umbraco.Cms.Core.Models.Membership;
+using Umbraco.Cms.Infrastructure.Persistence.Dtos;
+
+namespace Umbraco.Cms.Infrastructure.Persistence.Mappers;
+
+/// <summary>
+///     Represents a <see cref="UserGroup" /> to DTO mapper used to translate the properties of the public api
+///     implementation to that of the database's DTO as sql: [tableName].[columnName].
+/// </summary>
+[MapperFor(typeof(IUserGroup))]
+[MapperFor(typeof(UserGroup))]
+public sealed class UserGroupMapper : BaseMapper
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserGroupMapper"/> class.
+    /// </summary>
+    /// <param name="sqlContext">The lazy-loaded <see cref="ISqlContext"/> used for database operations.</param>
+    /// <param name="maps">The <see cref="MapperConfigurationStore"/> containing mapper configurations.</param>
+    public UserGroupMapper(Lazy<ISqlContext> sqlContext, MapperConfigurationStore maps)
+        : base(sqlContext, maps)
+    {
+    }
+
+    protected override void DefineMaps()
+    {
+        DefineMap<UserGroup, UserGroupDto>(nameof(UserGroup.Id), nameof(UserGroupDto.Id));
+        DefineMap<UserGroup, UserGroupDto>(nameof(UserGroup.Key), nameof(UserGroupDto.Key));
+        DefineMap<UserGroup, UserGroupDto>(nameof(UserGroup.Alias), nameof(UserGroupDto.Alias));
+        DefineMap<UserGroup, UserGroupDto>(nameof(UserGroup.Name), nameof(UserGroupDto.Name));
+        DefineMap<UserGroup, UserGroupDto>(nameof(UserGroup.Icon), nameof(UserGroupDto.Icon));
+        DefineMap<UserGroup, UserGroupDto>(nameof(UserGroup.StartContentId), nameof(UserGroupDto.StartContentId));
+        DefineMap<UserGroup, UserGroupDto>(nameof(UserGroup.StartMediaId), nameof(UserGroupDto.StartMediaId));
+        DefineMap<UserGroup, UserGroupDto>(nameof(UserGroup.Description), nameof(UserGroupDto.Description));
+    }
+}

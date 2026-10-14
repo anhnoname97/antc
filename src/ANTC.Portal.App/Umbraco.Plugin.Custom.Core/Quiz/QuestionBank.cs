@@ -1,0 +1,146 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Plugin.Custom.Core.Data;
+
+namespace Umbraco.Plugin.Custom.Core.Quiz;
+
+// Cau truc JSON tra ve cho trinh duyet giu dung nhu du lieu trong ban dung
+// (docs/ban-dung/antoantaichinh-ban-dung-thu.html) de FE dung lai ma hien thi.
+
+public record TopicDto(
+    [property: JsonPropertyName("cd")] string Cd,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("count")] int Count,
+    [property: JsonPropertyName("intro")] JsonElement Intro,
+    [property: JsonPropertyName("terms")] JsonElement Terms);
+
+public record QuestionDto(
+    [property: JsonPropertyName("code")] string Code,
+    [property: JsonPropertyName("kind")] string Kind,
+    [property: JsonPropertyName("sit")] string Sit,
+    [property: JsonPropertyName("q")] string Q,
+    [property: JsonPropertyName("opt")] JsonElement Opt,
+    [property: JsonPropertyName("ans")] string Ans,
+    [property: JsonPropertyName("exp")] JsonElement Exp,
+    [property: JsonPropertyName("safe")] string Safe,
+    [property: JsonPropertyName("sec")] int Sec);
+
+public record SampleQuestionDto(
+    [property: JsonPropertyName("cd")] string Cd,
+    [property: JsonPropertyName("lab")] string Lab,
+    [property: JsonPropertyName("code")] string Code,
+    [property: JsonPropertyName("sit")] string Sit,
+    [property: JsonPropertyName("q")] string Q,
+    [property: JsonPropertyName("opt")] JsonElement Opt,
+    [property: JsonPropertyName("ans")] string Ans,
+    [property: JsonPropertyName("exp")] JsonElement Exp,
+    [property: JsonPropertyName("safe")] string Safe);
+
+/// <summary>Thong tin can de cham mot cau.</summary>
+public record AnswerKey(string Code, int TopicId, string Answer, IReadOnlySet<string> Letters);
+
+/// <summary>Ban chup ngan hang cau hoi trong bo nho.</summary>
+public class QuestionBankSnapshot
+{
+    /// <summary>So phien ban = ma lan nhap gan nhat (0 neu chua nhap lan nao). Dung lam ETag.</summary>
+    public long Version { get; init; }
+    public IReadOnlyList<TopicDto> Topics { get; init; } = Array.Empty<TopicDto>();
+    public IReadOnlyDictionary<int, IReadOnlyList<QuestionDto>> QuestionsByTopic { get; init; } = new Dictionary<int, IReadOnlyList<QuestionDto>>();
+    public IReadOnlyList<SampleQuestionDto> Sample { get; init; } = Array.Empty<SampleQuestionDto>();
+    public IReadOnlyDictionary<string, AnswerKey> Keys { get; init; } = new Dictionary<string, AnswerKey>();
+    public int TotalQuestions => Keys.Count;
+}
+
+public interface IQuestionBank
+{
+    /// <summary>Ban chup hien tai; tai tu CSDL o lan goi dau.</summary>
+    QuestionBankSnapshot Current { get; }
+
+    /// <summary>Tai lai tu CSDL. Goi sau moi lan nhap ma tran cau hoi.</summary>
+    void Reload();
+}
+
+/// <summary>
+/// Doc ngan hang cau hoi tu CSDL va giu trong bo nho. Cac API doc cau hoi va viec cham diem
+/// deu lay tu day, khong truy van CSDL o moi yeu cau.
+/// </summary>
+public class QuestionBank : IQuestionBank
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly object _lock = new();
+    private QuestionBankSnapshot? _current;
+
+    public QuestionBank(IServiceScopeFactory scopeFactory) => _scopeFactory = scopeFactory;
+
+    public QuestionBankSnapshot Current
+    {
+        get
+        {
+            if (_current is not null)
+            {
+                return _current;
+            }
+
+            lock (_lock)
+            {
+                return _current ??= Load();
+            }
+        }
+    }
+
+    public void Reload()
+    {
+        lock (_lock)
+        {
+            _current = Load();
+        }
+    }
+
+    private QuestionBankSnapshot Load()
+    {
+        using IServiceScope scope = _scopeFactory.CreateScope();
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        List<QuizTopic> topics = db.QuizTopics.AsNoTracking().Where(t => t.IsActive).OrderBy(t => t.Id).ToList();
+        List<QuizQuestion> questions = db.QuizQuestions.AsNoTracking().Where(q => q.IsActive)
+            .OrderBy(q => q.TopicId).ThenBy(q => q.SortOrder).ToList();
+        long version = db.QuizImports.Any() ? db.QuizImports.Max(i => i.Id) : 0;
+
+        var byTopic = new Dictionary<int, IReadOnlyList<QuestionDto>>();
+        var keys = new Dictionary<string, AnswerKey>();
+        foreach (IGrouping<int, QuizQuestion> group in questions.GroupBy(q => q.TopicId))
+        {
+            byTopic[group.Key] = group.Select(q => new QuestionDto(
+                q.Code, q.Kind, q.Situation ?? "", q.Question, Parse(q.Options), q.Answer, Parse(q.Explanations),
+                q.SafeAction ?? "", q.ReadSeconds)).ToList();
+        }
+
+        foreach (QuizQuestion q in questions)
+        {
+            var letters = Parse(q.Options).EnumerateArray().Select(o => o[0].GetString() ?? "").ToHashSet();
+            keys[q.Code] = new AnswerKey(q.Code, q.TopicId, q.Answer, letters);
+        }
+
+        return new QuestionBankSnapshot
+        {
+            Version = version,
+            Topics = topics.Select(t => new TopicDto(
+                t.Id.ToString(), t.Title, byTopic.TryGetValue(t.Id, out var list) ? list.Count : 0,
+                Parse(t.Intro), Parse(t.Terms ?? "[]"))).ToList(),
+            QuestionsByTopic = byTopic,
+            Sample = questions.Where(q => q.SampleOrder is not null).OrderBy(q => q.SampleOrder)
+                .Select(q => new SampleQuestionDto(
+                    q.TopicId.ToString(), q.SampleLabel ?? "", q.Code, q.Situation ?? "", q.Question,
+                    Parse(q.Options), q.Answer, Parse(q.Explanations), q.SafeAction ?? "")).ToList(),
+            Keys = keys,
+        };
+    }
+
+    private static JsonElement Parse(string json)
+    {
+        using JsonDocument doc = JsonDocument.Parse(json);
+        return doc.RootElement.Clone();
+    }
+}

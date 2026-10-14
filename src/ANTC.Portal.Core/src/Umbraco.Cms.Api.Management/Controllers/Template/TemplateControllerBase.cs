@@ -1,0 +1,68 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Common.Builders;
+using Umbraco.Cms.Api.Management.Routing;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Cms.Web.Common.Authorization;
+
+namespace Umbraco.Cms.Api.Management.Controllers.Template;
+
+/// <summary>
+/// Serves as the base controller for template management operations in the Umbraco CMS API.
+/// Provides shared functionality for controllers handling template-related requests.
+/// </summary>
+[VersionedApiBackOfficeRoute(Constants.UdiEntityType.Template)]
+[ApiExplorerSettings(GroupName = nameof(Constants.UdiEntityType.Template))]
+[Authorize(Policy = AuthorizationPolicies.TreeAccessTemplates)]
+public class TemplateControllerBase : ManagementApiControllerBase
+{
+    protected IActionResult TemplateOperationStatusResult(TemplateOperationStatus status) =>
+        OperationStatusResult(status, problemDetailsBuilder => status switch
+        {
+            TemplateOperationStatus.TemplateNotFound => TemplateNotFound(),
+            TemplateOperationStatus.InvalidAlias => BadRequest(problemDetailsBuilder
+                .WithTitle("Invalid alias")
+                .WithDetail("The template alias is not valid.")
+                .Build()),
+            TemplateOperationStatus.CancelledByNotification => BadRequest(problemDetailsBuilder
+                .WithTitle("Cancelled by notification")
+                .WithDetail("A notification handler prevented the template operation.")
+                .Build()),
+            TemplateOperationStatus.DuplicateAlias => BadRequest(problemDetailsBuilder
+                .WithTitle("Duplicate alias")
+                .WithDetail("A template with that alias already exists.")
+                .Build()),
+            TemplateOperationStatus.CircularLayoutTemplateReference => BadRequest(problemDetailsBuilder
+                .WithTitle("Invalid layout template")
+                .WithDetail("The layout template referenced in the template leads to a circular reference.")
+                .Build()),
+            TemplateOperationStatus.LayoutTemplateNotFound => BadRequest(problemDetailsBuilder
+                .WithTitle("Layout template not found")
+                .WithDetail("The layout template referenced in the template was not found.")
+                .Build()),
+            TemplateOperationStatus.LayoutTemplateCannotBeDeleted => BadRequest(problemDetailsBuilder
+                .WithTitle("Layout template cannot be deleted")
+                .WithDetail("The layout template cannot be deleted. Please ensure the template is not a layout template before you delete.")
+                .Build()),
+            TemplateOperationStatus.NotAllowedInProductionMode => BadRequest(problemDetailsBuilder
+                .WithTitle("Not allowed in production mode")
+                .WithDetail("Template modifications are not allowed when running in production mode.")
+                .Build()),
+            TemplateOperationStatus.ContentChangeNotAllowedInProductionMode => BadRequest(problemDetailsBuilder
+                .WithTitle("Content change not allowed in production mode")
+                .WithDetail("Template content changes are not allowed when running in production mode. Metadata updates are permitted.")
+                .Build()),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, problemDetailsBuilder
+                .WithTitle("Unknown template operation status.")
+                .Build()),
+        });
+
+    protected IActionResult TemplateNotFound()
+        => OperationStatusResult(TemplateOperationStatus.TemplateNotFound, TemplateNotFound);
+
+    protected IActionResult TemplateNotFound(ProblemDetailsBuilder problemDetailsBuilder) => NotFound(problemDetailsBuilder
+        .WithTitle("The template could not be found")
+        .Build());
+}

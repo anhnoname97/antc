@@ -1,0 +1,44 @@
+using System.ComponentModel.DataAnnotations;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Validation;
+using Umbraco.Cms.Core.PropertyEditors;
+
+namespace Umbraco.Cms.Core.Services;
+
+/// <summary>
+///     Provides validation services for content properties.
+/// </summary>
+public interface IPropertyValidationService
+{
+    /// <summary>
+    ///     Validates the content item's properties pass validation rules
+    /// </summary>
+    bool IsPropertyDataValid(IPublishableContentBase content, out IProperty[] invalidProperties, CultureImpact? impact);
+
+    /// <summary>
+    ///     Gets a value indicating whether the property has valid values.
+    /// </summary>
+    [Obsolete("Property level validation is not going to be supported moving forward. Please use content level validation with IsPropertyDataValid instead. Scheduled for removal in Umbraco 20.")]
+    bool IsPropertyValid(IProperty property, PropertyValidationContext validationContext);
+
+    /// <summary>
+    ///     Validates a property value.
+    /// </summary>
+    IEnumerable<ValidationResult> ValidatePropertyValue(
+        IDataEditor editor,
+        IDataType dataType,
+        object? postedValue,
+        bool isRequired,
+        string? validationRegExp,
+        string? isRequiredMessage,
+        string? validationRegExpMessage,
+        PropertyValidationContext validationContext);
+
+    /// <summary>
+    ///     Validates a property value.
+    /// </summary>
+    IEnumerable<ValidationResult> ValidatePropertyValue(
+        IPropertyType propertyType,
+        object? postedValue,
+        PropertyValidationContext validationContext);
+}

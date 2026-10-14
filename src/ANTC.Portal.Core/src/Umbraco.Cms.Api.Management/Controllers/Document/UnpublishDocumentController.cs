@@ -1,0 +1,75 @@
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Management.Security.Authorization.Content;
+using Umbraco.Cms.Api.Management.ViewModels.Document;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Actions;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Core.Security.Authorization;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Cms.Web.Common.Authorization;
+using Umbraco.Extensions;
+
+namespace Umbraco.Cms.Api.Management.Controllers.Document;
+
+/// <summary>
+/// Controller responsible for handling operations related to unpublishing documents in the CMS.
+/// </summary>
+[ApiVersion("1.0")]
+public class UnpublishDocumentController : DocumentControllerBase
+{
+    private readonly IAuthorizationService _authorizationService;
+    private readonly IContentPublishingService _contentPublishingService;
+    private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UnpublishDocumentController"/> class, which handles requests to unpublish documents.
+    /// </summary>
+    /// <param name="authorizationService">Service used to authorize user actions.</param>
+    /// <param name="contentPublishingService">Service responsible for content publishing operations.</param>
+    /// <param name="backOfficeSecurityAccessor">Accessor for back office security context.</param>
+    public UnpublishDocumentController(
+        IAuthorizationService authorizationService,
+        IContentPublishingService contentPublishingService,
+        IBackOfficeSecurityAccessor backOfficeSecurityAccessor)
+    {
+        _authorizationService = authorizationService;
+        _contentPublishingService = contentPublishingService;
+        _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
+    }
+
+    [HttpPut("{id:guid}/unpublish")]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [EndpointSummary("Unpublishes a document.")]
+    [EndpointDescription("Unpublishes a document identified by the provided Id.")]
+    public async Task<IActionResult> Unpublish(CancellationToken cancellationToken, Guid id, UnpublishDocumentRequestModel requestModel)
+    {
+        AuthorizationResult authorizationResult = await _authorizationService.AuthorizeResourceAsync(
+            User,
+            ContentPermissionResource.WithKeys(
+                ActionUnpublish.ActionLetter,
+                id,
+                requestModel.Cultures ?? Enumerable.Empty<string>()),
+            AuthorizationPolicies.ContentPermissionByResource);
+
+        if (!authorizationResult.Succeeded)
+        {
+            return Forbidden();
+        }
+
+        Attempt<ContentPublishingOperationStatus> attempt = await _contentPublishingService.UnpublishAsync(
+            id,
+            requestModel.Cultures,
+            CurrentUserKey(_backOfficeSecurityAccessor));
+
+        return attempt.Success
+            ? Ok()
+            : DocumentPublishingOperationStatusResult(attempt.Result);
+    }
+}

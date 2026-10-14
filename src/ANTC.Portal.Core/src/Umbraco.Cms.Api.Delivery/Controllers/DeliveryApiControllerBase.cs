@@ -1,0 +1,35 @@
+using System.Net;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Api.Common.Attributes;
+using Umbraco.Cms.Api.Common.Filters;
+using Umbraco.Cms.Api.Delivery.Configuration;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Features;
+using Umbraco.Cms.Web.Common.Authorization;
+using Umbraco.Cms.Web.Common.Controllers;
+
+namespace Umbraco.Cms.Api.Delivery.Controllers;
+
+[ApiController]
+[JsonOptionsName(Constants.JsonOptionsNames.DeliveryApi)]
+[MapToApi(DeliveryApiConfiguration.ApiName)]
+[Authorize(Policy = AuthorizationPolicies.UmbracoFeatureEnabled)]
+[MaintenanceModeActionFilter]
+public abstract class DeliveryApiControllerBase : Controller, IUmbracoFeature
+{
+    protected string DecodePath(string path)
+    {
+        // OpenAPI does not allow reserved chars as "in:path" parameters, so clients based on the OpenAPI specification will URL
+        // encode the path. Normally, ASP.NET Core handles that encoding with an automatic decoding - apparently just not
+        // for forward slashes, for whatever reason... so we need to deal with those. Hopefully this will be addressed in
+        // an upcoming version of ASP.NET Core.
+        // See also https://github.com/dotnet/aspnetcore/issues/11544
+        if (path.Contains("%2F", StringComparison.OrdinalIgnoreCase))
+        {
+            path = WebUtility.UrlDecode(path);
+        }
+
+        return path;
+    }
+}

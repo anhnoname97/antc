@@ -1,0 +1,560 @@
+using System.Collections.Concurrent;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Persistence.Repositories;
+using Umbraco.Cms.Core.Scoping;
+
+namespace Umbraco.Cms.Core.Services;
+
+/// <summary>
+///     Provides bidirectional mapping between integer IDs and GUIDs (keys) for Umbraco entities.
+/// </summary>
+/// <remarks>
+///     <para>
+///         This class provides an efficient caching layer for ID/Key lookups. The cache assumes that
+///         the id/guid map is unique; that is, if an id and a guid map to each other, then the id
+///         will never map to another guid, and the guid will never map to another id.
+///     </para>
+///     <para>
+///         Cache is cleared by MediaCacheRefresher, UnpublishedPageCacheRefresher, and other
+///         refreshers - because id/guid map is unique, we only clear to avoid leaking memory,
+///         as we don't risk caching obsolete values - and only when actually deleting.
+///     </para>
+///     <para>
+///         External mappers can be registered (e.g., from NuCache) to provide lookups from
+///         alternative sources before hitting the database.
+///     </para>
+/// </remarks>
+public class IdKeyMap : IIdKeyMap, IDisposable
+{
+    private readonly ICoreScopeProvider _scopeProvider;
+    private readonly IIdKeyMapRepository _idKeyMapRepository;
+    private readonly ReaderWriterLockSlim _locker = new();
+
+    // Both dictionaries are keyed by the identifier alone, with the object type carried on the value only as a
+    // discriminator. That is safe because umbracoNode.id is unique across all object types, so an id can never
+    // belong to two entries at once.
+    private readonly Dictionary<int, TypedId<Guid>> _id2Key = [];
+    private readonly Dictionary<Guid, TypedId<int>> _key2Id = [];
+
+    // note - for pure read-only we might want to *not* enforce a transaction?
+
+    // notes
+    //
+    // - this class assumes that the id/guid map is unique; that is, if an id and a guid map
+    //   to each other, then the id will never map to another guid, and the guid will never map
+    //   to another id
+    //
+    // - cache is cleared by MediaCacheRefresher, UnpublishedPageCacheRefresher, and other
+    //   refreshers - because id/guid map is unique, we only clear to avoid leaking memory, 'cos
+    //   we don't risk caching obsolete values - and only when actually deleting
+    //
+    // - we do NOT prefetch anything from database
+    //
+    // - NuCache maintains its own id/guid map for content & media items
+    //   it does *not* populate the idk map, because it directly uses its own map
+    //   still, it provides mappers so that the idk map can benefit from them
+    //   which means there will be some double-caching at some point ??
+    //
+    // - when a request comes in:
+    //   if the idkMap already knows about the map, it returns the value
+    //   else it tries the published cache via mappers
+    //   else it hits the database
+    private readonly ConcurrentDictionary<UmbracoObjectTypes, (Func<int, Guid> id2key, Func<Guid, int> key2id)>
+        _dictionary
+            = new();
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="IdKeyMap" /> class.
+    /// </summary>
+    /// <param name="scopeProvider">The core scope provider for database operations.</param>
+    /// <param name="idKeyMapRepository">The repository for ID/Key mapping data access.</param>
+    public IdKeyMap(ICoreScopeProvider scopeProvider, IIdKeyMapRepository idKeyMapRepository)
+    {
+        _scopeProvider = scopeProvider;
+        _idKeyMapRepository = idKeyMapRepository;
+    }
+
+    private bool _disposedValue;
+
+    /// <summary>
+    ///     Registers an external source of ID/key mappings, consulted before falling back to the database.
+    /// </summary>
+    /// <param name="umbracoObjectType">The Umbraco object type the mappers apply to.</param>
+    /// <param name="id2key">Maps an integer identifier to a key.</param>
+    /// <param name="key2id">Maps a key to an integer identifier.</param>
+    /// <remarks>
+    ///     Prefer <see cref="PopulateCache(int, Guid, UmbracoObjectTypes)" />. A mapper is invoked on every miss,
+    ///     and one backed by the published cache re-enters this map when resolving by identifier.
+    /// </remarks>
+    public void SetMapper(UmbracoObjectTypes umbracoObjectType, Func<int, Guid> id2key, Func<Guid, int> key2id) =>
+        _dictionary[umbracoObjectType] = (id2key, key2id);
+
+#if POPULATE_FROM_DATABASE
+        private void PopulateLocked()
+        {
+            // don't if not empty
+            if (_key2Id.Count > 0) return;
+
+            using (var scope = _scopeProvider.CreateCoreScope())
+            {
+                // populate content and media items
+                var types = new[] { Constants.ObjectTypes.Document, Constants.ObjectTypes.Media };
+                var values =
+ scope.Database.Query<TypedIdDto>("SELECT id, uniqueId, nodeObjectType FROM umbracoNode WHERE nodeObjectType IN @types", new { types });
+                foreach (var value in values)
+                {
+                    var umbracoObjectType = ObjectTypes.GetUmbracoObjectType(value.NodeObjectType);
+                    _id2Key.Add(value.Id, new TypedId<Guid>(value.UniqueId, umbracoObjectType));
+                    _key2Id.Add(value.UniqueId, new TypedId<int>(value.Id, umbracoObjectType));
+                }
+            }
+        }
+
+        private Attempt<int> PopulateAndGetIdForKey(Guid key, UmbracoObjectTypes umbracoObjectType)
+        {
+            try
+            {
+                _locker.EnterWriteLock();
+
+                PopulateLocked();
+
+                return _key2Id.TryGetValue(key, out var id) && id.UmbracoObjectType == umbracoObjectType
+                    ? Attempt.Succeed(id.Id)
+                    : Attempt<int>.Fail();
+
+            }
+            finally
+            {
+                if (_locker.IsWriteLockHeld)
+                    _locker.ExitWriteLock();
+            }
+        }
+
+        private Attempt<Guid> PopulateAndGetKeyForId(int id, UmbracoObjectTypes umbracoObjectType)
+        {
+            try
+            {
+                _locker.EnterWriteLock();
+
+                PopulateLocked();
+
+                return _id2Key.TryGetValue(id, out var key) && key.UmbracoObjectType == umbracoObjectType
+                    ? Attempt.Succeed(key.Id)
+                    : Attempt<Guid>.Fail();
+            }
+            finally
+            {
+                if (_locker.IsWriteLockHeld)
+                    _locker.ExitWriteLock();
+            }
+        }
+#endif
+
+    /// <inheritdoc />
+    public Attempt<int> GetIdForKey(Guid key, UmbracoObjectTypes umbracoObjectType)
+    {
+        if (key == Constants.System.RecycleBinContentKey && umbracoObjectType == UmbracoObjectTypes.Document)
+        {
+            return Attempt.Succeed(Constants.System.RecycleBinContent);
+        }
+
+        if (key == Constants.System.RecycleBinMediaKey && umbracoObjectType == UmbracoObjectTypes.Media)
+        {
+            return Attempt.Succeed(Constants.System.RecycleBinMedia);
+        }
+
+        if (key == Constants.System.RecycleBinElementKey && umbracoObjectType is UmbracoObjectTypes.Element or UmbracoObjectTypes.ElementContainer)
+        {
+            return Attempt.Succeed(Constants.System.RecycleBinElement);
+        }
+
+        bool empty;
+
+        try
+        {
+            _locker.EnterReadLock();
+            if (_key2Id.TryGetValue(key, out TypedId<int> id) && id.UmbracoObjectType == umbracoObjectType)
+            {
+                return Attempt.Succeed(id.Id);
+            }
+
+            empty = _key2Id.Count == 0;
+        }
+        finally
+        {
+            if (_locker.IsReadLockHeld)
+            {
+                _locker.ExitReadLock();
+            }
+        }
+
+#if POPULATE_FROM_DATABASE
+            // if cache is empty and looking for a document or a media,
+            // populate the cache at once and return what we found
+            if (empty && (umbracoObjectType == UmbracoObjectTypes.Document || umbracoObjectType == UmbracoObjectTypes.Media))
+                return PopulateAndGetIdForKey(key, umbracoObjectType);
+#endif
+
+        // optimize for read speed: reading database outside a lock means that we could read
+        // multiple times, but we don't lock the cache while accessing the database = better
+        int? val = null;
+
+        if (_dictionary.TryGetValue(umbracoObjectType, out (Func<int, Guid> id2key, Func<Guid, int> key2id) mappers))
+        {
+            if ((val = mappers.key2id(key)) == default(int))
+            {
+                val = null;
+            }
+        }
+
+        if (val == null)
+        {
+            using (ICoreScope scope = _scopeProvider.CreateCoreScope())
+            {
+                val = _idKeyMapRepository.GetIdForKey(key, umbracoObjectType);
+                scope.Complete();
+            }
+        }
+
+        if (val == null)
+        {
+            return Attempt<int>.Fail();
+        }
+
+        // cache reservations, when something is saved this cache is cleared anyways
+        // if (umbracoObjectType == UmbracoObjectTypes.IdReservation)
+        //    Attempt.Succeed(val.Value);
+        try
+        {
+            _locker.EnterWriteLock();
+            _id2Key[val.Value] = new TypedId<Guid>(key, umbracoObjectType);
+            _key2Id[key] = new TypedId<int>(val.Value, umbracoObjectType);
+        }
+        finally
+        {
+            if (_locker.IsWriteLockHeld)
+            {
+                _locker.ExitWriteLock();
+            }
+        }
+
+        return Attempt.Succeed(val.Value);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    ///     The write lock is held for the whole enumeration, hence the materialized collection: passing a lazy
+    ///     sequence would block every reader for as long as it takes to produce the pairs.
+    /// </remarks>
+    public void PopulateCache(IReadOnlyCollection<(int Id, Guid Key)> pairs, UmbracoObjectTypes umbracoObjectType)
+    {
+        if (pairs.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            _locker.EnterWriteLock();
+            foreach ((int id, Guid key) in pairs)
+            {
+                _id2Key[id] = new TypedId<Guid>(key, umbracoObjectType);
+                _key2Id[key] = new TypedId<int>(id, umbracoObjectType);
+            }
+        }
+        finally
+        {
+            if (_locker.IsWriteLockHeld)
+            {
+                _locker.ExitWriteLock();
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public void PopulateCache(int id, Guid key, UmbracoObjectTypes umbracoObjectType)
+    {
+        // Callers on the published cache read path re-supply pairs that are already mapped (content is
+        // re-converted after every publish and on every preview request), so check under the read lock
+        // first and only take the write lock when there is something to write.
+        try
+        {
+            _locker.EnterReadLock();
+            if (_id2Key.TryGetValue(id, out TypedId<Guid> existing)
+                && existing.Id == key
+                && existing.UmbracoObjectType == umbracoObjectType)
+            {
+                return;
+            }
+        }
+        finally
+        {
+            if (_locker.IsReadLockHeld)
+            {
+                _locker.ExitReadLock();
+            }
+        }
+
+        // The lock does not support recursion, so the read lock above must be released before taking the
+        // write lock - which means another thread may have written the same pair in between. That is
+        // harmless: the id/key mapping is unique, so both threads write the same values.
+        try
+        {
+            _locker.EnterWriteLock();
+            _id2Key[id] = new TypedId<Guid>(key, umbracoObjectType);
+            _key2Id[key] = new TypedId<int>(id, umbracoObjectType);
+        }
+        finally
+        {
+            if (_locker.IsWriteLockHeld)
+            {
+                _locker.ExitWriteLock();
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public Attempt<int> GetIdForUdi(Udi udi)
+    {
+        var guidUdi = udi as GuidUdi;
+        if (guidUdi == null)
+        {
+            return Attempt<int>.Fail();
+        }
+
+        UmbracoObjectTypes umbracoType = UdiEntityTypeHelper.ToUmbracoObjectType(guidUdi.EntityType);
+        return GetIdForKey(guidUdi.Guid, umbracoType);
+    }
+
+    /// <inheritdoc />
+    public Attempt<Udi?> GetUdiForId(int id, UmbracoObjectTypes umbracoObjectType)
+    {
+        Attempt<Guid> keyAttempt = GetKeyForId(id, umbracoObjectType);
+        return keyAttempt.Success
+            ? Attempt.Succeed<Udi?>(new GuidUdi(
+                UdiEntityTypeHelper.FromUmbracoObjectType(umbracoObjectType),
+                keyAttempt.Result))
+            : Attempt<Udi?>.Fail();
+    }
+
+    /// <inheritdoc />
+    public Attempt<Guid> GetKeyForId(int id, UmbracoObjectTypes umbracoObjectType)
+    {
+        if (id == Constants.System.RecycleBinContent && umbracoObjectType == UmbracoObjectTypes.Document)
+        {
+            return Attempt.Succeed(Constants.System.RecycleBinContentKey);
+        }
+
+        if (id == Constants.System.RecycleBinMedia && umbracoObjectType == UmbracoObjectTypes.Media)
+        {
+            return Attempt.Succeed(Constants.System.RecycleBinMediaKey);
+        }
+
+        if (id == Constants.System.RecycleBinElement && umbracoObjectType is UmbracoObjectTypes.Element or UmbracoObjectTypes.ElementContainer)
+        {
+            return Attempt.Succeed(Constants.System.RecycleBinElementKey);
+        }
+
+        bool empty;
+
+        try
+        {
+            _locker.EnterReadLock();
+            if (_id2Key.TryGetValue(id, out TypedId<Guid> key) && key.UmbracoObjectType == umbracoObjectType)
+            {
+                return Attempt.Succeed(key.Id);
+            }
+
+            empty = _id2Key.Count == 0;
+        }
+        finally
+        {
+            if (_locker.IsReadLockHeld)
+            {
+                _locker.ExitReadLock();
+            }
+        }
+
+#if POPULATE_FROM_DATABASE
+            // if cache is empty and looking for a document or a media,
+            // populate the cache at once and return what we found
+            if (empty && (umbracoObjectType == UmbracoObjectTypes.Document || umbracoObjectType == UmbracoObjectTypes.Media))
+                return PopulateAndGetKeyForId(id, umbracoObjectType);
+#endif
+
+        // optimize for read speed: reading database outside a lock means that we could read
+        // multiple times, but we don't lock the cache while accessing the database = better
+        Guid? val = null;
+
+        if (_dictionary.TryGetValue(umbracoObjectType, out (Func<int, Guid> id2key, Func<Guid, int> key2id) mappers))
+        {
+            if ((val = mappers.id2key(id)) == default(Guid))
+            {
+                val = null;
+            }
+        }
+
+        if (val == null)
+        {
+            using (ICoreScope scope = _scopeProvider.CreateCoreScope())
+            {
+                val = _idKeyMapRepository.GetIdForKey(id, umbracoObjectType);
+                scope.Complete();
+            }
+        }
+
+        if (val == null)
+        {
+            return Attempt<Guid>.Fail();
+        }
+
+        // cache reservations, when something is saved this cache is cleared anyways
+        // if (umbracoObjectType == UmbracoObjectTypes.IdReservation)
+        //    Attempt.Succeed(val.Value);
+        try
+        {
+            _locker.EnterWriteLock();
+            _id2Key[id] = new TypedId<Guid>(val.Value, umbracoObjectType);
+            _key2Id[val.Value] = new TypedId<int>(id, umbracoObjectType);
+        }
+        finally
+        {
+            if (_locker.IsWriteLockHeld)
+            {
+                _locker.ExitWriteLock();
+            }
+        }
+
+        return Attempt.Succeed(val.Value);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    ///     Invoked on UnpublishedPageCacheRefresher.RefreshAll. For specific items, use the ID or Key specific overloads.
+    /// </remarks>
+    public void ClearCache()
+    {
+        try
+        {
+            _locker.EnterWriteLock();
+            _id2Key.Clear();
+            _key2Id.Clear();
+        }
+        finally
+        {
+            if (_locker.IsWriteLockHeld)
+            {
+                _locker.ExitWriteLock();
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public void ClearCache(int id)
+    {
+        try
+        {
+            _locker.EnterWriteLock();
+            if (_id2Key.Remove(id, out TypedId<Guid> key) == false)
+            {
+                return;
+            }
+
+            _key2Id.Remove(key.Id);
+        }
+        finally
+        {
+            if (_locker.IsWriteLockHeld)
+            {
+                _locker.ExitWriteLock();
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public void ClearCache(Guid key)
+    {
+        try
+        {
+            _locker.EnterWriteLock();
+            if (_key2Id.Remove(key, out TypedId<int> id) == false)
+            {
+                return;
+            }
+
+            _id2Key.Remove(id.Id);
+        }
+        finally
+        {
+            if (_locker.IsWriteLockHeld)
+            {
+                _locker.ExitWriteLock();
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Releases the unmanaged resources used by the <see cref="IdKeyMap" /> and optionally releases the managed resources.
+    /// </summary>
+    /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                _locker.Dispose();
+            }
+
+            _disposedValue = true;
+        }
+    }
+
+    // ReSharper restore ClassNeverInstantiated.Local
+    // ReSharper restore UnusedAutoPropertyAccessor.Local
+
+    /// <summary>
+    ///     Represents an identifier value with its associated Umbraco object type.
+    /// </summary>
+    /// <typeparam name="T">The type of the identifier (int or Guid).</typeparam>
+    private struct TypedId<T>
+    {
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="TypedId{T}" /> struct.
+        /// </summary>
+        /// <param name="id">The identifier value.</param>
+        /// <param name="umbracoObjectType">The Umbraco object type.</param>
+        public TypedId(T id, UmbracoObjectTypes umbracoObjectType)
+        {
+            UmbracoObjectType = umbracoObjectType;
+            Id = id;
+        }
+
+        /// <summary>
+        ///     Gets the Umbraco object type for this identifier.
+        /// </summary>
+        public UmbracoObjectTypes UmbracoObjectType { get; }
+
+        /// <summary>
+        ///     Gets the identifier value.
+        /// </summary>
+        public T Id { get; }
+    }
+
+    // ReSharper disable ClassNeverInstantiated.Local
+    // ReSharper disable UnusedAutoPropertyAccessor.Local
+    private sealed class TypedIdDto
+    {
+        public int Id { get; set; }
+
+        public Guid UniqueId { get; set; }
+
+        public Guid NodeObjectType { get; set; }
+    }
+
+    /// <inheritdoc />
+    public void Dispose() =>
+
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(true);
+}

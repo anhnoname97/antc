@@ -1,0 +1,69 @@
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Cms.Api.Management.Factories;
+using Umbraco.Cms.Api.Management.ViewModels.Document;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Models.ContentEditing;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.OperationStatus;
+
+namespace Umbraco.Cms.Api.Management.Controllers.Document;
+
+/// <summary>
+/// Controller responsible for validating update operations on documents.
+/// </summary>
+[ApiVersion("1.1")]
+public class ValidateUpdateDocumentController : UpdateDocumentControllerBase
+{
+    private readonly IContentEditingService _contentEditingService;
+    private readonly IDocumentEditingPresentationFactory _documentEditingPresentationFactory;
+    private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ValidateUpdateDocumentController"/> class.
+    /// </summary>
+    /// <param name="authorizationService">Service for checking user permissions.</param>
+    /// <param name="contentEditingService">Service for managing content operations.</param>
+    /// <param name="documentEditingPresentationFactory">Factory for creating document editing presentation models.</param>
+    /// <param name="backOfficeSecurityAccessor">Accessor for back office user security context.</param>
+    public ValidateUpdateDocumentController(
+        IAuthorizationService authorizationService,
+        IContentEditingService contentEditingService,
+        IDocumentEditingPresentationFactory documentEditingPresentationFactory,
+        IBackOfficeSecurityAccessor backOfficeSecurityAccessor)
+        : base(authorizationService)
+    {
+        _contentEditingService = contentEditingService;
+        _documentEditingPresentationFactory = documentEditingPresentationFactory;
+        _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
+    }
+
+    // Named explicitly so the generated client method stays version-free (putDocumentByIdValidate).
+    // See "Versioning an endpoint the backoffice calls" in this project's CLAUDE.md.
+    [HttpPut("{id:guid}/validate", Name = "PutDocumentByIdValidate")]
+    [MapToApiVersion("1.1")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [EndpointSummary("Validates updating a document.")]
+    [EndpointDescription("Validates the request model for updating a document without actually updating it.")]
+    public async Task<IActionResult> ValidateV1_1(CancellationToken cancellationToken, Guid id, ValidateUpdateDocumentRequestModel requestModel)
+        => await HandleRequest(id, requestModel, async () =>
+        {
+            ValidateContentUpdateModel model = _documentEditingPresentationFactory.MapValidateUpdateModel(requestModel);
+            Attempt<ContentValidationResult, ContentEditingOperationStatus> result =
+                await _contentEditingService.ValidateUpdateAsync(
+                    id,
+                    model,
+                    CurrentUserKey(_backOfficeSecurityAccessor));
+
+            return result.Success
+                ? Ok()
+                : DocumentEditingOperationStatusResult(result.Status, requestModel, result.Result);
+        });
+}

@@ -1,0 +1,456 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Runtime.Loader;
+using System.Xml.Linq;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Extensions;
+using Umbraco.Cms.Core.Manifest;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Membership;
+using Umbraco.Cms.Core.Models.Packaging;
+using Umbraco.Cms.Core.Notifications;
+using Umbraco.Cms.Core.Packaging;
+using Umbraco.Cms.Core.Scoping;
+using Umbraco.Cms.Core.Services.OperationStatus;
+using Umbraco.Cms.Infrastructure.Manifest;
+using Umbraco.Extensions;
+using File = System.IO.File;
+
+namespace Umbraco.Cms.Core.Services.Implement;
+
+/// <summary>
+///     Represents the Packaging Service, which provides import/export functionality for the Core models of the API
+///     using xml representation. This is primarily used by the Package functionality.
+/// </summary>
+public class PackagingService : IPackagingService
+{
+    private readonly IAuditService _auditService;
+    private readonly ICreatedPackagesRepository _createdPackages;
+    private readonly IEventAggregator _eventAggregator;
+    private readonly IKeyValueService _keyValueService;
+    private readonly IPackageInstallation _packageInstallation;
+    private readonly PackageMigrationPlanCollection _packageMigrationPlans;
+    private readonly IPackageManifestReader _packageManifestReader;
+    private readonly ICoreScopeProvider _coreScopeProvider;
+    private readonly IHostEnvironment _hostEnvironment;
+    private readonly IUserService _userService;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PackagingService"/> class, which manages package creation, installation, and related operations in Umbraco.
+    /// </summary>
+    /// <param name="auditService">Service used to log audit events related to package operations.</param>
+    /// <param name="createdPackages">Repository for storing and retrieving information about created packages.</param>
+    /// <param name="packageInstallation">Service responsible for installing and uninstalling packages.</param>
+    /// <param name="eventAggregator">Publishes and subscribes to events during package operations.</param>
+    /// <param name="keyValueService">Service for storing and retrieving key-value pairs, used for package metadata or state.</param>
+    /// <param name="coreScopeProvider">Provides transaction scopes for database operations during packaging processes.</param>
+    /// <param name="packageMigrationPlans">Collection of migration plans for handling package data migrations.</param>
+    /// <param name="packageManifestReader">Reads and parses package manifest files.</param>
+    /// <param name="hostEnvironment">Provides information about the hosting environment.</param>
+    /// <param name="userService">Service for managing and retrieving user information, used for package-related user actions.</param>
+    public PackagingService(
+        IAuditService auditService,
+        ICreatedPackagesRepository createdPackages,
+        IPackageInstallation packageInstallation,
+        IEventAggregator eventAggregator,
+        IKeyValueService keyValueService,
+        ICoreScopeProvider coreScopeProvider,
+        PackageMigrationPlanCollection packageMigrationPlans,
+        IPackageManifestReader packageManifestReader,
+        IHostEnvironment hostEnvironment,
+        IUserService userService)
+    {
+        _auditService = auditService;
+        _createdPackages = createdPackages;
+        _packageInstallation = packageInstallation;
+        _eventAggregator = eventAggregator;
+        _keyValueService = keyValueService;
+        _packageMigrationPlans = packageMigrationPlans;
+        _packageManifestReader = packageManifestReader;
+        _coreScopeProvider = coreScopeProvider;
+        _hostEnvironment = hostEnvironment;
+        _userService = userService;
+    }
+
+    #region Installation
+
+    /// <summary>
+    /// Retrieves the compiled package information from the specified XML document.
+    /// </summary>
+    /// <param name="xml">The <see cref="XDocument"/> containing the package data, or <c>null</c> if no data is available.</param>
+    /// <returns>A <see cref="CompiledPackage"/> object representing the parsed package information.</returns>
+    public CompiledPackage GetCompiledPackageInfo(XDocument? xml) => _packageInstallation.ReadPackage(xml);
+
+    /// <summary>
+    /// Installs compiled package data from the specified XML document.
+    /// </summary>
+    /// <param name="packageXml">The XML document representing the package to install. If null or invalid, an exception is thrown.</param>
+    /// <param name="userId">The ID of the user performing the installation. Defaults to the super user ID if not specified.</param>
+    /// <returns>An <see cref="InstallationSummary"/> containing the results of the installation.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the package XML is null or cannot be read.</exception>
+    public InstallationSummary InstallCompiledPackageData(XDocument? packageXml, int userId = Constants.Security.SuperUserId)
+    {
+        CompiledPackage compiledPackage = GetCompiledPackageInfo(packageXml);
+
+        if (compiledPackage == null)
+        {
+            throw new InvalidOperationException("Could not read the package file " + packageXml);
+        }
+
+        // Trigger the Importing Package Notification and stop execution if event/user is cancelling it
+        var importingPackageNotification = new ImportingPackageNotification(compiledPackage.Name);
+        if (_eventAggregator.PublishCancelable(importingPackageNotification))
+        {
+            return new InstallationSummary(compiledPackage.Name);
+        }
+
+        InstallationSummary summary = _packageInstallation.InstallPackageData(compiledPackage, userId, out _);
+
+        IUser? user = _userService.GetUserById(userId);
+        _auditService.AddAsync(
+            AuditType.PackagerInstall,
+            user?.Key ?? Constants.Security.SuperUserKey,
+            -1,
+            "Package",
+            $"Package data installed for package '{compiledPackage.Name}'.").GetAwaiter().GetResult();
+
+        // trigger the ImportedPackage event
+        _eventAggregator.Publish(new ImportedPackageNotification(summary).WithStateFrom(importingPackageNotification));
+
+        return summary;
+    }
+
+    /// <summary>
+    /// Installs compiled package data from the specified package XML document.
+    /// </summary>
+    /// <param name="packageXmlFile">The XML document containing the compiled package data to install.</param>
+    /// <param name="userId">The ID of the user performing the installation. Defaults to the super user ID.</param>
+    /// <returns>An <see cref="InstallationSummary"/> representing the result of the installation process.</returns>
+    public InstallationSummary InstallCompiledPackageData(FileInfo packageXmlFile, int userId = Constants.Security.SuperUserId)
+    {
+        XDocument xml;
+        using (StreamReader streamReader = File.OpenText(packageXmlFile.FullName))
+        {
+            xml = XDocument.Load(streamReader);
+        }
+
+        return InstallCompiledPackageData(xml, userId);
+    }
+
+    #endregion
+
+    #region Created/Installed Package Repositories
+
+    /// <inheritdoc/>
+    public async Task<Attempt<PackageDefinition?, PackageOperationStatus>> DeleteCreatedPackageAsync(Guid key, Guid userKey)
+    {
+        using ICoreScope scope = _coreScopeProvider.CreateCoreScope();
+        PackageDefinition? package = await GetCreatedPackageByKeyAsync(key);
+        if (package == null)
+        {
+            return Attempt.FailWithStatus<PackageDefinition?, PackageOperationStatus>(PackageOperationStatus.NotFound, null);
+        }
+
+        Attempt<AuditLogOperationStatus> result = await _auditService.AddAsync(AuditType.Delete, userKey, -1, "Package", $"Created package '{package.Name}' deleted. Package key: {key}");
+        if (result is { Success: false, Result: AuditLogOperationStatus.UserNotFound })
+        {
+            throw new InvalidOperationException($"Could not find user with key: {userKey}");
+        }
+
+        _createdPackages.Delete(package.Id);
+
+        scope.Complete();
+
+        return Attempt.SucceedWithStatus<PackageDefinition?, PackageOperationStatus>(PackageOperationStatus.Success, package);
+    }
+
+    /// <summary>
+    /// Gets a created package by its identifier.
+    /// </summary>
+    /// <param name="id">The identifier of the package to retrieve.</param>
+    /// <returns>The package definition if found; otherwise, null.</returns>
+    public PackageDefinition? GetCreatedPackageById(int id)
+    {
+        using ICoreScope scope = _coreScopeProvider.CreateCoreScope(autoComplete: true);
+
+        return _createdPackages.GetById(id);
+    }
+
+    /// <inheritdoc/>
+    public Task<PagedModel<PackageDefinition>> GetCreatedPackagesAsync(int skip, int take)
+    {
+        using ICoreScope scope = _coreScopeProvider.CreateCoreScope(autoComplete: true);
+        PackageDefinition[] packages = _createdPackages.GetAll().WhereNotNull().ToArray();
+        var pagedModel = new PagedModel<PackageDefinition>(packages.Length, packages.Skip(skip).Take(take));
+
+        return Task.FromResult(pagedModel);
+    }
+
+    /// <inheritdoc/>
+    public Task<PackageDefinition?> GetCreatedPackageByKeyAsync(Guid key)
+    {
+        using ICoreScope scope = _coreScopeProvider.CreateCoreScope(autoComplete: true);
+
+        return Task.FromResult(_createdPackages.GetByKey(key));
+    }
+
+    /// <inheritdoc/>
+    public async Task<Attempt<PackageDefinition, PackageOperationStatus>> CreateCreatedPackageAsync(PackageDefinition package, Guid userKey)
+    {
+        using ICoreScope scope = _coreScopeProvider.CreateCoreScope();
+        if (_createdPackages.SavePackage(package) == false)
+        {
+            if (string.IsNullOrEmpty(package.Name))
+            {
+                return Attempt.FailWithStatus(PackageOperationStatus.InvalidName, package);
+            }
+
+            return Attempt.FailWithStatus(PackageOperationStatus.DuplicateItemName, package);
+        }
+
+        Attempt<AuditLogOperationStatus> result = await _auditService.AddAsync(AuditType.New, userKey, -1, "Package", $"Created package '{package.Name}' created. Package key: {package.PackageId}");
+        if (result is { Success: false, Result: AuditLogOperationStatus.UserNotFound })
+        {
+            throw new InvalidOperationException($"Could not find user with key: {userKey}");
+        }
+
+        scope.Complete();
+
+        return Attempt.SucceedWithStatus(PackageOperationStatus.Success, package);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Attempt<PackageDefinition, PackageOperationStatus>> UpdateCreatedPackageAsync(PackageDefinition package, Guid userKey)
+    {
+        using ICoreScope scope = _coreScopeProvider.CreateCoreScope();
+        if (_createdPackages.SavePackage(package) == false)
+        {
+            return Attempt.FailWithStatus(PackageOperationStatus.NotFound, package);
+        }
+
+        Attempt<AuditLogOperationStatus> result = await _auditService.AddAsync(AuditType.New, userKey, -1, "Package", $"Created package '{package.Name}' updated. Package key: {package.PackageId}");
+        if (result is { Success: false, Result: AuditLogOperationStatus.UserNotFound })
+        {
+            throw new InvalidOperationException($"Could not find user with key: {userKey}");
+        }
+
+        scope.Complete();
+
+        return Attempt.SucceedWithStatus(PackageOperationStatus.Success, package);
+    }
+
+    /// <summary>
+    /// Exports a package using the specified <paramref name="definition"/> and returns its serialized representation.
+    /// </summary>
+    /// <param name="definition">The <see cref="PackageDefinition"/> describing the package to export.</param>
+    /// <returns>A string containing the serialized package data.</returns>
+    public string ExportCreatedPackage(PackageDefinition definition)
+    {
+        using ICoreScope scope = _coreScopeProvider.CreateCoreScope(autoComplete: true);
+
+        return _createdPackages.ExportPackage(definition);
+    }
+
+    /// <summary>
+    /// Gets the installed package by its name.
+    /// </summary>
+    /// <param name="packageName">The name of the package to find.</param>
+    /// <returns>The installed package if found; otherwise, null.</returns>
+    public InstalledPackage? GetInstalledPackageByName(string packageName)
+        => GetAllInstalledPackagesAsync().GetAwaiter().GetResult().Where(x => x.PackageName?.InvariantEquals(packageName) ?? false).FirstOrDefault();
+
+    /// <summary>
+    /// Asynchronously retrieves all installed packages in the system, including those defined by migration plans and those discovered via package manifests.
+    /// This method consolidates package information from both migration plans and manifests, ensuring that all packages with an ID or name are included.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a collection of <see cref="InstalledPackage"/> objects representing all installed packages.</returns>
+    public async Task<IEnumerable<InstalledPackage>> GetAllInstalledPackagesAsync()
+    {
+        using ICoreScope scope = _coreScopeProvider.CreateCoreScope(autoComplete: true);
+
+        IReadOnlyDictionary<string, string?>? keyValues = _keyValueService.FindByKeyPrefix(Constants.Conventions.Migrations.KeyValuePrefix);
+
+        var installedPackages = new List<InstalledPackage>();
+
+        // Collect the package from the package migration plans
+        foreach (PackageMigrationPlan plan in _packageMigrationPlans)
+        {
+            InstalledPackage installedPackage;
+            if (plan.PackageId is not null && installedPackages.FirstOrDefault(x => x.PackageId == plan.PackageId) is InstalledPackage installedPackageById)
+            {
+                installedPackage = installedPackageById;
+            }
+            else if (installedPackages.FirstOrDefault(x => x.PackageName == plan.PackageName) is InstalledPackage installedPackageByName)
+            {
+                installedPackage = installedPackageByName;
+
+                // Ensure package ID is set
+                installedPackage.PackageId ??= plan.PackageId;
+            }
+            else
+            {
+                installedPackage = new InstalledPackage
+                {
+                    PackageId = plan.PackageId,
+                    PackageName = plan.PackageName,
+                };
+
+                installedPackages.Add(installedPackage);
+            }
+
+            if (installedPackage.Version is null &&
+                plan.GetType().Assembly.TryGetInformationalVersion(out string? version))
+            {
+                installedPackage.Version = version;
+            }
+
+            // Combine all package migration plans for a package
+            var currentPlans = installedPackage.PackageMigrationPlans.ToList();
+            if (keyValues is null || keyValues.TryGetValue(Constants.Conventions.Migrations.KeyValuePrefix + plan.Name, out var currentState) is false)
+            {
+                currentState = null;
+            }
+
+            currentPlans.Add(new InstalledPackageMigrationPlans
+            {
+                CurrentMigrationId = currentState,
+                FinalMigrationId = plan.FinalState,
+            });
+
+            installedPackage.PackageMigrationPlans = currentPlans;
+        }
+
+        // Collect and merge the packages from the manifests
+        foreach (PackageManifest packageManifest in await _packageManifestReader.ReadPackageManifestsAsync().ConfigureAwait(false))
+        {
+            if (packageManifest.Id is null && string.IsNullOrEmpty(packageManifest.Name))
+            {
+                continue;
+            }
+
+            InstalledPackage installedPackage;
+            if (packageManifest.Id is not null && installedPackages.FirstOrDefault(x => x.PackageId == packageManifest.Id) is InstalledPackage installedPackageById)
+            {
+                installedPackage = installedPackageById;
+
+                // Always use package name from manifest
+                installedPackage.PackageName = packageManifest.Name;
+            }
+            else if (installedPackages.FirstOrDefault(x => x.PackageName == packageManifest.Name) is InstalledPackage installedPackageByName)
+            {
+                installedPackage = installedPackageByName;
+
+                // Ensure package ID is set
+                installedPackage.PackageId ??= packageManifest.Id;
+            }
+            else
+            {
+                installedPackage = new InstalledPackage
+                {
+                    PackageId = packageManifest.Id,
+                    PackageName = packageManifest.Name,
+                };
+
+                installedPackages.Add(installedPackage);
+            }
+
+            // Set additional values
+            installedPackage.AllowPackageTelemetry = packageManifest is { AllowTelemetry: true };
+
+            if (!string.IsNullOrEmpty(packageManifest.Version))
+            {
+                // Always use package version from manifest
+                installedPackage.Version = packageManifest.Version;
+            }
+            else if (string.IsNullOrEmpty(installedPackage.Version) &&
+                string.IsNullOrEmpty(installedPackage.PackageId) is false &&
+                TryGetAssemblyInformationalVersion(installedPackage.PackageId, out string? version))
+            {
+                // Use version of the assembly with the same name as the package ID
+                installedPackage.Version = version;
+            }
+        }
+
+        // Return all packages with an ID or name in the package manifest or package migrations
+        return installedPackages;
+    }
+
+    #endregion
+
+    /// <inheritdoc/>
+    public Task<PagedModel<InstalledPackage>> GetInstalledPackagesFromMigrationPlansAsync(int skip, int take)
+    {
+        IReadOnlyDictionary<string, string?> keyValues =
+            _keyValueService.FindByKeyPrefix(Constants.Conventions.Migrations.KeyValuePrefix)
+            ?? new Dictionary<string, string?>();
+
+        InstalledPackage[] installedPackages = _packageMigrationPlans
+            .GroupBy(plan => (plan.PackageName, plan.PackageId))
+            .Select(group =>
+            {
+                var package = new InstalledPackage
+                {
+                    PackageName = group.Key.PackageName,
+                };
+
+                package.PackageMigrationPlans = group
+                    .Select(plan =>
+                    {
+                        // look for migration states in this order:
+                        // - plan name
+                        // - package identifier
+                        // - package name
+                        var currentState =
+                            keyValues.GetValueOrDefault($"{Constants.Conventions.Migrations.KeyValuePrefix}{plan.Name}")
+                            ?? keyValues.GetValueOrDefault($"{Constants.Conventions.Migrations.KeyValuePrefix}{plan.PackageId ?? plan.PackageName}");
+
+                        return new InstalledPackageMigrationPlans
+                        {
+                            CurrentMigrationId = currentState, FinalMigrationId = plan.FinalState,
+                        };
+                    });
+
+                return package;
+            }).ToArray();
+
+        return Task.FromResult(new PagedModel<InstalledPackage>
+        {
+            Total = installedPackages.Count(),
+            Items = installedPackages.Skip(skip).Take(take),
+        });
+    }
+
+    /// <inheritdoc/>
+    public Stream? GetPackageFileStream(PackageDefinition definition)
+    {
+        // Removing the ContentRootPath from the package path as a sub path is required for GetFileInfo()
+        var subPath = definition.PackagePath.Replace(_hostEnvironment.ContentRootPath, string.Empty);
+
+        IFileInfo packageFile = _hostEnvironment.ContentRootFileProvider.GetFileInfo(subPath);
+
+        if (packageFile.Exists == false)
+        {
+            return null;
+        }
+
+        return packageFile.CreateReadStream();
+    }
+
+    private static bool TryGetAssemblyInformationalVersion(string name, [NotNullWhen(true)] out string? version)
+    {
+        foreach (Assembly assembly in AssemblyLoadContext.Default.Assemblies)
+        {
+            AssemblyName assemblyName = assembly.GetName();
+            if (string.Equals(assemblyName.Name, name, StringComparison.OrdinalIgnoreCase) &&
+                assembly.TryGetInformationalVersion(out version))
+            {
+                return true;
+            }
+        }
+
+        version = null;
+        return false;
+    }
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <!-- Umbraco core: lay tu feed noi bo ANTC.Portal.Lib/Build.Core (xem nuget.config) -->
+  <ItemGroup>
+    <PackageVersion Include="Umbraco.Cms" Version="$(UmbracoCoreVersion)" />
+    <PackageVersion Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="$(UmbracoCoreVersion)" />
+  </ItemGroup>
+
+  <!-- Goi ben ngoai: them vao day, khong ghi Version trong csproj -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
+    <!-- uSync: dong bo document type, data type, template, noi dung qua file trong git. Ban 18.x di voi Umbraco 18 -->
+    <PackageVersion Include="uSync" Version="18.1.5" />
+    <!-- Giu cung version voi core Umbraco (xem ANTC.Portal.Core/Directory.Packages.props) -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11" />
+  </ItemGroup>
+</Project>
