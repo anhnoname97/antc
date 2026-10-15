@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
 using Umbraco.Plugin.Custom.Core.Services;
@@ -35,6 +36,15 @@ public class CustomCoreComposer : IComposer
             options.UseSqlite(csb.ConnectionString);
         });
         builder.Services.AddHostedService<AppDbInitializer>();
+
+        builder.Services.AddOptions<ContestSecurityOptions>()
+            .Bind(builder.Config.GetSection(ContestSecurityOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.IpHashSalt),
+                "Contest:IpHashSalt phai duoc cau hinh de bam dia chi IP.")
+            .ValidateOnStart();
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddScoped<IContestSettingsProvider, UmbracoContestSettingsProvider>();
+        builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();
