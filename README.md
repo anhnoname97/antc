@@ -74,7 +74,7 @@ Chi tiết cây nội dung, kiểu dữ liệu và dữ liệu mẫu: [Cây tran
 
 Màn hình các trang mở vào tab **Bố cục**; kho Thủ đoạn, danh mục và Chính sách mở **collection danh sách**. Trang Chính sách có Bố cục riêng, tách khỏi kho văn bản. Thông tin dùng chung nằm tại nút gốc **An toàn tài chính**, trong các tab **Thông tin chung**, **Đầu trang**, **Chân trang**. Picker menu chỉ chọn trong cây trang; picker chính sách chỉ chọn văn bản thuộc kho Chính sách. Xem URL tại tab **Thông tin** có sẵn của Umbraco.
 
-Trang Cuộc thi chỉ có Bố cục và SEO, đã bỏ Cài đặt cuộc thi. Câu hỏi và góp ý do frontend portal gửi qua API-06, lưu tại `question_submission`. Ban biên tập xem câu hỏi gốc trong section **Hỏi – Đáp** của Umbraco, nhập câu trả lời và duyệt công bố; không tạo/sửa câu hỏi thủ công trong cây CMS. `GET /api/v1/questions` chỉ trả nội dung đã duyệt, không có liên hệ hoặc ghi chú. Frontend portal do nhóm FE triển khai theo [hợp đồng API](docs/api/hoi-dap-portal.md) và [OpenAPI](docs/api/hoi-dap-portal.openapi.json). Chi tiết nghiệp vụ quản trị: [Hỏi – Đáp và góp ý](docs/api/hoi-dap.md).
+Trang Cuộc thi chỉ có Bố cục và SEO, đã bỏ Cài đặt cuộc thi. Câu hỏi và góp ý do frontend portal gửi qua API-06, lưu tại `question_submission`. Ban biên tập xem câu hỏi gốc trong section **Hỏi – Đáp** của Umbraco, nhập câu trả lời và duyệt công bố; không tạo/sửa câu hỏi thủ công trong cây CMS. `GET /api/v1/questions` chỉ trả nội dung đã duyệt, không có liên hệ hoặc ghi chú. Frontend portal do nhóm FE triển khai theo [hợp đồng OpenAPI JSON](docs/api/hoi-dap-portal.openapi.json).
 
 ## Làm việc hằng ngày
 
