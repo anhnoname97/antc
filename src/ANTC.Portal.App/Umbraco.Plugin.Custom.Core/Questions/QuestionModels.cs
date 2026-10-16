@@ -39,9 +39,27 @@ public sealed record QuestionRow(long Id, string Type, string Content, bool Want
 
 public sealed record QuestionReview(long ReviewVersion, string Status, string? AdminNote, string? Answer);
 public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt);
-public sealed record PublishedQuestionPage(IReadOnlyList<PublishedQuestion> Items, int Total, int Page)
+public sealed record PublishedQuestionQuery(int Page = 1, int PageSize = PublishedQuestionPage.DefaultPageSize,
+    string? Search = null, string Sort = "newest")
 {
-    public const int PageSize = 20;
+    public const int MaxSearchLength = 200;
+    public string? SearchTerm => string.IsNullOrWhiteSpace(Search) ? null : Search.Trim();
+
+    public IReadOnlyDictionary<string, string> Validate()
+    {
+        var errors = new Dictionary<string, string>();
+        if (Page < 1) errors["page"] = "Số trang phải từ 1 trở lên.";
+        if (PageSize is < 1 or > PublishedQuestionPage.MaxPageSize)
+            errors["pageSize"] = "Số mục mỗi trang phải từ 1 đến 50.";
+        if (SearchTerm?.Length > MaxSearchLength) errors["search"] = "Từ khóa tối đa 200 ký tự.";
+        if (Sort is not ("newest" or "oldest")) errors["sort"] = "Chọn newest hoặc oldest.";
+        return errors;
+    }
+}
+public sealed record PublishedQuestionPage(IReadOnlyList<PublishedQuestion> Items, int Total, int Page, int PageSize)
+{
+    public const int DefaultPageSize = 20;
+    public const int MaxPageSize = 50;
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize));
 }
 
@@ -55,7 +73,8 @@ public interface IQuestionModerationService
 
 public interface IPublishedQuestionService
 {
-    Task<PublishedQuestionPage> ListAsync(int page = 1, CancellationToken ct = default);
+    Task<PublishedQuestionPage> ListAsync(PublishedQuestionQuery query, CancellationToken ct = default);
+    Task<PublishedQuestion?> GetPublishedAsync(long id, CancellationToken ct = default);
 }
 
 public sealed class QuestionModerationException(string code, string message) : Exception(message)

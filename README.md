@@ -61,7 +61,7 @@ Ba tầng hoạt động thế này: `ANTC.Portal.Core` được đóng gói th�
 | Ngân hàng câu hỏi | `Custom.Core/Data/Seed/*.json` → bảng `quiz_topic`, `quiz_question` | 8 chuyên đề, 200 câu, 8 câu Thử sức |
 | API đọc câu hỏi | `Custom.Api/Controllers/QuizController.cs` | `GET /api/v1/quiz/topics`, `/topics/{n}/questions`, `/sample` |
 | API nhận Hỏi – Đáp và góp ý | `Custom.Api/Controllers/QuestionsController.cs` | `POST /api/v1/questions`; kiểm tra dữ liệu, ô bẫy, 5 lần tiếp nhận/IP/60 phút |
-| API Hỏi – Đáp công khai | `Custom.Api/Controllers/PublishedQuestionsController.cs` | `GET /api/v1/questions?page=1`; chỉ trả câu hỏi và câu trả lời đã duyệt, 20 mục/trang |
+| API Hỏi – Đáp công khai | `Custom.Api/Controllers/PublishedQuestionsController.cs` | `GET /api/v1/questions` hỗ trợ tìm kiếm, phân trang 1–50 mục, sắp xếp; `GET /api/v1/questions/{id}` đọc chi tiết đã công bố |
 | Quản trị Hỏi – Đáp | `/umbraco/section/hoi-dap` | Section native Umbraco; xem câu hỏi gốc từ portal, trả lời, duyệt/gỡ công bố, lọc và CSV UTF-8 BOM |
 | File tĩnh | `Umbraco.Web.UI/wwwroot/assets/` | Font Manrope, GSAP 3.12.5, 5 ảnh hero, biến thiết kế, CSS nền |
 | Layout và các trang | `Umbraco.Web.UI/Views/` | Mỗi template render layout chung và tiêu đề nút nội dung, sẵn sàng để FE dựng giao diện |

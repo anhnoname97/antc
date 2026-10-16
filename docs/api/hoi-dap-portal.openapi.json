@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "API Hỏi – Đáp dành cho frontend portal",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tiếp nhận câu hỏi/góp ý và đọc câu đã được duyệt, công bố. Không yêu cầu đăng nhập. Frontend tự xây dựng giao diện theo hợp đồng này. Quy tắc độ dài content/contact áp dụng sau khi backend trim khoảng trắng hai đầu; FE nên trim trước khi gửi."
   },
   "servers": [
@@ -109,14 +109,35 @@
       "get": {
         "operationId": "listPublishedQuestions",
         "summary": "Đọc câu hỏi và câu trả lời đã duyệt, công bố",
-        "description": "20 mục/trang. Chỉ trả cau-hoi đã công bố, có thời điểm duyệt và bản câu trả lời đã duyệt. Sắp xếp thời điểm duyệt giảm dần rồi id giảm dần. Không trả liên hệ, IP, ghi chú, người xử lý hoặc bản nháp. Trang vượt số trang trả items rỗng và giữ nguyên page yêu cầu. Frontend hiển thị question/answer dưới dạng văn bản đã thoát ký tự.",
+        "description": "Danh sách công khai có tìm kiếm, phân trang, sắp xếp. Chỉ trả cau-hoi đã công bố, có thời điểm duyệt và bản câu trả lời đã duyệt. Không trả liên hệ, IP, ghi chú, người xử lý hoặc bản nháp. Tìm chuỗi trong câu hỏi và câu trả lời đã duyệt, không phân biệt hoa/thường tiếng Việt, giữ dấu; ký tự wildcard được tìm như văn bản. Cùng thời điểm duyệt thì id sắp xếp cùng chiều. Trang vượt số trang trả items rỗng và giữ nguyên page yêu cầu. Frontend hiển thị question/answer dưới dạng văn bản đã thoát ký tự.",
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "Số trang; không hỗ trợ pageSize hoặc tìm kiếm/lọc công khai.",
+            "description": "Số trang, tính từ 1.",
             "schema": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 2147483647, "default": 1 }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "description": "Số mục mỗi trang. Ngoài khoảng 1–50 trả 400, không tự điều chỉnh.",
+            "schema": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 50, "default": 20 }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Từ khóa tối đa 200 ký tự sau trim. Chuỗi trắng không lọc. Tìm literal trong câu hỏi hoặc bản trả lời đã duyệt, hỗ trợ hoa/thường tiếng Việt và giữ dấu.",
+            "schema": { "type": "string", "x-validation": { "trim": true, "maxLengthAfterTrim": 200 } }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Thứ tự theo ngày duyệt và id; newest giảm dần, oldest tăng dần. Bỏ trống hoặc chuỗi trắng dùng mặc định newest.",
+            "schema": { "type": "string", "enum": ["newest", "oldest"], "default": "newest" }
           }
         ],
         "responses": {
@@ -142,19 +163,52 @@
                   ],
                   "total": 1,
                   "page": 1,
+                  "pageSize": 20,
                   "totalPages": 1
                 }
               }
             }
           },
           "400": {
-            "description": "page nhỏ hơn 1, sai kiểu hoặc vượt giới hạn int32. error.fields có thể không xuất hiện.",
+            "description": "Query sai kiểu, page nhỏ hơn 1, pageSize ngoài 1–50, search quá 200 ký tự hoặc sort không hợp lệ.",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ApiErrorResponse" },
-                "example": { "error": { "code": "VALIDATION", "message": "Số trang không hợp lệ." } }
+                "example": { "error": { "code": "VALIDATION", "message": "Tham số danh sách không hợp lệ.", "fields": { "pageSize": "Số mục mỗi trang phải từ 1 đến 50." } } }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/questions/{id}": {
+      "get": {
+        "operationId": "getPublishedQuestion",
+        "summary": "Đọc chi tiết câu hỏi đã công bố",
+        "description": "Chỉ trả câu hỏi và bản trả lời đã được duyệt, công bố. Câu riêng, chưa công bố, đã gỡ, góp ý hoặc không tồn tại đều trả cùng 404. Không trả liên hệ, IP, ghi chú, người xử lý hoặc bản nháp.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Mã bản ghi lấy từ danh sách công khai.",
+            "schema": { "type": "integer", "format": "int64", "minimum": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết công khai; DTO giống một mục danh sách.",
+            "headers": { "Cache-Control": { "description": "Có no-store để gỡ công bố có hiệu lực ở lần tải tiếp theo.", "schema": { "type": "string" } } },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PublishedQuestion" },
+                "example": { "id": 130, "question": "Tôi có thể gửi góp ý về nội dung website ở đâu?", "answer": "Bạn chọn Góp ý trong biểu mẫu Hỏi – Đáp và gửi nội dung cho ban biên tập.", "answeredAt": "2026-10-16T06:00:00+00:00" }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy câu hỏi công khai; không tiết lộ bản riêng có tồn tại hay không.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorResponse" }, "example": { "error": { "code": "NOT_FOUND", "message": "Không tìm thấy câu hỏi.", "fields": null } } } }
           }
         }
       }
@@ -220,11 +274,12 @@
       "PublishedQuestionPage": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["items", "total", "page", "totalPages"],
+        "required": ["items", "total", "page", "pageSize", "totalPages"],
         "properties": {
-          "items": { "type": "array", "maxItems": 20, "items": { "$ref": "#/components/schemas/PublishedQuestion" } },
+          "items": { "type": "array", "maxItems": 50, "items": { "$ref": "#/components/schemas/PublishedQuestion" } },
           "total": { "type": "integer", "format": "int32", "minimum": 0 },
           "page": { "type": "integer", "format": "int32", "minimum": 1 },
+          "pageSize": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 50 },
           "totalPages": { "type": "integer", "format": "int32", "minimum": 1 }
         }
       },
@@ -236,7 +291,7 @@
             "type": "object",
             "required": ["code", "message"],
             "properties": {
-              "code": { "type": "string", "enum": ["VALIDATION", "RATE_LIMITED"] },
+              "code": { "type": "string", "enum": ["VALIDATION", "RATE_LIMITED", "NOT_FOUND"] },
               "message": { "type": "string" },
               "fields": { "type": "object", "nullable": true, "additionalProperties": { "type": "string" } }
             }

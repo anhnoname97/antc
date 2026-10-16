@@ -18,15 +18,15 @@ public class QuestionModerationTests
         await using var fixture = await Fixture.Create();
         await using var db = fixture.Open();
         var service = fixture.Service(db);
-        Assert.Empty((await service.ListAsync()).Items);
+        Assert.Empty((await service.ListAsync(new())).Items);
         var draft = await service.SaveAsync(1, new(0, "da-xu-ly", "Ghi chú bí mật", Answer), "editor");
         Assert.False(draft.IsPublished);
-        Assert.Empty((await service.ListAsync()).Items);
+        Assert.Empty((await service.ListAsync(new())).Items);
         var approved = await service.ApproveAsync(1, new(draft.ReviewVersion, "da-xu-ly", draft.AdminNote, Answer), "approver");
         Assert.Equal(Original, approved.Content);
         Assert.Equal("approver", approved.ApprovedBy);
         Assert.Equal(fixture.Now, approved.ApprovedAt);
-        var published = Assert.Single((await service.ListAsync()).Items);
+        var published = Assert.Single((await service.ListAsync(new())).Items);
         Assert.Equal(Original, published.Question);
         Assert.Equal(Answer, published.Answer);
         string json = JsonSerializer.Serialize(published);
@@ -49,9 +49,9 @@ public class QuestionModerationTests
         var approved = await service.ApproveAsync(1, new(0, "moi", null, Answer), "approver");
         var draft = await service.SaveAsync(1, new(approved.ReviewVersion, "dang-xu-ly", null, "Bản nháp mới chưa được duyệt."), "editor");
         Assert.True(draft.IsPublished);
-        Assert.Equal(Answer, Assert.Single((await service.ListAsync()).Items).Answer);
+        Assert.Equal(Answer, Assert.Single((await service.ListAsync(new())).Items).Answer);
         await service.ApproveAsync(1, new(draft.ReviewVersion, draft.Status, null, draft.Answer), "approver");
-        Assert.Equal(draft.Answer, Assert.Single((await service.ListAsync()).Items).Answer);
+        Assert.Equal(draft.Answer, Assert.Single((await service.ListAsync(new())).Items).Answer);
     }
 
     [Theory]
@@ -65,7 +65,7 @@ public class QuestionModerationTests
         var row = await service.ApproveAsync(1, new(0, "moi", null, Answer), "approver");
         if (ignore) await service.SaveAsync(1, new(row.ReviewVersion, "bo-qua", "Ẩn câu hỏi", Answer), "editor");
         else await service.UnpublishAsync(1, row.ReviewVersion, "editor");
-        Assert.Empty((await service.ListAsync()).Items);
+        Assert.Empty((await service.ListAsync(new())).Items);
         var hidden = await service.GetAsync(1);
         Assert.False(hidden!.IsPublished);
         Assert.Equal("editor", hidden.HandledBy);
@@ -86,7 +86,7 @@ public class QuestionModerationTests
             () => service.UnpublishAsync(1, 0, "stale") })
             Assert.Equal("CONFLICT", (await Assert.ThrowsAsync<QuestionModerationException>(operation)).Code);
         Assert.Equal("first", (await service.GetAsync(1))!.HandledBy);
-        Assert.Empty((await service.ListAsync()).Items);
+        Assert.Empty((await service.ListAsync(new())).Items);
     }
 
     [Theory]
@@ -132,7 +132,7 @@ public class QuestionModerationTests
         db.QuestionSubmissions.Add(new() { Id = 32, Type = "gop-y", Content = "Góp ý riêng", PublishedAnswer = Answer, IsPublished = true, ApprovedAt = fixture.Now.UtcDateTime });
         await db.SaveChangesAsync();
         var service = fixture.Service(db);
-        var page1 = await service.ListAsync(); var page2 = await service.ListAsync(2);
+        var page1 = await service.ListAsync(new()); var page2 = await service.ListAsync(new(Page: 2));
         Assert.Equal(21, page1.Total); Assert.Equal(20, page1.Items.Count); Assert.Single(page2.Items);
         Assert.Equal(22, page1.Items[0].Id);
         Assert.Empty(page1.Items.Select(x => x.Id).Intersect(page2.Items.Select(x => x.Id)));

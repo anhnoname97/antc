@@ -74,7 +74,9 @@ Gốc: `/umbraco/management/api/v1/antc/questions`.
 
 ## Dữ liệu công khai và portal
 
-`GET /api/v1/questions?page=1` trả 20 mục/trang, chỉ câu có cờ công bố, thời điểm duyệt và bản trả lời đã duyệt. Mỗi mục chỉ có `id`, `question` (nội dung gốc), `answer` (bản đã duyệt), `answeredAt`. Phản hồi có `items`, `total`, `page`, `totalPages`. Không có liên hệ, ghi chú, IP, người xử lý hoặc câu trả lời nháp. Không cache để gỡ công bố có hiệu lực ở lần tải tiếp theo.
+`GET /api/v1/questions` nhận `page`, `pageSize` (1–50, mặc định 20), `search` (tối đa 200 ký tự sau trim) và `sort` (`newest`/`oldest`). Tìm chuỗi trong câu hỏi và bản trả lời đã duyệt, không phân biệt hoa/thường tiếng Việt, giữ nguyên dấu; ký tự wildcard được tìm như văn bản. Chỉ lấy câu có cờ công bố, thời điểm duyệt và bản trả lời đã duyệt. Phản hồi gồm `items`, `total` sau lọc, `page`, `pageSize`, `totalPages`. Mỗi mục chỉ có `id`, `question`, `answer`, `answeredAt`.
+
+`GET /api/v1/questions/{id}` trả cùng DTO một câu hỏi đã công bố. Câu chưa công bố, đã gỡ, góp ý hoặc không tồn tại đều trả `404 NOT_FOUND`. Cả danh sách và chi tiết dùng cùng điều kiện công khai, không trả liên hệ, ghi chú, IP, người xử lý hoặc bản trả lời nháp; đều không cache. Chi tiết request/response và lỗi tại [hợp đồng cho FE](hoi-dap-portal.md).
 
 `Views/hoiDapPage.cshtml` chỉ có layout và tiêu đề để nhóm FE dựng giao diện riêng. FE gửi biểu mẫu đến API-06 và lấy danh sách đã duyệt qua API GET. Không có CSS/JavaScript biểu mẫu Hỏi – Đáp riêng trong repository. Gửi thành công không tự thêm câu hỏi vào danh sách công khai.
 

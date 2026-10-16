@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Umbraco.Plugin.Custom.Core.Data;
 
@@ -57,19 +58,51 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
         return await ResultAsync(id, count, ct);
     }
 
-    public async Task<PublishedQuestionPage> ListAsync(int page = 1, CancellationToken ct = default)
+    public async Task<PublishedQuestionPage> ListAsync(PublishedQuestionQuery options, CancellationToken ct = default)
     {
-        // DTO công khai không chứa email, ghi chú, IP, tên người xử lý hay bản trả lời nháp.
-        var query = db.QuestionSubmissions.AsNoTracking().Where(x => x.Type == "cau-hoi" && x.IsPublished
-            && x.ApprovedAt != null && x.PublishedAnswer != null && x.PublishedAnswer != "");
+        ArgumentNullException.ThrowIfNull(options);
+        if (options.Validate().Count > 0) throw new ArgumentException("Tham số danh sách không hợp lệ.", nameof(options));
+        IQueryable<QuestionSubmission> query = PublishedQuery();
+        if (options.SearchTerm is { } search)
+        {
+            string pattern = SearchPattern(search);
+            query = query.Where(x => EF.Functions.Glob(x.Content, pattern) || EF.Functions.Glob(x.PublishedAnswer!, pattern));
+        }
         int total = await query.CountAsync(ct);
-        page = Math.Max(1, page);
-        int skip = (int)Math.Min((long)(page - 1) * PublishedQuestionPage.PageSize, int.MaxValue);
-        var rows = await query.OrderByDescending(x => x.ApprovedAt).ThenByDescending(x => x.Id)
-            .Skip(skip).Take(PublishedQuestionPage.PageSize)
+        int skip = (int)Math.Min((long)(options.Page - 1) * options.PageSize, int.MaxValue);
+        var ordered = options.Sort == "oldest"
+            ? query.OrderBy(x => x.ApprovedAt).ThenBy(x => x.Id)
+            : query.OrderByDescending(x => x.ApprovedAt).ThenByDescending(x => x.Id);
+        var rows = await ordered.Skip(skip).Take(options.PageSize)
             .Select(x => new { x.Id, x.Content, x.PublishedAnswer, x.ApprovedAt }).ToListAsync(ct);
         return new(rows.Select(x => new PublishedQuestion(x.Id, x.Content, x.PublishedAnswer!,
-            QuestionValues.AsUtc(x.ApprovedAt!.Value))).ToArray(), total, page);
+            QuestionValues.AsUtc(x.ApprovedAt!.Value))).ToArray(), total, options.Page, options.PageSize);
+    }
+
+    public async Task<PublishedQuestion?> GetPublishedAsync(long id, CancellationToken ct = default)
+    {
+        var row = await PublishedQuery().Where(x => x.Id == id)
+            .Select(x => new { x.Id, x.Content, x.PublishedAnswer, x.ApprovedAt }).SingleOrDefaultAsync(ct);
+        return row is null ? null : new PublishedQuestion(row.Id, row.Content, row.PublishedAnswer!,
+            QuestionValues.AsUtc(row.ApprovedAt!.Value));
+    }
+
+    private IQueryable<QuestionSubmission> PublishedQuery() => db.QuestionSubmissions.AsNoTracking()
+        .Where(x => x.Type == "cau-hoi" && x.IsPublished && x.ApprovedAt != null
+            && x.PublishedAnswer != null && x.PublishedAnswer != "");
+
+    private static string SearchPattern(string term)
+    {
+        // SQLite LIKE/LOWER chỉ đổi hoa thường ASCII. GLOB ghép cả hai dạng chữ tiếng Việt;
+        // các ký tự điều khiển mẫu do người dùng nhập đều được tìm như văn bản thường.
+        var pattern = new StringBuilder("*");
+        foreach (char value in term)
+        {
+            char lower = char.ToLowerInvariant(value), upper = char.ToUpperInvariant(value);
+            if (lower != upper) pattern.Append('[').Append(lower).Append(upper).Append(']');
+            else pattern.Append(value switch { '*' => "[*]", '?' => "[?]", '[' => "[[]", _ => value.ToString() });
+        }
+        return pattern.Append('*').ToString();
     }
 
     private async Task<QuestionRow> ResultAsync(long id, int count, CancellationToken ct)
