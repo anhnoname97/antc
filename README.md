@@ -56,14 +56,22 @@ Ba tầng hoạt động thế này: `ANTC.Portal.Core` được đóng gói th�
 | Hạng mục | Ở đâu | Ghi chú |
 |---|---|---|
 | CSDL Umbraco | `Umbraco.Web.UI/umbraco/Data/Umbraco.sqlite.db` | Tự tạo ở lần chạy đầu, không commit |
-| Document type, template, nội dung mẫu | `Umbraco.Web.UI/uSync/v18/` | 11 document type, 10 template, 33 nút nội dung; uSync tự nhập khi khởi động |
+| Document type, template, nội dung mẫu | `Umbraco.Web.UI/uSync/v18/` | 9 loại trang, 2 loại dữ liệu danh mục/bài viết, 4 loại document tổ chức cây, composition `seoBase`, các phần tử cấu hình dùng chung, 11 template, 36 nút nội dung và 5 ảnh mẫu; giữ 57 Block đã pull |
 | CSDL ứng dụng (8 bảng) | `Custom.Core/Data/` | EF Core + SQLite, file `App_Data/app.sqlite.db`, migration tự chạy khi khởi động |
 | Ngân hàng câu hỏi | `Custom.Core/Data/Seed/*.json` → bảng `quiz_topic`, `quiz_question` | 8 chuyên đề, 200 câu, 8 câu Thử sức |
 | API đọc câu hỏi | `Custom.Api/Controllers/QuizController.cs` | `GET /api/v1/quiz/topics`, `/topics/{n}/questions`, `/sample` |
 | File tĩnh | `Umbraco.Web.UI/wwwroot/assets/` | Font Manrope, GSAP 3.12.5, 5 ảnh hero, biến thiết kế, CSS nền |
-| Layout và các trang | `Umbraco.Web.UI/Views/` | Layout tạm và trang giữ chỗ; mỗi trang ghi sẵn mã công việc cần làm |
+| Layout và các trang | `Umbraco.Web.UI/Views/` | Mỗi template render layout chung và tiêu đề nút nội dung, sẵn sàng để FE dựng giao diện |
+| Thuộc tính bố cục | `layout` trên 9 loại trang | Block Grid để trống; danh mục/bài viết trong kho dữ liệu không có Bố cục |
+| Header và footer | Nút gốc An toàn tài chính → Đầu trang / Chân trang | Menu, nút nổi bật, logo, thông báo, liên kết chính sách, tài trợ và bản quyền; khung Razor đọc dữ liệu CMS |
 
-Các URL đã chạy: `/`, `/ung-pho`, `/thu-doan`, `/thu-doan/{danh-muc}`, `/tham-gia`, `/tham-gia/thu-suc`, `/tham-gia/cuoc-thi`, `/hoi-dap`, `/chinh-sach`, `/tim-kiem`.
+Cây bắt đầu tại **An toàn tài chính**, gồm **Quản lý trang → Trang chủ → các trang con** và **Quản lý nội dung → Thủ đoạn / Chính sách**. Danh mục và bài viết nằm trong kho nội dung. URL công khai vẫn dùng `/`, `/ung-pho`, `/thu-doan`, `/thu-doan/{danh-muc}`, `/tham-gia`, `/thu-suc`, `/cuoc-thi`, `/hoi-dap`, `/chinh-sach`, `/tim-kiem`; các nút quản lý không xuất hiện trong URL. Trang Cuộc thi hiện đang lưu nháp; cấu hình nghiệp vụ không nằm trong document trang.
+
+Chi tiết cây nội dung, kiểu dữ liệu và dữ liệu mẫu: [Cây trang Umbraco](docs/noi-dung/cay-trang-umbraco.md).
+
+Màn hình các trang mở vào tab **Bố cục**; kho Thủ đoạn, danh mục và Chính sách mở **collection danh sách**. Trang Chính sách có Bố cục riêng, tách khỏi kho văn bản. Thông tin dùng chung nằm tại nút gốc **An toàn tài chính**, trong các tab **Thông tin chung**, **Đầu trang**, **Chân trang**. Picker menu chỉ chọn trong cây trang; picker chính sách chỉ chọn văn bản thuộc kho Chính sách. Xem URL tại tab **Thông tin** có sẵn của Umbraco.
+
+Trang Cuộc thi chỉ có Bố cục và SEO, đã bỏ Cài đặt cuộc thi. Hỏi – Đáp chỉ là trang hiển thị; đã bỏ `qaItem` nhập tay. Luồng gửi câu hỏi, kiểm duyệt và trả lời dùng dữ liệu nghiệp vụ `question_submission`, chưa triển khai chức năng trong lượt sửa cấu trúc này.
 
 ## Làm việc hằng ngày
 
@@ -116,7 +124,7 @@ Phiên bản core mà App dùng nằm ở một chỗ duy nhất: `UmbracoCoreVe
 
 ## Việc còn để lại
 
-- Một số thuộc tính đang dùng kiểu nhập tạm (Textstring/Textarea) thay cho Block List, Dropdown và số thập phân: `emergencyNumbers` (home), `labelType` (article), `fieldIcon` và `listRole` (articleList), `readTimerFactor` (thiPage). BE1 đổi trong backoffice rồi commit file uSync.
-- Chưa có composition SEO dùng chung; các thuộc tính SEO đang được thêm trực tiếp vào từng document type.
+- FE dựng giao diện trên các template đã có; cài đặt chung, SEO, danh mục và bài viết đã có cấu trúc nhập liệu. Xem tài liệu cây trang để lấy đúng alias và các giá trị dropdown tiếng Việt.
+- Nhập thông tin chủ quản, nguồn kiểm chứng và cấu hình cuộc thi chính thức trước khi phát hành. Các giá trị trong ngoặc vuông và ngày kiểm chứng số khẩn cấp 28/8/2026 là dữ liệu giữ chỗ.
 - Khi restore, NuGet cảnh báo lỗ hổng của `SixLabors.ImageSharp 3.1.12` (gói mà Umbraco 18.2.1 kéo theo). Cần xem có bản vá để ghim trong `Directory.Packages.props` trước khi vận hành.
 - Các API cuộc thi, hỏi đáp, trang quản trị, nhập ma trận câu hỏi: làm theo file kế hoạch trong `docs/ke-hoach`.

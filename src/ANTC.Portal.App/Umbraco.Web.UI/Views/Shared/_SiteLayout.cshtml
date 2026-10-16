@@ -1,12 +1,20 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
 @{
     // Khung trang dung chung. Day la ban TAM de cac duong dan chay duoc ngay:
     // FE1 dung lai theo ban dung trong task FE-02 (dai tren, header, footer) va FE-03 (menu mobile).
     Layout = null;
-    var home = Model.Root();
-    var siteName = home?.Value<string>("siteName") ?? "antoantaichinh.vn";
+    var site = Model.Root();
+    var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
     var path = Context.Request.Path.Value ?? "/";
-    string Current(string prefix) => prefix == "/" ? (path == "/" ? "page" : "false") : (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? "page" : "false");
+    var headerLogo = site?.Value<IPublishedContent>("logoHeaderImage");
+    var footerLogo = site?.Value<IPublishedContent>("logoFooterImage");
+    var menu = site?.Value<BlockListModel>("menu");
+    var cta = site?.Value<BlockListModel>("headerCta");
+    var announcementLink = site?.Value<BlockListModel>("headerAnnouncementLink");
+    var footerMenu = site?.Value<BlockListModel>("footerMenu");
+    var policies = site?.Value<BlockListModel>("footerPolicies");
 }
 <!doctype html>
 <html lang="vi">
@@ -27,7 +35,7 @@
     <div class="site-topbar">
         <div class="container">
             <span>
-                @if (home?.Value<bool>("showPreviewBanner") == true)
+                @if (site?.Value<bool>("showPreviewBanner") == true)
                 {
                     <text><b>BẢN DỰNG THỬ</b> · chưa phải website đang hoạt động</text>
                 }
@@ -35,17 +43,31 @@
             <button type="button" class="btn btn--outline btn--sm" data-font-toggle>A+ Chữ to</button>
         </div>
     </div>
+    @if (site?.Value<bool>("showHeaderAnnouncement") == true)
+    {
+        <div class="site-topbar">
+            <div class="container">
+                <span>@(site.Value<string>("headerAnnouncementText"))</span>
+                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (announcementLink?.AsEnumerable(), path, (string?)null, false))
+            </div>
+        </div>
+    }
     <header class="site-header">
         <div class="container">
-            <a class="site-logo" href="/">antoantaichinh<span>.vn</span></a>
-            <nav class="site-nav" aria-label="Năm phần của website">
-                <a href="/" aria-current="@Current("/")">Giới thiệu</a>
-                <a href="/ung-pho" aria-current="@Current("/ung-pho")">Ứng phó khẩn cấp</a>
-                <a href="/thu-doan" aria-current="@Current("/thu-doan")">Thủ đoạn</a>
-                <a href="/tham-gia" aria-current="@Current("/tham-gia")">Tham gia</a>
-                <a href="/hoi-dap" aria-current="@Current("/hoi-dap")">Hỏi – Đáp</a>
+            <a class="site-logo" href="/">
+                @if (headerLogo is not null)
+                {
+                    <img src="@headerLogo.Url()" height="40" alt="@(site?.Value<string>("headerLogoAlt") ?? siteName)">
+                }
+                else
+                {
+                    @siteName
+                }
+            </a>
+            <nav class="site-nav" aria-label="Điều hướng chính">
+                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (menu?.AsEnumerable(), path, (string?)null, true))
             </nav>
-            <a class="btn btn--danger btn--sm" href="/ung-pho">Làm ngay</a>
+            @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (cta?.AsEnumerable(), path, (string?)"btn btn--danger btn--sm", false))
         </div>
     </header>
 
@@ -55,8 +77,40 @@
 
     <footer class="site-footer">
         <div class="container">
-            <p><b>@siteName</b></p>
-            <p>@(home?.Value<string>("footerText"))</p>
+            @if (footerLogo is not null)
+            {
+                <a href="/"><img src="@footerLogo.Url()" height="40" alt="@(site?.Value<string>("footerLogoAlt") ?? siteName)"></a>
+            }
+            else
+            {
+                <p><b>@siteName</b></p>
+            }
+            <p>@(site?.Value<string>("footerText"))</p>
+            <p>Đơn vị vận hành: @(site?.Value<string>("operatorName")) · @(site?.Value<string>("operatorAddress"))</p>
+            <h2>@(site?.Value<string>("footerMenuTitle"))</h2>
+            <nav aria-label="Điều hướng chân trang">
+                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (footerMenu?.AsEnumerable(), path, (string?)null, false))
+            </nav>
+            <h2>@(site?.Value<string>("footerPoliciesTitle"))</h2>
+            <nav aria-label="Chính sách">
+                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (policies?.AsEnumerable(), path, (string?)null, false))
+            </nav>
+            <p>@(site?.Value<string>("footerPoliciesNote"))</p>
+            @if (site?.Value<bool>("sponsorShow") == true)
+            {
+                <h2>@(site.Value<string>("footerSponsorHeading"))</h2>
+                @if (site.Value<IPublishedContent>("sponsorLogo") is { } sponsorLogo)
+                {
+                    <img src="@sponsorLogo.Url()" height="44" alt="@(site.Value<string>("sponsorName"))">
+                }
+                <p>@(site.Value<string>("sponsorName"))</p>
+                <p>@(site.Value<string>("footerSponsorDisclaimer"))</p>
+            }
+            <p>@(site?.Value<string>("copyright"))</p>
+            @if (site?.Value<bool>("showPreviewBanner") == true)
+            {
+                <p>@(site.Value<string>("footerPreviewNote"))</p>
+            }
         </div>
     </footer>
 
