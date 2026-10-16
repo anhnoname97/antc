@@ -150,57 +150,76 @@ export class AntcQuestionsSection extends UmbLitElement {
         this._rowDrafts.clear();
         this._selected = null; this._dirty = false; this._message = ''; this._load(1);
     }
+    _resetFilters() {
+        if (!this._canLeave()) return;
+        this._filters = {}; this._rowDrafts.clear();
+        this.shadowRoot.querySelector('.filters')?.reset();
+        this._selected = null; this._dirty = false; this._message = ''; this._load(1);
+    }
     render() {
         return html`
-            <header><div><h1>Hỏi – Đáp</h1><p>Tiếp nhận câu hỏi, kiến nghị và góp ý người dùng gửi từ portal.</p></div>
-                <uui-button look="secondary" label="Xuất CSV theo bộ lọc" @click=${this._export}>Xuất CSV theo bộ lọc</uui-button></header>
+            <div class="page-shell">
+            <header class="page-header"><div><h1>Hỏi – Đáp</h1><p>Tiếp nhận và xử lý câu hỏi, kiến nghị, góp ý từ portal.</p></div>
+                <uui-button class="export-button" look="outline" label="Xuất CSV theo bộ lọc" @click=${this._export}>
+                    <umb-icon name="icon-download"></umb-icon><span>Xuất CSV theo bộ lọc</span>
+                </uui-button></header>
             ${this._error ? html`<div class="notice error" role="alert">${this._error}</div>` : nothing}
             ${this._message ? html`<div class="notice success" role="status">${this._message}</div>` : nothing}
             <uui-box headline="Danh sách tiếp nhận">
                 <form class="filters" @submit=${this._applyFilters}>
-                    <label>Loại<select aria-label="Lọc theo loại" @change=${event => this._filter('type', event.target.value)}>
+                    <label class="filter-search"><span>Tìm trong nội dung</span><input type="search" maxlength="200" aria-label="Tìm trong nội dung" placeholder="Nhập từ khóa cần tìm…" @input=${event => this._filter('search', event.target.value)}></label>
+                    <label><span>Loại nội dung</span><select aria-label="Lọc theo loại" @change=${event => this._filter('type', event.target.value)}>
                         <option value="">Tất cả loại</option>${Object.entries(types).map(([key, label]) => html`<option value=${key}>${label}</option>`)}</select></label>
-                    <label>Trạng thái<select aria-label="Lọc theo trạng thái" @change=${event => this._filter('status', event.target.value)}>
+                    <label><span>Trạng thái xử lý</span><select aria-label="Lọc theo trạng thái" @change=${event => this._filter('status', event.target.value)}>
                         <option value="">Tất cả trạng thái</option>${Object.entries(statuses).map(([key, label]) => html`<option value=${key}>${label}</option>`)}</select></label>
-                    <label>Từ ngày<input type="date" aria-label="Từ ngày" @change=${event => this._filter('from', event.target.value)}></label>
-                    <label>Đến ngày<input type="date" aria-label="Đến ngày" @change=${event => this._filter('to', event.target.value)}></label>
-                    <label class="search">Tìm trong nội dung<input type="search" maxlength="200" aria-label="Tìm trong nội dung" @input=${event => this._filter('search', event.target.value)}></label>
-                    <uui-button type="submit" look="primary" label="Lọc" ?disabled=${this._busy}>Lọc</uui-button>
+                    <label><span>Ngày gửi từ</span><input type="date" aria-label="Từ ngày" @change=${event => this._filter('from', event.target.value)}></label>
+                    <label><span>Đến ngày</span><input type="date" aria-label="Đến ngày" @change=${event => this._filter('to', event.target.value)}></label>
+                    <div class="filter-actions">
+                        <uui-button look="outline" label="Đặt lại bộ lọc" ?disabled=${this._busy} @click=${this._resetFilters}>Đặt lại</uui-button>
+                        <uui-button type="submit" look="primary" label="Lọc" ?disabled=${this._busy}><umb-icon name="icon-filter"></umb-icon><span>Áp dụng bộ lọc</span></uui-button>
+                    </div>
                 </form>
-                <p class="muted">${this._data.total} nội dung · 50 dòng/trang · Tự cập nhật mỗi 5 giây khi không mở xử lý.</p>
-                <div class="table-scroll"><table aria-label="Câu hỏi và góp ý đã tiếp nhận"><thead><tr>
-                    <th>Thời điểm gửi</th><th>Loại</th><th>Nội dung</th><th>Trả lời riêng / liên hệ</th>
+                <div class="list-meta"><span><strong>${this._data.total} nội dung</strong><span class="meta-divider">·</span>50 dòng / trang</span>
+                    <span class="refresh-note"><span class="refresh-dot" aria-hidden="true"></span>Tự cập nhật mỗi 5 giây khi không mở xử lý</span></div>
+                <div class="table-scroll"><table aria-label="Câu hỏi và góp ý đã tiếp nhận">
+                    <colgroup><col class="column-content"><col class="column-contact"><col class="column-status"><col class="column-note"><col class="column-public"><col class="column-handler"><col class="column-actions"></colgroup>
+                    <thead><tr>
+                    <th>Nội dung gửi</th><th>Liên hệ</th>
                     <th>Trạng thái</th><th>Ghi chú nội bộ</th><th>Công khai</th><th>Người xử lý</th><th>Thao tác</th>
                 </tr></thead><tbody>
                     ${this._data.items.map(row => html`<tr>
-                        <td>${date(row.createdAt)}</td><td>${types[row.type] || row.type}</td>
-                        <td class="content">${row.content.length > 200 ? row.content.slice(0, 200) + '…' : row.content}</td>
-                        <td>${row.wantReply ? 'Có yêu cầu trả lời riêng' : 'Không yêu cầu'}<div class="contact">${row.contact || '—'}</div></td>
+                        <td class="content"><div class="content-meta"><span class="type-label">${types[row.type] || row.type}</span><time>${date(row.createdAt)}</time></div>
+                            <div class="content-preview">${row.content.length > 200 ? row.content.slice(0, 200) + '…' : row.content}</div></td>
+                        <td><span class="reply-preference">${row.wantReply ? 'Muốn trả lời riêng' : 'Không yêu cầu'}</span><div class="contact" title=${row.contact || ''}>${row.contact || '—'}</div></td>
                         <td><select aria-label=${`Trạng thái dòng ${row.id}`} .value=${this._rowDrafts.get(row.id)?.status || row.status}
                             ?disabled=${this._busy || !!this._selected} @change=${event => this._editRow(row, 'status', event.target.value)}>
                             ${Object.entries(statuses).map(([key, label]) => html`<option value=${key} ?selected=${key === (this._rowDrafts.get(row.id)?.status || row.status)}>${label}</option>`)}</select></td>
                         <td><textarea class="row-note" rows="2" maxlength="1000" aria-label=${`Ghi chú dòng ${row.id}`}
                             .value=${this._rowDrafts.get(row.id)?.adminNote ?? row.adminNote ?? ''} ?disabled=${this._busy || !!this._selected}
                             @input=${event => this._editRow(row, 'adminNote', event.target.value)}></textarea></td>
-                        <td><span class=${row.isPublished ? 'badge published' : 'badge'}>${row.isPublished ? 'Đã công bố' : 'Chưa công bố'}</span></td>
-                        <td>${row.handledBy || '—'}<div class="muted">${date(row.handledAt)}</div></td>
+                        <td><span class=${row.isPublished ? 'badge published' : 'badge'}><span class="badge-dot" aria-hidden="true"></span>${row.isPublished ? 'Đã công bố' : 'Chưa công bố'}</span></td>
+                        <td class="handler">${row.handledBy || '—'}<div class="muted handled-time">${date(row.handledAt)}</div></td>
                         <td><div class="row-actions"><uui-button look="secondary" label="Xem và xử lý" data-id=${row.id} ?disabled=${this._busy} @click=${() => this._select(row.id)}>Xem và xử lý</uui-button>
-                            <uui-button look="primary" label=${`Lưu dòng ${row.id}`} data-save-id=${row.id} ?disabled=${this._busy || !this._rowDrafts.has(row.id) || !!this._selected} @click=${() => this._saveRow(row)}>Lưu dòng</uui-button>
+                            ${this._rowDrafts.has(row.id) ? html`<uui-button look="primary" label=${`Lưu dòng ${row.id}`} data-save-id=${row.id} ?disabled=${this._busy || !!this._selected} @click=${() => this._saveRow(row)}>Lưu dòng</uui-button>` : nothing}
                             ${this._rowDrafts.has(row.id) ? html`<uui-button label="Hủy sửa dòng" look="secondary" @click=${() => this._cancelRow(row.id)}>Hủy</uui-button>` : nothing}</div></td>
                     </tr>`)}
-                    ${!this._data.items.length ? html`<tr><td colspan="9" class="empty">${this._busy ? 'Đang tải…' : 'Chưa có nội dung phù hợp bộ lọc.'}</td></tr>` : nothing}
+                    ${!this._data.items.length ? html`<tr><td colspan="7" class="empty"><div class="empty-state"><umb-icon name="icon-chat"></umb-icon>
+                        <strong>${this._busy ? 'Đang tải nội dung…' : 'Chưa có nội dung phù hợp'}</strong>
+                        <p>${this._busy ? 'Vui lòng đợi trong giây lát.' : 'Câu hỏi và góp ý người dùng gửi từ portal sẽ xuất hiện tại đây.'}</p>
+                    </div></td></tr>` : nothing}
                 </tbody></table></div>
-                <div class="pagination"><uui-button label="Trang trước" look="secondary" ?disabled=${this._busy || this._rowDrafts.size > 0 || this._data.page <= 1} @click=${() => this._load(this._data.page - 1)}>Trước</uui-button>
+                <div class="pagination"><uui-button label="Trang trước" look="outline" ?disabled=${this._busy || this._rowDrafts.size > 0 || this._data.page <= 1} @click=${() => this._load(this._data.page - 1)}>Trước</uui-button>
                     <span>Trang ${this._data.page} / ${this._data.totalPages}</span>
-                    <uui-button label="Trang sau" look="secondary" ?disabled=${this._busy || this._rowDrafts.size > 0 || this._data.page >= this._data.totalPages} @click=${() => this._load(this._data.page + 1)}>Sau</uui-button></div>
+                    <uui-button label="Trang sau" look="outline" ?disabled=${this._busy || this._rowDrafts.size > 0 || this._data.page >= this._data.totalPages} @click=${() => this._load(this._data.page + 1)}>Sau</uui-button></div>
             </uui-box>
             ${this._selected ? this._renderReview() : nothing}
+            </div>
         `;
     }
     _renderReview() {
         const row = this._selected;
         return html`<uui-box id="review" headline=${`Xử lý nội dung #${row.id}`}>
-            <div class="review-grid"><div>
+            <div class="review-grid"><div class="submission-panel">
                 <h2>Nội dung người dùng gửi</h2><p class="muted">Nội dung gốc, chỉ xem.</p>
                 <pre class="original">${row.content}</pre>
                 <dl><dt>Loại</dt><dd>${types[row.type]}</dd><dt>Gửi lúc</dt><dd>${date(row.createdAt)}</dd>
@@ -209,38 +228,99 @@ export class AntcQuestionsSection extends UmbLitElement {
                     <dt>Công bố gần nhất</dt><dd>${date(row.approvedAt)} · ${row.approvedBy || '—'}</dd></dl>
                 <p class="muted">Thông tin liên hệ và ghi chú chỉ hiển thị trong quản trị. Hệ thống không tự gửi email.</p>
             </div><div class="editor">
-                <label>Câu trả lời<textarea id="answer" rows="8" maxlength="10000" .value=${this._draft.answer}
+                <h2>Trả lời và kiểm duyệt</h2><p class="muted">Lưu nháp để tiếp tục xử lý hoặc duyệt để công bố.</p>
+                <label><span>Câu trả lời</span><textarea id="answer" rows="8" maxlength="10000" .value=${this._draft.answer}
                     @input=${event => this._edit('answer', event.target.value)} placeholder="Nhập câu trả lời cho người dùng"></textarea></label>
                 <p class="muted">Chỉ câu hỏi đã có câu trả lời và được duyệt mới hiển thị trên portal. Không duyệt nếu nội dung gốc chứa thông tin cá nhân.</p>
-                <label>Trạng thái xử lý<select id="review-status" .value=${this._draft.status} @change=${event => this._edit('status', event.target.value)}>
+                <label><span>Trạng thái xử lý</span><select id="review-status" .value=${this._draft.status} @change=${event => this._edit('status', event.target.value)}>
                     ${Object.entries(statuses).map(([key, label]) => html`<option value=${key} ?selected=${key === this._draft.status}>${label}</option>`)}</select></label>
-                <label>Ghi chú nội bộ<textarea id="admin-note" rows="3" maxlength="1000" .value=${this._draft.adminNote} @input=${event => this._edit('adminNote', event.target.value)}></textarea></label>
+                <label><span>Ghi chú nội bộ</span><textarea id="admin-note" rows="3" maxlength="1000" .value=${this._draft.adminNote} @input=${event => this._edit('adminNote', event.target.value)}></textarea></label>
                 ${this._dirty ? html`<p class="muted">Có thay đổi chưa lưu.</p>` : nothing}
                 ${row.isPublished && row.answer !== row.publishedAnswer ? html`<p class="notice">Câu trả lời nháp đã thay đổi. Portal vẫn dùng bản đã duyệt trước đó.</p>` : nothing}
-                <div class="actions">
-                    <uui-button label="Lưu xử lý" look="secondary" data-action="save" ?disabled=${this._busy} @click=${() => this._act('save')}>Lưu xử lý</uui-button>
+            </div></div>
+                <div class="actions"><uui-button class="close-review" label="Đóng xử lý" look="secondary" ?disabled=${this._busy} @click=${this._close}>Đóng</uui-button>
+                    <uui-button label="Lưu xử lý" look="outline" data-action="save" ?disabled=${this._busy} @click=${() => this._act('save')}>Lưu xử lý</uui-button>
                     ${row.type === 'cau-hoi' ? html`<uui-button label="Duyệt và công bố" look="primary" color="positive" data-action="approve"
                         ?disabled=${this._busy || this._draft.answer.trim().length < 10} @click=${() => this._act('approve')}>Duyệt và công bố</uui-button>` : nothing}
                     ${row.isPublished ? html`<uui-button label="Gỡ công bố" look="secondary" color="danger" data-action="unpublish" ?disabled=${this._busy} @click=${() => this._act('unpublish')}>Gỡ công bố</uui-button>` : nothing}
-                    <uui-button label="Đóng xử lý" look="secondary" ?disabled=${this._busy} @click=${this._close}>Đóng</uui-button>
                 </div>
-            </div></div>
         </uui-box>`;
     }
     static styles = css`
-        :host{display:block;height:100%;overflow:auto;box-sizing:border-box;padding:24px;color:var(--uui-color-text);font-family:inherit}
-        header{display:flex;gap:20px;justify-content:space-between;align-items:center;margin-bottom:20px}h1{margin:0;font-size:26px}header p{margin:8px 0 0}
-        uui-box{display:block;margin-bottom:24px}h2{font-size:17px;margin:0 0 8px}.muted{font-size:13px;color:var(--uui-color-text-alt)}
-        .filters{display:flex;gap:12px;align-items:end;flex-wrap:wrap}label{display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:600}
-        input,select,textarea{box-sizing:border-box;border:1px solid var(--uui-color-border);border-radius:3px;padding:9px;background:var(--uui-color-surface);color:var(--uui-color-text);font:inherit;font-weight:400}
-        input:focus,select:focus,textarea:focus{outline:2px solid var(--uui-color-selected);outline-offset:1px}.search{flex:1;min-width:180px}
-        .table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:1000px;font-size:13px}th{text-align:left;white-space:nowrap;background:var(--uui-color-surface-alt)}
-        th,td{padding:12px;border-bottom:1px solid var(--uui-color-border);vertical-align:top}td.content{min-width:230px;max-width:400px;white-space:pre-wrap;overflow-wrap:anywhere}td.contact,.contact{overflow-wrap:anywhere}
-        .row-note{min-width:160px;width:100%}.row-actions{display:flex;flex-direction:column;gap:6px}.empty{text-align:center;padding:32px}.badge{display:inline-block;padding:4px 8px;border-radius:4px;background:var(--uui-color-surface-alt);white-space:nowrap}.published{color:var(--uui-color-positive);font-weight:600}
-        .pagination{display:flex;gap:12px;align-items:center;justify-content:flex-end;margin-top:16px}.review-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}.original{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.6;background:var(--uui-color-surface-alt);padding:16px;border-radius:4px}
-        dl{display:grid;grid-template-columns:140px 1fr;gap:10px;font-size:13px}dt{font-weight:600}dd{margin:0;overflow-wrap:anywhere}.editor label{margin-bottom:14px}.editor textarea,.editor select{width:100%}.actions{display:flex;gap:8px;flex-wrap:wrap}
-        .notice{padding:12px 16px;margin:0 0 18px;border:1px solid var(--uui-color-border);border-radius:4px;background:var(--uui-color-surface)}.error{border-color:var(--uui-color-danger);color:var(--uui-color-danger)}.success{border-color:var(--uui-color-positive);color:var(--uui-color-positive)}
-        @media(max-width:1000px){.review-grid{grid-template-columns:1fr}:host{padding:16px}header{align-items:start}}
+        :host { display:block; height:100%; overflow:auto; box-sizing:border-box; padding:28px; color:var(--uui-color-text); font-family:inherit; font-size:14px; line-height:1.5; }
+        *, *::before, *::after { box-sizing:border-box; }
+        .page-shell { max-width:1680px; margin:0 auto; }
+        .page-header { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:24px; }
+        h1 { margin:0; font-size:26px; line-height:1.3; font-weight:700; }
+        .page-header p { margin:6px 0 0; color:var(--uui-color-text-alt); }
+        h2 { margin:0; font-size:16px; line-height:1.5; font-weight:600; }
+        uui-box { display:block; margin-bottom:24px; }
+        uui-button { --uui-button-height:40px; --uui-button-border-radius:4px; --uui-button-font-size:14px; flex-shrink:0; }
+        uui-button umb-icon { width:16px; height:16px; margin-right:6px; }
+        .export-button { align-self:center; }
+        .filters { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); align-items:end; gap:18px 20px; padding-bottom:24px; border-bottom:1px solid var(--uui-color-border); }
+        label { display:flex; flex-direction:column; gap:8px; min-width:0; font-size:13px; font-weight:600; line-height:20px; }
+        .filter-search { grid-column:span 2; }
+        .filter-actions { grid-column:span 2; display:flex; justify-content:flex-end; align-items:center; gap:10px; }
+        .filter-actions uui-button { min-width:112px; }
+        input, select, textarea { width:100%; min-width:0; margin:0; border:1px solid var(--uui-color-border-emphasis,var(--uui-color-border)); border-radius:4px; padding:8px 12px; background:var(--uui-color-surface); color:var(--uui-color-text); font:inherit; font-size:14px; font-weight:400; line-height:22px; }
+        input, select { height:40px; }
+        select { padding-right:28px; }
+        input[type=date] { display:block; min-height:40px; }
+        input[type=date]::-webkit-datetime-edit { padding:0; }
+        input::placeholder, textarea::placeholder { color:var(--uui-color-text-alt); opacity:.8; }
+        textarea { display:block; resize:vertical; }
+        input:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px solid var(--uui-color-selected); outline-offset:2px; }
+        input:disabled, select:disabled, textarea:disabled { background:var(--uui-color-surface-alt); color:var(--uui-color-text-alt); cursor:not-allowed; }
+        .list-meta { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin:18px 0 14px; font-size:13px; color:var(--uui-color-text-alt); }
+        .list-meta strong { color:var(--uui-color-text); font-weight:600; }
+        .meta-divider { margin:0 10px; }
+        .refresh-note { display:flex; gap:8px; align-items:center; }
+        .refresh-dot { width:6px; height:6px; border-radius:50%; background:var(--uui-color-positive); }
+        .table-scroll { overflow-x:auto; border:1px solid var(--uui-color-border); border-radius:6px; }
+        table { width:100%; min-width:1240px; table-layout:fixed; border-collapse:collapse; font-size:13px; line-height:1.6; }
+        .column-contact { width:166px; }.column-status { width:138px; }.column-note { width:186px; }.column-public { width:122px; }.column-handler { width:142px; }.column-actions { width:148px; }
+        th { padding:12px 14px; font-size:12px; font-weight:600; text-align:left; white-space:nowrap; background:var(--uui-color-surface-alt); }
+        td { padding:16px 14px; border-top:1px solid var(--uui-color-border); vertical-align:top; overflow-wrap:anywhere; }
+        tbody tr:hover { background:var(--uui-color-surface-alt); }
+        .content-meta { display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-bottom:8px; font-size:12px; color:var(--uui-color-text-alt); }
+        .type-label { padding:2px 7px; border-radius:3px; color:var(--uui-color-text); background:var(--uui-color-surface-alt); }
+        .content-preview { white-space:pre-wrap; }
+        .reply-preference { display:block; margin-bottom:6px; color:var(--uui-color-text-alt); font-size:12px; }
+        .contact { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.handler { overflow-wrap:anywhere; }
+        .handled-time { margin-top:6px; font-size:12px; }
+        td select { height:36px; padding:6px 8px; font-size:13px; }
+        .row-note { width:100%; min-height:74px; padding:8px 10px; font-size:13px; line-height:20px; }
+        .row-actions { display:flex; flex-direction:column; align-items:stretch; gap:7px; }
+        .row-actions uui-button { width:100%; --uui-button-height:36px; --uui-button-font-size:13px; }
+        .badge { display:inline-flex; align-items:center; gap:6px; min-height:28px; padding:3px 7px; border-radius:4px; color:var(--uui-color-text-alt); background:var(--uui-color-surface-alt); font-size:11px; font-weight:600; white-space:nowrap; }
+        .badge-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+        .published { color:var(--uui-color-positive); background:color-mix(in srgb,var(--uui-color-positive) 10%,var(--uui-color-surface)); }
+        .empty { padding:0; }
+        .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:200px; padding:32px 20px; text-align:center; }
+        .empty-state umb-icon { width:28px; height:28px; margin-bottom:12px; color:var(--uui-color-text-alt); }
+        .empty-state strong { font-size:15px; font-weight:600; }
+        .empty-state p { margin:6px 0 0; color:var(--uui-color-text-alt); }
+        .pagination { display:flex; justify-content:flex-end; align-items:center; gap:14px; padding-top:18px; font-size:13px; }
+        .pagination uui-button { --uui-button-height:36px; min-width:72px; }
+        .review-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:28px; }
+        .submission-panel { padding-right:28px; border-right:1px solid var(--uui-color-border); }
+        .muted { font-size:13px; color:var(--uui-color-text-alt); }
+        h2 + .muted { margin:4px 0 20px; }
+        .original { margin:0 0 24px; white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; line-height:1.7; background:var(--uui-color-surface-alt); padding:18px; border:1px solid var(--uui-color-border); border-radius:6px; }
+        dl { display:grid; grid-template-columns:150px minmax(0,1fr); margin:0 0 20px; font-size:13px; }
+        dt, dd { padding:10px 0; border-bottom:1px solid var(--uui-color-border); }
+        dt { font-weight:600; color:var(--uui-color-text-alt); }
+        dd { margin:0; overflow-wrap:anywhere; }
+        .editor label { margin-bottom:18px; }
+        .editor textarea, .editor select { width:100%; }
+        .editor > .muted { margin:8px 0 20px; line-height:1.6; }
+        .actions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:10px; margin-top:24px; padding-top:20px; border-top:1px solid var(--uui-color-border); }
+        .close-review { margin-right:auto; }
+        .notice { padding:12px 16px; margin:0 0 20px; border:1px solid var(--uui-color-border); border-radius:6px; background:var(--uui-color-surface); }
+        .error { border-color:var(--uui-color-danger); color:var(--uui-color-danger); }.success { border-color:var(--uui-color-positive); color:var(--uui-color-positive); }
+        @media(max-width:1100px) { :host { padding:20px; }.filters { gap:16px; }.review-grid { grid-template-columns:1fr; gap:24px; }.submission-panel { padding-right:0; padding-bottom:24px; border-right:0; border-bottom:1px solid var(--uui-color-border); } }
+        @media(max-width:760px) { :host { padding:16px; }.page-header { align-items:flex-start; flex-wrap:wrap; gap:16px; }.filters { grid-template-columns:repeat(2,minmax(0,1fr)); }.filter-actions { justify-content:flex-start; }.list-meta { align-items:flex-start; flex-direction:column; }.refresh-note { font-size:12px; }.actions { justify-content:flex-start; }.close-review { margin-right:0; } }
     `;
 }
 customElements.define('antc-questions-section', AntcQuestionsSection);
