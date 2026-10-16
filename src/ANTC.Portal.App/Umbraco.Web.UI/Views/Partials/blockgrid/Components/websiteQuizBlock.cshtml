@@ -1,0 +1,31 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    var content = Model.Content;
+    var options = content.Value<BlockListModel>("options");
+    var headingId = "website-quiz-" + content.Key.ToString("N");
+}
+@if (options?.Any() == true)
+{
+    <div class="website-quiz" data-website-quiz data-correct-label="@content.Value("correctLabel")" data-incorrect-label="@content.Value("incorrectLabel")">
+        <p class="website-check__eyebrow">@content.Value("eyebrow")</p>
+        <h2 id="@headingId">@content.Value("title")</h2>
+        <p class="website-quiz__description">@content.Value("description")</p>
+        <div class="website-quiz__options" role="group" aria-labelledby="@headingId">
+            @foreach (var block in options)
+            {
+                var item = block.Content;
+                <button type="button" class="website-quiz__option" data-quiz-option data-correct="@(item.Value<bool>("isCorrect") ? "true" : "false")" data-explanation="@item.Value("explanation")" aria-pressed="false">
+                    <code>@item.Value("address")</code><span>@item.Value("hint")</span>
+                </button>
+            }
+        </div>
+        <p class="website-quiz__feedback" data-quiz-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+        <noscript><p>Bật JavaScript để chọn đáp án, hoặc xem giải thích dưới đây.</p>
+            @foreach (var block in options)
+            {
+                <details><summary>@block.Content.Value("address")</summary><p>@(block.Content.Value<bool>("isCorrect") ? "Đúng. " : "Chưa đúng. ")@block.Content.Value("explanation")</p></details>
+            }
+        </noscript>
+    </div>
+}

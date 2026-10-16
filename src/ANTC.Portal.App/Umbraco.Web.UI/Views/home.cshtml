@@ -1,9 +1,26 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var blocks = Model.Value<BlockGridModel>("layout");
 }
-<section class="page-hero">
-    <div class="container">
-        <h1>@Model.Name</h1>
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/home.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/story.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/website-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/official-contacts.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/safety-reminder.css" asp-append-version="true">
+}
+@if (blocks?.Any() == true)
+{
+    <div class="home-content">
+        @await Html.GetBlockGridHtmlAsync(blocks)
     </div>
-</section>
+}
+@section Scripts {
+    <script type="module" src="~/assets/js/home.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/story.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/website-check.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/official-contacts.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/safety-reminder.js" asp-append-version="true"></script>
+}

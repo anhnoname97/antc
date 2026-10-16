@@ -1,0 +1,31 @@
+.home-section--safety-reminder{background:#14233b;color:#fff;overflow:hidden}
+.safety-reminder{position:relative;width:min(1240px,100%);margin-inline:auto;text-align:center;color:#fff}
+.safety-reminder__drum{position:absolute;left:50%;top:50%;width:110vmax;height:110vmax;max-width:none;transform:translate(-50%,-50%);opacity:.08;pointer-events:none}
+.safety-reminder__content{position:relative}
+.safety-reminder__stop{width:150px;height:150px;margin:0 auto 34px}
+.safety-reminder__stop svg{width:100%;height:100%;overflow:visible}
+.safety-reminder h2{color:#fff;font-size:clamp(2.125rem,4.4vw,4.5rem);line-height:1.15;max-width:20ch;margin:0 auto 18px;letter-spacing:-.02em;font-weight:700;overflow-wrap:break-word}
+.safety-reminder h2 em{font-style:normal;color:#ffb4ac}
+.safety-reminder__description{max-width:58ch;margin:0 auto 34px;color:#d7deea;font-size:1.125rem;line-height:1.6}
+.safety-reminder__steps{display:flex;justify-content:center;gap:12px 28px;flex-wrap:wrap;margin:0 auto 40px;padding:0;list-style:none;font-size:1.125rem;font-weight:600}
+.safety-reminder__steps li{display:flex;gap:10px;align-items:center;background:#ffffff14;border:1px solid #ffffff33;border-radius:40px;padding:10px 18px;max-width:100%;text-align:left}
+.safety-reminder__steps b{width:26px;height:26px;flex:none;border-radius:50%;background:#e3c88f;color:#14233b;display:grid;place-items:center;font-size:.875rem}
+.safety-reminder__steps span{min-width:0;overflow-wrap:anywhere}
+.safety-reminder__actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.safety-reminder .safety-reminder__button{display:inline-flex;justify-content:center;align-items:center;gap:10px;border:1px solid #ffffff99;border-radius:100px;padding:14px 24px;min-height:48px;font-size:1.125rem;font-weight:700;line-height:1.4;text-decoration:none;color:#fff;max-width:100%;overflow-wrap:anywhere}
+.safety-reminder .safety-reminder__button--red{background:#b92318;border-color:#b92318}
+.safety-reminder .safety-reminder__button--red:hover{background:#941c14}
+.safety-reminder .safety-reminder__button--light:hover{background:#ffffff14}
+.safety-reminder__button:focus-visible{outline:3px solid #e3c88f;outline-offset:5px}
+.safety-reminder.is-animated [data-safety-entrance]:not(.is-visible){opacity:0}
+.safety-reminder.is-animated .safety-reminder__stop.is-visible{animation:safety-stop-in .9s cubic-bezier(.34,1.56,.64,1) both}
+.safety-reminder.is-animated .safety-reminder__message.is-visible>*{animation:safety-text-in .6s ease-out both}
+.safety-reminder.is-animated .safety-reminder__message.is-visible>.safety-reminder__description{animation-delay:.1s}
+.safety-reminder.is-animated .safety-reminder__message.is-visible>.safety-reminder__steps{animation-delay:.2s}
+.safety-reminder.is-animated .safety-reminder__message.is-visible>.safety-reminder__actions{animation-delay:.3s}
+.safety-reminder.is-animated .safety-reminder__message:focus-within{opacity:1}
+.safety-reminder.is-animated .safety-reminder__message:focus-within>*{animation:none;opacity:1;transform:none}
+@keyframes safety-stop-in{from{opacity:0;transform:scale(.4) rotate(-45deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes safety-text-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@media(max-width:600px){.safety-reminder__actions{flex-direction:column;align-items:center}.safety-reminder__button{width:100%}.safety-reminder__steps{gap:12px}}
+@media(prefers-reduced-motion:reduce){.safety-reminder.is-animated [data-safety-entrance]{opacity:1;animation:none}.safety-reminder.is-animated .safety-reminder__message.is-visible>*{animation:none}}

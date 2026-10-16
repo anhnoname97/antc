@@ -1,0 +1,56 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    var content = Model.Content;
+    var domain = Umbraco.AssignedContentItem.Root().Value<string>("siteName") ?? "antoantaichinh.vn";
+    var hotspots = content.Value<BlockListModel>("hotspots");
+    var prefix = "website-check-" + content.Key.ToString("N");
+    var trustedLabel = content.Value<string>("trustedLabel") ?? "Tin vào đây";
+    var cautionLabel = content.Value<string>("cautionLabel") ?? "Đừng tin vội";
+    var index = 0;
+    int Position(Umbraco.Cms.Core.Models.PublishedContent.IPublishedElement item, string alias) => Math.Clamp(item.Value<int>(alias), 0, 100);
+}
+<div class="website-check" data-website-check>
+    <div class="website-check__copy">
+        <p class="website-check__eyebrow">@content.Value("eyebrow")</p>
+        <h2>@content.Value("title")<em>@content.Value("highlightTitle")</em></h2>
+        <p class="website-check__description">@content.Value("description")</p>
+        <div class="website-check__legend"><span>✓ @trustedLabel</span><span>⚠ @cautionLabel</span></div>
+    </div>
+    <div class="website-check__mock">
+        <div class="website-check__diagram">
+            <div class="website-check__browser">
+                <div class="website-check__bar"><span class="website-check__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <div class="website-check__url"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg><span>https://<b>@domain</b>@content.Value("examplePath")</span></div>
+                </div>
+                <div class="website-check__page" aria-hidden="true">
+                    <div class="website-check__logo"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2.8 19.5 5.6v6.1c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V5.6z"/><path d="m8.7 12 2.3 2.3 4.3-4.6"/></svg></div>
+                    <span></span><span></span><span></span><span></span>
+                    <div class="website-check__search"><b>@content.Value("searchBadge")</b> @content.Value("searchText")</div>
+                </div>
+            </div>
+            @if (hotspots is not null)
+            {
+                @foreach (var block in hotspots)
+                {
+                    var item = block.Content;
+                    var number = ++index;
+                    <button type="button" class="website-check__hotspot @(item.Value<bool>("isTrusted") ? "is-trusted" : "is-caution")" style="left:@(Position(item, "positionX"))%;top:@(Position(item, "positionY"))%" aria-expanded="false" aria-controls="@(prefix + "-" + number)" aria-label="@($"Điểm {number}: {item.Value<string>("title")}")" data-hotspot><span>@number</span></button>
+                }
+            }
+        </div>
+        @if (hotspots is not null)
+        {
+            index = 0;
+            @foreach (var block in hotspots)
+            {
+                var item = block.Content;
+                var trusted = item.Value<bool>("isTrusted");
+                <div class="website-check__popup @(trusted ? "is-trusted" : "is-caution")" id="@(prefix + "-" + (++index))" style="--popup-x:@(Position(item, "popupX"))%;--popup-y:@(Position(item, "popupY"))%" data-hotspot-panel>
+                    <h3><span aria-hidden="true">@(trusted ? "✓" : "⚠")</span> @(trusted ? trustedLabel : cautionLabel)</h3>
+                    <p>@(item.Value<string>("description")?.Replace("{domain}", domain))</p>
+                </div>
+            }
+        }
+    </div>
+</div>

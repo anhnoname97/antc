@@ -1,20 +1,8 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using Umbraco.Cms.Core.Models.Blocks
-@using Umbraco.Cms.Core.Models.PublishedContent
 @{
-    // Khung trang dung chung. Day la ban TAM de cac duong dan chay duoc ngay:
-    // FE1 dung lai theo ban dung trong task FE-02 (dai tren, header, footer) va FE-03 (menu mobile).
     Layout = null;
     var site = Model.Root();
     var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
-    var path = Context.Request.Path.Value ?? "/";
-    var headerLogo = site?.Value<IPublishedContent>("logoHeaderImage");
-    var footerLogo = site?.Value<IPublishedContent>("logoFooterImage");
-    var menu = site?.Value<BlockListModel>("menu");
-    var cta = site?.Value<BlockListModel>("headerCta");
-    var announcementLink = site?.Value<BlockListModel>("headerAnnouncementLink");
-    var footerMenu = site?.Value<BlockListModel>("footerMenu");
-    var policies = site?.Value<BlockListModel>("footerPolicies");
 }
 <!doctype html>
 <html lang="vi">
@@ -28,91 +16,19 @@
     <link rel="stylesheet" href="~/assets/css/tokens.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/base.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/components.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/header.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/footer.css" asp-append-version="true">
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
-    <a class="sr-only" href="#noi-dung">Bỏ qua, tới nội dung chính</a>
-    <div class="site-topbar">
-        <div class="container">
-            <span>
-                @if (site?.Value<bool>("showPreviewBanner") == true)
-                {
-                    <text><b>BẢN DỰNG THỬ</b> · chưa phải website đang hoạt động</text>
-                }
-            </span>
-            <button type="button" class="btn btn--outline btn--sm" data-font-toggle>A+ Chữ to</button>
-        </div>
-    </div>
-    @if (site?.Value<bool>("showHeaderAnnouncement") == true)
-    {
-        <div class="site-topbar">
-            <div class="container">
-                <span>@(site.Value<string>("headerAnnouncementText"))</span>
-                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (announcementLink?.AsEnumerable(), path, (string?)null, false))
-            </div>
-        </div>
-    }
-    <header class="site-header">
-        <div class="container">
-            <a class="site-logo" href="/">
-                @if (headerLogo is not null)
-                {
-                    <img src="@headerLogo.Url()" height="40" alt="@(site?.Value<string>("headerLogoAlt") ?? siteName)">
-                }
-                else
-                {
-                    @siteName
-                }
-            </a>
-            <nav class="site-nav" aria-label="Điều hướng chính">
-                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (menu?.AsEnumerable(), path, (string?)null, true))
-            </nav>
-            @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (cta?.AsEnumerable(), path, (string?)"btn btn--danger btn--sm", false))
-        </div>
-    </header>
+    <a class="site-skip" href="#noi-dung">Bỏ qua, tới nội dung chính</a>
+    @await Html.PartialAsync("~/Views/Partials/_SiteHeader.cshtml", Model)
 
-    <main id="noi-dung">
+    <main id="noi-dung" tabindex="-1">
         @RenderBody()
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            @if (footerLogo is not null)
-            {
-                <a href="/"><img src="@footerLogo.Url()" height="40" alt="@(site?.Value<string>("footerLogoAlt") ?? siteName)"></a>
-            }
-            else
-            {
-                <p><b>@siteName</b></p>
-            }
-            <p>@(site?.Value<string>("footerText"))</p>
-            <p>Đơn vị vận hành: @(site?.Value<string>("operatorName")) · @(site?.Value<string>("operatorAddress"))</p>
-            <h2>@(site?.Value<string>("footerMenuTitle"))</h2>
-            <nav aria-label="Điều hướng chân trang">
-                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (footerMenu?.AsEnumerable(), path, (string?)null, false))
-            </nav>
-            <h2>@(site?.Value<string>("footerPoliciesTitle"))</h2>
-            <nav aria-label="Chính sách">
-                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (policies?.AsEnumerable(), path, (string?)null, false))
-            </nav>
-            <p>@(site?.Value<string>("footerPoliciesNote"))</p>
-            @if (site?.Value<bool>("sponsorShow") == true)
-            {
-                <h2>@(site.Value<string>("footerSponsorHeading"))</h2>
-                @if (site.Value<IPublishedContent>("sponsorLogo") is { } sponsorLogo)
-                {
-                    <img src="@sponsorLogo.Url()" height="44" alt="@(site.Value<string>("sponsorName"))">
-                }
-                <p>@(site.Value<string>("sponsorName"))</p>
-                <p>@(site.Value<string>("footerSponsorDisclaimer"))</p>
-            }
-            <p>@(site?.Value<string>("copyright"))</p>
-            @if (site?.Value<bool>("showPreviewBanner") == true)
-            {
-                <p>@(site.Value<string>("footerPreviewNote"))</p>
-            }
-        </div>
-    </footer>
+    @await Html.PartialAsync("~/Views/Partials/_SiteFooter.cshtml", Model)
 
     <script type="module" src="~/assets/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

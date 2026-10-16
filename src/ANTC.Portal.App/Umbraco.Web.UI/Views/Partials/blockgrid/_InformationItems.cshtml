@@ -1,0 +1,55 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<(Umbraco.Cms.Core.Models.Blocks.BlockListModel? Items, Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent Site, bool Negative)>
+@using System.Text.Json
+@using Umbraco.Cms.Core.Models
+@{
+    string? Source(string? value)
+    {
+        if (value?.Trim().StartsWith('[') == true)
+        {
+            try { value = JsonSerializer.Deserialize<string[]>(value)?.FirstOrDefault(); }
+            catch (JsonException) { return null; }
+        }
+        return value switch {
+            "Nhập trực tiếp" => "manual",
+            "Đơn vị vận hành" => "operator",
+            "Đơn vị góp ý nội dung" => "reviewer",
+            "Đầu mối dữ liệu cá nhân" => "dataContact",
+            "Đầu mối cơ quan có thẩm quyền" => "authorityContact",
+            _ => value
+        };
+    }
+}
+@if (Model.Items?.Any() == true)
+{
+    <ul class="story-information @(Model.Negative ? "story-information--negative" : null)">
+        @foreach (var block in Model.Items)
+        {
+            var item = block.Content;
+            var source = Source(item.Value<string>("source"));
+            var detail = source switch {
+                "operator" => string.Join(" · ", new[] { Model.Site.Value<string>("operatorName"), Model.Site.Value<string>("operatorAddress") }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                "reviewer" => Model.Site.Value<string>("reviewerName"),
+                "dataContact" => Model.Site.Value<string>("dataContact"),
+                "authorityContact" => Model.Site.Value<string>("authorityContact"),
+                _ => item.Value<string>("detail")
+            };
+            var icon = item.Value<MediaWithCrops>("icon");
+            var link = item.Value<Link>("link");
+            var safeLink = !string.IsNullOrWhiteSpace(link?.Url) && ((link.Url.StartsWith('/') && !link.Url.StartsWith("//")) || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https"));
+            <li>
+                <span class="story-information__icon" aria-hidden="true">
+                    @if (icon is not null) { <img src="@icon.Url()" width="24" height="24" alt="" loading="lazy"> }
+                    else if (Model.Negative) { <span>×</span> }
+                    else if (source == "operator") { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3.5 20.5h17M5 20.5V9l7-5 7 5v11.5M9.5 20.5v-6h5v6"/></svg> }
+                    else if (source == "reviewer") { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.5"/><path d="M5 20.5a7 7 0 0 1 14 0"/></svg> }
+                    else { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg> }
+                </span>
+                <div><h4>@item.Value("title")</h4>
+                    @if (!string.IsNullOrWhiteSpace(detail)) { <p class="story-information__detail">@detail</p> }
+                    <p>@item.Value("description")</p>
+                    @if (safeLink) { <a href="@link!.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener noreferrer" : null)">@link.Name →</a> }
+                </div>
+            </li>
+        }
+    </ul>
+}

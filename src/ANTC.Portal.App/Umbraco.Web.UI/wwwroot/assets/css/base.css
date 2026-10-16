@@ -12,6 +12,7 @@ body {
   background: var(--c-bg);
 }
 img, svg { max-width: 100%; }
+button, input, select, textarea { font: inherit; }
 a { color: var(--c-brand); }
 a:hover { color: var(--c-brand-600); }
 h1, h2, h3, p { margin: 0; }

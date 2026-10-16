@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Umbraco.Plugin.Custom.Core.Content;
 
 /// <summary>Đường dẫn công khai không chứa các nút tổ chức cây quản trị.</summary>
@@ -16,10 +18,22 @@ public static class AntcPublicPaths
     public static string? FixedAlias(string path) => FixedPaths
         .FirstOrDefault(x => string.Equals(x.Value.Trim('/'), path.Trim('/'), StringComparison.OrdinalIgnoreCase)).Key;
 
+    public static bool IsPolicyLibrary(string alias, string? listRole)
+    {
+        if (alias != "articleList" || string.IsNullOrWhiteSpace(listRole)) return false;
+        // Dropdown đơn có thể trả về JSON array khi đọc qua Value<string>.
+        if (listRole.TrimStart().StartsWith('['))
+        {
+            try { listRole = JsonSerializer.Deserialize<string[]>(listRole)?.FirstOrDefault(); }
+            catch (JsonException) { return false; }
+        }
+        return listRole?.Trim() == "Chính sách";
+    }
+
     public static string? GetPath(string alias, string? segment, string? parentPath = null, string? listRole = null)
     {
         if (FixedPaths.TryGetValue(alias, out string? path)) return path;
-        if (alias == "articleList" && listRole == "Chính sách") return "/chinh-sach/";
+        if (IsPolicyLibrary(alias, listRole)) return "/chinh-sach/";
         if (string.IsNullOrWhiteSpace(segment)) return null;
         return alias switch
         {
