@@ -1,0 +1,10 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models
+@{ var content = Model.Content; var link = content.Value<Link>("primaryLink"); }
+<div class="next emergency-section">
+    <div class="next-drum" aria-hidden="true"><img src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" loading="lazy"></div>
+    <div class="next-in" data-emergency-reveal><div><p class="eyebrow">@content.Value("eyebrow")</p>
+        @if (link is not null && ((link.Url?.StartsWith('/') == true && !link.Url.StartsWith("//")) || link.Url?.StartsWith('#') == true)) { <a class="big" href="@link.Url">@content.Value("title") <span aria-hidden="true">⟶</span></a> }
+        <p>@content.Value("description")</p></div><div class="next-cta">@await Html.PartialAsync("~/Views/Partials/blockgrid/_EmergencyCall.cshtml", content)</div>
+    </div>
+</div>

@@ -21,11 +21,11 @@
         <h1 class="intro-hero__title">
             @if (!string.IsNullOrWhiteSpace(title))
             {
-                <span>@title</span>
+                <span class="intro-hero__line"><span>@title</span></span>
             }
             @if (!string.IsNullOrWhiteSpace(highlight))
             {
-                <span class="intro-hero__highlight">@highlight</span>
+                <span class="intro-hero__line intro-hero__highlight"><span>@highlight</span></span>
             }
         </h1>
     }

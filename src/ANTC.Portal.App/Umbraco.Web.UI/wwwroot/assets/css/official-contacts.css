@@ -21,6 +21,9 @@
 .official-contacts.is-animated .official-contacts__step[data-active=true] .official-contacts__number{background:#14233b;color:#fff}
 .official-contacts.is-animated .official-contacts__step>:not(.official-contacts__number){opacity:var(--content-reveal,1);transform:translateY(calc(26px*(1 - var(--content-reveal,1))))}
 .official-contacts.is-animated .official-contacts__warning{opacity:var(--warning-reveal,1);transform:translateY(calc(40px*(1 - var(--warning-reveal,1))));clip-path:inset(0 calc(100%*(1 - var(--warning-reveal,1))) 0 0 round 16px)}
+.official-contacts.is-animated .official-contacts__warning>p{opacity:var(--warning-copy-reveal,1);transform:translateX(calc(-20px*(1 - var(--warning-copy-reveal,1))))}
+.official-contacts.is-animated .official-contacts__call{opacity:var(--warning-call-reveal,1);transform:scale(calc(.85 + .15*var(--warning-call-reveal,1)))}
 .official-contacts.is-animated :is(.official-contacts__step,.official-contacts__warning):focus-within{opacity:1;transform:none;clip-path:none}
 .official-contacts.is-animated .official-contacts__step:focus-within>*{opacity:1;transform:none}
+.official-contacts.is-animated .official-contacts__warning:focus-within>*{opacity:1;transform:none}
 @media(max-width:900px){.official-contacts__steps{grid-template-columns:1fr;gap:36px}.official-contacts__steps:before,.official-contacts__steps:after{display:none}.official-contacts__warning{padding:22px 20px}.official-contacts__warning p{flex-basis:100%}.official-contacts__call{max-width:100%;text-align:center}}

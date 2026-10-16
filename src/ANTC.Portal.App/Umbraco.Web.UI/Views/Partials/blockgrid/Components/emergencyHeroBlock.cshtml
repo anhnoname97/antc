@@ -1,0 +1,20 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models
+@{
+    var content = Model.Content;
+    var primary = content.Value<Link>("primaryLink");
+    var home = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("home").FirstOrDefault()?.Url() ?? "/";
+}
+<div class="ph">
+    <div class="ph-sky"></div><img class="ph-drum" src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" aria-hidden="true"><span class="ph-num" aria-hidden="true">02</span><div class="ph-shade"></div>
+    <div class="ph-copy">
+        <nav class="crumb" aria-label="Vị trí"><a href="@home">Trang chủ</a><span aria-hidden="true">/</span><span>@content.Value("breadcrumbLabel")</span></nav>
+        <p class="eyebrow">@content.Value("eyebrow")</p>
+        <h1><span class="line"><span>@content.Value("title")</span></span><span class="line"><span><em>@content.Value("highlightTitle")</em></span></span></h1>
+        <p class="lead">@content.Value("description")</p>
+        <div class="ph-links">
+            @if (primary?.Url?.StartsWith('#') == true || (primary?.Url?.StartsWith('/') == true && !primary.Url.StartsWith("//"))) { <a class="btn btn-light" href="@primary.Url">@primary.Name</a> }
+            @await Html.PartialAsync("~/Views/Partials/blockgrid/_EmergencyCall.cshtml", content)
+        </div>
+    </div>
+</div>

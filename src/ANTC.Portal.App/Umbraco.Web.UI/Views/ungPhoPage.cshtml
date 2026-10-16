@@ -1,9 +1,20 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var blocks = Model.Value<BlockGridModel>("layout");
 }
-<section class="page-hero">
-    <div class="container">
-        <h1>@Model.Name</h1>
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/home.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency-overrides.css" asp-append-version="true">
+}
+@if (blocks?.Any() == true)
+{
+    <div class="home-content emergency-content" data-emergency-page>
+        @await Html.GetBlockGridHtmlAsync(blocks)
     </div>
-</section>
+}
+@section Scripts {
+    <script type="module" src="~/assets/js/emergency.js" asp-append-version="true"></script>
+}
