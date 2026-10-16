@@ -1,0 +1,39 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models
+@{
+    var content = Model.Content;
+    var eyebrow = content.Value<string>("eyebrow");
+    var title = content.Value<string>("title");
+    var schedule = content.Value<string>("scheduleText");
+    var summary = content.Value<string>("summary");
+    var link = content.Value<Link>("link");
+    var safetyNote = content.Value<string>("safetyNote");
+    var metadata = string.Join(" · ", new[] { schedule, summary }.Where(value => !string.IsNullOrWhiteSpace(value)));
+    var canLink = !string.IsNullOrWhiteSpace(link?.Url) && !string.IsNullOrWhiteSpace(link.Name)
+        && (link.Url.StartsWith('/') || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"));
+}
+@if (!string.IsNullOrWhiteSpace(title))
+{
+    <aside class="competition-promo" aria-labelledby="competition-promo-@Model.ContentKey">
+        @if (!string.IsNullOrWhiteSpace(eyebrow))
+        {
+            <p class="competition-promo__eyebrow"><span aria-hidden="true"></span>@eyebrow</p>
+        }
+        <h2 id="competition-promo-@Model.ContentKey">@title</h2>
+        @if (!string.IsNullOrWhiteSpace(metadata))
+        {
+            <p class="competition-promo__meta">@metadata</p>
+        }
+        @if (canLink)
+        {
+            <a class="intro-hero__button intro-hero__button--primary competition-promo__link" href="@link!.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener noreferrer" : null)">@link.Name <span aria-hidden="true">⟶</span></a>
+        }
+        @if (!string.IsNullOrWhiteSpace(safetyNote))
+        {
+            <p class="competition-promo__safety">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8 19.5 5.6v6.1c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V5.6z"/></svg>
+                <span>@safetyNote</span>
+            </p>
+        }
+    </aside>
+}

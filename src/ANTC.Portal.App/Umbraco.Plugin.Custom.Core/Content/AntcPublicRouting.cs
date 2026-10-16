@@ -32,7 +32,7 @@ public sealed class AntcPublicUrlProvider(IDocumentNavigationQueryService naviga
             return UrlInfo.AsMessage("Nút quản lý dùng trong CMS, không có trang công khai.", Alias, culture);
         bool preview = contextAccessor.TryGetUmbracoContext(out IUmbracoContext? context) && context.InPreviewMode;
         string? Segment(IPublishedContent item) => urls.GetUrlSegment(item.Key, culture ?? string.Empty, preview);
-        if (content.ContentType.Alias == "articleList" && content.Value<string>("listRole", culture) == "Chính sách")
+        if (AntcPublicPaths.IsPolicyLibrary(content.ContentType.Alias, content.Value<string>("listRole", culture)))
             return UrlInfo.AsMessage("Kho văn bản Chính sách. Trang hiển thị nằm trong Quản lý trang.", Alias, culture);
         string? parentPath = null;
         if (content.ContentType.Alias == "article" && navigation.TryGetParentKey(content.Key, out Guid? parentKey)
@@ -86,7 +86,7 @@ public sealed class AntcPublicContentFinder(
             int articleIndex = 0;
             if (parts[0].Equals("chinh-sach", StringComparison.OrdinalIgnoreCase) && parts.Length <= 2)
             {
-                list = Children(library, "articleList").FirstOrDefault(x => x.Value<string>("listRole") == "Chính sách");
+                list = Children(library, "articleList").FirstOrDefault(x => AntcPublicPaths.IsPolicyLibrary(x.ContentType.Alias, x.Value<string>("listRole", request.Culture)));
                 articleIndex = 1;
             }
             else if (parts[0].Equals("thu-doan", StringComparison.OrdinalIgnoreCase) && parts.Length is 2 or 3)

@@ -1,0 +1,37 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<(Umbraco.Cms.Core.Models.PublishedContent.IPublishedElement Chapter, Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent Site)>
+@using System.Text.Json
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Strings
+@{
+    var chapter = Model.Chapter;
+    var visual = chapter.Value<string>("visualType")?.Trim();
+    if (visual?.StartsWith('[') == true)
+    {
+        try { visual = JsonSerializer.Deserialize<string[]>(visual)?.FirstOrDefault(); }
+        catch (JsonException) { visual = null; }
+    }
+    var domain = Model.Site.Value<string>("siteName") ?? "antoantaichinh.vn";
+}
+@if (visual == "message")
+{
+    <div class="story-visual story-visual--message"><div class="story-phone"><div class="story-phone__screen">
+        <div class="story-phone__sender"><span class="story-phone__avatar" aria-hidden="true"></span><div><strong>@chapter.Value("senderName")</strong><span>@chapter.Value("senderDisplay")</span></div></div>
+        <div class="story-phone__messages">@(chapter.Value<IHtmlEncodedString>("messageContent"))</div>
+        <p class="story-phone__warning"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3.5 2.8 19.5h18.4zM12 10v4.2"/><circle cx="12" cy="17" r=".7"/></svg><span>@chapter.Value("warningText")</span></p>
+    </div></div></div>
+}
+else if (visual == "address")
+{
+    <div class="story-visual story-visual--address"><div class="story-browser">
+        <div class="story-browser__bar"><div class="story-browser__tabs" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="story-browser__address"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg><span>https://<strong>@domain</strong>@chapter.Value("examplePath")</span></div></div>
+        <p class="story-browser__check"><span aria-hidden="true">✓</span> Đúng từng chữ: đây là website thật</p>
+        <div class="story-browser__body" aria-hidden="true"><span></span><span></span><span></span></div>
+    </div></div>
+}
+else
+{
+    <div class="story-visual story-visual--@(visual == "commitments" ? "commitments" : "operator")">
+        @await Html.PartialAsync("~/Views/Partials/blockgrid/_InformationItems.cshtml", (chapter.Value<BlockListModel>("items"), Model.Site, visual == "commitments"))
+    </div>
+}

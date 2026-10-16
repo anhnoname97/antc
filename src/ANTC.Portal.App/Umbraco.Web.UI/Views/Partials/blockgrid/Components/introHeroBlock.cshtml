@@ -1,0 +1,49 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models
+@{
+    var content = Model.Content;
+    var eyebrow = content.Value<string>("eyebrow");
+    var title = content.Value<string>("title");
+    var highlight = content.Value<string>("highlightTitle");
+    var description = content.Value<string>("description");
+    var primary = content.Value<Link>("primaryLink");
+    var secondary = content.Value<Link>("secondaryLink");
+    bool CanRender(Link? link) => !string.IsNullOrWhiteSpace(link?.Url) && !string.IsNullOrWhiteSpace(link.Name)
+        && (link.Url.StartsWith('/') || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"));
+}
+<div class="intro-hero__copy">
+    @if (!string.IsNullOrWhiteSpace(eyebrow))
+    {
+        <p class="intro-hero__eyebrow">@eyebrow</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(title) || !string.IsNullOrWhiteSpace(highlight))
+    {
+        <h1 class="intro-hero__title">
+            @if (!string.IsNullOrWhiteSpace(title))
+            {
+                <span>@title</span>
+            }
+            @if (!string.IsNullOrWhiteSpace(highlight))
+            {
+                <span class="intro-hero__highlight">@highlight</span>
+            }
+        </h1>
+    }
+    @if (!string.IsNullOrWhiteSpace(description))
+    {
+        <p class="intro-hero__description">@description</p>
+    }
+    @if (CanRender(primary) || CanRender(secondary))
+    {
+        <div class="intro-hero__links">
+            @if (CanRender(primary))
+            {
+                <a class="intro-hero__button intro-hero__button--primary" href="@primary!.Url" target="@primary.Target" rel="@(primary.Target == "_blank" ? "noopener noreferrer" : null)">@primary.Name <span aria-hidden="true">⟶</span></a>
+            }
+            @if (CanRender(secondary))
+            {
+                <a class="intro-hero__button intro-hero__button--secondary" href="@secondary!.Url" target="@secondary.Target" rel="@(secondary.Target == "_blank" ? "noopener noreferrer" : null)">@secondary.Name</a>
+            }
+        </div>
+    }
+</div>

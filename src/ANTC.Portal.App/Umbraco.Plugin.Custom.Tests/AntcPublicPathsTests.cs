@@ -34,6 +34,26 @@ public class AntcPublicPathsTests
     }
 
     [Theory]
+    [InlineData("[\"Chính sách\"]")]
+    [InlineData(" [\"Ch\\u00EDnh s\\u00E1ch\"] ")]
+    public void Policy_dropdown_json_preserves_the_public_article_route(string storedRole)
+    {
+        Assert.True(AntcPublicPaths.IsPolicyLibrary("articleList", storedRole));
+        string? listPath = AntcPublicPaths.GetPath("articleList", "chinh-sach", listRole: storedRole);
+        Assert.Equal("/chinh-sach/bao-ve-du-lieu/", AntcPublicPaths.GetPath("article", "bao-ve-du-lieu", listPath));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("[]")]
+    [InlineData("[invalid")]
+    [InlineData("[\"Cảnh báo\"]")]
+    public void Other_or_invalid_dropdown_values_do_not_select_the_policy_library(string? storedRole)
+    {
+        Assert.False(AntcPublicPaths.IsPolicyLibrary("articleList", storedRole));
+    }
+
+    [Theory]
     [InlineData("antc")]
     [InlineData("pageManagement")]
     [InlineData("contentManagement")]
