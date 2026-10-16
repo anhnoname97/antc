@@ -1,9 +1,79 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Plugin.Custom.Core.Questions
+@inject IPublishedQuestionService Questions
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    Context.Response.Headers.CacheControl = "no-store";
+    int page = int.TryParse(Context.Request.Query["page"], out int value) && value > 0 ? value : 1;
+    PublishedQuestionPage answers = await Questions.ListAsync(page, Context.RequestAborted);
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/questions.css" asp-append-version="true">
 }
 <section class="page-hero">
     <div class="container">
         <h1>@Model.Name</h1>
+        <p>Gửi câu hỏi, kiến nghị cho Ban biên tập. Câu hỏi gửi kín; chỉ nội dung có câu trả lời đã duyệt mới được đăng công khai.</p>
+        <p class="question-jumps"><a href="#gui-cau-hoi">Gửi câu hỏi</a> · <a href="#da-tra-loi">Xem câu đã trả lời</a></p>
     </div>
 </section>
+<section class="container questions-page">
+    <div class="question-steps" aria-label="Cách hoạt động">
+        <div><b>01 · Bạn gửi kín</b><p>Câu hỏi, kiến nghị không hiện ngay lên trang.</p></div>
+        <div><b>02 · Ban biên tập xử lý</b><p>Ban biên tập đọc câu hỏi và chuẩn bị câu trả lời.</p></div>
+        <div><b>03 · Duyệt trước khi đăng</b><p>Chỉ câu hỏi và câu trả lời đã được duyệt mới hiển thị công khai.</p></div>
+    </div>
+    <div class="question-grid" id="gui-cau-hoi">
+        <div class="question-panel">
+            <h2>Gửi câu hỏi, kiến nghị</h2>
+            <form id="askForm">
+                <label for="askType">Loại nội dung</label>
+                <select id="askType" name="type"><option value="cau-hoi">Câu hỏi, kiến nghị</option><option value="gop-y">Góp ý</option></select>
+                <label for="askT">Nội dung của bạn</label>
+                <p id="askHelp">Viết ngắn gọn, không cần kể tên ai. Nội dung từ 10 đến 2000 ký tự.</p>
+                <textarea id="askT" name="content" rows="6" minlength="10" maxlength="2000" required aria-describedby="askHelp cnt guard"
+                    placeholder="Ví dụ: Có người chuyển nhầm tiền vào tài khoản tôi rồi gọi đòi lại. Tôi nên làm gì?"></textarea>
+                <p class="question-count" id="cnt">0 / 2000</p>
+                <p id="guard" class="question-error" hidden>Có vẻ bạn vừa gõ một dãy số. Đừng gửi mã OTP, số thẻ, số tài khoản hay số điện thoại.</p>
+                <label class="question-check"><input type="checkbox" id="wantReply" name="wantReply"> Tôi muốn nhận trả lời riêng (không bắt buộc)</label>
+                <div id="mailbox" hidden><label for="askM">Thư điện tử để nhận trả lời</label><input id="askM" name="contact" type="email" maxlength="200" autocomplete="email" placeholder="ten@vidu.vn" disabled></div>
+                <label class="question-check"><input type="checkbox" id="agree" name="consent" required> Tôi đồng ý cho Ban biên tập đọc câu hỏi này và dùng để trả lời công khai; tôi không gửi thông tin nhận dạng cá nhân trong nội dung.</label>
+                <div class="question-trap" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+                <button class="btn btn--primary" id="askBtn" type="submit" disabled>Gửi nội dung</button>
+                <p id="sent" role="status" aria-live="polite"></p>
+                <noscript>Cần bật JavaScript để gửi biểu mẫu.</noscript>
+            </form>
+        </div>
+        <aside class="question-panel"><h2>Trước khi gửi</h2>
+            <ul><li>Không gửi mật khẩu, mã OTP, mã PIN, số thẻ hoặc số tài khoản.</li><li>Không gửi họ tên, số điện thoại hoặc giấy tờ của người khác.</li><li>Giai đoạn đầu chưa nhận tệp đính kèm và ảnh chụp màn hình.</li></ul>
+            <p>Đang gặp chuyện gấp? <a href="/ung-pho/">Xem việc cần làm ngay</a>.</p>
+            <p>Website không phải nơi tiếp nhận tố giác, tin báo về tội phạm. Muốn trình báo, hãy đến cơ quan Công an gần nhất hoặc nơi bạn cư trú.</p>
+        </aside>
+    </div>
+    <section class="question-panel" id="da-tra-loi" aria-labelledby="answered-title">
+        <h2 id="answered-title">Câu hỏi đã được trả lời</h2>
+        @if (answers.Items.Count == 0)
+        {
+            <p>Chưa có câu trả lời công khai trong trang này.</p>
+        }
+        @foreach (PublishedQuestion item in answers.Items)
+        {
+            <details class="question-answer" id="cau-hoi-@item.Id">
+                <summary>@item.Question</summary>
+                <div class="question-answer-text">@item.Answer</div>
+                <p class="question-count">Đã duyệt ngày @item.AnsweredAt.ToOffset(QuestionValues.VietnamOffset).ToString("dd/MM/yyyy")</p>
+            </details>
+        }
+        @if (answers.TotalPages > 1)
+        {
+            <nav aria-label="Phân trang câu trả lời" class="question-pagination">
+                @if (page > 1) { <a href="?page=@(page - 1)#da-tra-loi">Trang trước</a> }
+                <span>Trang @(page) / @answers.TotalPages</span>
+                @if (page < answers.TotalPages) { <a href="?page=@(page + 1)#da-tra-loi">Trang sau</a> }
+            </nav>
+        }
+    </section>
+</section>
+@section Scripts {
+    <script type="module" src="~/assets/js/questions.js" asp-append-version="true"></script>
+}

@@ -9,13 +9,15 @@ public static class QuestionCsv
     {
         await using var writer = new StreamWriter(destination, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
             bufferSize: 16384, leaveOpen: true) { NewLine = "\r\n" };
-        await writer.WriteLineAsync("Mã,Thời điểm gửi,Loại,Nội dung,Muốn trả lời riêng,Liên hệ,Trạng thái,Ghi chú,Người xử lý,Thời điểm xử lý".AsMemory(), ct);
+        await writer.WriteLineAsync("Mã,Thời điểm gửi,Loại,Nội dung,Muốn trả lời riêng,Liên hệ,Trạng thái,Ghi chú,Người xử lý,Thời điểm xử lý,Câu trả lời nháp,Đang công khai,Câu trả lời đã duyệt,Người duyệt,Thời điểm duyệt".AsMemory(), ct);
         await foreach (QuestionRow row in rows.WithCancellation(ct))
         {
             string[] cells = [row.Id.ToString(CultureInfo.InvariantCulture), FormatDate(row.CreatedAt),
                 QuestionValues.Types.GetValueOrDefault(row.Type, row.Type), row.Content, row.WantReply ? "Có" : "Không",
                 row.Contact ?? "", QuestionValues.Statuses.GetValueOrDefault(row.Status, row.Status), row.AdminNote ?? "",
-                row.HandledBy ?? "", row.HandledAt is { } handled ? FormatDate(handled) : ""];
+                row.HandledBy ?? "", row.HandledAt is { } handled ? FormatDate(handled) : "",
+                row.Answer ?? "", row.IsPublished ? "Có" : "Không", row.PublishedAnswer ?? "", row.ApprovedBy ?? "",
+                row.ApprovedAt is { } approved ? FormatDate(approved) : ""];
             await writer.WriteLineAsync(string.Join(',', cells.Select(Escape)).AsMemory(), ct);
         }
         await writer.FlushAsync(ct);

@@ -50,7 +50,7 @@ An toàn tài chính (antc)
 - Kho Chính sách: collection gồm 5 văn bản, cùng thông tin liên quan của từng văn bản.
 - `articleList` và `article` là dữ liệu danh mục/bài viết, không có trường Bố cục.
 - Trang Cuộc thi chỉ có Bố cục và SEO; đã bỏ nhóm Cài đặt cuộc thi.
-- Trang Hỏi – Đáp có Bố cục và SEO, cho tạo `qaItem` là các câu trả lời công khai đã biên tập. Câu hỏi và góp ý gửi từ biểu mẫu được xử lý trong trang quản trị riêng, không tự tạo thành nội dung CMS. Hai mục FAQ mẫu cũ vẫn được giữ ở trạng thái đã xóa.
+- Trang Hỏi – Đáp có Bố cục và SEO, không tạo câu hỏi đáp con thủ công. Người dùng gửi từ portal; ban biên tập trả lời và duyệt trong section Hỏi – Đáp của Umbraco. Hai mục FAQ mẫu cũ vẫn được giữ ở trạng thái đã xóa.
 
 Chín loại trang có `layout`: `home`, `ungPhoPage`, `thuDoanPage`, `thamGiaPage`, `thiThuPage`, `thiPage`, `hoiDapPage`, `chinhSachPage`, `searchPage`. Tất cả thuộc tính này đang để trống; data type Block Grid chưa cấu hình khối. Bài viết vẫn có template chi tiết chung để FE phát triển sau.
 
@@ -74,19 +74,19 @@ Khung `_SiteLayout.cshtml` đọc đầu trang/chân trang từ nút gốc; menu
 
 Hỏi – Đáp là luồng **người dùng gửi biểu mẫu → tiếp nhận → kiểm duyệt → biên tập câu trả lời → công bố/trả lời**. Bảng nghiệp vụ `question_submission` trong `App_Data/app.sqlite.db` là nơi tiếp nhận, không dùng cây CMS để tự tạo câu hỏi giả làm câu hỏi của người dùng.
 
-API-06 `POST /api/v1/questions` và trang `/quan-tri/hoi-dap` đã triển khai. Trang quản trị dùng phiên backoffice, nhóm Quản trị cuộc thi, hỗ trợ lọc, phân trang 50 dòng, cập nhật trạng thái/ghi chú và CSV UTF-8 BOM. Câu trả lời công khai được biên tập thủ công trong `qaItem` dưới trang Hỏi – Đáp, có `question`, `answer` và SEO dùng chung. Không gửi email và không tự công bố nội dung người dùng. Xem [tài liệu API và quản trị](../api/hoi-dap.md). Form ngoài website và danh sách câu trả lời trên giao diện thuộc phần FE-22/FE-23.
+API-06 `POST /api/v1/questions`, biểu mẫu ngoài portal và section `/umbraco/section/hoi-dap` đã triển khai. Section dùng khung, phiên và phân quyền native Umbraco; có lọc, 50 dòng/trang và CSV UTF-8 BOM. Câu hỏi gốc chỉ để xem; biên tập viên nhập câu trả lời rồi bấm **Duyệt và công bố**. Lưu nháp/đổi trạng thái xử lý không tự công bố. `GET /api/v1/questions` và danh sách trên `/hoi-dap/` chỉ lấy bản đã duyệt; liên hệ và ghi chú luôn nội bộ. Có gỡ công bố và chống ghi đè khi hai người cùng xử lý. Không tự gửi email. Xem [tài liệu API và quản trị](../api/hoi-dap.md). Thuộc tính Block Grid vẫn trống.
 
 Trang Cuộc thi hiện là trang khung, vẫn đang lưu nháp. Cấu hình nghiệp vụ cuộc thi không còn thuộc document `thiPage`. Khi triển khai chức năng cuộc thi, nhóm BE cần xác định nguồn cấu hình nghiệp vụ riêng; provider đang có sẽ không lấy được lịch mở/đóng từ các trường đã bỏ.
 
 ## URL và quy tắc cây
 
-URL công khai dùng `/`, `/ung-pho/`, `/thu-doan/`, `/tham-gia/`, `/thu-suc/`, `/cuoc-thi/`, `/hoi-dap/`, `/chinh-sach/`, `/tim-kiem/`. Bài viết và danh mục dùng slug do Umbraco tạo theo tên. Các nút quản lý không xuất hiện trong URL. `/chinh-sach/` mở `chinhSachPage`; bài viết chính sách dùng `/chinh-sach/{slug}/`. Câu trả lời công khai dùng `/hoi-dap/{slug}/`.
+URL công khai dùng `/`, `/ung-pho/`, `/thu-doan/`, `/tham-gia/`, `/thu-suc/`, `/cuoc-thi/`, `/hoi-dap/`, `/chinh-sach/`, `/tim-kiem/`. Bài viết và danh mục dùng slug do Umbraco tạo theo tên. Các nút quản lý không xuất hiện trong URL. `/chinh-sach/` mở `chinhSachPage`; bài viết chính sách dùng `/chinh-sach/{slug}/`. Câu trả lời đã duyệt nằm trong danh sách `/hoi-dap/#cau-hoi-{id}`.
 
 Xem URL trong tab Thông tin của Umbraco. Không có trường `umbracoUrlName` tự thêm hoặc tab Thiết lập. `PageTreeRules`/`PageTreeNotifications` chặn tạo trùng các trang cố định và đặt sai cây. Bốn trường SEO dùng chung qua `seoBase`.
 
 ## Đồng bộ và dữ liệu
 
-Toàn bộ cấu trúc, template, nội dung và Media được xuất qua `uSync/v18/`. Hai file Content có gốc `Empty` và `Change="Delete"` ghi nhận việc bỏ các mục FAQ mẫu cũ; giữ để máy khác áp dụng cùng thay đổi. Document type và template `qaItem` đã hoạt động trở lại theo yêu cầu công bố câu trả lời sau kiểm duyệt. 57 Block của mã vừa pull được giữ nguyên.
+Toàn bộ cấu trúc, template, nội dung và Media được xuất qua `uSync/v18/`. Hai file Content có gốc `Empty` và `Change="Delete"` ghi nhận việc bỏ các mục FAQ mẫu cũ; giữ để máy khác áp dụng cùng thay đổi. Schema `qaItem` cũ được giữ để tương thích nhưng không cho tạo dưới `hoiDapPage`; luồng mới dùng bảng nghiệp vụ và section Hỏi – Đáp. 57 Block của mã vừa pull được giữ nguyên.
 
 Các bài viết/danh mục còn lại, 4 số khẩn cấp, 5 ảnh hero, 200 câu hỏi thuộc 8 chuyên đề và dữ liệu nghiệp vụ được giữ lại. Bài chính sách vẫn có cờ dự thảo, nội dung bài để trống. Không đưa bản sao DB hoặc mật khẩu vào Git.
 
@@ -234,9 +234,9 @@ Collection: **Nội dung · Danh sách**.
 | Nguồn và rà soát | Ngày rà soát gần nhất | `lastReviewedDate` | Date Picker | Không | Ngày rà soát gần nhất; quá 90 ngày thì hiện cảnh báo. |
 | Nguồn và rà soát | Bản dự thảo | `isDraft` | True/false | Không | Hiện nhãn “Bản dự thảo” (dùng cho chính sách). |
 
-### Câu trả lời công khai (`qaItem`)
+### Kiểu câu trả lời cũ (`qaItem`, chỉ giữ để tương thích)
 
-Chỉ được tạo dưới `hoiDapPage`. Kế thừa `seoBase`, dùng template `qaItem`, không có Bố cục.
+Không được tạo trong cây trang của luồng mới. Câu hỏi thật và câu trả lời được quản lý trong section Hỏi – Đáp, lưu ở `question_submission`. Schema cũ vẫn kế thừa `seoBase`, dùng template `qaItem`, không có Bố cục.
 
 | Tab / nhóm | Thuộc tính | Alias | Data type | Bắt buộc | Hướng dẫn nhập |
 | --- | --- | --- | --- | --- | --- |

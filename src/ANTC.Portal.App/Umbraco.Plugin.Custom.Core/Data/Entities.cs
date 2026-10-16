@@ -104,6 +104,14 @@ public class QuestionSubmission
     public DateTime? HandledAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? IpHash { get; set; }
+    /// <summary>Câu trả lời đang soạn; nội dung câu hỏi gốc không sửa qua quản trị.</summary>
+    public string? Answer { get; set; }
+    /// <summary>Bản câu trả lời đã được duyệt; sửa nháp không thay đổi bản đang công khai.</summary>
+    public string? PublishedAnswer { get; set; }
+    public bool IsPublished { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+    public string? ApprovedBy { get; set; }
+    public long ReviewVersion { get; set; }
 }
 
 /// <summary>Chuyen de cua ngan hang cau hoi.</summary>

@@ -243,6 +243,20 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("admin_note");
 
+                    b.Property<string>("Answer")
+                        .HasMaxLength(10000)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("answer");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("approved_at");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("approved_by");
+
                     b.Property<DateTime>("ConsentAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("consent_at");
@@ -276,6 +290,19 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("ip_hash");
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_published");
+
+                    b.Property<string>("PublishedAnswer")
+                        .HasMaxLength(10000)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("published_answer");
+
+                    b.Property<long>("ReviewVersion")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("review_version");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -295,6 +322,8 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IpHash", "CreatedAt");
+
+                    b.HasIndex("IsPublished", "ApprovedAt");
 
                     b.HasIndex("Status", "CreatedAt");
 

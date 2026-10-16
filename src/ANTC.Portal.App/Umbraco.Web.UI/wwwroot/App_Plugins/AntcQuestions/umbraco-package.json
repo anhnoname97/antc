@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../umbraco-package-schema.json",
+  "name": "Hỏi – Đáp ANTC",
+  "version": "1.0.0",
+  "extensions": [
+    {
+      "type": "section",
+      "alias": "Antc.Section.Questions",
+      "name": "Quản trị Hỏi – Đáp",
+      "weight": 650,
+      "element": "/App_Plugins/AntcQuestions/questions.section.js",
+      "meta": { "label": "Hỏi – Đáp", "pathname": "hoi-dap" },
+      "conditions": [{ "alias": "Umb.Condition.SectionUserPermission", "match": "Antc.Section.Questions" }]
+    }
+  ]
+}

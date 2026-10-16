@@ -72,6 +72,8 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         int updated = await db.QuestionSubmissions.Where(x => x.Id == id).ExecuteUpdateAsync(set => set
             .SetProperty(x => x.Status, status).SetProperty(x => x.AdminNote, note)
+            .SetProperty(x => x.IsPublished, x => status != "bo-qua" && x.IsPublished)
+            .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1)
             .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now), ct);
         return updated == 1;
     }

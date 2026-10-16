@@ -51,9 +51,9 @@ public static class PageTreeRules
         {
             return "Bài viết phải được đặt trong một danh mục bài viết.";
         }
-        else if (alias == "qaItem" && parentAlias != "hoiDapPage")
+        else if (alias == "qaItem")
         {
-            return "Câu trả lời công khai phải được biên tập trong trang Hỏi – Đáp; câu hỏi gửi từ biểu mẫu được tiếp nhận tại trang quản trị.";
+            return "Câu hỏi do người dùng gửi từ portal. Vào section Hỏi – Đáp để trả lời và duyệt công bố; không tạo câu hỏi trong cây trang.";
         }
 
         return IsSingleton(alias) && duplicate

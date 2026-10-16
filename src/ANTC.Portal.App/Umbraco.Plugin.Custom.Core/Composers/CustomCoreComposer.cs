@@ -47,6 +47,9 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddScoped<IContestSettingsProvider, UmbracoContestSettingsProvider>();
         builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
         builder.Services.AddScoped<IQuestionSubmissionService, QuestionSubmissionService>();
+        builder.Services.AddScoped<QuestionModerationService>();
+        builder.Services.AddScoped<IQuestionModerationService>(services => services.GetRequiredService<QuestionModerationService>());
+        builder.Services.AddScoped<IPublishedQuestionService>(services => services.GetRequiredService<QuestionModerationService>());
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();

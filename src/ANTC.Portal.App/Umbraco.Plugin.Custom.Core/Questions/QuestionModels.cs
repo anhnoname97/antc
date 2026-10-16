@@ -26,11 +26,41 @@ public sealed record QuestionPage(IReadOnlyList<QuestionRow> Items, int Total, i
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(Total / (double)QuestionValues.PageSize));
 }
 public sealed record QuestionRow(long Id, string Type, string Content, bool WantReply, string? Contact,
-    string Status, string? AdminNote, string? HandledBy, DateTimeOffset? HandledAt, DateTimeOffset CreatedAt)
+    string Status, string? AdminNote, string? HandledBy, DateTimeOffset? HandledAt, DateTimeOffset CreatedAt,
+    string? Answer = null, string? PublishedAnswer = null, bool IsPublished = false,
+    DateTimeOffset? ApprovedAt = null, string? ApprovedBy = null, long ReviewVersion = 0)
 {
     public static QuestionRow FromEntity(QuestionSubmission row) => new(row.Id, row.Type, row.Content,
         row.WantReply, row.Contact, row.Status, row.AdminNote, row.HandledBy,
-        row.HandledAt is { } handled ? QuestionValues.AsUtc(handled) : null, QuestionValues.AsUtc(row.CreatedAt));
+        row.HandledAt is { } handled ? QuestionValues.AsUtc(handled) : null, QuestionValues.AsUtc(row.CreatedAt),
+        row.Answer, row.PublishedAnswer, row.IsPublished,
+        row.ApprovedAt is { } approved ? QuestionValues.AsUtc(approved) : null, row.ApprovedBy, row.ReviewVersion);
+}
+
+public sealed record QuestionReview(long ReviewVersion, string Status, string? AdminNote, string? Answer);
+public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt);
+public sealed record PublishedQuestionPage(IReadOnlyList<PublishedQuestion> Items, int Total, int Page)
+{
+    public const int PageSize = 20;
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize));
+}
+
+public interface IQuestionModerationService
+{
+    Task<QuestionRow?> GetAsync(long id, CancellationToken ct = default);
+    Task<QuestionRow> SaveAsync(long id, QuestionReview review, string actor, CancellationToken ct = default);
+    Task<QuestionRow> ApproveAsync(long id, QuestionReview review, string actor, CancellationToken ct = default);
+    Task<QuestionRow> UnpublishAsync(long id, long reviewVersion, string actor, CancellationToken ct = default);
+}
+
+public interface IPublishedQuestionService
+{
+    Task<PublishedQuestionPage> ListAsync(int page = 1, CancellationToken ct = default);
+}
+
+public sealed class QuestionModerationException(string code, string message) : Exception(message)
+{
+    public string Code { get; } = code;
 }
 
 public interface IQuestionSubmissionService

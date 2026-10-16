@@ -1,10 +1,12 @@
-# Tiếp nhận Hỏi – Đáp và góp ý
+# Tiếp nhận, trả lời và duyệt Hỏi – Đáp
 
-Phần BE-25 / API-06 và BE-29. API và trang quản trị dùng bảng `question_submission` trong CSDL ứng dụng. Câu trả lời công khai do biên tập viên tạo riêng bằng `qaItem` trong CMS.
+**Người dùng gửi câu hỏi từ portal → ban biên tập xem trong section Hỏi – Đáp của Umbraco → nhập câu trả lời → duyệt và công bố.** Câu hỏi gốc chỉ được xem, không tạo mới hoặc sửa câu hỏi của người dùng trong quản trị.
 
-## API-06
+Nguồn dữ liệu là `question_submission`, không tạo nút `qaItem` từ câu hỏi gửi lên. Không gửi thư điện tử tự động. Liên hệ, IP băm, ghi chú và người xử lý không xuất hiện trong dữ liệu công khai.
 
-`POST /api/v1/questions` không yêu cầu đăng nhập. Gửi JSON:
+## API-06: gửi nội dung
+
+`POST /api/v1/questions` không yêu cầu đăng nhập:
 
 ```json
 {
@@ -17,71 +19,67 @@ Phần BE-25 / API-06 và BE-29. API và trang quản trị dùng bảng `questi
 }
 ```
 
-| Thuộc tính | Quy tắc |
+| Trường | Quy tắc |
 | --- | --- |
 | `type` | `cau-hoi` hoặc `gop-y` |
-| `content` | Cắt khoảng trắng ở hai đầu; từ 10 đến 2000 ký tự; giữ nguyên các thẻ HTML dưới dạng văn bản |
+| `content` | Cắt khoảng trắng hai đầu; 10–2000 ký tự; giữ nguyên HTML dưới dạng văn bản |
 | `wantReply` | Có muốn nhận trả lời riêng hay không |
-| `contact` | Bắt buộc nếu `wantReply=true`; tối đa 200 ký tự sau khi cắt khoảng trắng |
+| `contact` | Bắt buộc khi muốn trả lời riêng; tối đa 200 ký tự |
 | `consent` | Phải là `true` |
-| `website` | Ô bẫy. Có bất kỳ giá trị khác chuỗi rỗng thì trả thành công và không lưu |
+| `website` | Ô bẫy. Khác chuỗi rỗng: trả 201, không lưu |
 
-Thành công trả HTTP **201**:
+Thành công: HTTP **201**, `{ "ok": true }`. Bản ghi mới có trạng thái `moi`, chưa có câu trả lời, **chưa công khai**. Sai dữ liệu trả **400**, dạng `{ "error": { "code": "VALIDATION", "message": "…", "fields": { "content": "…" } } }`.
 
-```json
-{ "ok": true }
-```
+Giới hạn **5 bản ghi tiếp nhận/IP trong 60 phút gần nhất**. Lần tiếp theo trả **429 RATE_LIMITED**, có `Retry-After` bằng giây. Yêu cầu sai dữ liệu và ô bẫy không dùng hạn mức. SQLite `BEGIN IMMEDIATE` đếm và ghi nguyên tử, giữ hạn mức qua lần khởi động và giữa các tiến trình dùng cùng DB.
 
-Lỗi dữ liệu trả HTTP **400**, cùng dạng lỗi chung của dự án:
+Không ghi IP nguyên văn. Dùng HMAC-SHA256, khóa `Contest:IpHashSalt`, phạm vi `questions:`; IPv4 và IPv4 ánh xạ trong IPv6 dùng chung hạn mức. Chỉ đọc `Connection.RemoteIpAddress`; khi có proxy, cấu hình forwarded headers và proxy tin cậy tại tầng triển khai.
 
-```json
-{
-  "error": {
-    "code": "VALIDATION",
-    "message": "Dữ liệu gửi lên không hợp lệ.",
-    "fields": { "content": "Nội dung cần từ 10 đến 2000 ký tự." }
-  }
-}
-```
+## Section Hỏi – Đáp trong Umbraco
 
-Giới hạn **5 bản ghi được tiếp nhận cho một IP trong 60 phút gần nhất**. Lần tiếp nhận tiếp theo trả **429**, mã `RATE_LIMITED`, kèm `Retry-After` tính bằng giây. Dữ liệu không hợp lệ và yêu cầu vướng ô bẫy không tạo bản ghi và không dùng hạn mức này. Ô bẫy được xử lý trước bước kiểm tra trường dữ liệu.
+Mở `/umbraco/section/hoi-dap`, hoặc bấm **Hỏi – Đáp** trên thanh section của Umbraco. Đây là extension native, dùng phiên và khung backoffice; không dùng iframe hoặc trang quản trị độc lập. `/quan-tri/hoi-dap` chỉ chuyển đến section mới.
 
-Đếm và ghi trong cùng giao dịch SQLite `BEGIN IMMEDIATE`, dùng chỉ mục `(ip_hash, created_at)`. Hạn mức không bị mất khi ứng dụng khởi động lại và không bị vượt bởi các yêu cầu gửi đồng thời đến cùng CSDL. Không ghi địa chỉ IP nguyên văn: dùng HMAC-SHA256 với khóa `Contest:IpHashSalt` đang có của dự án, thêm phạm vi `questions:`. IPv4 và địa chỉ IPv4 ánh xạ trong IPv6 dùng chung hạn mức. Chỉ lấy IP từ `HttpContext.Connection.RemoteIpAddress`; nếu đặt sau proxy, cấu hình forwarded headers và proxy tin cậy ở tầng triển khai.
+- Manifest: `wwwroot/App_Plugins/AntcQuestions/umbraco-package.json`; alias `Antc.Section.Questions`.
+- Nhóm **Quản trị Hỏi – Đáp**, alias `quanTriHoiDap`, được tạo cùng quyền section; không tự thêm thành viên.
+- Cấp quyền tại **Users → User groups → Sections → Hỏi – Đáp**. Nhóm quản trị và nhóm `quanTriCuocThi` đã có từ phiên bản trước được giữ quyền. Không thay thành viên hoặc quyền section khác.
+- Backend kiểm tra quyền section của người dùng Umbraco đã xác thực, không chỉ ẩn nút trên giao diện. Management API dùng cơ chế xác thực backoffice native.
+- Danh sách: lọc loại, trạng thái, ngày Việt Nam UTC+7, tìm trong nội dung; 50 dòng/trang; tự cập nhật 5 giây khi không mở xử lý.
+- Có thể sửa trạng thái/ghi chú và bấm **Lưu dòng** ngay trong bảng. Tạm dừng thay bảng khi có thay đổi chưa lưu.
+- Bấm **Xem và xử lý**: đọc toàn bộ nội dung gốc và liên hệ nội bộ; nhập câu trả lời, trạng thái và ghi chú. Không có ô nhập/sửa câu hỏi hoặc nút tạo câu hỏi.
+- **Lưu xử lý** chỉ lưu câu trả lời nháp và trạng thái. Chọn “Đã xử lý” không tự công bố.
+- **Duyệt và công bố** yêu cầu câu trả lời 10–10000 ký tự, lưu người duyệt/thời điểm và chụp bản câu trả lời được phép công khai. Chỉ áp dụng cho `cau-hoi`; góp ý xử lý nội bộ.
+- Sửa câu trả lời nháp sau khi công bố không đổi bản đang hiển thị. Cần duyệt lại để thay bản công khai.
+- **Gỡ công bố** hoặc lưu trạng thái **Bỏ qua** làm nội dung ngừng xuất hiện công khai; giữ lịch sử bản đã duyệt.
+- Câu hỏi gốc luôn giữ nguyên. Không duyệt câu có thông tin cá nhân trong nội dung. Liên hệ và ghi chú không xuất ra ngoài.
+- Mọi cập nhật kiểm tra `reviewVersion`, tăng phiên bản nguyên tử. Khi hai người cùng xử lý, bản cũ nhận **409 CONFLICT** và cần tải lại, không ghi đè bản mới.
+- Ghi chú tối đa 1000 ký tự. Người xử lý lấy từ phiên Umbraco, không nhận danh tính từ JSON gửi lên.
 
-Mỗi bản ghi có trạng thái `moi`, `created_at`, `consent_at` theo UTC và mã băm IP. API không gửi email và không tự tạo nội dung CMS.
+CSV theo cùng bộ lọc, xuất toàn bộ kết quả, UTF-8 BOM; hỗ trợ tiếng Việt, dấu nháy, xuống dòng và vô hiệu công thức Excel. Có nội dung gốc, liên hệ, trạng thái/ghi chú, câu trả lời nháp/đã duyệt và thông tin xử lý. CSV được bảo vệ bằng cùng quyền section.
 
-## Trang quản trị
+### Management API
 
-Mở **`/quan-tri/hoi-dap`**. Trang dùng Razor Pages, khung `_AdministrationLayout` và tệp `admin.css` dùng chung cho các trang `/quan-tri` sau này. BE-27 chưa có các màn hình quản trị cuộc thi trong nhánh hiện tại; phần khung đăng nhập và phân quyền dùng chung đã được bổ sung.
+Gốc: `/umbraco/management/api/v1/antc/questions`.
 
-- Dùng cookie đăng nhập backoffice của Umbraco, không tạo tài khoản hoặc màn hình đăng nhập riêng.
-- Nhóm **Quản trị cuộc thi**, alias native **`quanTriCuocThi`**, được tạo nếu chưa tồn tại khi Umbraco khởi động. Không tự thêm thành viên trong mã khởi tạo.
-- Quản trị viên gán thành viên tại **Người dùng → Nhóm người dùng → Quản trị cuộc thi**. Sau khi thay đổi nhóm, đăng nhập lại để cập nhật phiên nếu cần. Tài khoản quản trị local đã được thêm vào nhóm khi thiết lập tính năng.
-- Chưa đăng nhập: chuyển đến `/umbraco/login`, giữ đường dẫn quay lại. Đã đăng nhập nhưng không thuộc nhóm: HTTP 403. Yêu cầu cập nhật danh sách bằng AJAX nhận 401 khi phiên hết hạn.
-- Mọi thao tác ghi dùng POST và antiforgery token của Razor Pages. Người xử lý lấy từ phiên đã xác thực; không nhận danh tính người xử lý từ biểu mẫu.
+| Phương thức | Đường dẫn | Nội dung |
+| --- | --- | --- |
+| GET | `/` | Danh sách; `type`, `status`, `from`, `to`, `search`, `page` |
+| GET | `/{id}` | Nội dung và dữ liệu xử lý đầy đủ, chỉ trong quản trị |
+| PUT | `/{id}` | Lưu `{reviewVersion,status,adminNote,answer}` |
+| POST | `/{id}/approve` | Duyệt/công bố với cùng body |
+| POST | `/{id}/unpublish` | Gỡ công bố, body `{reviewVersion}` |
+| GET | `/export` | CSV theo cùng bộ lọc |
 
-Danh sách có thời điểm gửi, loại, nội dung, muốn trả lời riêng, liên hệ, trạng thái, ghi chú và thông tin người xử lý. Nội dung thu gọn 200 ký tự, bấm **Xem đầy đủ** để mở toàn văn. Razor mã hóa văn bản người gửi và ghi chú: HTML không chạy trong trang quản trị.
+## Dữ liệu công khai và portal
 
-Lọc bằng `type`, `status`, `from`, `to`, `search`; `pageNumber` bắt đầu từ 1, mỗi trang 50 dòng. Trạng thái có bốn giá trị `moi`, `dang-xu-ly`, `da-xu-ly`, `bo-qua`. Khoảng ngày tính theo ngày Việt Nam (UTC+7), gồm cả ngày kết thúc. Từ khóa tìm trong nội dung, được truyền bằng tham số truy vấn EF Core.
+`GET /api/v1/questions?page=1` trả 20 mục/trang, chỉ câu có cờ công bố, thời điểm duyệt và bản trả lời đã duyệt. Mỗi mục chỉ có `id`, `question` (nội dung gốc), `answer` (bản đã duyệt), `answeredAt`. Phản hồi có `items`, `total`, `page`, `totalPages`. Không có liên hệ, ghi chú, IP, người xử lý hoặc câu trả lời nháp. Không cache để gỡ công bố có hiệu lực ở lần tải tiếp theo.
 
-Chọn trạng thái và sửa ghi chú ngay tại dòng, rồi bấm **Lưu**. Ghi chú tối đa 1000 ký tự. Hệ thống lưu người xử lý và thời điểm xử lý. Danh sách tự cập nhật mỗi 5 giây; dừng thay nội dung bảng trong lúc đang chỉnh sửa hoặc đang xem một dòng để không làm mất nội dung chưa lưu.
+`Views/hoiDapPage.cshtml` có biểu mẫu gửi kín và danh sách câu đã trả lời, dựa vào trang Hỏi–Đáp trong HTML được cung cấp. Form có cảnh báo dãy số, tùy chọn trả lời riêng, đồng ý và ô bẫy; gửi thật đến API-06. Giới hạn 2000 ký tự theo hợp đồng API thay cho 1500 trong bản HTML thử. Gửi thành công không tự thêm câu hỏi vào danh sách công khai.
 
-**Xuất CSV theo bộ lọc** xuất tất cả dòng khớp bộ lọc, không chỉ trang đang xem. Dữ liệu xuất theo luồng, UTF-8 có BOM, giữ dấu tiếng Việt; ô chứa dấu phẩy, dấu nháy, xuống dòng được trích dẫn. Các chuỗi có thể bị Excel hiểu thành công thức được ép về văn bản. Nội dung và thông tin liên hệ chỉ có trong trang/tệp xuất được bảo vệ bởi cùng phân quyền.
+Câu hỏi và câu trả lời hiển thị dưới dạng chữ đã thoát ký tự, không chạy HTML người gửi hoặc người trả lời nhập. Các thuộc tính Bố cục/Block Grid của 9 trang vẫn trống, không thêm khối CMS.
 
-## Công bố câu trả lời
+Kiểu `qaItem` cũ được giữ schema để tương thích nhưng không được tạo dưới trang Hỏi – Đáp; luồng mới không nhập câu hỏi đáp thủ công trong cây trang. Hai FAQ mẫu cũ tiếp tục ở trạng thái đã xóa.
 
-1. Tiếp nhận và xử lý tại `/quan-tri/hoi-dap`; ghi chú phục vụ nội bộ.
-2. Khi cần công bố, biên tập viên vào **Quản lý trang → Trang chủ → Hỏi – Đáp** trong Umbraco, tạo **Câu trả lời công khai** (`qaItem`).
-3. Nhập câu hỏi đã biên tập, bỏ thông tin cá nhân và nhập câu trả lời. Lưu nháp hoặc xuất bản theo quy trình biên tập.
+## Đồng bộ và kiểm thử
 
-`qaItem` có hai thuộc tính `question`, `answer`, composition `seoBase` và template Razor. Không có Block Grid trên loại dữ liệu này. URL công khai có dạng `/hoi-dap/{slug}/`. Hai mục FAQ mẫu cũ vẫn được ghi nhận đã xóa trong uSync; khôi phục document type không khôi phục các mục mẫu đó.
-
-Các trang hiển thị vẫn giữ thuộc tính Bố cục để trống theo cấu trúc đã chốt. Form gửi trên giao diện website (FE-22) và danh sách câu trả lời công khai trên trang Hỏi – Đáp (FE-23) là các phần giao diện riêng; có thể gọi API này và đọc các `qaItem` đã xuất bản.
-
-## Kiểm thử
-
-- Unit test trong `QuestionRequestTests`, `QuestionSubmissionServiceTests`, `QuestionCsvTests`: biên độ dài, đồng ý, liên hệ, ô bẫy, giao dịch gửi đồng thời, hạn mức qua các DbContext và mốc 60 phút, lọc/phân trang, ghi nhận xử lý, CSV/BOM và công thức Excel.
-- Kiểm thử trình duyệt/API cục bộ: chuyển đăng nhập và 403 ngoài nhóm, dữ liệu HTML hiển thị dạng chữ, antiforgery, lưu trên dòng, giữ nội dung đang sửa, tự cập nhật, CSV đúng bộ lọc và 50 dòng mỗi trang.
-- Migration `QuestionSubmissionIpWindowIndex` chỉ thêm chỉ mục, không thay đổi dữ liệu đã có.
-
-DB, tài khoản, bản sao lưu và dữ liệu tiếp nhận không đưa vào Git. Schema CMS và template được đồng bộ bằng uSync; cấu trúc bảng nghiệp vụ được đồng bộ bằng EF Core migrations.
+- Migration `QuestionModerationApproval` bổ sung câu trả lời nháp/đã duyệt, cờ công khai, người duyệt, thời điểm và phiên bản xử lý. Bản ghi cũ mặc định chưa công khai, không xóa dữ liệu.
+- uSync đồng bộ quy tắc cây CMS; schema bảng nghiệp vụ dùng EF Core migrations. DB, câu hỏi tiếp nhận, tài khoản, bản sao lưu và ảnh kiểm thử không đưa vào Git.
+- Kiểm thử: hạn mức/ô bẫy, giữ nguyên HTML, không công khai trước duyệt, không sửa câu hỏi gốc, bảo vệ bản đã duyệt khi sửa nháp, thu hồi, xung đột phiên bản, lọc/phân trang, CSV, nâng cấp DB cũ và luồng portal–section–portal thực tế.
