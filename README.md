@@ -60,6 +60,7 @@ Ba tầng hoạt động thế này: `ANTC.Portal.Core` được đóng gói th�
 | CSDL ứng dụng (8 bảng) | `Custom.Core/Data/` | EF Core + SQLite, file `App_Data/app.sqlite.db`, migration tự chạy khi khởi động |
 | Ngân hàng câu hỏi | `Custom.Core/Data/Seed/*.json` → bảng `quiz_topic`, `quiz_question` | 8 chuyên đề, 200 câu, 8 câu Thử sức |
 | API đọc câu hỏi | `Custom.Api/Controllers/QuizController.cs` | `GET /api/v1/quiz/topics`, `/topics/{n}/questions`, `/sample` |
+| Quản lý cuộc thi | `Custom.Api/Controllers/ContestAdminController.cs` và `App_Plugins/ContestManagement/` | Backoffice tìm kiếm lượt dự thi, xem chi tiết và CRUD lần quay số |
 | File tĩnh | `Umbraco.Web.UI/wwwroot/assets/` | Font Manrope, GSAP 3.12.5, 5 ảnh hero, biến thiết kế, CSS nền |
 | Layout và các trang | `Umbraco.Web.UI/Views/` | Layout tạm và trang giữ chỗ; mỗi trang ghi sẵn mã công việc cần làm |
 
