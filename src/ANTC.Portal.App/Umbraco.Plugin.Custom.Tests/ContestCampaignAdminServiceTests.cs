@@ -46,6 +46,28 @@ public class ContestCampaignAdminServiceTests
         Assert.Equal("Q-002", (await test.Db.ContestQuestions.SingleAsync()).QuestionCode);
     }
 
+    [Fact]
+    public async Task ReloadedCampaign_SerializesDatesWithUtcOffset()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        var request = Request(1, "Q-001") with
+        {
+            StartAt = new DateTime(2026, 10, 1, 16, 0, 0, DateTimeKind.Utc),
+            EndAt = new DateTime(2026, 10, 16, 16, 0, 0, DateTimeKind.Utc)
+        };
+        var created = await test.Service.CreateCampaignAsync(request, default);
+        test.Db.ChangeTracker.Clear();
+        var loaded = (await test.Service.GetCampaignAsync(created.Id, default))!;
+        Assert.Equal(DateTimeKind.Utc, loaded.StartAt.Kind);
+        Assert.Equal(DateTimeKind.Utc, loaded.EndAt.Kind);
+        string json = System.Text.Json.JsonSerializer.Serialize(loaded);
+        Assert.Contains("2026-10-16T16:00:00Z", json);
+        var list = await test.Service.SearchCampaignsAsync(null, null, 1, 20, default);
+        Assert.Equal(DateTimeKind.Utc, list.Items.Single().EndAt.Kind);
+        var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+        Assert.Equal(23, TimeZoneInfo.ConvertTimeFromUtc(loaded.EndAt, vietnam).Hour);
+    }
+
     private static SaveContestCampaignRequest Request(int topicId, string questionCode) => new(
         "Cuộc thi tháng 10",
         "Kiểm tra cấu hình cây",

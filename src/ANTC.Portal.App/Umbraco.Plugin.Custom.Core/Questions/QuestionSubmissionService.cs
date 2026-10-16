@@ -37,8 +37,14 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
                 throw new QuestionRateLimitedException(Math.Max(1, (int)Math.Ceiling((recent[0].AddHours(1) - now).TotalSeconds)));
             db.QuestionSubmissions.Add(new QuestionSubmission
             {
-                Type = registration.Type, Content = registration.Content, WantReply = registration.WantReply,
-                Contact = registration.Contact, Status = "moi", ConsentAt = now, CreatedAt = now, IpHash = hash
+                Type = registration.Type,
+                Content = registration.Content,
+                WantReply = registration.WantReply,
+                Contact = registration.Contact,
+                Status = "moi",
+                ConsentAt = now,
+                CreatedAt = now,
+                IpHash = hash
             });
             await db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
