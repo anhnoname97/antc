@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Notifications;
+using Umbraco.Plugin.Custom.Core.Backoffice;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
@@ -45,9 +47,16 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddScoped<IContestSettingsProvider, UmbracoContestSettingsProvider>();
         builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
+        builder.Services.AddScoped<IContestAdminService, ContestAdminService>();
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();
+        builder.Services.AddScoped<IQuizAdminService, QuizAdminService>();
+
+        // Cap quyen section Backoffice cho nhom Administrators sau khi Umbraco khoi dong.
+        builder.AddNotificationAsyncHandler<
+            UmbracoApplicationStartedNotification,
+            ContestManagementSectionAccessHandler>();
 
         builder.Services.AddSingleton<IAppInfoService, AppInfoService>();
     }
