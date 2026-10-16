@@ -1,0 +1,18 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
+@model IEnumerable<BlockListItem>?
+@if (Model is not null)
+{
+    foreach (var item in Model)
+    {
+        var target = item.Content.Value<IPublishedContent>("page")
+            ?? item.Content.Value<IPublishedContent>("document");
+        var href = target?.Url();
+        if (string.IsNullOrWhiteSpace(href) || href.StartsWith('#'))
+        {
+            continue;
+        }
+        var label = item.Content.Value<string>("label") ?? target!.Name;
+        <a class="btn btn--danger btn--sm" href="@href"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.8 19.5h18.4z"/><path d="M12 10v4.2"/><circle cx="12" cy="16.8" r=".7" fill="currentColor"/></svg>@label</a>
+    }
+}

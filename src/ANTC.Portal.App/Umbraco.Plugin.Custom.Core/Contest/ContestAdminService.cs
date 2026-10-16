@@ -300,8 +300,8 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
 
     private static ContestCampaignAdminDto MapCampaign(
         ContestCampaign x, IReadOnlyList<ContestTopicTreeItemDto>? topics = null) => new(
-        x.Id, x.Name, x.Description, x.StartAt, x.EndAt, x.MaxAttempts, x.IsActive,
-        x.Topics.Count, x.Questions.Count, x.CreatedAt, x.UpdatedAt, topics);
+        x.Id, x.Name, x.Description, AsUtc(x.StartAt), AsUtc(x.EndAt), x.MaxAttempts, x.IsActive,
+        x.Topics.Count, x.Questions.Count, AsUtc(x.CreatedAt), AsUtc(x.UpdatedAt), topics);
 
     private static ContestEntryAdminDto MapEntry(Entry x) => new(
         x.Id, x.Code, x.Mode, x.FullName, x.Phone, x.Org, x.Status, x.Answered,
@@ -317,6 +317,9 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
 
     private static PagedResult<T> Page<T>(IReadOnlyList<T> items, int page, int pageSize, int total) =>
         new(items, page, pageSize, total, Math.Max(1, (int)Math.Ceiling(total / (double)pageSize)));
+
+    // SQLite materializes UTC timestamps as Unspecified; restore the kind before JSON serialization.
+    private static DateTime AsUtc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
 
     private DateTime UtcNow() => timeProvider.GetUtcNow().UtcDateTime;
     private static DateTime NormalizeInstant(DateTime value) => value.Kind switch

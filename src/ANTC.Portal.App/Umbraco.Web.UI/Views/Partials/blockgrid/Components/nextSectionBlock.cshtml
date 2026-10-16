@@ -1,0 +1,15 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    Link? L(string alias) => c.Value<Link>(alias);
+    var id = $"contest-{Model.ContentKey:N}";
+}
+<section class="next" aria-label="Phần tiếp theo"><svg class="next-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
+<div class="wrap next-in"><div><p class="eyebrow">@T("eyebrow")</p>
+@if (L("nextLink") is { } next) { <a class="big" href="@next.Url">@(next.Name?.TrimEnd().TrimEnd('⟶').TrimEnd()) <span aria-hidden="true">⟶</span></a> }
+<p>@T("description")</p></div><div class="next-cta">
+@if (L("urgentLink") is { } urgent) { <a class="btn btn-light" href="@urgent.Url">@urgent.Name</a> }
+</div></div></section>

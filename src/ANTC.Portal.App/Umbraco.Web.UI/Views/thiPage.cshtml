@@ -1,9 +1,23 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
 }
-<section class="page-hero">
-    <div class="container">
-        <h1>@Model.Name</h1>
-    </div>
-</section>
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/quiz-fonts.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/quiz.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/contest-blocks.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/contest-shell.css" asp-append-version="true">
+}
+<div id="nj-cuoc-thi">
+    @if (Model.Value<BlockGridModel>("layout") is { } blocks)
+    {
+        @await Html.GetBlockGridHtmlAsync(blocks)
+    }
+</div>
+@section Scripts {
+    <script defer src="~/assets/js/vendor/gsap.min.js" asp-append-version="true"></script>
+    <script defer src="~/assets/js/vendor/ScrollTrigger.min.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/contest-blocks.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/participate.js" asp-append-version="true"></script>
+}

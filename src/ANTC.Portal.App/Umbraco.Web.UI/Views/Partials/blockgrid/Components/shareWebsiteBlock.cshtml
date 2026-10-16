@@ -1,0 +1,13 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    var id = $"contest-{Model.ContentKey:N}";
+}
+<section class="contest-half sec" aria-labelledby="@id"><div class="wrap share">
+<p class="eyebrow">@T("eyebrow")</p><h3 id="@id">@T("title")</h3><p>@T("description")</p>
+<div class="fam" aria-hidden="true"><span>B</span><span>M</span><span>Ô</span><span>B</span></div>
+<div class="acts"><span class="link">@T("displayUrl")</span><button type="button" class="btn btn-navy" data-share-home>@T("buttonLabel")</button><span data-share-status role="status" aria-live="polite"></span></div>
+</div></section>

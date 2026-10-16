@@ -1,9 +1,60 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
 }
-<section class="page-hero">
-    <div class="container">
-        <h1>@Model.Name</h1>
-    </div>
-</section>
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/participate.css" asp-append-version="true">
+}
+<div class="participate">
+    <section class="page-hero participate-hero" aria-labelledby="participate-title">
+        <div class="container">
+            <nav aria-label="Vị trí"><a href="/">Trang chủ</a> / Phần 4</nav>
+            <p class="eyebrow eyebrow--on-brand">Phần 4 · Tham gia</p>
+            <h1 id="participate-title">Tham gia chống lừa đảo</h1>
+            <p>Thi trắc nghiệm, góp ý cho Chương trình, rủ người thân cùng học.</p>
+        </div>
+    </section>
+    <section class="container participate-options" aria-label="Các cách tham gia">
+        @* BE: số câu, chuyên đề và lượt thi trong nội dung hiển thị lấy từ dữ liệu cuộc thi. *@
+        <a class="card lift participate-card participate-contest" href="/cuoc-thi/">
+            <span class="participate-icon" aria-hidden="true">🏆</span>
+            <span class="eyebrow">Cuộc thi trực tuyến</span>
+            <h2>200 câu,<br>8 chuyên đề</h2>
+            <p>Mỗi câu hỏi giúp bạn nhận ra một dấu hiệu lừa đảo. Mỗi số điện thoại thi tối đa 2 lượt. Giai đoạn đầu có xét thưởng.</p>
+            <span class="btn btn--danger">Đăng ký dự thi ›</span>
+        </a>
+        <div class="participate-small-cards">
+            <a class="card lift participate-card" href="/thu-suc/">
+                <span class="eyebrow">Thử sức</span>
+                <h2>Thử sức: 8 câu</h2>
+                <p>Mỗi chuyên đề một câu. Chọn xong là có giải thích ngay.</p>
+                <span class="participate-link">Làm thử ngay ›</span>
+            </a>
+            <a class="card lift participate-card" href="/hoi-dap/?loai=gop-y#h-ask">
+                <span class="eyebrow">Góp ý</span>
+                <h2>Góp ý cho Chương trình</h2>
+                <p>Một câu ngắn cũng quý. Bạn muốn website giải thích thêm điều gì?</p>
+                <span class="participate-link">Gửi góp ý ›</span>
+            </a>
+        </div>
+    </section>
+    <section class="section" aria-labelledby="participate-share-title">
+        <div class="container">
+            <div class="participate-share">
+                <div class="participate-family" aria-hidden="true"><span>B</span><span>M</span><span>Ô</span><span>B</span></div>
+                <div>
+                    <p class="eyebrow eyebrow--on-brand">Rủ người thân cùng học</p>
+                    <h2 id="participate-share-title">Chia sẻ cho người thân</h2>
+                    <p>Gửi website này cho cha mẹ, ông bà qua Zalo hoặc Facebook. Người thân biết trước là cách tự bảo vệ tốt nhất.</p>
+                </div>
+                <div class="participate-share-actions">
+                    <button type="button" class="btn btn--white" data-share-home>Chia sẻ đường dẫn</button>
+                    <p role="status" aria-live="polite" data-share-status></p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+@section Scripts {
+    <script type="module" src="~/assets/js/participate.js" asp-append-version="true"></script>
+}
