@@ -25,6 +25,9 @@ public class AppDbContext : DbContext
     public DbSet<QuizTopic> QuizTopics => Set<QuizTopic>();
     public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
     public DbSet<QuizImport> QuizImports => Set<QuizImport>();
+    public DbSet<ContestCampaign> ContestCampaigns => Set<ContestCampaign>();
+    public DbSet<ContestTopic> ContestTopics => Set<ContestTopic>();
+    public DbSet<ContestQuestion> ContestQuestions => Set<ContestQuestion>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -107,6 +110,33 @@ public class AppDbContext : DbContext
             e.Property(x => x.SampleLabel).HasMaxLength(60);
             e.HasOne(x => x.Topic).WithMany(x => x.Questions).HasForeignKey(x => x.TopicId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.TopicId);
+        });
+
+        b.Entity<ContestCampaign>(e =>
+        {
+            e.ToTable("contest");
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.Description).HasMaxLength(2000);
+            e.HasIndex(x => new { x.IsActive, x.StartAt, x.EndAt });
+        });
+
+        b.Entity<ContestTopic>(e =>
+        {
+            e.ToTable("contest_topic");
+            e.HasKey(x => new { x.ContestId, x.TopicId });
+            e.HasOne(x => x.Contest).WithMany(x => x.Topics).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Topic).WithMany(x => x.Contests).HasForeignKey(x => x.TopicId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.TopicId);
+        });
+
+        b.Entity<ContestQuestion>(e =>
+        {
+            e.ToTable("contest_question");
+            e.HasKey(x => new { x.ContestId, x.QuestionCode });
+            e.Property(x => x.QuestionCode).HasMaxLength(16);
+            e.HasOne(x => x.Contest).WithMany(x => x.Questions).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Question).WithMany(x => x.Contests).HasForeignKey(x => x.QuestionCode).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.QuestionCode);
         });
 
         b.Entity<QuizImport>(e =>
