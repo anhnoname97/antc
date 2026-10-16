@@ -4,6 +4,8 @@
 
 Nguồn dữ liệu là `question_submission`, không tạo nút `qaItem` từ câu hỏi gửi lên. Không gửi thư điện tử tự động. Liên hệ, IP băm, ghi chú và người xử lý không xuất hiện trong dữ liệu công khai.
 
+Frontend portal do nhóm FE triển khai. Bàn giao tích hợp tại [hợp đồng API cho portal](hoi-dap-portal.md) và [OpenAPI 3.0.3](hoi-dap-portal.openapi.json). Repository giữ template trang Hỏi – Đáp ở mức layout và tiêu đề; không kèm biểu mẫu hoặc danh sách trả lời ngoài portal.
+
 ## API-06: gửi nội dung
 
 `POST /api/v1/questions` không yêu cầu đăng nhập:
@@ -74,9 +76,9 @@ Gốc: `/umbraco/management/api/v1/antc/questions`.
 
 `GET /api/v1/questions?page=1` trả 20 mục/trang, chỉ câu có cờ công bố, thời điểm duyệt và bản trả lời đã duyệt. Mỗi mục chỉ có `id`, `question` (nội dung gốc), `answer` (bản đã duyệt), `answeredAt`. Phản hồi có `items`, `total`, `page`, `totalPages`. Không có liên hệ, ghi chú, IP, người xử lý hoặc câu trả lời nháp. Không cache để gỡ công bố có hiệu lực ở lần tải tiếp theo.
 
-`Views/hoiDapPage.cshtml` có biểu mẫu gửi kín và danh sách câu đã trả lời, dựa vào trang Hỏi–Đáp trong HTML được cung cấp. Form có cảnh báo dãy số, tùy chọn trả lời riêng, đồng ý và ô bẫy; gửi thật đến API-06. Giới hạn 2000 ký tự theo hợp đồng API thay cho 1500 trong bản HTML thử. Gửi thành công không tự thêm câu hỏi vào danh sách công khai.
+`Views/hoiDapPage.cshtml` chỉ có layout và tiêu đề để nhóm FE dựng giao diện riêng. FE gửi biểu mẫu đến API-06 và lấy danh sách đã duyệt qua API GET. Không có CSS/JavaScript biểu mẫu Hỏi – Đáp riêng trong repository. Gửi thành công không tự thêm câu hỏi vào danh sách công khai.
 
-Câu hỏi và câu trả lời hiển thị dưới dạng chữ đã thoát ký tự, không chạy HTML người gửi hoặc người trả lời nhập. Các thuộc tính Bố cục/Block Grid của 9 trang vẫn trống, không thêm khối CMS.
+API giữ nội dung gốc dưới dạng văn bản. FE cần hiển thị `question` và `answer` bằng cơ chế thoát ký tự mặc định, không chèn trực tiếp vào HTML. Section Umbraco đã hiển thị nội dung dưới dạng chữ đã thoát ký tự. Các thuộc tính Bố cục/Block Grid của 9 trang vẫn trống, không thêm khối CMS.
 
 Kiểu `qaItem` cũ được giữ schema để tương thích nhưng không được tạo dưới trang Hỏi – Đáp; luồng mới không nhập câu hỏi đáp thủ công trong cây trang. Hai FAQ mẫu cũ tiếp tục ở trạng thái đã xóa.
 

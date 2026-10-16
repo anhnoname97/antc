@@ -74,13 +74,13 @@ Khung `_SiteLayout.cshtml` đọc đầu trang/chân trang từ nút gốc; menu
 
 Hỏi – Đáp là luồng **người dùng gửi biểu mẫu → tiếp nhận → kiểm duyệt → biên tập câu trả lời → công bố/trả lời**. Bảng nghiệp vụ `question_submission` trong `App_Data/app.sqlite.db` là nơi tiếp nhận, không dùng cây CMS để tự tạo câu hỏi giả làm câu hỏi của người dùng.
 
-API-06 `POST /api/v1/questions`, biểu mẫu ngoài portal và section `/umbraco/section/hoi-dap` đã triển khai. Section dùng khung, phiên và phân quyền native Umbraco; có lọc, 50 dòng/trang và CSV UTF-8 BOM. Câu hỏi gốc chỉ để xem; biên tập viên nhập câu trả lời rồi bấm **Duyệt và công bố**. Lưu nháp/đổi trạng thái xử lý không tự công bố. `GET /api/v1/questions` và danh sách trên `/hoi-dap/` chỉ lấy bản đã duyệt; liên hệ và ghi chú luôn nội bộ. Có gỡ công bố và chống ghi đè khi hai người cùng xử lý. Không tự gửi email. Xem [tài liệu API và quản trị](../api/hoi-dap.md). Thuộc tính Block Grid vẫn trống.
+API-06 `POST /api/v1/questions`, API đọc câu đã duyệt `GET /api/v1/questions` và section `/umbraco/section/hoi-dap` đã triển khai. Section dùng khung, phiên và phân quyền native Umbraco; có lọc, 50 dòng/trang và CSV UTF-8 BOM. Câu hỏi gốc chỉ để xem; biên tập viên nhập câu trả lời rồi bấm **Duyệt và công bố**. Lưu nháp/đổi trạng thái xử lý không tự công bố. Liên hệ và ghi chú luôn nội bộ. Có gỡ công bố và chống ghi đè khi hai người cùng xử lý. Không tự gửi email. Giao diện biểu mẫu và danh sách ngoài portal do nhóm FE dựng theo [hợp đồng API](../api/hoi-dap-portal.md); template chỉ có layout và tiêu đề. Xem [tài liệu API và quản trị](../api/hoi-dap.md). Thuộc tính Block Grid vẫn trống.
 
 Trang Cuộc thi hiện là trang khung, vẫn đang lưu nháp. Cấu hình nghiệp vụ cuộc thi không còn thuộc document `thiPage`. Khi triển khai chức năng cuộc thi, nhóm BE cần xác định nguồn cấu hình nghiệp vụ riêng; provider đang có sẽ không lấy được lịch mở/đóng từ các trường đã bỏ.
 
 ## URL và quy tắc cây
 
-URL công khai dùng `/`, `/ung-pho/`, `/thu-doan/`, `/tham-gia/`, `/thu-suc/`, `/cuoc-thi/`, `/hoi-dap/`, `/chinh-sach/`, `/tim-kiem/`. Bài viết và danh mục dùng slug do Umbraco tạo theo tên. Các nút quản lý không xuất hiện trong URL. `/chinh-sach/` mở `chinhSachPage`; bài viết chính sách dùng `/chinh-sach/{slug}/`. Câu trả lời đã duyệt nằm trong danh sách `/hoi-dap/#cau-hoi-{id}`.
+URL công khai dùng `/`, `/ung-pho/`, `/thu-doan/`, `/tham-gia/`, `/thu-suc/`, `/cuoc-thi/`, `/hoi-dap/`, `/chinh-sach/`, `/tim-kiem/`. Bài viết và danh mục dùng slug do Umbraco tạo theo tên. Các nút quản lý không xuất hiện trong URL. `/chinh-sach/` mở `chinhSachPage`; bài viết chính sách dùng `/chinh-sach/{slug}/`. URL hoặc anchor hiển thị câu trả lời do nhóm FE quyết định khi tích hợp API công khai.
 
 Xem URL trong tab Thông tin của Umbraco. Không có trường `umbracoUrlName` tự thêm hoặc tab Thiết lập. `PageTreeRules`/`PageTreeNotifications` chặn tạo trùng các trang cố định và đặt sai cây. Bốn trường SEO dùng chung qua `seoBase`.
 
