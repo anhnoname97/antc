@@ -1,0 +1,25 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    Link? L(string alias) => c.Value<Link>(alias);
+    var id = $"contest-{Model.ContentKey:N}";
+}
+<section class="ph" aria-labelledby="@id">
+<div class="ph-sky"></div>
+<svg class="ph-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
+<span class="ph-num" aria-hidden="true">04</span>
+<div class="ph-shade"></div>
+<div class="ph-copy">
+<nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>Phần 4</span></nav>
+<p class="eyebrow">@T("eyebrow")</p>
+<h1 id="@id"><span class="line"><span data-line>@T("title")</span></span><span class="line"><span data-line><em>@T("titleAccent")</em></span></span></h1>
+<p class="lead">@T("description")</p>
+<div class="ph-links">
+@if (L("primaryLink") is { } primary) { <a class="btn btn-light" href="@primary.Url">@(primary.Name?.TrimEnd().TrimEnd('↓').TrimEnd()) <span aria-hidden="true">↓</span></a> }
+@if (L("secondaryLink") is { } secondary) { <a class="btn btn-light" href="@secondary.Url">@secondary.Name</a> }
+</div>
+</div>
+</section>

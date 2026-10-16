@@ -1,0 +1,43 @@
+<section class="quiz quiz-sample-page" aria-labelledby="quiz-title" data-quiz-sample>
+    <div class="page-hero quiz-hero">
+        <div class="container">
+            <nav aria-label="Vị trí"><a href="/">Trang chủ</a> / <a href="/tham-gia/">Phần 4</a> / Thử sức</nav>
+            <p class="eyebrow">Phần 4 · Thi trắc nghiệm</p>
+            <h1 id="quiz-title">Thử sức: 8 câu</h1>
+            <p>Mỗi chuyên đề một câu. Chọn xong là có giải thích ngay.</p>
+        </div>
+    </div>
+    <div class="container quiz-workspace">
+        <noscript><p>Cần bật JavaScript để làm bài thử sức.</p></noscript>
+        <div class="quiz-card quiz-status" data-quiz-status role="status" aria-live="polite" hidden>
+            <p data-quiz-message></p>
+            <button type="button" class="qbutton" data-quiz-retry hidden>Thử tải lại</button>
+        </div>
+        <div class="quiz-grid" data-quiz-content hidden>
+            <div class="quiz-card" data-quiz-card>
+                <div data-quiz-body></div>
+                <div data-quiz-feedback aria-live="polite" aria-atomic="true"></div>
+                <div data-quiz-navigation></div>
+                <div data-quiz-summary hidden></div>
+            </div>
+            <aside class="quiz-sidebar" aria-label="Tiến độ và thông tin">
+                <section class="quiz-card" aria-labelledby="quiz-progress-title">
+                    <h2 id="quiz-progress-title">Tiến độ</h2>
+                    <div data-quiz-progress></div>
+                    <button type="button" class="qbutton" data-show-summary>Xem kết quả</button>
+                </section>
+                <section class="quiz-card" aria-labelledby="quiz-contest-title">
+                    <h2 id="quiz-contest-title">Cuộc thi trực tuyến</h2>
+                    @* BE: số câu, số chuyên đề và điều kiện xét thưởng lấy từ dữ liệu cuộc thi. *@
+                    <p>Làm đầy đủ 200 câu, 8 chuyên đề để nhận diện các dấu hiệu lừa đảo.</p>
+                    <a class="qbutton qbutton--primary" href="/cuoc-thi/">Làm đầy đủ 200 câu ›</a>
+                </section>
+                <section class="quiz-card" aria-labelledby="quiz-urgent-title">
+                    <h2 id="quiz-urgent-title">Đang gặp chuyện gấp?</h2>
+                    <p>Dừng chuyển tiền, không cung cấp mật khẩu hay mã OTP.</p>
+                    <a class="qbutton" href="/ung-pho/">Ứng phó khẩn cấp ›</a>
+                </section>
+            </aside>
+        </div>
+    </div>
+</section>

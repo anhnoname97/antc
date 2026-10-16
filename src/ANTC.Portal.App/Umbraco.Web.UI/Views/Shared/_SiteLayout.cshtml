@@ -1,6 +1,7 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @{
     Layout = null;
+    var contestStyle = Model.ContentType.Alias == "thiPage";
     var site = Model.Root();
     var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
 }
@@ -20,9 +21,16 @@
     <link rel="stylesheet" href="~/assets/css/footer.css" asp-append-version="true">
     @await RenderSectionAsync("Head", required: false)
 </head>
-<body>
+<body class="@(contestStyle ? "contest-site" : null)">
     <a class="site-skip" href="#noi-dung">Bỏ qua, tới nội dung chính</a>
-    @await Html.PartialAsync("~/Views/Partials/_SiteHeader.cshtml", Model)
+    @if (contestStyle)
+    {
+        @await Html.PartialAsync("~/Views/Partials/_ContestHeader.cshtml", Model)
+    }
+    else
+    {
+        @await Html.PartialAsync("~/Views/Partials/_SiteHeader.cshtml", Model)
+    }
 
     <main id="noi-dung" tabindex="-1">
         @RenderBody()

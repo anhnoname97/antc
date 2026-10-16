@@ -1,0 +1,56 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Plugin.Custom.Core.Contest
+@inject ICurrentContestService CurrentContests
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    Link? L(string alias) => c.Value<Link>(alias);
+    var contest = await CurrentContests.GetAsync(Context.RequestAborted);
+    var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+    var contestMonth = contest is null ? string.Empty : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), vietnam).ToString("MM/yyyy");
+    var id = $"contest-{Model.ContentKey:N}";
+}
+<section class="sec" id="cuoc-thi" data-contest-overview aria-labelledby="@id">
+<div class="wrap contest">
+<div data-overview-copy>
+<p class="eyebrow">@T("eyebrow")</p>
+@if (contest is not null)
+{
+<h2 id="@id">@contest.QuestionCount câu hỏi,<br><em>@contest.Topics.Count chuyên đề</em></h2>
+<p>Mỗi câu hỏi giúp bạn nhận ra một dấu hiệu lừa đảo. Mỗi số điện thoại thi tối đa @contest.MaxAttempts lượt.</p>
+<div class="stats">
+<div class="stat"><b data-overview-count="@contest.QuestionCount">@contest.QuestionCount</b><span>@T("questionLabel")</span></div>
+<div class="stat"><b data-overview-count="@contest.Topics.Count">@contest.Topics.Count</b><span>@T("topicLabel")</span></div>
+<div class="stat"><b data-overview-count="@contest.MaxAttempts">@contest.MaxAttempts</b><span>@T("attemptLabel")</span></div>
+</div>
+}
+else
+{
+<h2 id="@id">Cuộc thi trực tuyến</h2>
+<p>Hiện chưa có cuộc thi đang diễn ra. Bạn có thể thử sức với các câu hỏi bên dưới.</p>
+}
+</div>
+<div class="ticket"><svg class="tdrum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
+@if (contest is not null)
+{
+<span class="k">@T("ticketLabel") · Tháng @contestMonth</span>
+<h3>@contest.Name</h3>
+<div class="ticket-details">
+@if (!string.IsNullOrWhiteSpace(contest.Description)) { <p>@contest.Description</p> }
+</div>
+<ul>
+@foreach (var promise in T("promises").Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)) { <li>@promise</li> }
+</ul>
+@if (L("entryLink") is { } entry) { <a class="btn btn-red" href="@entry.Url">Xem cuộc thi tháng @contestMonth →</a> }
+}
+else
+{
+<span class="k">Chưa mở cuộc thi</span>
+<h3>Hẹn bạn ở cuộc thi tiếp theo</h3>
+<a class="btn btn-red" href="#thu-suc">Thử sức ngay →</a>
+}
+</div>
+</div>
+</section>
