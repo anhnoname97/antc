@@ -81,6 +81,8 @@ public sealed class AntcPublicContentFinder(
         IPublishedContent? found = fixedAlias == "home" ? home : fixedAlias is not null ? Child(home, fixedAlias) : null;
         if (fixedAlias is null && parts.Length > 0)
         {
+            if (parts.Length == 2 && parts[0].Equals("hoi-dap", StringComparison.OrdinalIgnoreCase))
+                found = BySegment(Child(home, "hoiDapPage"), "qaItem", parts[1]);
             IPublishedContent? library = Child(site, "contentManagement");
             IPublishedContent? list = null;
             int articleIndex = 0;

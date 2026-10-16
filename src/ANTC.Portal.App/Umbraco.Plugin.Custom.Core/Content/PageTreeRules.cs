@@ -53,7 +53,7 @@ public static class PageTreeRules
         }
         else if (alias == "qaItem")
         {
-            return "Hỏi – Đáp tiếp nhận câu hỏi từ biểu mẫu và xử lý qua luồng kiểm duyệt; không tạo câu hỏi đáp trong cây trang.";
+            return "Câu hỏi do người dùng gửi từ portal. Vào section Hỏi – Đáp để trả lời và duyệt công bố; không tạo câu hỏi trong cây trang.";
         }
 
         return IsSingleton(alias) && duplicate
