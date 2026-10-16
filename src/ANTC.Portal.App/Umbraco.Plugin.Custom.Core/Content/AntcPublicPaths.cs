@@ -39,6 +39,7 @@ public static class AntcPublicPaths
         {
             "articleList" => $"/thu-doan/{segment}/",
             "article" when parentPath is not null => $"{parentPath.TrimEnd('/')}/{segment}/",
+            "qaItem" => $"/hoi-dap/{segment}/",
             _ => null
         };
     }
