@@ -38,6 +38,8 @@ Không ghi IP nguyên văn. Dùng HMAC-SHA256, khóa `Contest:IpHashSalt`, phạ
 
 Mở `/umbraco/section/hoi-dap`, hoặc bấm **Hỏi – Đáp** trên thanh section của Umbraco. Đây là extension native, dùng phiên và khung backoffice; không dùng iframe hoặc trang quản trị độc lập. `/quan-tri/hoi-dap` chỉ chuyển đến section mới.
 
+Nút **Xem và xử lý** mở sidebar native của Umbraco: nội dung gốc và thông tin tiếp nhận ở bên trái, câu trả lời và kiểm duyệt ở bên phải. Header và thanh thao tác cố định dùng `umb-body-layout`; ô nhập, danh sách chọn và nút dùng UUI. Đóng khung giữ bộ lọc, trang và vị trí cuộn của danh sách. Đóng bằng nút, phím Escape hoặc chuyển section khi còn thay đổi chưa lưu sẽ hiện hộp thoại xác nhận của Umbraco; lỗi lưu giữ nguyên bản nháp để tiếp tục xử lý.
+
 - Manifest: `wwwroot/App_Plugins/AntcQuestions/umbraco-package.json`; alias `Antc.Section.Questions`.
 - Nhóm **Quản trị Hỏi – Đáp**, alias `quanTriHoiDap`, được tạo cùng quyền section; không tự thêm thành viên.
 - Cấp quyền tại **Users → User groups → Sections → Hỏi – Đáp**. Nhóm quản trị và nhóm `quanTriCuocThi` đã có từ phiên bản trước được giữ quyền. Không thay thành viên hoặc quyền section khác.

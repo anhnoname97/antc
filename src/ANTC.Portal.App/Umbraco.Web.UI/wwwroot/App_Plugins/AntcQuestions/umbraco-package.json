@@ -11,6 +11,12 @@
       "element": "/App_Plugins/AntcQuestions/questions.section.js",
       "meta": { "label": "Hỏi – Đáp", "pathname": "hoi-dap" },
       "conditions": [{ "alias": "Umb.Condition.SectionUserPermission", "match": "Antc.Section.Questions" }]
+    },
+    {
+      "type": "modal",
+      "alias": "Antc.Modal.QuestionReview",
+      "name": "Xử lý câu hỏi và góp ý",
+      "element": "/App_Plugins/AntcQuestions/question-review.modal.js"
     }
   ]
 }
