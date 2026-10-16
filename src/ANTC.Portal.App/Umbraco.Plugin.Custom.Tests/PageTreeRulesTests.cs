@@ -56,12 +56,13 @@ public class PageTreeRulesTests
 
     [Theory]
     [InlineData("article", "articleList")]
+    [InlineData("qaItem", "hoiDapPage")]
     public void Repeated_leaf_records_are_allowed(string alias, string parent) =>
         Assert.Null(PageTreeRules.Validate(alias, parent, null, true));
 
     [Theory]
-    [InlineData("hoiDapPage")]
     [InlineData("contentManagement")]
-    public void Manual_faq_documents_are_not_allowed(string parent) =>
+    [InlineData("home")]
+    public void Public_answers_must_belong_to_the_question_page(string parent) =>
         Assert.NotNull(PageTreeRules.Validate("qaItem", parent, null, false));
 }

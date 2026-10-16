@@ -8,6 +8,7 @@ using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
+using Umbraco.Plugin.Custom.Core.Questions;
 using Umbraco.Plugin.Custom.Core.Services;
 
 namespace Umbraco.Plugin.Custom.Core.Composers;
@@ -45,6 +46,7 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddScoped<IContestSettingsProvider, UmbracoContestSettingsProvider>();
         builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
+        builder.Services.AddScoped<IQuestionSubmissionService, QuestionSubmissionService>();
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();

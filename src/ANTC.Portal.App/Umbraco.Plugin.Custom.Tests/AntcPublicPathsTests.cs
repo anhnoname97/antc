@@ -44,5 +44,6 @@ public class AntcPublicPathsTests
     public void Missing_article_parent_does_not_produce_a_broken_url() => Assert.Null(AntcPublicPaths.GetPath("article", "bai-viet"));
 
     [Fact]
-    public void Manual_faq_documents_do_not_have_a_public_route() => Assert.Null(AntcPublicPaths.GetPath("qaItem", "cau-hoi"));
+    public void Editorial_answers_have_their_own_public_route() =>
+        Assert.Equal("/hoi-dap/cau-hoi/", AntcPublicPaths.GetPath("qaItem", "cau-hoi"));
 }

@@ -294,6 +294,8 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IpHash", "CreatedAt");
+
                     b.HasIndex("Status", "CreatedAt");
 
                     b.ToTable("question_submission", (string)null);

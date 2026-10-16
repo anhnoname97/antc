@@ -1,0 +1,12 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Strings
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+}
+<section class="page-hero">
+    <div class="container">
+        <h1>@Model.Name</h1>
+        <p>@(Model.Value<string>("question"))</p>
+        <div class="rich-text">@Html.Raw(Model.Value<IHtmlEncodedString>("answer")?.ToHtmlString())</div>
+    </div>
+</section>

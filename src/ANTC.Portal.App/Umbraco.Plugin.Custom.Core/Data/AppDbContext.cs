@@ -83,6 +83,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.HandledBy).HasMaxLength(100);
             e.Property(x => x.IpHash).HasMaxLength(64);
             e.HasIndex(x => new { x.Status, x.CreatedAt });
+            e.HasIndex(x => new { x.IpHash, x.CreatedAt });
         });
 
         b.Entity<QuizTopic>(e =>

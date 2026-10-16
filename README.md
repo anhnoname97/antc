@@ -56,10 +56,12 @@ Ba tầng hoạt động thế này: `ANTC.Portal.Core` được đóng gói th�
 | Hạng mục | Ở đâu | Ghi chú |
 |---|---|---|
 | CSDL Umbraco | `Umbraco.Web.UI/umbraco/Data/Umbraco.sqlite.db` | Tự tạo ở lần chạy đầu, không commit |
-| Document type, template, nội dung mẫu | `Umbraco.Web.UI/uSync/v18/` | 9 loại trang, 2 loại dữ liệu danh mục/bài viết, 4 loại document tổ chức cây, composition `seoBase`, các phần tử cấu hình dùng chung, 11 template, 36 nút nội dung và 5 ảnh mẫu; giữ 57 Block đã pull |
+| Document type, template, nội dung mẫu | `Umbraco.Web.UI/uSync/v18/` | 9 loại trang, 3 loại dữ liệu danh mục/bài viết/câu trả lời công khai, 4 loại document tổ chức cây, composition `seoBase`, các phần tử cấu hình dùng chung, 12 template, 36 nút nội dung và 5 ảnh mẫu; giữ 57 Block đã pull |
 | CSDL ứng dụng (8 bảng) | `Custom.Core/Data/` | EF Core + SQLite, file `App_Data/app.sqlite.db`, migration tự chạy khi khởi động |
 | Ngân hàng câu hỏi | `Custom.Core/Data/Seed/*.json` → bảng `quiz_topic`, `quiz_question` | 8 chuyên đề, 200 câu, 8 câu Thử sức |
 | API đọc câu hỏi | `Custom.Api/Controllers/QuizController.cs` | `GET /api/v1/quiz/topics`, `/topics/{n}/questions`, `/sample` |
+| API nhận Hỏi – Đáp và góp ý | `Custom.Api/Controllers/QuestionsController.cs` | `POST /api/v1/questions`; kiểm tra dữ liệu, ô bẫy, 5 lần tiếp nhận/IP/60 phút |
+| Quản trị Hỏi – Đáp | `/quan-tri/hoi-dap` | Razor Pages, phiên backoffice và nhóm Quản trị cuộc thi; lọc, xử lý trên dòng, CSV UTF-8 BOM |
 | File tĩnh | `Umbraco.Web.UI/wwwroot/assets/` | Font Manrope, GSAP 3.12.5, 5 ảnh hero, biến thiết kế, CSS nền |
 | Layout và các trang | `Umbraco.Web.UI/Views/` | Mỗi template render layout chung và tiêu đề nút nội dung, sẵn sàng để FE dựng giao diện |
 | Thuộc tính bố cục | `layout` trên 9 loại trang | Block Grid để trống; danh mục/bài viết trong kho dữ liệu không có Bố cục |
@@ -71,7 +73,7 @@ Chi tiết cây nội dung, kiểu dữ liệu và dữ liệu mẫu: [Cây tran
 
 Màn hình các trang mở vào tab **Bố cục**; kho Thủ đoạn, danh mục và Chính sách mở **collection danh sách**. Trang Chính sách có Bố cục riêng, tách khỏi kho văn bản. Thông tin dùng chung nằm tại nút gốc **An toàn tài chính**, trong các tab **Thông tin chung**, **Đầu trang**, **Chân trang**. Picker menu chỉ chọn trong cây trang; picker chính sách chỉ chọn văn bản thuộc kho Chính sách. Xem URL tại tab **Thông tin** có sẵn của Umbraco.
 
-Trang Cuộc thi chỉ có Bố cục và SEO, đã bỏ Cài đặt cuộc thi. Hỏi – Đáp chỉ là trang hiển thị; đã bỏ `qaItem` nhập tay. Luồng gửi câu hỏi, kiểm duyệt và trả lời dùng dữ liệu nghiệp vụ `question_submission`, chưa triển khai chức năng trong lượt sửa cấu trúc này.
+Trang Cuộc thi chỉ có Bố cục và SEO, đã bỏ Cài đặt cuộc thi. Câu hỏi và góp ý được tiếp nhận qua API-06, xử lý tại `/quan-tri/hoi-dap` bằng bảng `question_submission`. Câu trả lời công khai được biên tập thủ công thành `qaItem` dưới trang Hỏi – Đáp; dữ liệu biểu mẫu không tự trở thành nội dung công khai. Chi tiết hợp đồng API, phân quyền, CSV và cách công bố: [Hỏi – Đáp và góp ý](docs/api/hoi-dap.md).
 
 ## Làm việc hằng ngày
 
@@ -127,4 +129,4 @@ Phiên bản core mà App dùng nằm ở một chỗ duy nhất: `UmbracoCoreVe
 - FE dựng giao diện trên các template đã có; cài đặt chung, SEO, danh mục và bài viết đã có cấu trúc nhập liệu. Xem tài liệu cây trang để lấy đúng alias và các giá trị dropdown tiếng Việt.
 - Nhập thông tin chủ quản, nguồn kiểm chứng và cấu hình cuộc thi chính thức trước khi phát hành. Các giá trị trong ngoặc vuông và ngày kiểm chứng số khẩn cấp 28/8/2026 là dữ liệu giữ chỗ.
 - Khi restore, NuGet cảnh báo lỗ hổng của `SixLabors.ImageSharp 3.1.12` (gói mà Umbraco 18.2.1 kéo theo). Cần xem có bản vá để ghim trong `Directory.Packages.props` trước khi vận hành.
-- Các API cuộc thi, hỏi đáp, trang quản trị, nhập ma trận câu hỏi: làm theo file kế hoạch trong `docs/ke-hoach`.
+- Form website FE-22 và danh sách câu trả lời FE-23 gọi API Hỏi – Đáp/đọc `qaItem` đã có. Các phần cuộc thi, quay số và nhập ma trận câu hỏi còn lại làm theo kế hoạch trong `docs/ke-hoach`.
