@@ -30,3 +30,8 @@ Thumbs.db
 
 # Chu y - KHONG bo qua *.nupkg: feed src/ANTC.Portal.Lib/Build.Core phai duoc commit
 # de moi nguoi chay duoc App ma khong can build core.
+# Added by code-review-graph
+.code-review-graph/
+
+# Cau hinh MCP chua duong dan rieng cua tung may (sinh lai bang code-review-graph install)
+.mcp.json
