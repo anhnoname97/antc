@@ -59,6 +59,33 @@ public record AttachContactResult(AttachContactDto? Contact, ContestError? Error
     public static AttachContactResult Fail(ContestError error) => new(null, error);
 }
 
+/// <summary>Than yeu cau API-05; Contact chi dung cho luot an danh.</summary>
+public record SubmitRequest(ContactRequest? Contact);
+
+/// <summary>Diem tung chuyen de trong ket qua nop bai.</summary>
+public record TopicScoreDto(
+    [property: JsonPropertyName("cd")] string Cd,
+    [property: JsonPropertyName("correct")] int Correct,
+    [property: JsonPropertyName("count")] int Count);
+
+/// <summary>Ket qua API-05.</summary>
+public record SubmitDto(
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("code")] string Code,
+    [property: JsonPropertyName("mode")] string Mode,
+    [property: JsonPropertyName("score")] int Score,
+    [property: JsonPropertyName("answered")] int Answered,
+    [property: JsonPropertyName("total")] int Total,
+    [property: JsonPropertyName("eligibleForPrize")] bool EligibleForPrize,
+    [property: JsonPropertyName("submittedAt")] string SubmittedAt,
+    [property: JsonPropertyName("byTopic")] IReadOnlyList<TopicScoreDto> ByTopic);
+
+public record SubmitResult(SubmitDto? Result, ContestError? Error)
+{
+    public static SubmitResult Ok(SubmitDto result) => new(result, null);
+    public static SubmitResult Fail(ContestError error) => new(null, error);
+}
+
 public interface IContestAttemptService
 {
     /// <summary>Tra luot thi theo token (header X-Entry-Token); null neu thieu hoac khong khop.</summary>
@@ -72,9 +99,12 @@ public interface IContestAttemptService
 
     /// <summary>API-04: gan thong tin du thi vao luot an danh.</summary>
     Task<AttachContactResult> AttachContactAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default);
+
+    /// <summary>API-05: nop bai (kem thong tin cho luot an danh neu co); nop lai tra ket qua cu.</summary>
+    Task<SubmitResult> SubmitAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default);
 }
 
-/// <summary>Cac API /me cua luot thi (BE-23, BE-24). Hien co xac thuc token, API-02, API-03 va API-04.</summary>
+/// <summary>Cac API /me cua luot thi (BE-23, BE-24). Gom xac thuc token va API-02 den API-05.</summary>
 public class ContestAttemptService : IContestAttemptService
 {
     private readonly AppDbContext _db;
@@ -118,9 +148,8 @@ public class ContestAttemptService : IContestAttemptService
 
     public async Task<SaveAnswerResult> SaveAnswerAsync(Entry entry, string? q, string? a, CancellationToken ct = default)
     {
-        // Doc cai dat ngoai khoa ghi; khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
+        // Doc cai dat ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa. Khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
         var settings = await _settings.GetAsync();
-        bool open = settings is not null && _settings.GetStatus(settings, DateTime.UtcNow) == ContestStatus.Open;
 
         // So khop chu cai phan biet hoa thuong nhu du lieu, khong tu doi
         var bank = _bank.Current;
@@ -140,7 +169,7 @@ public class ContestAttemptService : IContestAttemptService
                 return SaveAnswerResult.Fail(new("ALREADY_SUBMITTED", "Lượt thi này đã được nộp bài."));
             }
 
-            if (!open)
+            if (!IsOpen(settings))
             {
                 return SaveAnswerResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
             }
@@ -172,22 +201,34 @@ public class ContestAttemptService : IContestAttemptService
                 AnsweredAt = DateTime.UtcNow
             };
             _db.EntryAnswers.Add(row);
-            await _db.SaveChangesAsync(ct);
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                // Tien trinh khac da ghi cau nay (khoa chinh): doc lai dong dang co, tra stored=false
+                _db.ChangeTracker.Clear();
+                var stored = await _db.EntryAnswers.AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.EntryId == entry.Id && x.QuestionCode == key.Code, ct);
+                if (stored is null) throw;
+                return SaveAnswerResult.Ok(new(stored.QuestionCode, stored.Chosen, stored.IsCorrect, false));
+            }
+
             await tx.CommitAsync(ct);
             return SaveAnswerResult.Ok(new(row.QuestionCode, row.Chosen, row.IsCorrect, true));
         }
         finally
         {
-            ContestEntryService.WriteLock.Release();
             _db.ChangeTracker.Clear();
+            ContestEntryService.WriteLock.Release();
         }
     }
 
     public async Task<AttachContactResult> AttachContactAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default)
     {
-        // Doc cai dat ngoai khoa ghi; khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
+        // Doc cai dat ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa. Khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
         var settings = await _settings.GetAsync();
-        bool open = settings is not null && _settings.GetStatus(settings, DateTime.UtcNow) == ContestStatus.Open;
 
         await ContestEntryService.WriteLock.WaitAsync(ct);
         try
@@ -206,7 +247,7 @@ public class ContestAttemptService : IContestAttemptService
                 return AttachContactResult.Fail(new("ALREADY_NAMED", "Lượt thi này đã có thông tin dự thi."));
             }
 
-            if (!open)
+            if (!IsOpen(settings))
             {
                 return AttachContactResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
             }
@@ -239,10 +280,107 @@ public class ContestAttemptService : IContestAttemptService
         }
         finally
         {
-            ContestEntryService.WriteLock.Release();
             _db.ChangeTracker.Clear();
+            ContestEntryService.WriteLock.Release();
         }
     }
+
+    public async Task<SubmitResult> SubmitAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default)
+    {
+        // Doc cai dat ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa
+        var settings = await _settings.GetAsync();
+        var bank = _bank.Current;
+
+        await ContestEntryService.WriteLock.WaitAsync(ct);
+        try
+        {
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            // Doc lai luot co theo doi trong khoa: entry tu AuthenticateAsync khong theo doi va co the da cu
+            var current = await _db.Entries.FirstAsync(e => e.Id == entry.Id, ct);
+            var rows = await _db.EntryAnswers.AsNoTracking()
+                .Where(a => a.EntryId == current.Id)
+                .Select(a => new { a.QuestionCode, a.Topic, a.IsCorrect })
+                .ToListAsync(ct);
+
+            // Da nop: tra lai ket qua da luu bat ke thoi gian, bo qua than yeu cau
+            if (current.Status == EntryStatuses.Submitted)
+            {
+                return SubmitResult.Ok(BuildResult(current, current.Answered, current.TotalQuestions ?? bank.TotalQuestions,
+                    rows.Where(r => r.IsCorrect).Select(r => r.Topic), bank));
+            }
+
+            if (settings is null || !_settings.IsSubmitOpen(settings, DateTime.UtcNow))
+            {
+                return SubmitResult.Fail(new("CONTEST_CLOSED", "Cuộc thi đã hết hạn nộp bài."));
+            }
+
+            // Du cau: moi ma cau trong ban chup hien tai deu co dap an; cau da ngung dung khong tinh
+            int total = bank.TotalQuestions;
+            int covered = rows.Count(r => bank.Keys.ContainsKey(r.QuestionCode));
+            if (covered < total)
+            {
+                return SubmitResult.Fail(new("INCOMPLETE_ANSWERS",
+                    $"Bạn mới trả lời {covered}/{total} câu. Hãy trả lời hết các câu rồi nộp bài."));
+            }
+
+            if (current.Mode == EntryModes.Anon && contact is not null)
+            {
+                var fields = ContestEntryService.Validate(
+                    contact.FullName, contact.Phone, contact.Org, contact.Consent,
+                    out string? fullName, out string? phone, out string? org);
+                if (fields.Count > 0)
+                {
+                    return SubmitResult.Fail(new("VALIDATION", fields.Values.First(), fields));
+                }
+
+                int maxAttempts = settings.MaxAttempts;
+                int used = await _db.Entries.CountAsync(e => e.Phone == phone, ct);
+                if (used >= maxAttempts)
+                {
+                    return SubmitResult.Fail(new("ATTEMPT_LIMIT",
+                        $"Số {phone} đã dùng hết {maxAttempts} lượt thi. Mỗi số điện thoại chỉ được thi tối đa {maxAttempts} lượt."));
+                }
+
+                current.Mode = EntryModes.Named;
+                current.FullName = fullName;
+                current.Phone = phone;
+                current.Org = org;
+                current.ConsentAt = DateTime.UtcNow;
+                current.AttemptNo = used + 1;
+            }
+
+            current.Status = EntryStatuses.Submitted;
+            current.Answered = rows.Count;
+            current.Score = rows.Count(r => r.IsCorrect);
+            current.TotalQuestions = total;
+            current.SubmittedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            return SubmitResult.Ok(BuildResult(current, rows.Count, total, rows.Where(r => r.IsCorrect).Select(r => r.Topic), bank));
+        }
+        finally
+        {
+            _db.ChangeTracker.Clear();
+            ContestEntryService.WriteLock.Release();
+        }
+    }
+
+    // Moi chuyen de dang dung theo thu tu cd: correct = so dong dung cua chuyen de, count = so cau dang dung
+    private static SubmitDto BuildResult(Entry e, int answered, int total, IEnumerable<int> correctTopics, QuestionBankSnapshot bank)
+    {
+        var correctByTopic = correctTopics.GroupBy(t => t).ToDictionary(g => g.Key, g => g.Count());
+        var byTopic = bank.Topics
+            .Select(t => new TopicScoreDto(t.Cd, correctByTopic.GetValueOrDefault(int.Parse(t.Cd)), t.Count))
+            .ToList();
+        return new SubmitDto("submitted", e.Code, e.Mode, e.Score ?? 0, answered, total,
+            !string.IsNullOrEmpty(e.Phone), ToIso(e.SubmittedAt!.Value), byTopic);
+    }
+
+    // Cuoc thi dang mo; khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
+    private bool IsOpen(ContestSettings? settings) =>
+        settings is not null && _settings.GetStatus(settings, DateTime.UtcNow) == ContestStatus.Open;
 
     /// <summary>3 so dau + **** + 3 so cuoi; null khi khong co so.</summary>
     private static string? MaskPhone(string? phone) =>
