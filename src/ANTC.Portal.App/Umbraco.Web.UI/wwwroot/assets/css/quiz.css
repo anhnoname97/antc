@@ -2,8 +2,8 @@
 .qeyebrow { margin: 0; display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-eyebrow); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--c-brand-600); }
 .qeyebrow__sq { width: 8px; height: 8px; background: var(--c-accent); flex-shrink: 0; }
 
-.qbar { display: block; width: 100%; height: 4px; margin: 14px 0 24px; border: 0; border-radius: 2px; overflow: hidden; background: var(--c-tint-border); appearance: none; -webkit-appearance: none; }
-.qbar::-webkit-progress-bar { background: var(--c-tint-border); }
+.qbar { display: block; width: 100%; height: 4px; margin: 14px 0 24px; border: 0; border-radius: 2px; overflow: hidden; background: var(--c-track); appearance: none; -webkit-appearance: none; }
+.qbar::-webkit-progress-bar { background: var(--c-track); }
 .qbar::-webkit-progress-value { background: var(--c-accent); transition: width .4s ease; }
 .qbar::-moz-progress-bar { background: var(--c-accent); }
 
@@ -56,9 +56,9 @@
   transition: background .2s ease, border-color .2s ease;
 }
 .qnav.o { background: var(--c-bg); color: var(--c-brand); border: 1px solid var(--c-border); }
-.qnav.o:hover { border-color: var(--c-brand); background: var(--c-tint); }
+.qnav.o:hover:not(:disabled) { border-color: var(--c-brand); background: var(--c-tint); }
 .qnav.f { background: var(--c-brand); color: #fff; border: 0; padding: 0 24px; }
-.qnav.f:hover { background: var(--c-brand-600); }
+.qnav.f:hover:not(:disabled) { background: var(--c-brand-600); }
 .qnav:disabled, .qnav.f:disabled { background: var(--c-disabled); color: var(--c-text-4); border-color: transparent; cursor: not-allowed; }
 
 .qdots { display: flex; flex-wrap: wrap; gap: 10px; }

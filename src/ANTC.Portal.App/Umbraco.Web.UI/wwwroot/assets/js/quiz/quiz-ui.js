@@ -57,10 +57,12 @@ export function optionsHtml(q, chosen, labelledBy = ID_QUESTION) {
 }
 
 // Khoi ket qua sau khi chon: dong dung/sai, giai thich tung dap an, hanh dong an toan.
-// Luon tra ve vung aria-live; thay noi dung vung nay khi chon xong de trinh doc doc ra.
-export function resultHtml(q, chosen) {
+// Chi tra ve phan ben trong vung aria-live (rong khi chua chon). Trang dat san mot vung .qlive
+// (hoac dung resultHtml de dung ca vung) roi gan resultBodyHtml vao innerHTML cua vung do khi chon xong,
+// de trinh doc man hinh doc ra; khong long hai vung aria-live.
+export function resultBodyHtml(q, chosen) {
   const answered = chosen != null && chosen !== '';
-  if (!answered) return '<div class="qlive" aria-live="polite"></div>';
+  if (!answered) return '';
   const ok = chosen === q.ans;
   const opts = Array.isArray(q.opt) ? q.opt : [];
   const exp = opts.map(([k]) => {
@@ -70,9 +72,14 @@ export function resultHtml(q, chosen) {
   const safe = q.safe
     ? `<div class="qsafe"><b><span class="qeyebrow__sq"></span>Hành động an toàn</b>${esc(q.safe)}</div>`
     : '';
-  return `<div class="qlive" aria-live="polite"><div class="qresult">` +
+  return `<div class="qresult">` +
     `<p id="${ID_RESULT}" class="qresult__head" tabindex="-1"><b class="${ok ? 'qok' : 'qno'}">${ok ? 'Đúng.' : 'Chưa đúng.'}</b> Đáp án phù hợp là <b>${esc(q.ans)}</b>.</p>` +
-    `<div class="qexp">${exp}</div>${safe}</div></div>`;
+    `<div class="qexp">${exp}</div>${safe}</div>`;
+}
+
+// Ca vung aria-live kem noi dung: dung khi dung lai ca cau (vung moi cung noi dung, doc ra nho focusResult).
+export function resultHtml(q, chosen) {
+  return `<div class="qlive" aria-live="polite">${resultBodyHtml(q, chosen)}</div>`;
 }
 
 // Nut dieu huong. kind: 'o' (vien) hoac 'f' (dac). attrs: { 'data-go': 'sum' }.

@@ -20,6 +20,8 @@ export const state = {
   total: null, // tong so cau tu API-02 (khong viet cung)
   score: null,
   submittedAt: null,
+  fullName: null, // tu API-02, de hien o cot ben
+  phoneMasked: null,
   result: null, // ket qua API-05 vua nhan duoc
   answers: new Map(), // ma cau -> { a, correct, cd, pending, stored }
   dropped: new Map(), // ma cau -> ma loi, cho nhung cau bi bo khoi hang doi
@@ -99,6 +101,8 @@ function resetState() {
   state.total = null;
   state.score = null;
   state.submittedAt = null;
+  state.fullName = null;
+  state.phoneMasked = null;
   state.result = null;
   state.answers = new Map();
   state.dropped = new Map();
@@ -196,6 +200,8 @@ function applyServer(d) {
   state.total = d.total;
   state.score = d.score;
   state.submittedAt = d.submittedAt;
+  state.fullName = d.fullName || null;
+  state.phoneMasked = d.phoneMasked || null;
   state.answers = new Map(d.answers.map((x) => [x.q, { a: x.a, correct: x.correct, cd: String(x.cd), pending: false, stored: true }]));
   syncEntry({ code: d.code, mode: d.mode, attemptNo: d.attemptNo, maxAttempts: d.maxAttempts });
   if (d.status === 'submitted') {
