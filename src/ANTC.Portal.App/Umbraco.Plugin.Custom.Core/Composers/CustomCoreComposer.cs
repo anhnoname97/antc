@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
 using Umbraco.Plugin.Custom.Core.Services;
@@ -38,6 +39,11 @@ public class CustomCoreComposer : IComposer
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();
+
+        // Cai dat cuoc thi doc tu trang thiPage, dung chung cho trang va API cuoc thi
+        builder.Services.AddSingleton<IContestSettings, ContestSettingsService>();
+        builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
+        builder.Services.AddHostedService<ContestConfigCheck>();
 
         builder.Services.AddSingleton<IAppInfoService, AppInfoService>();
     }
