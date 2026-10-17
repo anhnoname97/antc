@@ -17,8 +17,13 @@ public class ContestController : ControllerBase
 #pragma warning restore AV0014
 {
     private readonly IContestEntryService _entries;
+    private readonly IContestAttemptService _attempts;
 
-    public ContestController(IContestEntryService entries) => _entries = entries;
+    public ContestController(IContestEntryService entries, IContestAttemptService attempts)
+    {
+        _entries = entries;
+        _attempts = attempts;
+    }
 
     /// <summary>
     /// API-01: tao mot luot thi (co ten hoac an danh). Token chi tra mot lan; khong luu token goc va IP goc.
@@ -42,11 +47,29 @@ public class ContestController : ControllerBase
         return Error(result.Error!);
     }
 
+    /// <summary>
+    /// API-02: lay lai luot thi theo X-Entry-Token (tien do, dap an da luu). Goi duoc o moi trang thai cuoc thi.
+    /// </summary>
+    [HttpGet("entries/me")]
+    public async Task<IActionResult> GetMe(CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        return Ok(await _attempts.GetStateAsync(entry, ct));
+    }
+
     private IActionResult Error(ContestError error)
     {
         int status = error.Code switch
         {
             "VALIDATION" => StatusCodes.Status400BadRequest,
+            "INVALID_TOKEN" => StatusCodes.Status401Unauthorized,
             "CONTEST_CLOSED" => StatusCodes.Status403Forbidden,
             "ATTEMPT_LIMIT" => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
