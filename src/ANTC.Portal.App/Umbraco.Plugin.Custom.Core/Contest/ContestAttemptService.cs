@@ -44,6 +44,21 @@ public record SaveAnswerResult(SaveAnswerDto? Answer, ContestError? Error)
     public static SaveAnswerResult Fail(ContestError error) => new(null, error);
 }
 
+/// <summary>Than yeu cau API-04 (cung dang voi contact cua API-05).</summary>
+public record ContactRequest(string? FullName, string? Phone, string? Org, bool? Consent);
+
+/// <summary>Ket qua API-04.</summary>
+public record AttachContactDto(
+    [property: JsonPropertyName("mode")] string Mode,
+    [property: JsonPropertyName("attemptNo")] int AttemptNo,
+    [property: JsonPropertyName("maxAttempts")] int MaxAttempts);
+
+public record AttachContactResult(AttachContactDto? Contact, ContestError? Error)
+{
+    public static AttachContactResult Ok(AttachContactDto contact) => new(contact, null);
+    public static AttachContactResult Fail(ContestError error) => new(null, error);
+}
+
 public interface IContestAttemptService
 {
     /// <summary>Tra luot thi theo token (header X-Entry-Token); null neu thieu hoac khong khop.</summary>
@@ -54,9 +69,12 @@ public interface IContestAttemptService
 
     /// <summary>API-03: luu dap an mot cau; lan ghi dau thang.</summary>
     Task<SaveAnswerResult> SaveAnswerAsync(Entry entry, string? q, string? a, CancellationToken ct = default);
+
+    /// <summary>API-04: gan thong tin du thi vao luot an danh.</summary>
+    Task<AttachContactResult> AttachContactAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default);
 }
 
-/// <summary>Cac API /me cua luot thi (BE-23, BE-24). Hien co xac thuc token, API-02 va API-03.</summary>
+/// <summary>Cac API /me cua luot thi (BE-23, BE-24). Hien co xac thuc token, API-02, API-03 va API-04.</summary>
 public class ContestAttemptService : IContestAttemptService
 {
     private readonly AppDbContext _db;
@@ -157,6 +175,67 @@ public class ContestAttemptService : IContestAttemptService
             await _db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
             return SaveAnswerResult.Ok(new(row.QuestionCode, row.Chosen, row.IsCorrect, true));
+        }
+        finally
+        {
+            ContestEntryService.WriteLock.Release();
+            _db.ChangeTracker.Clear();
+        }
+    }
+
+    public async Task<AttachContactResult> AttachContactAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default)
+    {
+        // Doc cai dat ngoai khoa ghi; khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
+        var settings = await _settings.GetAsync();
+        bool open = settings is not null && _settings.GetStatus(settings, DateTime.UtcNow) == ContestStatus.Open;
+
+        await ContestEntryService.WriteLock.WaitAsync(ct);
+        try
+        {
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            // Doc lai luot co theo doi trong khoa: entry tu AuthenticateAsync khong theo doi va co the da cu
+            var current = await _db.Entries.FirstAsync(e => e.Id == entry.Id, ct);
+            if (current.Status == EntryStatuses.Submitted)
+            {
+                return AttachContactResult.Fail(new("ALREADY_SUBMITTED", "Lượt thi này đã được nộp bài."));
+            }
+
+            if (current.Mode == EntryModes.Named)
+            {
+                return AttachContactResult.Fail(new("ALREADY_NAMED", "Lượt thi này đã có thông tin dự thi."));
+            }
+
+            if (!open)
+            {
+                return AttachContactResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
+            }
+
+            var fields = ContestEntryService.Validate(
+                contact?.FullName, contact?.Phone, contact?.Org, contact?.Consent,
+                out string? fullName, out string? phone, out string? org);
+            if (fields.Count > 0)
+            {
+                return AttachContactResult.Fail(new("VALIDATION", fields.Values.First(), fields));
+            }
+
+            int maxAttempts = settings!.MaxAttempts;
+            int used = await _db.Entries.CountAsync(e => e.Phone == phone, ct);
+            if (used >= maxAttempts)
+            {
+                return AttachContactResult.Fail(new("ATTEMPT_LIMIT",
+                    $"Số {phone} đã dùng hết {maxAttempts} lượt thi. Mỗi số điện thoại chỉ được thi tối đa {maxAttempts} lượt."));
+            }
+
+            current.Mode = EntryModes.Named;
+            current.FullName = fullName;
+            current.Phone = phone;
+            current.Org = org;
+            current.ConsentAt = DateTime.UtcNow;
+            current.AttemptNo = used + 1;
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return AttachContactResult.Ok(new(current.Mode, used + 1, maxAttempts));
         }
         finally
         {
