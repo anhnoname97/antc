@@ -42,7 +42,7 @@ public class ContestEntryService : IContestEntryService
     private const int MaxCodeTries = 10;
 
     // Mot khoa cho ca tien trinh; SQLite chi co mot nguoi ghi, nen khong them gi cho don gian
-    private static readonly SemaphoreSlim WriteLock = new(1, 1);
+    internal static readonly SemaphoreSlim WriteLock = new(1, 1);
 
     private static readonly Regex PhonePattern = new(@"^0\d{9}$", RegexOptions.Compiled);
 
@@ -70,7 +70,7 @@ public class ContestEntryService : IContestEntryService
         string? fullName = null, phone = null, org = null;
         if (mode == EntryModes.Named)
         {
-            var fields = Validate(request, out fullName, out phone, out org);
+            var fields = Validate(request.FullName, request.Phone, request.Org, request.Consent, out fullName, out phone, out org);
             if (fields.Count > 0)
             {
                 return CreateEntryResult.Fail(new("VALIDATION", fields.Values.First(), fields));
@@ -132,13 +132,17 @@ public class ContestEntryService : IContestEntryService
         }
     }
 
-    /// <summary>Kiem tra lai phia may chu, khong tin du lieu da chuan hoa tu trinh duyet.</summary>
-    private static Dictionary<string, string> Validate(
-        CreateEntryRequest r, out string? fullName, out string? phone, out string? org)
+    /// <summary>
+    /// Kiem tra lai phia may chu, khong tin du lieu da chuan hoa tu trinh duyet.
+    /// Dung chung cho API-01 va thong tin (contact) cua API-04, API-05.
+    /// </summary>
+    internal static Dictionary<string, string> Validate(
+        string? rawFullName, string? rawPhone, string? rawOrg, bool? consent,
+        out string? fullName, out string? phone, out string? org)
     {
         var fields = new Dictionary<string, string>();
 
-        fullName = r.FullName?.Trim();
+        fullName = rawFullName?.Trim();
         if (string.IsNullOrEmpty(fullName))
         {
             fields["fullName"] = "Chưa có họ tên. Ban Tổ chức cần tên để xác minh khi trao giải.";
@@ -148,13 +152,13 @@ public class ContestEntryService : IContestEntryService
             fields["fullName"] = "Họ tên cần từ 2 đến 100 ký tự.";
         }
 
-        phone = NormalizePhone(r.Phone);
+        phone = NormalizePhone(rawPhone);
         if (!PhonePattern.IsMatch(phone))
         {
             fields["phone"] = "Số điện thoại chưa đúng. Nhập số bạn đang dùng, chỉ gồm chữ số.";
         }
 
-        org = r.Org?.Trim();
+        org = rawOrg?.Trim();
         if (string.IsNullOrEmpty(org))
         {
             org = null;
@@ -164,7 +168,7 @@ public class ContestEntryService : IContestEntryService
             fields["org"] = "Đơn vị tối đa 150 ký tự.";
         }
 
-        if (r.Consent != true)
+        if (consent != true)
         {
             fields["consent"] = "Cần tích ô đồng ý với Thể lệ và nội dung xử lý dữ liệu thì mới vào thi được.";
         }

@@ -19,6 +19,11 @@ public interface IContestSettings
     /// thieu ngay hoac start &gt;= end thi coi la chua mo.
     /// </summary>
     ContestStatus GetStatus(ContestSettings settings, DateTime nowUtc);
+
+    /// <summary>
+    /// Con han nop bai (API-05): now &lt; end + submitGraceHours. Thieu ngay hoac start &gt;= end thi false (QD-014).
+    /// </summary>
+    bool IsSubmitOpen(ContestSettings settings, DateTime nowUtc);
 }
 
 /// <summary>
@@ -70,7 +75,8 @@ public class ContestSettingsService : IContestSettings
     public ContestSettings Read(IPublishedContent page) => new(
         ReadDate(page, "contestStart"),
         ReadDate(page, "contestEnd"),
-        ContestSettings.NormalizeMaxAttempts(page.Value<int?>(_fallback, "maxAttempts")));
+        ContestSettings.NormalizeMaxAttempts(page.Value<int?>(_fallback, "maxAttempts")),
+        ContestSettings.NormalizeSubmitGraceHours(page.Value<int?>(_fallback, "submitGraceHours")));
 
     // Thuoc tinh ngay de trong co the tra ve DateTime.MinValue thay vi null
     private DateTime? ReadDate(IPublishedContent page, string alias)
@@ -92,5 +98,12 @@ public class ContestSettingsService : IContestSettings
         var endUtc = DateTime.SpecifyKind(end - VietnamOffset, DateTimeKind.Utc);
         if (nowUtc < startUtc) return ContestStatus.Upcoming;
         return nowUtc < endUtc ? ContestStatus.Open : ContestStatus.Closed;
+    }
+
+    public bool IsSubmitOpen(ContestSettings settings, DateTime nowUtc)
+    {
+        if (settings.Start is not { } start || settings.End is not { } end || start >= end) return false;
+        var deadlineUtc = DateTime.SpecifyKind(end - VietnamOffset, DateTimeKind.Utc).AddHours(settings.SubmitGraceHours);
+        return nowUtc < deadlineUtc;
     }
 }
