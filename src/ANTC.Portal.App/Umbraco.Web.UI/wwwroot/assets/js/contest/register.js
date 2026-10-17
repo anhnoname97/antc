@@ -120,8 +120,12 @@ async function submit(payload) {
   }
   if (result.ok) {
     saveEntry(result.data);
-    setBusy(false);
-    if (registeredHandler) await registeredHandler();
+    // Giu nut khoa cho toi khi man hinh da chuyen (API-02 co the cham), tranh dang ky lan hai tao them luot
+    try {
+      if (registeredHandler) await registeredHandler();
+    } finally {
+      setBusy(false);
+    }
     return;
   }
   setBusy(false);

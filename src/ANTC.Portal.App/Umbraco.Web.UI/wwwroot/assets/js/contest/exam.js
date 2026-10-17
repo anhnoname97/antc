@@ -252,17 +252,26 @@ async function route(focus) {
   if (focus) focusHeading(document.getElementById('eh'));
 }
 
+// Selector tim lai phan tu dang giu focus sau khi dung lai HTML (lien ket, nut bat dau, nut thu lai)
+function focusSelector(el) {
+  const href = el.getAttribute('href');
+  if (href) return `[href="${href}"]`;
+  if (el.dataset.start !== undefined) return `[data-start="${el.dataset.start}"]`;
+  if (el.dataset.retry !== undefined) return '[data-retry]';
+  return null;
+}
+
 // Tien do doi (tra loi, gui lai xong): ve lai ma khong cuop focus
 function refresh() {
   if (!current || current.view === 'register' || !topics) return;
   const active = document.activeElement;
-  const keep = active && examView.contains(active) ? active.getAttribute('href') : null;
+  const keep = active && examView.contains(active) ? focusSelector(active) : null;
   const want = current;
   if (want.view === 'intro' && isLocked(want.cd, progress())) { route(false); return; }
   examView.innerHTML = want.view === 'intro' ? introHtml(topicOf(want.cd)) : menuHtml();
   renderSide(want.view);
   if (keep) {
-    const again = examView.querySelector(`[href="${keep}"]`);
+    const again = examView.querySelector(keep);
     if (again) again.focus({ preventScroll: true });
   }
 }
@@ -295,6 +304,12 @@ if (practiceLink) {
 window.addEventListener('hashchange', () => route(true));
 on('change', refresh);
 on('submitted', refresh);
+// Tab khac doi luot thi: dung lai tien do tu may chu roi ve man hinh theo luot moi
+on('entry-changed', async () => {
+  const r = await init();
+  offline = !!r.offline;
+  await route(false);
+});
 on('token', () => {
   // Token bi tu choi, luot da bi xoa: ve man dang ky
   offline = false;

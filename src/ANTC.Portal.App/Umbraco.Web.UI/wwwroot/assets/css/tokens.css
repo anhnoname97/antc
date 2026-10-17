@@ -33,6 +33,9 @@
   --c-ok-border: #BFE0C8;
   --c-disabled: #E7DCDB;
   --c-track: #F1E4E2; /* nen thanh tien do */
+  --c-lock-bg: #FAFAFA; /* hang chuyen de bi khoa */
+  --c-lock-n: #EFEFEF;
+  --c-lock-text: #8A8A8A;
 
   /* Chu */
   --font: "Manrope", system-ui, sans-serif;
