@@ -213,7 +213,7 @@ export async function init() {
     }
     // Mang/may chu loi: giu luot da luu, dung tien do tu hang doi; flush() se lay lai API-02 khi co mang
     overlayQueue();
-    scheduleRetry();
+    scheduleRetry(r.error.retryAfter);
     return { view: 'exam', practice: false, offline: true, error: r.error };
   }
   applyServer(r.data);
@@ -236,7 +236,7 @@ function applyServer(d) {
     dropEntryQueue(state.entry.code);
   } else {
     // May chu da giu cau nao thi khong gui lai cau do
-    writeQueue(readQueue().filter((x) => !state.answers.has(x.q)));
+    writeQueue(readQueue().filter((x) => !(x.entry === state.entry.code && state.answers.has(x.q))));
   }
 }
 
@@ -270,7 +270,8 @@ export async function answer(q, a, cd, correct) {
   emit('change');
   await flush();
   const v = state.answers.get(q);
-  if (v) return view(v);
+  // Dong bo lai co the thay bang dap an may chu giu: khac dap an vua chon thi stored=false
+  if (v) return view(v.a !== a ? { ...v, stored: false } : v);
   return { ok: false, code: state.dropped.get(q) || 'INVALID_TOKEN' };
 }
 
