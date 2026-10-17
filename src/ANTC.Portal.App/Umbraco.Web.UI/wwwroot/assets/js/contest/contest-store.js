@@ -2,7 +2,7 @@
 // May chu la nguon dung: init() goi API-02 va dung lai tien do. Che do luyen tap khong goi /api/v1/contest.
 import {
   getMe, saveAnswer, attachContact as apiAttachContact, submitEntry as apiSubmitEntry,
-  loadEntry, saveEntry, markPractice, fetchTopics, fetchQuestions,
+  loadEntry, saveEntry, clearEntry, markPractice, fetchTopics, fetchQuestions,
 } from './contest-api.js';
 
 const KEY_ENTRY = 'at_entry';
@@ -17,6 +17,7 @@ export const state = {
   practice: false, // dang o che do luyen tap (khong goi API)
   entry: null, // { code, token, mode, attemptNo, maxAttempts }
   status: 'in_progress', // in_progress | submitted
+  synced: false, // da lay duoc tien do tu may chu (API-02) chua; false thi tu lay lai khi co mang
   total: null, // tong so cau tu API-02 (khong viet cung)
   score: null,
   submittedAt: null,
@@ -29,7 +30,8 @@ export const state = {
 
 const listeners = new Map();
 
-// Su kien: 'change' (tien do doi), 'token' (token khong hop le, da xoa luot), 'submitted' (may chu bao da nop), 'dropped' (mot cau bi bo)
+// Su kien: 'change' (tien do doi), 'token' (token khong hop le, da xoa luot), 'submitted' (may chu bao da nop), 'dropped' (mot cau bi bo),
+// 'entry-changed' (at_entry doi sang luot khac o tab khac: man hinh goi lai init())
 export function on(name, fn) {
   if (!listeners.has(name)) listeners.set(name, new Set());
   listeners.get(name).add(fn);
@@ -42,21 +44,31 @@ function emit(name, detail) {
   }
 }
 
-// localStorage co the bi chan nen moi thao tac bo try/catch.
+// localStorage co the bi chan nen moi thao tac bo try/catch. Giu them ban trong bo nho:
+// khi localStorage loi thi van lam duoc trong phien (tai lai thi mat).
+const mem = new Map();
+let storageBroken = false;
+
 function readJson(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch (e) {
-    return fallback;
+  if (!storageBroken) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+      storageBroken = true;
+    }
   }
+  return mem.has(key) ? JSON.parse(mem.get(key)) : fallback;
 }
 
 function writeJson(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* bo qua */ }
+  const raw = JSON.stringify(value);
+  mem.set(key, raw);
+  try { localStorage.setItem(key, raw); } catch (e) { storageBroken = true; }
 }
 
 function remove(key) {
+  mem.delete(key);
   try { localStorage.removeItem(key); } catch (e) { /* bo qua */ }
 }
 
@@ -89,6 +101,11 @@ function pruneQueue(code) {
   if (keep.length !== q.length) writeQueue(keep);
 }
 
+// Bo cac muc hang doi cua mot luot (khong dung toi luot khac)
+function dropEntryQueue(code) {
+  writeQueue(readQueue().filter((x) => x.entry !== code));
+}
+
 export function pendingCount() {
   return state.entry ? readQueue().filter((x) => x.entry === state.entry.code).length : 0;
 }
@@ -98,6 +115,7 @@ export function pendingCount() {
 function resetState() {
   state.entry = null;
   state.status = 'in_progress';
+  state.synced = false;
   state.total = null;
   state.score = null;
   state.submittedAt = null;
@@ -108,10 +126,17 @@ function resetState() {
   state.dropped = new Map();
 }
 
-// Token khong hop le: xoa luot va hang doi (khong dung toi tien do luyen tap)
+// Token khong hop le: xoa luot va hang doi (khong dung toi tien do luyen tap).
+// Neu at_entry da doi sang luot khac o tab khac thi giu nguyen luot do va hang doi cua no.
 function clearSession() {
-  remove(KEY_ENTRY);
-  remove(KEY_QUEUE);
+  const cur = loadEntry();
+  const code = state.entry && state.entry.code;
+  if (!cur || !state.entry || cur.token === state.entry.token) {
+    clearEntry();
+    remove(KEY_QUEUE);
+  } else if (code) {
+    writeQueue(readQueue().filter((x) => x.entry !== code));
+  }
   resetState();
   clearTimeout(retryTimer);
   attempt = 0;
@@ -120,7 +145,8 @@ function clearSession() {
 
 function syncEntry(patch) {
   const cur = loadEntry();
-  if (!cur) return;
+  // Chi cap nhat khi at_entry van la luot dang lam (tab khac co the da doi sang luot khac)
+  if (!cur || !state.entry || cur.token !== state.entry.token) return;
   state.entry = saveEntry({ ...cur, ...patch });
 }
 
@@ -176,7 +202,8 @@ export async function init() {
   }
   pruneQueue(entry.code);
   state.entry = entry;
-  const r = await getMe();
+  const r = await getMe(entry.token);
+  if (state.entry !== entry) return { view: 'register', practice: state.practice };
   if (!r.ok) {
     if (r.error.code === 'INVALID_TOKEN') {
       clearSession();
@@ -184,7 +211,7 @@ export async function init() {
       if (state.practice) state.answers = loadPracticeAnswers();
       return { view: 'register', practice: state.practice };
     }
-    // Mang/may chu loi: giu luot da luu, dung tien do tu hang doi, thu gui lai sau
+    // Mang/may chu loi: giu luot da luu, dung tien do tu hang doi; flush() se lay lai API-02 khi co mang
     overlayQueue();
     scheduleRetry();
     return { view: 'exam', practice: false, offline: true, error: r.error };
@@ -196,6 +223,7 @@ export async function init() {
 }
 
 function applyServer(d) {
+  state.synced = true;
   state.status = d.status;
   state.total = d.total;
   state.score = d.score;
@@ -205,7 +233,7 @@ function applyServer(d) {
   state.answers = new Map(d.answers.map((x) => [x.q, { a: x.a, correct: x.correct, cd: String(x.cd), pending: false, stored: true }]));
   syncEntry({ code: d.code, mode: d.mode, attemptNo: d.attemptNo, maxAttempts: d.maxAttempts });
   if (d.status === 'submitted') {
-    remove(KEY_QUEUE);
+    dropEntryQueue(state.entry.code);
   } else {
     // May chu da giu cau nao thi khong gui lai cau do
     writeQueue(readQueue().filter((x) => !state.answers.has(x.q)));
@@ -262,16 +290,37 @@ export function flush() {
   flushing = (async () => {
     do {
       rerun = false;
+      if (!state.synced && !(await resync())) return;
       await drain();
     } while (rerun);
   })().finally(() => { flushing = null; });
   return flushing;
 }
 
-function scheduleRetry() {
+// retryAfter (giay, tu Retry-After cua 429) neu co thi khong thu lai som hon
+function scheduleRetry(retryAfter) {
   clearTimeout(retryTimer);
-  retryTimer = setTimeout(flush, RETRY_MS[Math.min(attempt, RETRY_MS.length - 1)]);
+  const ms = Math.max(RETRY_MS[Math.min(attempt, RETRY_MS.length - 1)], retryAfter ? retryAfter * 1000 : 0);
+  retryTimer = setTimeout(flush, ms);
   attempt++;
+}
+
+// Chua lay duoc tien do tu may chu (init gap loi mang): lay lai API-02, dung lai tien do roi moi gui hang doi.
+// Tra ve true neu da dong bo va con lam tiep duoc; false thi da hen thu lai, da xoa luot hoac da nop.
+async function resync() {
+  const entry = state.entry;
+  const r = await getMe(entry.token);
+  if (state.entry !== entry) return false;
+  if (!r.ok) {
+    if (r.error.code === 'INVALID_TOKEN') clearSession();
+    else scheduleRetry(r.error.retryAfter);
+    return false;
+  }
+  applyServer(r.data);
+  overlayQueue();
+  emit('change');
+  if (state.status === 'submitted') emit('submitted');
+  return state.status !== 'submitted';
 }
 
 function dropItem(item, code) {
@@ -284,13 +333,11 @@ function dropItem(item, code) {
 async function drain() {
   clearTimeout(retryTimer);
   const code = state.entry && state.entry.code;
+  const token = state.entry && state.entry.token;
   for (const item of readQueue()) {
     if (!state.entry || state.entry.code !== code) return;
-    if (item.entry !== code) {
-      dequeue(item);
-      continue;
-    }
-    const r = await saveAnswer(item.q, item.a);
+    if (item.entry !== code) continue; // muc cua luot khac: de nguyen, init() cua luot do hoac luot moi se don
+    const r = await saveAnswer(item.q, item.a, token);
     if (state.entry === null || state.entry.code !== code) return;
     if (r.ok) {
       dequeue(item);
@@ -305,7 +352,7 @@ async function drain() {
       return;
     }
     if (c === 'ALREADY_SUBMITTED') {
-      for (const x of readQueue()) dropItem(x, c);
+      for (const x of readQueue()) if (x.entry === code) dropItem(x, c);
       state.status = 'submitted';
       emit('submitted');
       break;
@@ -315,13 +362,22 @@ async function drain() {
       continue;
     }
     // NETWORK, SERVER, RATE_LIMITED va ma la: giu trong hang doi, gui lai sau
-    scheduleRetry();
+    scheduleRetry(r.error.retryAfter);
     break;
   }
   emit('change');
 }
 
 if (typeof window !== 'undefined') {
+  // at_entry doi sang luot khac o tab khac: dung gui, bao man hinh dung lai bang init()
+  window.addEventListener('storage', (ev) => {
+    if (ev.key !== KEY_ENTRY || !state.entry || state.practice) return;
+    const cur = loadEntry();
+    if (!cur || cur.token !== state.entry.token) {
+      clearTimeout(retryTimer);
+      emit('entry-changed', { code: cur ? cur.code : null });
+    }
+  });
   // Co mang tro lai: gui ngay, khong cho het chu ky
   window.addEventListener('online', () => {
     attempt = 0;
@@ -338,7 +394,8 @@ function handleAuth(r) {
 
 // API-04: gan thong tin vao luot an danh
 export async function attachContact(contact) {
-  const r = handleAuth(await apiAttachContact(contact));
+  if (!state.entry) return { ok: false, error: { code: 'INVALID_TOKEN', message: '', fields: {} } };
+  const r = handleAuth(await apiAttachContact(contact, state.entry.token));
   if (r.ok) syncEntry({ mode: r.data.mode, attemptNo: r.data.attemptNo, maxAttempts: r.data.maxAttempts });
   return r;
 }
@@ -346,16 +403,23 @@ export async function attachContact(contact) {
 // API-05: gui het hang doi truoc; con muc chua gui thi khong nop (code QUEUE_PENDING)
 export async function submit(contact) {
   await flush();
-  if (pendingCount()) return { ok: false, error: { code: 'QUEUE_PENDING', message: 'Đang lưu đáp án, hãy thử lại sau.', fields: null } };
-  const r = handleAuth(await apiSubmitEntry(contact));
+  if (!state.entry) return { ok: false, error: { code: 'INVALID_TOKEN', message: '', fields: {} } };
+  if (pendingCount()) return { ok: false, error: { code: 'QUEUE_PENDING', message: 'Đang lưu đáp án, hãy thử lại sau.', fields: {} } };
+  const entry = state.entry;
+  const r = handleAuth(await apiSubmitEntry(contact, entry.token));
   if (r.ok) {
     state.status = 'submitted';
     state.result = r.data;
     state.score = r.data.score;
     state.total = r.data.total;
     state.submittedAt = r.data.submittedAt;
-    remove(KEY_QUEUE);
+    dropEntryQueue(entry.code);
     syncEntry({ mode: r.data.mode });
+    // Nop kem contact: API-05 khong tra attemptNo, lay lai tu API-02
+    if (contact && entry.mode === 'anon') {
+      const me = await getMe(entry.token);
+      if (me.ok) syncEntry({ mode: me.data.mode, attemptNo: me.data.attemptNo, maxAttempts: me.data.maxAttempts });
+    }
     emit('change');
   }
   return r;

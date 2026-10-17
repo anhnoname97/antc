@@ -52,16 +52,16 @@ async function mockCreateEntry(payload, mode) {
 }
 
 function fail(code, message, fields) {
-  return { ok: false, error: { code, message, fields: fields || null } };
+  return { ok: false, error: { code, message, fields: fields || {} } };
 }
 
 // Doc loi o dang { error:{ code, message, fields } } hoac dang thieu fields { code, message }.
 export function readError(body, status) {
   const e = body && typeof body === 'object' ? (body.error && typeof body.error === 'object' ? body.error : body) : null;
   if (e && typeof e.code === 'string') {
-    return { code: e.code, message: String(e.message ?? ''), fields: e.fields && typeof e.fields === 'object' ? e.fields : null };
+    return { code: e.code, message: String(e.message ?? ''), fields: e.fields && typeof e.fields === 'object' ? e.fields : {} };
   }
-  return { code: status >= 500 ? 'SERVER' : 'UNKNOWN', message: '', fields: null };
+  return { code: status >= 500 ? 'SERVER' : 'UNKNOWN', message: '', fields: {} };
 }
 
 // POST /api/v1/contest/entries (API-01).
@@ -85,19 +85,33 @@ export async function createEntry(payload) {
 }
 
 // localStorage co the bi chan (che do rieng tu) nen moi thao tac bo try/catch.
+// Ban trong bo nho giu luot thi khi localStorage loi: van lam duoc trong phien, tai lai thi mat (QD-007).
+let memEntry = null;
+let entryStorageBroken = false;
+
 export function saveEntry(data) {
   const entry = { code: data.code, token: data.token, mode: data.mode, attemptNo: data.attemptNo, maxAttempts: data.maxAttempts };
-  try { localStorage.setItem(KEY_ENTRY, JSON.stringify(entry)); } catch (e) { /* bo qua */ }
+  memEntry = entry;
+  try { localStorage.setItem(KEY_ENTRY, JSON.stringify(entry)); } catch (e) { entryStorageBroken = true; }
   return entry;
 }
 
 export function loadEntry() {
-  try {
-    const raw = localStorage.getItem(KEY_ENTRY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) {
-    return null;
+  if (!entryStorageBroken) {
+    try {
+      const raw = localStorage.getItem(KEY_ENTRY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      entryStorageBroken = true;
+    }
   }
+  return memEntry;
+}
+
+// Xoa luot thi (ca ban trong bo nho)
+export function clearEntry() {
+  memEntry = null;
+  try { localStorage.removeItem(KEY_ENTRY); } catch (e) { /* bo qua */ }
 }
 
 // Che do luyen tap khong goi API; chi tao khoa at_practice neu chua co, khong de len tien do cu.
@@ -146,18 +160,20 @@ export async function fetchQuestions(cd) {
 // ---------------------------------------------------------------------------------------------
 // API-02..05 (deu can X-Entry-Token lay tu at_entry).
 
-async function callMe(method, path, payload) {
+// token: store truyen token cua luot dang lam, de dap an khong bi ghi vao luot khac khi at_entry doi o tab khac.
+// Khong truyen thi lay tu at_entry.
+async function callMe(method, path, payload, token) {
   const mode = mockMode();
-  if (mode) return mockMe(path, payload, mode);
-  const entry = loadEntry();
-  if (!entry || !entry.token) return fail('INVALID_TOKEN', 'Chưa có lượt thi.');
+  const tk = token || (loadEntry() || {}).token;
+  if (mode) return mockMe(path, payload, mode, tk);
+  if (!tk) return fail('INVALID_TOKEN', 'Chưa có lượt thi.');
   const ctl = typeof AbortController === 'function' ? new AbortController() : null;
   const timer = ctl ? setTimeout(() => ctl.abort(), TIMEOUT_MS) : null;
   let res;
   try {
     res = await fetch(ME_URL + path, {
       method,
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Entry-Token': entry.token },
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Entry-Token': tk },
       body: payload === undefined ? undefined : JSON.stringify(payload),
       signal: ctl ? ctl.signal : undefined,
     });
@@ -175,17 +191,21 @@ async function callMe(method, path, payload) {
     if (res.status === 401) err.code = 'INVALID_TOKEN';
     else if (res.status === 429) err.code = 'RATE_LIMITED';
   }
+  if (err.code === 'RATE_LIMITED') {
+    const sec = Number(res.headers && res.headers.get('Retry-After'));
+    if (sec > 0) err.retryAfter = sec;
+  }
   return { ok: false, error: err };
 }
 
 // API-02 GET /entries/me
-export const getMe = () => callMe('GET', '');
+export const getMe = (token) => callMe('GET', '', undefined, token);
 // API-03 POST /entries/me/answers
-export const saveAnswer = (q, a) => callMe('POST', '/answers', { q, a });
+export const saveAnswer = (q, a, token) => callMe('POST', '/answers', { q, a }, token);
 // API-04 PUT /entries/me/contact
-export const attachContact = (contact) => callMe('PUT', '/contact', contact);
+export const attachContact = (contact, token) => callMe('PUT', '/contact', contact, token);
 // API-05 POST /entries/me/submit; contact co the bo trong (than rong)
-export const submitEntry = (contact) => callMe('POST', '/submit', contact ? { contact } : {});
+export const submitEntry = (contact, token) => callMe('POST', '/submit', contact ? { contact } : {}, token);
 
 // ---------------------------------------------------------------------------------------------
 // Mock cho API-02..05: "may chu gia" trong localStorage, cham diem theo QUIZ-02 that.
@@ -194,17 +214,25 @@ const MSG_CLOSED = 'Cuộc thi chưa mở hoặc đã kết thúc.';
 const MSG_SUBMITTED = 'Bạn đã nộp bài.';
 const MSG_PHONE = 'Số điện thoại chưa đúng. Nhập số bạn đang dùng, chỉ gồm chữ số.';
 
+// May chu gia giu them ban trong bo nho de van chay khi localStorage bi chan
+let mockMem = null;
+let mockBroken = false;
+
 function mockDb() {
-  try {
-    const db = JSON.parse(localStorage.getItem(KEY_MOCK));
-    if (db && db.entries) return db;
-  } catch (e) { /* bo qua */ }
+  if (!mockBroken) {
+    try {
+      const db = JSON.parse(localStorage.getItem(KEY_MOCK));
+      if (db && db.entries) return db;
+    } catch (e) { mockBroken = true; }
+  }
+  if (mockBroken && mockMem) return mockMem;
   return { entries: {}, log: [] };
 }
 
 function mockSave(db) {
   if (db.log.length > 300) db.log = db.log.slice(-300);
-  try { localStorage.setItem(KEY_MOCK, JSON.stringify(db)); } catch (e) { /* bo qua */ }
+  mockMem = db;
+  try { localStorage.setItem(KEY_MOCK, JSON.stringify(db)); } catch (e) { mockBroken = true; }
 }
 
 // Chi muc ngan hang: ma cau -> { cd, ans, letters }, cung danh sach chuyen de va tong so cau.
@@ -260,9 +288,8 @@ function byTopic(rec, bank) {
   }));
 }
 
-async function mockMe(path, payload, mode) {
+async function mockMe(path, payload, mode, token) {
   await delay(300);
-  const entry = loadEntry();
   const db = mockDb();
   db.log.push({ t: Date.now(), kind: path === '' ? 'me' : path.slice(1), q: payload && payload.q });
   mockSave(db);
@@ -270,7 +297,7 @@ async function mockMe(path, payload, mode) {
   if (mode === 'network') return fail('NETWORK', 'Không kết nối được.');
   if (mode === 'server') return fail('SERVER', 'Lỗi máy chủ.');
   if (mode === 'rate') return fail('RATE_LIMITED', 'Thao tác quá nhanh.');
-  const rec = entry && db.entries[entry.token];
+  const rec = token && db.entries[token];
   if (mode === 'token' || !rec) return fail('INVALID_TOKEN', 'Lượt thi không hợp lệ hoặc đã hết hạn.');
   const b = await bankIndex();
   if (!b.ok) return b;
@@ -350,8 +377,6 @@ async function mockMe(path, payload, mode) {
     if (payload && payload.contact && rec.mode === 'anon') {
       const bad = takeContact(payload.contact);
       if (bad) return bad;
-    } else if (mode === 'limit') {
-      return fail('ATTEMPT_LIMIT', 'Số điện thoại đã dùng hết lượt thi.');
     }
     rec.status = 'submitted';
     rec.score = rec.answers.filter((x) => x.correct).length;
