@@ -43,6 +43,7 @@ public class CustomCoreComposer : IComposer
         // Cai dat cuoc thi doc tu trang thiPage, dung chung cho trang va API cuoc thi
         builder.Services.AddSingleton<IContestSettings, ContestSettingsService>();
         builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
+        builder.Services.AddScoped<IContestAttemptService, ContestAttemptService>();
         builder.Services.AddHostedService<ContestConfigCheck>();
 
         builder.Services.AddSingleton<IAppInfoService, AppInfoService>();

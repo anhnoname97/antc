@@ -5,7 +5,7 @@ using Umbraco.Plugin.Custom.Core.Contest;
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
 /// <summary>
-/// API cuoc thi (sheet "API"). Hien co API-01; cac API /me va gioi han tan suat (BE-26) lam sau.
+/// API cuoc thi (sheet "API"). Hien co API-01 den API-05; gioi han tan suat (BE-26) lam sau.
 /// Co y khong dung [ApiController]: thuoc tinh do tu tra 400 ProblemDetails khi JSON sai,
 /// trong khi hop dong yeu cau { error: { code, message, fields } } (QD-004).
 /// </summary>
@@ -17,8 +17,13 @@ public class ContestController : ControllerBase
 #pragma warning restore AV0014
 {
     private readonly IContestEntryService _entries;
+    private readonly IContestAttemptService _attempts;
 
-    public ContestController(IContestEntryService entries) => _entries = entries;
+    public ContestController(IContestEntryService entries, IContestAttemptService attempts)
+    {
+        _entries = entries;
+        _attempts = attempts;
+    }
 
     /// <summary>
     /// API-01: tao mot luot thi (co ten hoac an danh). Token chi tra mot lan; khong luu token goc va IP goc.
@@ -42,13 +47,87 @@ public class ContestController : ControllerBase
         return Error(result.Error!);
     }
 
+    /// <summary>
+    /// API-02: lay lai luot thi theo X-Entry-Token (tien do, dap an da luu). Goi duoc o moi trang thai cuoc thi.
+    /// </summary>
+    [HttpGet("entries/me")]
+    public async Task<IActionResult> GetMe(CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        return Ok(await _attempts.GetStateAsync(entry, ct));
+    }
+
+    /// <summary>
+    /// API-03: luu dap an mot cau (lan ghi dau thang). Cau da co dap an tra 200 voi stored=false.
+    /// </summary>
+    [HttpPost("entries/me/answers")]
+    public async Task<IActionResult> SaveAnswer([FromBody] SaveAnswerRequest? request, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        var result = await _attempts.SaveAnswerAsync(entry, request?.Q, request?.A, ct);
+        return result.Answer is { } answer ? Ok(answer) : Error(result.Error!);
+    }
+
+    /// <summary>
+    /// API-04: gan thong tin (ho ten, so dien thoai, don vi, dong y) vao luot an danh de xet giai.
+    /// </summary>
+    [HttpPut("entries/me/contact")]
+    public async Task<IActionResult> AttachContact([FromBody] ContactRequest? request, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        var result = await _attempts.AttachContactAsync(entry, request, ct);
+        return result.Contact is { } contact ? Ok(contact) : Error(result.Error!);
+    }
+
+    /// <summary>
+    /// API-05: nop bai; luot an danh co the kem contact de xet giai. Chi nop khi da tra loi du cau (QD-015),
+    /// con han nop (QD-014). Nop lai tra ket qua da luu.
+    /// </summary>
+    [HttpPost("entries/me/submit")]
+    public async Task<IActionResult> Submit([FromBody] SubmitRequest? request, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        var result = await _attempts.SubmitAsync(entry, request?.Contact, ct);
+        return result.Result is { } submitted ? Ok(submitted) : Error(result.Error!);
+    }
+
     private IActionResult Error(ContestError error)
     {
         int status = error.Code switch
         {
             "VALIDATION" => StatusCodes.Status400BadRequest,
+            "UNKNOWN_QUESTION" or "INVALID_OPTION" => StatusCodes.Status400BadRequest,
+            "INVALID_TOKEN" => StatusCodes.Status401Unauthorized,
             "CONTEST_CLOSED" => StatusCodes.Status403Forbidden,
-            "ATTEMPT_LIMIT" => StatusCodes.Status409Conflict,
+            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "INCOMPLETE_ANSWERS" => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
         return StatusCode(status, new { error = new { code = error.Code, message = error.Message, fields = error.Fields ?? new Dictionary<string, string>() } });
