@@ -1,11 +1,15 @@
 // Dieu phoi man hinh cuoc thi (FE-26): Dang ky, Danh sach chuyen de (#ngan-hang), Gioi thieu chuyen de (#chuyen-de-N), cot ben.
-// Trang thai lay tu contest-store.js. FE-27 se them man cau hoi, FE-29 them nop bai va ket qua.
+// Man cau hoi (#chuyen-de-N/cau-hoi, FE-27a). Con thieu cho FE-27b: dong ho doc, man Xong chuyen de, lam lai (xem 'FE-27b' ben duoi).
+// Trang thai lay tu contest-store.js. FE-29 them nop bai va ket qua.
 import { onRegistered } from './register.js';
 import { loadEntry } from './contest-api.js';
 import {
-  state, init, on, enterPractice, topicProgress, loadTopics,
+  state, init, on, enterPractice, topicProgress, loadTopics, loadQuestions, answer, getAnswer,
 } from './contest-store.js';
-import { esc, eyebrowHtml, progressHtml } from '../quiz/quiz-ui.js';
+import {
+  esc, eyebrowHtml, progressHtml, situationHtml, questionHtml, optionsHtml, resultBodyHtml, navButtonHtml,
+  focusResult, focusQuestion,
+} from '../quiz/quiz-ui.js';
 
 const NOT_POLICE = 'Website không trực 24/7 và không tiếp nhận tố giác, tin báo về tội phạm. Khi đang xảy ra sự việc, hãy gọi ngân hàng của bạn và cơ quan Công an gần nhất.';
 const ICO_OK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
@@ -25,7 +29,9 @@ const maxAttemptsDefault = Number(main.dataset.maxAttempts) > 0 ? Number(main.da
 let topics = null; // QUIZ-01
 let topicsError = false;
 let offline = false;
-let current = null; // { view: 'register' | 'menu' | 'intro', cd? }
+let current = null; // { view: 'register' | 'menu' | 'intro' | 'q', cd? }
+let qs = null; // man cau hoi dang xem: { cd, list (QUIZ-02), i, busy, note }
+const qcache = new Map(); // cd -> danh sach cau hoi QUIZ-02 da tai
 
 // ---- Tinh toan chung ----
 
@@ -57,11 +63,27 @@ function topicOf(cd) {
   return (topics || []).find((t) => String(t.cd) === String(cd)) || null;
 }
 
+async function ensureQuestions(cd) {
+  if (qcache.has(cd)) return true;
+  const r = await loadQuestions(cd);
+  if (r.ok && Array.isArray(r.data) && r.data.length) {
+    qcache.set(cd, r.data);
+    return true;
+  }
+  return false;
+}
+
+// Cau chua tra loi dau tien; da lam het thi xem lai tu cau 1
+function firstUnanswered(list) {
+  const i = list.findIndex((q) => !getAnswer(q.code));
+  return i < 0 ? 0 : i;
+}
+
 function parseHash() {
   const h = location.hash;
   if (h === '#ngan-hang') return { view: 'menu' };
-  const m = /^#chuyen-de-(\d+)$/.exec(h);
-  if (m) return { view: 'intro', cd: m[1] };
+  const m = /^#chuyen-de-(\d+)(\/cau-hoi)?$/.exec(h);
+  if (m) return { view: m[2] ? 'q' : 'intro', cd: m[1] };
   if (h === '#dang-ky') return { view: 'register' };
   return null;
 }
@@ -131,6 +153,16 @@ function menuHtml() {
   return `${o}<p class="exam__note">${esc(NOT_POLICE)}</p></div>`;
 }
 
+// Nut chinh cua phan gioi thieu: bat dau, lam tiep tu cau k, hoac xem lai khi da xong
+function startLabel(t) {
+  const p = progress().find((x) => x.cd === String(t.cd));
+  if (!p || !p.answered) return `Bắt đầu ${t.count} câu ›`;
+  if (p.done) return `Xem lại ${t.count} câu ›`;
+  const list = qcache.get(String(t.cd));
+  const k = list ? firstUnanswered(list) + 1 : p.answered + 1;
+  return `Làm tiếp từ câu ${k} ›`;
+}
+
 function introHtml(t) {
   const intro = Array.isArray(t.intro) ? t.intro : (t.intro ? [t.intro] : []);
   const terms = Array.isArray(t.terms) ? t.terms : [];
@@ -141,9 +173,8 @@ function introHtml(t) {
     o += `<details class="peek"><summary><span><b>Hiểu nhanh mấy từ</b><span class="peek__n">${terms.length} từ dùng trong chuyên đề này</span></span><span class="peek__pk" aria-hidden="true"></span></summary>`
       + `<dl>${terms.map((x) => `<div><dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd></div>`).join('')}</dl></details>`;
   }
-  o += `<div class="exam__actions"><button type="button" class="qnav f" data-start="${esc(t.cd)}">Bắt đầu ${t.count} câu ›</button>`
-    + `<a class="qnav o" href="#ngan-hang">Chọn chuyên đề khác</a></div>`
-    + `<p id="startnote" class="exam__note" role="status" hidden></p></div>`;
+  o += `<div class="exam__actions"><button type="button" class="qnav f" data-start="${esc(t.cd)}">${esc(startLabel(t))}</button>`
+    + `<a class="qnav o" href="#ngan-hang">Chọn chuyên đề khác</a></div></div>`;
   return o;
 }
 
@@ -176,13 +207,130 @@ function sideHtml(view) {
       + topics.map((t) => {
         const p = prog.find((x) => x.cd === String(t.cd));
         const lock = isLocked(String(t.cd), prog);
-        const on = (view === 'intro') && current && current.cd === String(t.cd);
+        const on = (view === 'intro' || view === 'q') && current && current.cd === String(t.cd);
         return `<li${on ? ' class="is-on" aria-current="step"' : lock ? ' class="is-lock"' : ''}><span class="sidelist__n${p.done ? ' is-done' : ''}">${p.done ? '✓' : esc(t.cd)}</span>`
           + `<span class="sidelist__t">${esc(t.title)}</span>${lock ? '<span class="sr-only">(chưa mở)</span>' : ''}</li>`;
       }).join('')
       + '</ol></div>';
   }
   return o;
+}
+
+// ---- Man cau hoi (FE-27a) ----
+
+const ERR_TEXT = {
+  CONTEST_CLOSED: 'Cuộc thi đã đóng nên đáp án này không được ghi nhận.',
+  ALREADY_SUBMITTED: 'Bài đã được nộp nên không trả lời thêm được.',
+  UNKNOWN_QUESTION: 'Câu hỏi này không còn trong ngân hàng nên chưa ghi nhận được. Bạn có thể sang câu khác.',
+  INVALID_OPTION: 'Câu hỏi này không còn trong ngân hàng nên chưa ghi nhận được. Bạn có thể sang câu khác.',
+};
+const ERR_DEFAULT = 'Chưa lưu được đáp án. Hãy chọn lại.';
+const PENDING_TEXT = 'Chưa gửi được lên máy chủ. Đáp án sẽ tự gửi lại khi có mạng.';
+
+// FE-27b: so giay phai doc phan giai thich truoc khi mo nut di tiep (sec x he so). F4a chua co dong ho nen luon 0.
+function readHold() {
+  return 0;
+}
+
+// FE-27b: roi man cau hoi (doi cau, ve danh sach...): dung dong ho doc o day.
+function leaveQuestion() {}
+
+// FE-27b: het cau cuoi cua chuyen de se mo man "Xong chuyen de"; F4a ve danh sach.
+function onTopicEnd() {
+  go('#ngan-hang');
+}
+
+function curQuestion() {
+  return qs.list[qs.i];
+}
+
+function nextLabel() {
+  return qs.i >= qs.list.length - 1 ? 'Đã hiểu, hoàn thành chuyên đề ›' : 'Đã hiểu, sang câu tiếp theo ›';
+}
+
+function noteText() {
+  const a = qs && getAnswer(curQuestion().code);
+  if (a && a.pending) return PENDING_TEXT;
+  return qs ? qs.note : '';
+}
+
+function questionScreenHtml() {
+  const { cd, list, i } = qs;
+  const q = list[i];
+  const a = getAnswer(q.code);
+  const chosen = a ? a.a : null;
+  const nextAttrs = { id: 'qnext', 'data-next': '' };
+  if (chosen == null || readHold(q) > 0) nextAttrs.disabled = '';
+  const prev = i > 0 ? navButtonHtml('‹ Câu trước', 'o', { 'data-prev': '' }) : '';
+  return `<div class="qin"><div class="qtop"><a class="qnav o" href="#chuyen-de-${esc(cd)}">‹ Chuyên đề ${esc(cd)}</a>`
+    + `<span class="qcount">Câu ${i + 1} / ${list.length}</span></div>`
+    + `<div id="qprog">${progressHtml(i + (chosen != null ? 1 : 0), list.length, 'Tiến độ trong chuyên đề')}</div>`
+    + `<div class="qstem">${eyebrowHtml(`Mã ${q.code} · ${q.kind || 'Chọn đáp án phù hợp nhất'}`)}${situationHtml(q.sit)}${questionHtml(q.q)}</div>`
+    + `<div id="qoptsbox">${optionsHtml(q, chosen)}</div>`
+    + `<p id="qnote" class="qnote" role="status"${noteText() ? '' : ' hidden'}>${esc(noteText())}</p>`
+    + `<div id="qlive" class="qlive" aria-live="polite">${resultBodyHtml(q, chosen)}</div>`
+    + `<div class="qactions">${prev}${navButtonHtml(nextLabel(), 'f', nextAttrs)}<p id="qwait" class="qwait"></p></div></div>`;
+}
+
+function paintNote() {
+  const el = document.getElementById('qnote');
+  if (!el || !qs) return;
+  const t = noteText();
+  el.textContent = t;
+  el.hidden = !t;
+}
+
+// Ve lai phan dap an + ket qua cua cau hien tai theo chosen (khong dung lai ca man de khong mat focus)
+function paintAnswer(q, chosen, focus) {
+  const { i, list } = qs;
+  document.getElementById('qoptsbox').innerHTML = optionsHtml(q, chosen);
+  document.getElementById('qlive').innerHTML = resultBodyHtml(q, chosen);
+  document.getElementById('qprog').innerHTML = progressHtml(i + (chosen != null ? 1 : 0), list.length, 'Tiến độ trong chuyên đề');
+  document.getElementById('qnext').disabled = chosen == null || readHold(q) > 0;
+  paintNote();
+  if (focus && chosen != null) focusResult(examView);
+}
+
+async function pick(k) {
+  const s = qs;
+  const q = curQuestion();
+  if (s.busy || getAnswer(q.code)) return;
+  s.busy = true;
+  s.note = '';
+  paintAnswer(q, k, true); // hien ngay, doi chieu voi may chu sau
+  const r = await answer(q.code, k, s.cd, k === q.ans);
+  s.busy = false;
+  if (qs !== s || curQuestion() !== q) return;
+  if (!r.ok) {
+    s.note = ERR_TEXT[r.code] || ERR_DEFAULT;
+    paintAnswer(q, null, false);
+    return;
+  }
+  // stored=false: may chu dang giu dap an khac, hien dap an cua may chu
+  if (r.a !== k) paintAnswer(q, r.a, true);
+  paintNote();
+}
+
+function renderQuestion(focus) {
+  leaveQuestion();
+  examView.innerHTML = questionScreenHtml();
+  renderSide('q');
+  if (focus) {
+    if (main.getBoundingClientRect().top < 0) main.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+    focusQuestion(examView);
+  }
+}
+
+function stepQuestion(d) {
+  const n = qs.i + d;
+  if (n < 0) return;
+  if (n >= qs.list.length) {
+    onTopicEnd(qs.cd);
+    return;
+  }
+  qs.i = n;
+  qs.note = '';
+  renderQuestion(true);
 }
 
 // ---- Dieu huong ----
@@ -216,6 +364,13 @@ async function ensureTopics() {
   return false;
 }
 
+function showQuestionsError(cd) {
+  examView.innerHTML = `<div class="qin">${headHtml('Ngân hàng câu hỏi', `Chuyên đề ${cd}`, '')}`
+    + box('warn', '<b>Chưa tải được câu hỏi của chuyên đề này.</b> Kiểm tra mạng rồi bấm thử lại.')
+    + `<div class="exam__actions"><button type="button" class="qnav f" data-retry>Thử lại</button><a class="qnav o" href="#ngan-hang">Về danh sách chuyên đề</a></div></div>`;
+  renderSide('menu');
+}
+
 function showTopicsError() {
   examView.innerHTML = '<div class="qin">' + headHtml('Ngân hàng câu hỏi', 'Phần thi trắc nghiệm', '')
     + box('warn', '<b>Chưa tải được ngân hàng câu hỏi.</b> Kiểm tra mạng rồi bấm thử lại.')
@@ -238,15 +393,33 @@ async function route(focus) {
     showTopicsError();
     return;
   }
+  leaveQuestion();
   let view = want || { view: 'menu' };
-  if (view.view === 'intro') {
+  if (view.view === 'intro' || view.view === 'q') {
     const t = topicOf(view.cd);
     // Chuyen de khong ton tai hoac con khoa: ve danh sach (khong vao duoc bang URL)
     if (!t || isLocked(String(t.cd), progress())) view = { view: 'menu' };
   }
-  const wantHash = view.view === 'intro' ? `#chuyen-de-${view.cd}` : '#ngan-hang';
+  if (view.view !== 'q') qs = null;
+  if (view.view === 'q' || view.view === 'intro') {
+    // Cau hoi cua chuyen de: can cho man cau hoi, va de nut gioi thieu ghi dung "Lam tiep tu cau k"
+    const ok = await ensureQuestions(String(view.cd));
+    if (!ok && view.view === 'q') {
+      current = { view: 'menu' };
+      showQuestionsError(view.cd);
+      return;
+    }
+  }
+  const wantHash = view.view === 'q' ? `#chuyen-de-${view.cd}/cau-hoi` : view.view === 'intro' ? `#chuyen-de-${view.cd}` : '#ngan-hang';
   if (location.hash !== wantHash) history.replaceState(null, '', wantHash);
   current = view;
+  if (view.view === 'q') {
+    // Vao (hoac tai lai) chuyen de: tiep tu cau chua tra loi dau tien
+    const list = qcache.get(String(view.cd));
+    qs = { cd: String(view.cd), list, i: firstUnanswered(list), busy: false, note: '' };
+    renderQuestion(focus);
+    return;
+  }
   examView.innerHTML = view.view === 'intro' ? introHtml(topicOf(view.cd)) : menuHtml();
   renderSide(view.view);
   if (focus) focusHeading(document.getElementById('eh'));
@@ -264,6 +437,12 @@ function focusSelector(el) {
 // Tien do doi (tra loi, gui lai xong): ve lai ma khong cuop focus
 function refresh() {
   if (!current || current.view === 'register' || !topics) return;
+  // Man cau hoi khong ve lai ca man (se mat focus, ngat vung aria-live): chi cap nhat cot ben va ghi chu
+  if (current.view === 'q' && qs) {
+    renderSide('q');
+    paintNote();
+    return;
+  }
   const active = document.activeElement;
   const keep = active && examView.contains(active) ? focusSelector(active) : null;
   const want = current;
@@ -286,11 +465,17 @@ examView.addEventListener('click', (e) => {
   }
   const start = e.target.closest('[data-start]');
   if (start) {
-    // Man cau hoi la viec FE-27
-    const note = document.getElementById('startnote');
-    note.textContent = 'Màn làm bài sẽ mở ở bước tiếp theo (FE-27).';
-    note.hidden = false;
+    go(`#chuyen-de-${start.dataset.start}/cau-hoi`);
+    return;
   }
+  if (!qs) return;
+  const opt = e.target.closest('.qopt[data-k]');
+  if (opt) {
+    pick(opt.dataset.k);
+    return;
+  }
+  if (e.target.closest('[data-prev]')) stepQuestion(-1);
+  else if (e.target.closest('[data-next]')) stepQuestion(1);
 });
 
 if (practiceLink) {
@@ -303,7 +488,17 @@ if (practiceLink) {
 
 window.addEventListener('hashchange', () => route(true));
 on('change', refresh);
-on('submitted', refresh);
+on('submitted', () => {
+  // Luot da nop o noi khac: het tra loi duoc, ve danh sach (man ket qua la viec FE-29)
+  if (current && current.view === 'q') go('#ngan-hang');
+  else refresh();
+});
+on('dropped', ({ q, code }) => {
+  // Dap an dang cho bi may chu tu choi (vd cuoc thi da dong): cau tro lai chua tra loi, bao ly do
+  if (!qs || current.view !== 'q' || curQuestion().code !== q) return;
+  qs.note = ERR_TEXT[code] || ERR_DEFAULT;
+  paintAnswer(curQuestion(), null, false);
+});
 // Tab khac doi luot thi: dung lai tien do tu may chu roi ve man hinh theo luot moi
 on('entry-changed', async () => {
   const r = await init();
