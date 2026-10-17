@@ -5,7 +5,7 @@ using Umbraco.Plugin.Custom.Core.Contest;
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
 /// <summary>
-/// API cuoc thi (sheet "API"). Hien co API-01; cac API /me va gioi han tan suat (BE-26) lam sau.
+/// API cuoc thi (sheet "API"). Hien co API-01, API-02, API-03; cac API /me va gioi han tan suat (BE-26) lam sau.
 /// Co y khong dung [ApiController]: thuoc tinh do tu tra 400 ProblemDetails khi JSON sai,
 /// trong khi hop dong yeu cau { error: { code, message, fields } } (QD-004).
 /// </summary>
@@ -64,14 +64,33 @@ public class ContestController : ControllerBase
         return Ok(await _attempts.GetStateAsync(entry, ct));
     }
 
+    /// <summary>
+    /// API-03: luu dap an mot cau (lan ghi dau thang). Cau da co dap an tra 200 voi stored=false.
+    /// </summary>
+    [HttpPost("entries/me/answers")]
+    public async Task<IActionResult> SaveAnswer([FromBody] SaveAnswerRequest? request, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        var result = await _attempts.SaveAnswerAsync(entry, request?.Q, request?.A, ct);
+        return result.Answer is { } answer ? Ok(answer) : Error(result.Error!);
+    }
+
     private IActionResult Error(ContestError error)
     {
         int status = error.Code switch
         {
             "VALIDATION" => StatusCodes.Status400BadRequest,
+            "UNKNOWN_QUESTION" or "INVALID_OPTION" => StatusCodes.Status400BadRequest,
             "INVALID_TOKEN" => StatusCodes.Status401Unauthorized,
             "CONTEST_CLOSED" => StatusCodes.Status403Forbidden,
-            "ATTEMPT_LIMIT" => StatusCodes.Status409Conflict,
+            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
         return StatusCode(status, new { error = new { code = error.Code, message = error.Message, fields = error.Fields ?? new Dictionary<string, string>() } });

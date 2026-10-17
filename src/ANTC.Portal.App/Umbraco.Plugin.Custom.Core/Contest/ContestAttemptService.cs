@@ -28,6 +28,22 @@ public record EntryStateDto(
     [property: JsonPropertyName("submittedAt")] string? SubmittedAt,
     [property: JsonPropertyName("answers")] IReadOnlyList<EntryAnswerDto> Answers);
 
+/// <summary>Than yeu cau API-03.</summary>
+public record SaveAnswerRequest(string? Q, string? A);
+
+/// <summary>Ket qua API-03. Stored false khi cau da co dap an (A va Correct la cua dap an dang luu).</summary>
+public record SaveAnswerDto(
+    [property: JsonPropertyName("q")] string Q,
+    [property: JsonPropertyName("a")] string A,
+    [property: JsonPropertyName("correct")] bool Correct,
+    [property: JsonPropertyName("stored")] bool Stored);
+
+public record SaveAnswerResult(SaveAnswerDto? Answer, ContestError? Error)
+{
+    public static SaveAnswerResult Ok(SaveAnswerDto answer) => new(answer, null);
+    public static SaveAnswerResult Fail(ContestError error) => new(null, error);
+}
+
 public interface IContestAttemptService
 {
     /// <summary>Tra luot thi theo token (header X-Entry-Token); null neu thieu hoac khong khop.</summary>
@@ -35,9 +51,12 @@ public interface IContestAttemptService
 
     /// <summary>API-02: tinh trang luot thi va cac dap an da luu.</summary>
     Task<EntryStateDto> GetStateAsync(Entry entry, CancellationToken ct = default);
+
+    /// <summary>API-03: luu dap an mot cau; lan ghi dau thang.</summary>
+    Task<SaveAnswerResult> SaveAnswerAsync(Entry entry, string? q, string? a, CancellationToken ct = default);
 }
 
-/// <summary>Cac API /me cua luot thi (BE-23, BE-24). Hien co xac thuc token va API-02.</summary>
+/// <summary>Cac API /me cua luot thi (BE-23, BE-24). Hien co xac thuc token, API-02 va API-03.</summary>
 public class ContestAttemptService : IContestAttemptService
 {
     private readonly AppDbContext _db;
@@ -77,6 +96,73 @@ public class ContestAttemptService : IContestAttemptService
             entry.Mode == EntryModes.Named ? entry.AttemptNo : null, maxAttempts, entry.Status,
             answers.Count, submitted ? entry.Score : null, total,
             entry.SubmittedAt is { } s ? ToIso(s) : null, answers);
+    }
+
+    public async Task<SaveAnswerResult> SaveAnswerAsync(Entry entry, string? q, string? a, CancellationToken ct = default)
+    {
+        // Doc cai dat ngoai khoa ghi; khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
+        var settings = await _settings.GetAsync();
+        bool open = settings is not null && _settings.GetStatus(settings, DateTime.UtcNow) == ContestStatus.Open;
+
+        // So khop chu cai phan biet hoa thuong nhu du lieu, khong tu doi
+        var bank = _bank.Current;
+        AnswerKey? key = null;
+        if (!string.IsNullOrEmpty(q)) bank.Keys.TryGetValue(q, out key);
+
+        await ContestEntryService.WriteLock.WaitAsync(ct);
+        try
+        {
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            // Doc lai trang thai trong khoa: entry tu AuthenticateAsync co the da cu (vd da nop o yeu cau khac)
+            string status = await _db.Entries.AsNoTracking()
+                .Where(e => e.Id == entry.Id).Select(e => e.Status).FirstAsync(ct);
+            if (status == EntryStatuses.Submitted)
+            {
+                return SaveAnswerResult.Fail(new("ALREADY_SUBMITTED", "Lượt thi này đã được nộp bài."));
+            }
+
+            if (!open)
+            {
+                return SaveAnswerResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
+            }
+
+            if (key is null)
+            {
+                return SaveAnswerResult.Fail(new("UNKNOWN_QUESTION", "Câu hỏi không tồn tại."));
+            }
+
+            if (string.IsNullOrEmpty(a) || !key.Letters.Contains(a))
+            {
+                return SaveAnswerResult.Fail(new("INVALID_OPTION", "Đáp án không hợp lệ."));
+            }
+
+            var existing = await _db.EntryAnswers.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.EntryId == entry.Id && x.QuestionCode == key.Code, ct);
+            if (existing is not null)
+            {
+                return SaveAnswerResult.Ok(new(existing.QuestionCode, existing.Chosen, existing.IsCorrect, false));
+            }
+
+            var row = new EntryAnswer
+            {
+                EntryId = entry.Id,
+                QuestionCode = key.Code,
+                Topic = key.TopicId,
+                Chosen = a,
+                IsCorrect = a == key.Answer,
+                AnsweredAt = DateTime.UtcNow
+            };
+            _db.EntryAnswers.Add(row);
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return SaveAnswerResult.Ok(new(row.QuestionCode, row.Chosen, row.IsCorrect, true));
+        }
+        finally
+        {
+            ContestEntryService.WriteLock.Release();
+            _db.ChangeTracker.Clear();
+        }
     }
 
     /// <summary>3 so dau + **** + 3 so cuoi; null khi khong co so.</summary>

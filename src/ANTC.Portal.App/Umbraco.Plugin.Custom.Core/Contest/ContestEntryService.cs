@@ -42,7 +42,7 @@ public class ContestEntryService : IContestEntryService
     private const int MaxCodeTries = 10;
 
     // Mot khoa cho ca tien trinh; SQLite chi co mot nguoi ghi, nen khong them gi cho don gian
-    private static readonly SemaphoreSlim WriteLock = new(1, 1);
+    internal static readonly SemaphoreSlim WriteLock = new(1, 1);
 
     private static readonly Regex PhonePattern = new(@"^0\d{9}$", RegexOptions.Compiled);
 
