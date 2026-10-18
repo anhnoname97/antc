@@ -144,3 +144,30 @@
         </aside>
     </div>
 </section>
+
+@* Hop thoai nop bai / gan thong tin (FE-29): submit.js dien tieu de, tom tat va chon cac phan hien theo luot *@
+<dialog id="sdlg" class="sdlg" aria-labelledby="sdlg-h">
+    <form id="sdlg-form" class="sdlg__form" novalidate>
+        <h2 id="sdlg-h" class="sdlg__h" tabindex="-1"></h2>
+        <p id="sdlg-sum" class="sdlg__sum" hidden></p>
+        <label id="sdlg-tick" class="consent" for="sd-want" hidden>
+            <input type="checkbox" id="sd-want">
+            <span><b>Tôi muốn tham gia xét giải.</b> Bài của bạn được ghi kèm họ tên và số điện thoại.</span>
+        </label>
+        <p id="sdlg-anon" class="sdlg__anon" hidden>Bài ẩn danh không được xét giải.</p>
+        <div id="sdlg-fields" class="sdlg__fields" hidden>
+            <div class="fieldgrid">
+                <label for="sd-name">Họ và tên<input id="sd-name" class="field" type="text" autocomplete="name" maxlength="100" placeholder="Dùng để xác minh khi trao giải"></label>
+                <label for="sd-phone">Số điện thoại<input id="sd-phone" class="field" type="tel" inputmode="numeric" autocomplete="tel" placeholder="Số bạn đang dùng"></label>
+                <label for="sd-org"><span>Trường, lớp hoặc đơn vị <span class="optional">(không bắt buộc)</span></span><input id="sd-org" class="field" type="text" autocomplete="organization" maxlength="150"></label>
+            </div>
+            <p class="sdlg__legal">@operatorName giữ họ tên, số điện thoại và đơn vị (nếu bạn ghi) chỉ để chấm bài, đếm lượt thi và liên hệ trao giải. Nội dung đầy đủ nằm ở bước đăng ký và trong Thể lệ.</p>
+            <label for="sd-ok" class="consent"><input type="checkbox" id="sd-ok"><span><b>Tôi đã đọc và đồng ý</b> với Thể lệ cuộc thi và với nội dung xử lý dữ liệu nêu trên.</span></label>
+        </div>
+        <p id="sdlg-err" class="formerr" role="alert" hidden></p>
+        <div class="sdlg__actions">
+            <button type="submit" id="sdlg-ok" class="qnav f"></button>
+            <button type="button" id="sdlg-cancel" class="qnav o">Làm tiếp</button>
+        </div>
+    </form>
+</dialog>
