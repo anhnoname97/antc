@@ -259,3 +259,12 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Lý do: khuyến nghị của bước thiết kế lại; hỗ trợ nhiều cuộc cùng lúc (QĐ-018, QĐ-021).
 - Ảnh hưởng: mở các task B5, M1b, F6 (làm được ngay); B6–B13 mở dần theo phụ thuộc. QĐ-008 được thay bằng (G) khi B13 xong; QĐ-003 lấy `maxAttempts` từ `contest`.
 
+### QĐ-025 · Thứ tự chuyên đề trong cuộc thi và quay số theo từng cuộc
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: FE-26/FE-27 (F8), danh sách chuyên đề của API-02, quay số/xếp giải (BE-27, BE-28), `1-thiet-ke.md` Q2 và Q7
+- Vấn đề: bản dựng ghi "làm Chuyên đề 1 trước, sau đó chuyên đề nào cũng được"; đề của mỗi cuộc có thể không có CĐ1 (QĐ-019). Q7: quay số theo cuộc làm trong gói này hay để sau.
+- Quyết định: (Q2) thí sinh **làm lần lượt các chuyên đề theo thứ tự của đề cuộc thi**, không bỏ qua chuyên đề đứng trước (thay quy tắc "CĐ1 trước, sau đó tự do"). (Q7) quay số/xếp giải làm **riêng theo từng cuộc thi**.
+- Lý do: anhnn trả lời trực tiếp ("làm lần lượt các chuyên đề", "quay số riêng theo cuộc").
+- Ảnh hưởng: F8 khóa chuyên đề thứ n tới khi xong chuyên đề n-1; thứ tự lấy từ `topics` của API-02 (cần xác nhận cột thứ tự, mặc định theo thứ tự lưu trong `contest_topic`/mã chuyên đề); nếu máy chủ cũng phải ép thứ tự ở API-03 thì cần task BE. BE-27/BE-28 thêm tham số cuộc thi, vào hạng mục mới (file 5), không chặn các task hiện tại. Giả định của Claude: "lần lượt" hiểu là bắt buộc theo thứ tự, không chỉ gợi ý.
+

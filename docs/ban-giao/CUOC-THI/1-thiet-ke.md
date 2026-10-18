@@ -739,3 +739,9 @@ Merge `--no-ff` ba nhánh `lane/CUOC-THI-v2-{be,fe,chinh}` vào `dev`, không xu
 
 Merge `--no-ff` `lane/CUOC-THI-v3-be` (B6, B7) và `lane/CUOC-THI-v3-fe` (F7); hoàn lại thay đổi BOM/xuống dòng của 5 view do uSync (lỗi Thấp 2 của review B7). B8a, B9, B10, B11, B13 chuyển "Làm được". B8b chờ B8a, B12 chờ B8b, F8 chờ Q2 và Q6, S1 chờ B10, F9 chờ F8. Nhắc: luồng thi trên trang nhận 400 cho tới khi API-02..05 theo cuộc (B8a, B8b) và kiểm đầu–cuối ở I2.
 
+## Cập nhật 2026-10-18: Q2 và Q7 đã trả lời (QĐ-025)
+
+- Q2: làm lần lượt các chuyên đề theo thứ tự của đề (khóa chuyên đề sau tới khi xong chuyên đề trước). F8 theo quy tắc này thay "khóa theo chuyên đề đầu tiên". Cần chốt: máy chủ có ép thứ tự ở API-03 không (nếu có thì thêm task BE vào B8a/B8b).
+- Q7: quay số theo từng cuộc, làm riêng, ghi vào `5-hang-muc-moi-cho-ke-hoach.md` (không chặn).
+- **Còn mở, chặn F8:** Q6 (`wip/CUOC-THI-F4b`, giữ hay bỏ; khuyến nghị giữ). Lưu ý: số Q trong tin nhắn điều phối trước (Q6 = quay số) lệch với bảng ở trên (Q6 = F4b, Q7 = quay số); câu trả lời "quay số riêng theo cuộc" được hiểu là Q7.
+
