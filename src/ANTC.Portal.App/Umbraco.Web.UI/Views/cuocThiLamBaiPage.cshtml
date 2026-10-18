@@ -1,0 +1,12 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/contest-quiz.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/contest.css" asp-append-version="true">
+}
+@await Html.PartialAsync("~/Views/Partials/contest/_LuongThi.cshtml", Model)
+@section Scripts {
+    <script type="module" src="~/assets/js/contest/exam.js" asp-append-version="true"></script>
+}

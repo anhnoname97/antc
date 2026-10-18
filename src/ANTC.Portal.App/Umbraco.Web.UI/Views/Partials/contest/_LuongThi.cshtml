@@ -1,32 +1,28 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>
 @using Umbraco.Cms.Core.Models
 @using Umbraco.Plugin.Custom.Core.Contest
 @inject IContestSettings ContestSvc
 @{
-    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    // Model la trang lam bai (cuocThiLamBaiPage); cai dat cuoc thi van lay tu trang thiPage cha cho toi khi B5+ chuyen sang bang contest
     // Cai dat cuoc thi lay tu trang; thuoc tinh trong thi hien "[…]"
     const string Blank = "[…]";
     string Or(string? v) => string.IsNullOrWhiteSpace(v) ? Blank : v.Trim();
     var home = Model.Root();
+    var contestPage = Model.Parent<Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>() ?? Model;
     // maxAttempts va trang thai cuoc thi tinh o dich vu dung chung voi API (QD-003, QD-006)
-    var settings = ContestSvc.Read(Model);
+    var settings = ContestSvc.Read(contestPage);
     var maxAttempts = settings.MaxAttempts;
     var status = ContestSvc.GetStatus(settings, DateTime.UtcNow);
     var isOpen = status == ContestStatus.Open;
     var maxAttemptsText = maxAttempts.ToString("00");
-    var periodText = Or(Model.Value<string>("periodText"));
-    var rulesText = Or(Model.Value<string>("rulesText"));
-    var rulesLink = Model.Value<IEnumerable<Link>>("rulesLink")?.FirstOrDefault();
-    var retentionDays = Model.Value<int?>("dataRetentionDays");
+    var periodText = Or(contestPage.Value<string>("periodText"));
+    var rulesText = Or(contestPage.Value<string>("rulesText"));
+    var rulesLink = contestPage.Value<IEnumerable<Link>>("rulesLink")?.FirstOrDefault();
+    var retentionDays = contestPage.Value<int?>("dataRetentionDays");
     var retentionText = retentionDays is > 0 ? retentionDays.Value.ToString() : Blank;
     var operatorName = Or(home?.Value<string>("operatorName"));
     var dataContact = Or(home?.Value<string>("dataContact"));
 }
-@section Head {
-    <link rel="stylesheet" href="~/assets/css/contest-quiz.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/assets/css/contest.css" asp-append-version="true">
-}
-
 <section class="page-hero page-hero--contest" aria-labelledby="h-page">
     <div class="container">
         <nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a> / <a href="/tham-gia">Phần 4</a> / Cuộc thi</nav>
@@ -146,7 +142,3 @@
         </aside>
     </div>
 </section>
-
-@section Scripts {
-    <script type="module" src="~/assets/js/contest/exam.js" asp-append-version="true"></script>
-}
