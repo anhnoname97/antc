@@ -26,7 +26,7 @@ public class ContestController : ControllerBase
     }
 
     /// <summary>
-    /// API-01: tao mot luot thi (co ten hoac an danh). Token chi tra mot lan; khong luu token goc va IP goc.
+    /// API-01: tao mot luot thi cua mot cuoc thi (contestId bat buoc; co ten hoac an danh). Token chi tra mot lan; khong luu token goc va IP goc.
     /// </summary>
     [HttpPost("entries")]
     public async Task<IActionResult> CreateEntry([FromBody] CreateEntryRequest? request, CancellationToken ct)
@@ -126,6 +126,7 @@ public class ContestController : ControllerBase
             "VALIDATION" => StatusCodes.Status400BadRequest,
             "UNKNOWN_QUESTION" or "INVALID_OPTION" => StatusCodes.Status400BadRequest,
             "INVALID_TOKEN" => StatusCodes.Status401Unauthorized,
+            "CONTEST_NOT_FOUND" => StatusCodes.Status404NotFound,
             "CONTEST_CLOSED" => StatusCodes.Status403Forbidden,
             "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "INCOMPLETE_ANSWERS" => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
