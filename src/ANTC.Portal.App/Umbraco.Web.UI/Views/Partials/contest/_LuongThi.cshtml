@@ -1,21 +1,12 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>
 @using Umbraco.Cms.Core.Models
-@using Umbraco.Plugin.Custom.Core.Contest
-@inject IContestSettings ContestSvc
 @{
-    // Model la trang lam bai (cuocThiLamBaiPage); cai dat cuoc thi van lay tu trang thiPage cha cho toi khi B5+ chuyen sang bang contest
-    // Cai dat cuoc thi lay tu trang; thuoc tinh trong thi hien "[…]"
+    // Model la trang lam bai (cuocThiLamBaiPage). Cuoc thi (ten, ngay, so luot) do trinh duyet lay tu API-07 theo ?c=<id>, may chu khong in cung
+    // Thuoc tinh trong thi hien "[…]"
     const string Blank = "[…]";
     string Or(string? v) => string.IsNullOrWhiteSpace(v) ? Blank : v.Trim();
     var home = Model.Root();
     var contestPage = Model.Parent<Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>() ?? Model;
-    // maxAttempts va trang thai cuoc thi tinh o dich vu dung chung voi API (QD-003, QD-006)
-    var settings = ContestSvc.Read(contestPage);
-    var maxAttempts = settings.MaxAttempts;
-    var status = ContestSvc.GetStatus(settings, DateTime.UtcNow);
-    var isOpen = status == ContestStatus.Open;
-    var maxAttemptsText = maxAttempts.ToString("00");
-    var periodText = Or(contestPage.Value<string>("periodText"));
     var rulesText = Or(contestPage.Value<string>("rulesText"));
     var rulesLink = contestPage.Value<IEnumerable<Link>>("rulesLink")?.FirstOrDefault();
     var retentionDays = contestPage.Value<int?>("dataRetentionDays");
@@ -25,24 +16,37 @@
 }
 <section class="page-hero page-hero--contest" aria-labelledby="h-page">
     <div class="container">
-        <nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a> / <a href="/tham-gia">Phần 4</a> / Cuộc thi</nav>
+        <nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a> / <a href="/tham-gia">Phần 4</a> / <a href="@contestPage.Url()">Cuộc thi</a> / Làm bài</nav>
         <p class="eyebrow eyebrow--on-brand">Phần 4 · Thi trắc nghiệm</p>
         <h1 id="h-page">Cuộc thi trực tuyến</h1>
-        <p>Tám chuyên đề, 200 câu. Đăng ký xong là vào thi ngay. Làm Chuyên đề 1 trước, sau đó làm chuyên đề nào trước cũng được.</p>
+        <p>Chọn cuộc thi đang diễn ra, đăng ký xong là vào thi ngay.</p>
     </div>
 </section>
 
 <section class="contest" aria-label="Cuộc thi">
     <div class="container contest__row">
-        <div id="cmain" class="contest__main" data-max-attempts="@maxAttempts" data-contest-status="@status.ToString().ToLowerInvariant()">
+        <div id="cmain" class="contest__main" data-contest-status="loading">
             <noscript><p>Cần bật JavaScript để đăng ký dự thi.</p></noscript>
             <div id="regview">
             <p class="eyebrow">Bước 1</p>
             <h2 id="vh" tabindex="-1" class="contest__h2">Đăng ký dự thi</h2>
 
+            <div id="pickbox" class="contest__block" role="status">
+                <p class="exam__loading">Đang tải danh sách cuộc thi…</p>
+                <noscript><p>Cần bật JavaScript để xem các cuộc thi đang diễn ra.</p></noscript>
+            </div>
+
+            <div id="regsec" hidden>
+            <div class="cinfo">
+                <p class="eyebrow">Cuộc thi bạn đang đăng ký</p>
+                <h3 id="cname" class="cinfo__name"></h3>
+                <p id="cdesc" class="cinfo__desc" hidden></p>
+                <a id="cother" class="cinfo__other" href="?" hidden>Chọn cuộc thi khác ›</a>
+            </div>
+
             <div class="infogrid">
-                <div class="infocell"><b>Thời gian diễn ra</b><span>@periodText</span></div>
-                <div class="infocell"><b>Ai được dự thi</b><span>Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. Mỗi số điện thoại thi tối đa @maxAttemptsText lượt.</span></div>
+                <div class="infocell"><b>Thời gian diễn ra</b><span id="ctime">…</span></div>
+                <div class="infocell"><b>Ai được dự thi</b><span>Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. Mỗi số điện thoại thi tối đa <span data-max>…</span> lượt.</span></div>
                 <div class="infocell">
                     <b>Thể lệ và giải thưởng</b>
                     <span>@foreach (var (line, i) in rulesText.Split('\n').Select((l, i) => (l, i))) { if (i > 0) { <br /> } @line.TrimEnd('\r') }</span>
@@ -53,8 +57,6 @@
                 </div>
             </div>
 
-            @if (isOpen)
-            {
                 <fieldset id="modes" class="modes">
                     <legend>Bạn muốn dự thi theo cách nào?</legend>
                     <div class="modes__grid">
@@ -90,10 +92,10 @@
                         <label for="rgorg"><span>Trường, lớp hoặc đơn vị <span class="optional">(không bắt buộc)</span></span><input id="rgorg" class="field" type="text" autocomplete="organization" maxlength="150"></label>
                     </div>
                     <div class="pinkbox">
-                        <b>Mỗi số điện thoại thi tối đa @maxAttemptsText lượt</b>
+                        <b>Mỗi số điện thoại thi tối đa <span data-max>…</span> lượt</b>
                         <ul>
                             <li>Ban Tổ chức phân biệt thí sinh bằng số điện thoại, không bằng họ tên.</li>
-                            <li>Mỗi số thi tối đa @maxAttemptsText lượt. Lượt sau không xóa lượt trước; Ban Tổ chức lấy kết quả cao hơn.</li>
+                            <li>Mỗi số thi tối đa <span data-max>…</span> lượt. Lượt sau không xóa lượt trước; Ban Tổ chức lấy kết quả cao hơn.</li>
                             <li>Dùng đúng số bạn đang cầm máy. Ban Tổ chức không đổi số sau khi đã nộp bài.</li>
                             <li>Lượt thi gắn với trình duyệt bạn đang dùng. Đổi máy hoặc xóa dữ liệu trình duyệt thì không làm tiếp được lượt này.</li>
                         </ul>
@@ -114,9 +116,9 @@
                     <p id="rgerr" class="formerr" role="alert" hidden></p>
                     <div><button type="submit" id="rgsubmit" class="btn btn--primary btn--lg">Đăng ký và bắt đầu làm bài ›</button></div>
                 </form>
-            }
+            </div>
 
-            <div id="closedbox" class="contest__block notebox" hidden="@(isOpen ? "hidden" : null)">
+            <div id="closedbox" class="contest__block notebox" hidden>
                 <b>Chưa đăng ký được</b>
                 <p>Cuộc thi chưa mở hoặc đã kết thúc. Bạn vẫn có thể luyện tập với ngân hàng câu hỏi.</p>
             </div>

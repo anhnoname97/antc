@@ -16,6 +16,7 @@ const TIMEOUT_MS = 15000;
 // khi chay tren localhost/127.0.0.1, de nguoi dung that khong the bat mock bang URL.
 // Che do ep loi cho API-02..05: network|server|token|closed|submitted|rate|named|limit|validation|incomplete.
 // ?mock=notfound: API-01 tra CONTEST_NOT_FOUND, API-07 tra ba mang rong. ?mock=closed: API-07 coi moi cuoc dang dien ra la da ket thuc.
+// ?mock=one: API-07 chi con mot cuoc dang dien ra (mac dinh co hai; ?mock=closed hoac notfound: khong cuoc nao dang dien ra).
 // ?mock=almost: dung nhu ok nhung luot moi tao da co san dap an moi cau tru cau cuoi cua chuyen de cuoi.
 const MOCK_DEFAULT = false;
 
@@ -46,14 +47,14 @@ async function mockCreateEntry(payload, mode) {
     case 'validation':
       return { ok: false, error: { code: 'VALIDATION', message: 'Dữ liệu chưa hợp lệ.', fields: { phone: 'Số điện thoại chưa đúng. Nhập số bạn đang dùng, chỉ gồm chữ số.' } } };
     default: {
-      // Mock khoan dung hon may chu that: thieu contestId thi lay cuoc dang dien ra dau tien (giu luong cu cho den khi F7 gui contestId)
+      // Nhu may chu that (API-01 muc 1): contestId bat buoc, so nguyen duong
       const given = payload.contestId;
-      if (given !== undefined && given !== null && !(Number.isInteger(given) && given > 0)) {
+      if (!(Number.isInteger(given) && given > 0)) {
         return fail('VALIDATION', 'Dữ liệu chưa hợp lệ.', { contestId: 'Mã cuộc thi chưa đúng.' });
       }
       const cs = await mockContests();
       if (!cs.ok) return cs;
-      const c = given === undefined || given === null ? cs.data.find((x) => mockPhase(x) === 'open') : cs.data.find((x) => x.id === given);
+      const c = cs.data.find((x) => x.id === given);
       if (!c) return fail('CONTEST_NOT_FOUND', 'Không tìm thấy cuộc thi.');
       if (mockPhase(c) !== 'open') return fail('CONTEST_CLOSED', 'Cuộc thi chưa mở hoặc đã kết thúc.');
       let attemptNo = null;
@@ -361,6 +362,7 @@ async function mockSchedule(mode) {
     else out.ended.push(c);
   }
   out.ongoing.sort((a, b) => Date.parse(b.startAt) - Date.parse(a.startAt));
+  if (mode === 'one') out.ongoing.splice(1);
   out.upcoming.sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt));
   out.ended.sort((a, b) => Date.parse(b.endAt) - Date.parse(a.endAt));
   return { ok: true, data: out };
