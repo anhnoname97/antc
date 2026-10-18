@@ -137,3 +137,43 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: không mở API-01 trên môi trường thật trước khi BE-26 xong. Việc có cần xác minh số điện thoại (OTP) hay không là câu hỏi nghiệp vụ, sẽ hỏi chủ quản; chưa làm cho tới khi có trả lời.
 - Lý do: tránh lạm dụng API khi chưa có lớp bảo vệ.
 - Ảnh hưởng: FE-25 vẫn được merge vào nhánh phát triển; danh sách kiểm tra triển khai phải có mục này (liên quan QĐ-008: ngày mẫu làm cuộc thi mở). Câu hỏi OTP cần ghi vào câu hỏi mở cho chủ quản.
+
+### QĐ-013 · API-02 trả thêm `cd` (số chuyên đề) trong từng đáp án
+
+- Ngày: 2026-10-17 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: API-02 `GET /api/v1/contest/entries/me` (BE-23), FE-26, FE-28, mock `contest-api.js`
+- Vấn đề: sheet "API" r6 và docx › 6 › API-02 chỉ có `answers: [{ q, a, correct }]`. FE-26 cần biết chuyên đề nào đã xong, còn FE-28 quy định chỉ tải QUIZ-02 khi mở chuyên đề N. `docs/ban-giao/CUOC-THI/1-thiet-ke.md` › CXN-1.
+- Quyết định: mỗi phần tử `answers` có thêm `"cd"`: số chuyên đề dạng chuỗi như QUIZ-01 (ví dụ `"1"`), lấy từ `entry_answer.topic`. Các trường khác giữ nguyên.
+- Lý do: thêm trường thì tương thích ngược, dữ liệu đã có sẵn; FE không phải tải cả 8 QUIZ-02 mỗi lần mở trang.
+- Ảnh hưởng: BE-23 (task B1) trả trường này; FE-28 (F1) đếm câu đã làm theo `cd`; mock trả cùng dạng. Khi làm tài liệu bản v4, sửa sheet "API" r6.
+
+### QĐ-014 · Cửa sổ thời gian của API-03, API-04, API-05
+
+- Ngày: 2026-10-17 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: API-03, API-04 (BE-23, BE-24), API-05 (BE-24), FE-28, FE-29; cài đặt `submitGraceHours` của `thiPage`
+- Vấn đề: BE-23 ("Công việc" r52) chặn API-03 ngoài thời gian cuộc thi; BE-24 (r53) cho nộp trong 24 giờ sau giờ đóng (cấu hình được); sheet "API" r8–r9 không liệt kê `CONTEST_CLOSED` cho API-04, API-05 và không nói quá hạn nộp thì trả gì. `docs/ban-giao/CUOC-THI/1-thiet-ke.md` › CXN-2.
+- Quyết định (theo khuyến nghị):
+  - API-03 chỉ nhận đáp án khi cuộc thi đang mở (`GetStatus == Open`, QĐ-006); ngoài giờ trả `403 CONTEST_CLOSED`.
+  - API-04 chỉ nhận khi cuộc thi đang mở; ngoài giờ trả `403 CONTEST_CLOSED`.
+  - API-05 nhận tới `contestEnd + submitGraceHours` (giờ Việt Nam; `submitGraceHours` rỗng hoặc âm → 24, `0` → không gia hạn); quá hạn trả `403 CONTEST_CLOSED`. Lượt đã nộp vẫn trả lại kết quả cũ bất kể thời gian.
+- Lý do: đúng tài liệu ở API-03 và thời gian gia hạn; sau giờ đóng thí sinh chỉ còn nộp, không làm thêm câu.
+- Ảnh hưởng: thêm `CONTEST_CLOSED` vào bảng lỗi API-04, API-05; BE-24 đọc `submitGraceHours`. Kết hợp với QĐ-015: lượt chưa trả lời đủ câu lúc `contestEnd` thì không nộp được nữa (thời gian gia hạn chỉ giúp lượt đã làm đủ mà chưa nộp). Khi làm tài liệu bản v4, sửa sheet "API" r8–r9.
+
+### QĐ-015 · Phải trả lời đủ mọi câu của ngân hàng mới được nộp bài
+
+- Ngày: 2026-10-17 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: API-05 (BE-24), FE-29 (nút Nộp bài), FE-26 (cột bên), mock `contest-api.js`; sheet "Câu hỏi mở" #1
+- Vấn đề: "Câu hỏi mở" #1 (Chưa chốt) giả định nộp được khi đã xong Chuyên đề 1; FE-29 ("Công việc" r24) hiện nút khi xong CĐ1; BE-24 (r53) chỉ chặn khi chưa có đáp án nào (`NOTHING_TO_SUBMIT`). `docs/ban-giao/CUOC-THI/1-thiet-ke.md` › CXN-3.
+- Quyết định: thí sinh phải trả lời **đủ mọi câu** của ngân hàng đang dùng mới được nộp. Máy chủ từ chối nộp khi chưa đủ; nút Nộp bài chỉ hiện khi đã trả lời hết. Tổng số câu lấy từ ngân hàng đang dùng (`IQuestionBank.Current.TotalQuestions` ở BE; `total` của API-02 / tổng `count` QUIZ-01 ở FE), không viết cứng 200. Người dùng chọn trái khuyến nghị và khác giả định của "Câu hỏi mở" #1.
+- Lý do: quyết định nghiệp vụ của người dùng.
+- Ảnh hưởng: API-05 thêm kiểm tra "đủ câu" và mã lỗi riêng (chi tiết ở `1-thiet-ke.md` › mục cập nhật 2026-10-17); task B4, F5 và mock của F1 đổi theo. Với QĐ-014, lượt chưa đủ câu khi cuộc thi đóng thì không nộp được. Cần báo chủ quản để đóng "Câu hỏi mở" #1; khi làm tài liệu bản v4, sửa FE-29, BE-24 và sheet "API" r9.
+
+### QĐ-016 · QUIZ-02 công khai vẫn trả `ans` và `exp`, kể cả khi dùng cho cuộc thi
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: QUIZ-02 (API câu hỏi theo chuyên đề, không token), FE-28 (`contest-store.js` tự tính `correct` tạm từ `ans`), API-03 (BE-23)
+- Vấn đề: sheet "API" r12 ghi QUIZ-02 "Có sẵn đáp án và giải thích vì đề thi dùng chung ngân hàng luyện tập (đã chốt)", nhưng nhật ký chưa có QĐ xác nhận (QĐ-001: "đã chốt" trong tài liệu chỉ là ý định thiết kế). Vì QUIZ-02 công khai, thí sinh xem được đáp án qua mạng của trình duyệt trước khi trả lời. `docs/ban-giao/CUOC-THI/3-review.md` › Review B2 › "Sai khác tài liệu ↔ code" › "Cần người dùng lưu ý".
+- Quyết định: giữ như tài liệu. QUIZ-02 tiếp tục trả `ans` và `exp`; không làm API hay biến thể QUIZ-02 ẩn đáp án cho cuộc thi. Điểm vẫn chấm trên máy chủ: API-03 tự tính `is_correct` từ ngân hàng câu hỏi, không nhận `correct` từ client; `correct` FE tự tính chỉ để hiển thị tạm và bị ghi đè bằng giá trị máy chủ trả về.
+- Rủi ro đã chấp nhận: **tính công bằng** của cuộc thi. Người rành kỹ thuật (mở công cụ nhà phát triển, gọi thẳng QUIZ-02) biết đáp án đúng trước khi trả lời và có thể đạt điểm tối đa. Dữ liệu điểm không bị giả mạo, nhưng điểm cao không chứng minh người dự thi tự trả lời. Người dùng chấp nhận rủi ro này.
+- Lý do: đề thi dùng chung ngân hàng luyện tập, đáp án vốn đã công khai ở trang luyện tập; giữ contract hiện có, không thêm API.
+- Ảnh hưởng: không đổi code hay contract. FE-28 giữ cách tính `correct` tạm từ `ans`. Nếu sau này cần bảo đảm công bằng (ví dụ giải thưởng giá trị lớn), phải có QĐ mới thay QĐ này, kèm thay đổi contract QUIZ-02/API-03. Nên báo chủ quản rủi ro này cùng câu hỏi OTP (QĐ-012).

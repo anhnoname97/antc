@@ -29,8 +29,9 @@ Việc nhỏ (sửa chữ, đổi một tham số, sửa lỗi rõ ràng) đư�
 |---|---|
 | `docs/ke-hoach/Ke-hoach-cong-viec-antoantaichinh-v3.xlsx` | 9 sheet: Tổng quan, Công việc (mã, mô tả, tiêu chí nghiệm thu, phụ thuộc), Lịch, API, CSDL, Nội dung Umbraco, URL, Khác biệt bản dựng, Câu hỏi mở |
 | `docs/ke-hoach/Mo-ta-cong-viec-FE-antoantaichinh-v3.docx` | Mô tả từng việc FE (mô tả, hành vi, responsive, dữ liệu động, tiêu chí nghiệm thu, ảnh tham chiếu), biến thiết kế, hợp đồng API, bảng mã lỗi, câu hỏi mở. Có 56 bảng và 63 ảnh nhúng |
-| `docs/ke-hoach/anh/*.png` + `README.md` | 47 ảnh chụp bản dựng ở 1440/1024/390px; README ghi mã công việc của từng ảnh |
-| `docs/ban-dung/antoantaichinh-ban-dung-thu.html` | Bản dựng gốc: mẫu cho giao diện, câu chữ và cấu trúc dữ liệu. File rất lớn, tìm bằng Grep thay vì đọc hết |
+| `docs/ke-hoach/anh-v2/*.png` + `README.md` | **Ảnh giao diện hiện hành**: 155 ảnh chụp bản dựng v2 ở 1440/744/390px, kèm trạng thái tương tác; README ghi việc liên quan của từng ảnh. Chụp lại bằng `cong-cu/` khi bản dựng đổi |
+| `docs/ke-hoach/anh/*.png` + `README.md` | Ảnh của bản dựng v1 (cũ). **Chỉ còn dùng cho luồng thi** (`th-*`, `mb-06`, `mb-07`; FE-25 đến FE-29) vì v2 chưa có các màn đó; các ảnh khác đã lỗi thời |
+| `docs/ban-dung/antoantaichinh-ban-dung-thu.html` | Bản dựng v2: mẫu cho giao diện, câu chữ và cấu trúc dữ liệu. File rất lớn (2,8 MB, phần lớn là ảnh nhúng) và các trang con nằm trong một khối JSON mã hóa base64; xem ảnh trong `anh-v2/` hoặc tách trang bằng `anh-v2/cong-cu/extract_v2.py` thay vì đọc thẳng |
 | `docs/quyet-dinh.md` | Nhật ký quyết định đã xác nhận (`QĐ-xxx`). Không phải tài liệu thiết kế; xem mục "Nhật ký quyết định" bên dưới |
 
 Trong `src/ANTC.Portal.Core` có nhiều file `.md` của Umbraco; đó không phải tài liệu của dự án. Tài liệu có thể được bổ sung ở chỗ khác: khi cần, tìm lại theo phần mở rộng (`.docx .doc .pdf .xlsx .png .jpg .jpeg .webp .md .html`) và theo nội dung, bỏ qua `src/ANTC.Portal.Core`, `node_modules`, `bin`, `obj`.
@@ -91,7 +92,7 @@ Khi chạy hai agent song song trên cùng thư mục, vai trò của từng age
 | `0-giao-viec.md` | Điều phối (phiên ở profile mặc định) hoặc người dùng | Yêu cầu, phạm vi, ưu tiên, việc tiếp theo của từng agent |
 | `1-thiet-ke.md` | Orchestrator | Kết quả `/feature-design`: task, acceptance criteria, quyết định liên quan |
 | `2-ban-giao.md` | Worker | Báo cáo `/implement-task` theo mẫu của skill; câu hỏi bị chặn nếu có. Khi chạy theo luồng: `2-ban-giao-<luồng>.md` |
-| `3-review.md` | Orchestrator | Kết quả `/quality-check`; yêu cầu chạy thử nếu cần |
+| `3-review.md` | Orchestrator | Kết quả `/quality-check`; yêu cầu chạy thử nếu cần. Khi chạy theo luồng: `3-review-<luồng>.md`, để các phiên review song song không ghi cùng một file |
 
 - Các phiên chạy với tài khoản khác nhau không nhắn tin được cho nhau, nên mọi giao việc đi qua file. Có hai cách chạy agent:
   - **Thủ công**: người dùng gõ `nhận việc <mã>` ở cửa sổ VS Code của agent.
@@ -99,6 +100,21 @@ Khi chạy hai agent song song trên cùng thư mục, vai trò của từng age
 - Mỗi file có một người ghi; agent kia chỉ đọc. Ghi thêm lần mới thì thêm mục có ngày ở cuối file, không xóa nội dung cũ.
 - Chỉ Worker build và chạy `run-local`, để tránh khóa `bin/obj`, tranh cổng 11000 và file SQLite.
 - Chỉ Orchestrator ghi `docs/quyet-dinh.md`.
+
+**Theo dõi các agent đang chạy** (máy của anhnn): chạy `C:\GTSC\DMST\agent-monitor\start.cmd`, mở http://127.0.0.1:8799. Trang chỉ đọc: agent nào đang chạy, làm bao lâu, đã gọi bao nhiêu lệnh, lệnh gần nhất; luồng và nhánh, commit gần đây, mục mới nhất của hồ sơ bàn giao, lịch sử các lần chạy. Mỗi lần `antc-agent.ps1` chạy ghi một hồ sơ vào `C:\GTSC\DMST\agent-runs\`; có nút "Dừng lần chạy này" cho từng lần chạy.
+
+### Tiết kiệm lượt dùng
+
+Số đo trên máy của anhnn (log `agent-logs`): mỗi tin nhắn mới trong một phiên đọc lại toàn bộ lịch sử phiên, nên phiên điều phối kéo dài (hàng trăm nghìn token ngữ cảnh) tốn gấp 5 đến 10 lần một lượt agent. Vì vậy:
+
+- **Phiên điều phối ngắn, mỗi gói việc một phiên.** Trạng thái nằm trong file, không nằm trong trí nhớ phiên: `docs/ban-giao/TRANG-THAI.md` (đọc đầu tiên), `docs/ban-giao/<mã>/`, `docs/quyet-dinh.md`. Phiên mới nhận việc bằng cách đọc các file đó. Cuối mỗi chặng, cập nhật `TRANG-THAI.md` trước khi đóng phiên.
+- **Điều phối dùng Sonnet.** Orchestrator chạy mặc định (Opus) cho **thiết kế và phân tích**; **review dùng `-Model sonnet`**: `antc-agent.ps1 -Role orchestrator -Model sonnet -Prompt "..."`. Worker đã chạy Sonnet.
+- **Review theo mức rủi ro.** Task đụng API contract, schema, bảo mật, giao diện chính hoặc luồng tiền/lượt thi: review riêng. Task nhỏ: gộp hai đến ba task vào một lượt review, hoặc để review cuối gói.
+- **Phiên điều phối không mở ảnh.** Mỗi ảnh nằm lại trong ngữ cảnh đến hết phiên; việc xem ảnh để Orchestrator hoặc một phiên riêng ngắn làm.
+- Không đọc nguyên văn kết quả dài của agent; chỉ đọc phần kết luận ở cuối `3-review*.md` / `2-ban-giao*.md`.
+- **Chuỗi việc lặp lại thì chạy bằng script, không cần phiên điều phối:** `C:\GTSC\DMST\antc-pipeline.ps1 -Code <mã> -Lane <luồng> -Tasks T1,T2` chạy lần lượt Worker làm → Orchestrator review (Sonnet) → Worker sửa (tối đa 2 vòng) → task kế tiếp, và chỉ dừng khi cần người quyết định (Worker bị chặn, review cần xác nhận, hết vòng sửa, hết số lần chạy, worktree còn file chưa commit, agent báo lỗi hoặc hết lượt dùng). Kết luận của agent đọc từ dòng cuối `TRANG-THAI: ...`. Chạy thử kế hoạch không tốn lượt dùng: thêm `-DryRun`. Tên task phải có trong `1-thiet-ke.md`.
+  - Chỉ dùng khi thiết kế đã chốt: các task phải ở trạng thái "Làm được" và không còn câu hỏi chặn. Pipeline không tự ghi quyết định hay tự thiết kế lại.
+  - Mỗi lần chạy vẫn hiện ở trang theo dõi; log của pipeline ở `agent-logs\pipeline-*.log`.
 
 ### Chạy song song theo luồng
 
@@ -111,6 +127,8 @@ Khi FE cần một BE chưa có (hoặc nhiều mã công việc độc lập), 
 5. **Dọn**: `antc-agent.ps1 -RemoveLane <luồng>`, rồi xóa nhánh `lane/<luồng>` khi không cần.
 
 Quy tắc:
+- **Mỗi phiên Worker làm đúng một task nhỏ**, không gom cả luồng vào một phiên. Trong một luồng, các task chạy nối tiếp, mỗi task một phiên mới trên cùng worktree: phiên sau đọc `1-thiet-ke.md` và mục bàn giao của task trước, không dựa vào trí nhớ của phiên cũ. Với `-AllowCommit`, mỗi task xong là một commit trong nhánh `lane/*`.
+- Orchestrator cũng vậy: gói lớn thì thiết kế theo nhiều phiên (contract trước, rồi từng luồng hoặc từng đợt); review mỗi task một phiên.
 - Hai luồng không sửa cùng file. Phần dùng chung (dịch vụ, entity, DTO, `CustomCoreComposer.cs`) giao cho đúng một luồng.
 - Tài liệu điều phối (`docs/ban-giao`, `docs/quyet-dinh.md`) luôn đọc và ghi ở repo chính, không ở worktree.
 - Worker chỉ commit trong nhánh `lane/*`, khi được chạy với `-AllowCommit`, không push.

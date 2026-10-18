@@ -22,6 +22,7 @@ Không sửa code hay tài liệu thiết kế trong skill này; chỉ được 
    - **I (tích hợp)**: sau khi merge các luồng, tắt mock, chạy luồng đầu–cuối. Làm trên nhánh chính của mã công việc.
    - Hai luồng không được sửa cùng file. Phần dùng chung (dịch vụ, entity, DTO) giao cho đúng một luồng, luồng kia chờ hoặc dùng mock. Ghi rõ file nào thuộc luồng nào.
    Task chạy tuần tự trên nhánh chính thì để cột "Luồng" là `chính`.
+   **Cỡ task: vừa một phiên Worker.** Mỗi task tối đa khoảng một mã công việc hoặc nửa ngày công, chạm ít file, kiểm chứng được độc lập. Mã công việc lớn hơn (từ khoảng 1 ngày công, hoặc gồm cả giao diện lẫn lớp dữ liệu) thì tách thành nhiều task (ví dụ `FE-27a` khung màn và điều hướng, `FE-27b` đồng hồ đọc, `FE-27c` lưu đáp án). Mỗi task ghi rõ đầu vào nó cần từ task trước, để phiên mới làm được mà không cần trí nhớ của phiên cũ.
 7. **Câu hỏi cần chốt**: liệt kê các điểm chạm nghiệp vụ, API contract, schema, bảo mật, tích hợp hoặc kiến trúc mà chưa có quyết định. Task phụ thuộc vào chúng được đánh dấu *chờ xác nhận*.
 
 ## Đầu ra
