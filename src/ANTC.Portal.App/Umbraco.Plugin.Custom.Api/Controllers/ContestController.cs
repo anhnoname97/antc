@@ -128,7 +128,7 @@ public class ContestController : ControllerBase
             "INVALID_TOKEN" => StatusCodes.Status401Unauthorized,
             "CONTEST_NOT_FOUND" => StatusCodes.Status404NotFound,
             "CONTEST_CLOSED" => StatusCodes.Status403Forbidden,
-            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "INCOMPLETE_ANSWERS" => StatusCodes.Status409Conflict,
+            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "INCOMPLETE_ANSWERS" or "TOPIC_LOCKED" => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
         return StatusCode(status, new { error = new { code = error.Code, message = error.Message, fields = error.Fields ?? new Dictionary<string, string>() } });

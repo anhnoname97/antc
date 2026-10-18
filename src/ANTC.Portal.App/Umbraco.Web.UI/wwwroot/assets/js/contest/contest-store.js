@@ -11,7 +11,7 @@ const KEY_QUEUE = 'at_queue';
 const RETRY_MS = [2000, 5000, 15000]; // sau do giu 15s
 
 // Ma loi gui lai khong bao gio thanh cong: bo muc khoi hang doi
-const DROP_CODES = ['CONTEST_CLOSED', 'UNKNOWN_QUESTION', 'INVALID_OPTION'];
+const DROP_CODES = ['CONTEST_CLOSED', 'UNKNOWN_QUESTION', 'INVALID_OPTION', 'TOPIC_LOCKED'];
 
 export const state = {
   practice: false, // dang o che do luyen tap (khong goi API)

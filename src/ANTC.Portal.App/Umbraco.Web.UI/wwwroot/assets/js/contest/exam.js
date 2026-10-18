@@ -283,6 +283,7 @@ function sideHtml(view) {
 const ERR_TEXT = {
   CONTEST_CLOSED: 'Cuộc thi đã đóng nên đáp án này không được ghi nhận.',
   ALREADY_SUBMITTED: 'Bài đã được nộp nên không trả lời thêm được.',
+  TOPIC_LOCKED: 'Hãy hoàn thành chuyên đề đứng trước rồi mới làm chuyên đề này.',
   UNKNOWN_QUESTION: 'Câu hỏi này không còn trong ngân hàng nên chưa ghi nhận được. Bạn có thể sang câu khác.',
   INVALID_OPTION: 'Câu hỏi này không còn trong ngân hàng nên chưa ghi nhận được. Bạn có thể sang câu khác.',
 };

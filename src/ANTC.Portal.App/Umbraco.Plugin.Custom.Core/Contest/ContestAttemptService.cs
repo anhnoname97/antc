@@ -225,6 +225,14 @@ public class ContestAttemptService : IContestAttemptService
                 return SaveAnswerResult.Ok(new(existing.QuestionCode, existing.Chosen, existing.IsCorrect, false));
             }
 
+            // QD-025, QD-027: chuyen de n chi nhan dap an khi cac chuyen de dung truoc (theo thu tu de) da xong
+            string? locked = await FirstUnfinishedBeforeAsync(entry.Id, contest, key.TopicId, ct);
+            if (locked is not null)
+            {
+                return SaveAnswerResult.Fail(new("TOPIC_LOCKED",
+                    $"Hãy hoàn thành Chuyên đề {locked} trước khi làm chuyên đề này."));
+            }
+
             var row = new EntryAnswer
             {
                 EntryId = entry.Id,
@@ -257,6 +265,29 @@ public class ContestAttemptService : IContestAttemptService
             _db.ChangeTracker.Clear();
             ContestEntryService.WriteLock.Release();
         }
+    }
+
+    // Chuyen de dau tien (theo thu tu de) dung truoc chuyen de dang ghi ma chua tra loi du cau cua de; null neu khong co.
+    // Chuyen de xong = so cau cua de da co dap an >= so cau cua de trong chuyen de
+    private async Task<string?> FirstUnfinishedBeforeAsync(long entryId, ContestInfo contest, int topicId, CancellationToken ct)
+    {
+        int index = contest.Topics.ToList().FindIndex(t => t.TopicId == topicId);
+        if (index <= 0) return null;
+
+        var answered = (await _db.EntryAnswers.AsNoTracking()
+            .Where(a => a.EntryId == entryId)
+            .Select(a => a.QuestionCode)
+            .ToListAsync(ct)).ToHashSet(StringComparer.Ordinal);
+        var exam = contest.QuestionCodes.ToHashSet(StringComparer.Ordinal);
+        var bank = _bank.Current;
+
+        foreach (var earlier in contest.Topics.Take(index))
+        {
+            int done = answered.Count(c => exam.Contains(c)
+                && bank.Keys.TryGetValue(c, out AnswerKey? k) && k.TopicId == earlier.TopicId);
+            if (done < earlier.Count) return earlier.Cd;
+        }
+        return null;
     }
 
     public async Task<AttachContactResult> AttachContactAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default)
