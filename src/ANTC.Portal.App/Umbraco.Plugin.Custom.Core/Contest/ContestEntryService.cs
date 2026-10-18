@@ -9,12 +9,12 @@ using Umbraco.Plugin.Custom.Core.Data;
 namespace Umbraco.Plugin.Custom.Core.Contest;
 
 /// <summary>Du lieu gui len API-01. Mode: "named" hoac "anon".</summary>
-public record CreateEntryRequest(string? Mode, string? FullName, string? Phone, string? Org, bool? Consent);
+public record CreateEntryRequest(long? ContestId, string? Mode, string? FullName, string? Phone, string? Org, bool? Consent);
 
 /// <summary>Ket qua API-01 khi thanh cong. Token goc chi nam o day, khong luu CSDL.</summary>
-public record CreatedEntry(string Code, string Token, string Mode, int? AttemptNo, int MaxAttempts, string Status);
+public record CreatedEntry(string Code, string Token, string Mode, long ContestId, int? AttemptNo, int MaxAttempts, string Status);
 
-/// <summary>Loi nghiep vu cua API-01; Fields theo ten truong gui len (fullName, phone, org, consent).</summary>
+/// <summary>Loi nghiep vu cua API-01; Fields theo ten truong gui len (contestId, fullName, phone, org, consent).</summary>
 public record ContestError(string Code, string Message, IReadOnlyDictionary<string, string>? Fields = null);
 
 public record CreateEntryResult(CreatedEntry? Entry, ContestError? Error)
@@ -47,19 +47,27 @@ public class ContestEntryService : IContestEntryService
     private static readonly Regex PhonePattern = new(@"^0\d{9}$", RegexOptions.Compiled);
 
     private readonly AppDbContext _db;
-    private readonly IContestSettings _settings;
+    private readonly IContestCatalog _catalog;
+    private readonly TimeProvider _clock;
     private readonly IConfiguration _config;
 
-    public ContestEntryService(AppDbContext db, IContestSettings settings, IConfiguration config)
+    public ContestEntryService(AppDbContext db, IContestCatalog catalog, TimeProvider clock, IConfiguration config)
     {
         _db = db;
-        _settings = settings;
+        _catalog = catalog;
+        _clock = clock;
         _config = config;
     }
 
     public async Task<CreateEntryResult> CreateAsync(CreateEntryRequest request, string? ip, CancellationToken ct = default)
     {
-        var now = DateTime.UtcNow;
+        var now = _clock.GetUtcNow().UtcDateTime;
+
+        if (request.ContestId is not > 0)
+        {
+            const string message = "Chưa chọn cuộc thi.";
+            return CreateEntryResult.Fail(new("VALIDATION", message, new Dictionary<string, string> { ["contestId"] = message }));
+        }
 
         string? mode = request.Mode;
         if (mode is not (EntryModes.Named or EntryModes.Anon))
@@ -77,9 +85,14 @@ public class ContestEntryService : IContestEntryService
             }
         }
 
-        // Doc cai dat ngoai khoa ghi; khong co trang thiPage thi coi nhu chua mo (QD-006)
-        var settings = await _settings.GetAsync();
-        if (settings is null || _settings.GetStatus(settings, now) != ContestStatus.Open)
+        // Doc cuoc thi ngoai khoa ghi; cuoc khong co hoac tat thi 404, chua mo/da het thi 403 (R4, R5)
+        ContestInfo? contest = await _catalog.GetAsync(request.ContestId.Value, ct);
+        if (contest is null)
+        {
+            return CreateEntryResult.Fail(new("CONTEST_NOT_FOUND", "Không tìm thấy cuộc thi."));
+        }
+
+        if (contest.StatusAt(now) != ContestState.Ongoing)
         {
             return CreateEntryResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
         }
@@ -95,11 +108,11 @@ public class ContestEntryService : IContestEntryService
             int? attemptNo = null;
             if (phone is not null)
             {
-                int used = await _db.Entries.CountAsync(e => e.Phone == phone, ct);
-                if (used >= settings.MaxAttempts)
+                int used = await _db.Entries.CountAsync(e => e.ContestId == contest.Id && e.Phone == phone, ct);
+                if (used >= contest.MaxAttempts)
                 {
                     return CreateEntryResult.Fail(new("ATTEMPT_LIMIT",
-                        $"Số {phone} đã dùng hết {settings.MaxAttempts} lượt thi. Mỗi số điện thoại chỉ được thi tối đa {settings.MaxAttempts} lượt."));
+                        $"Số {phone} đã dùng hết {contest.MaxAttempts} lượt của cuộc thi này."));
                 }
 
                 attemptNo = used + 1;
@@ -107,6 +120,7 @@ public class ContestEntryService : IContestEntryService
 
             var entry = new Entry
             {
+                ContestId = contest.Id,
                 Code = await NewCodeAsync(ct),
                 TokenHash = HashToken(token),
                 Mode = mode,
@@ -124,7 +138,7 @@ public class ContestEntryService : IContestEntryService
             await tx.CommitAsync(ct);
 
             // Luot an danh khong co attemptNo: tra null, khop entry.attempt_no
-            return CreateEntryResult.Ok(new(entry.Code, token, mode, attemptNo, settings.MaxAttempts, entry.Status));
+            return CreateEntryResult.Ok(new(entry.Code, token, mode, contest.Id, attemptNo, contest.MaxAttempts, entry.Status));
         }
         finally
         {

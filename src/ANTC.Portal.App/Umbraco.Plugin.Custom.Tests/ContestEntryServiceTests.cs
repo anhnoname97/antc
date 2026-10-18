@@ -1,32 +1,23 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging.Abstractions;
-using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
+using Umbraco.Plugin.Custom.Core.Quiz;
 
 namespace Umbraco.Plugin.Custom.Tests;
 
-/// <summary>Kiem thu API-01 (ContestEntryService) va quy tac mo/dong cuoc thi cua ContestSettingsService.</summary>
+/// <summary>Kiem thu API-01 (ContestEntryService) theo cuoc thi.</summary>
 public class ContestEntryServiceTests
 {
     [Fact]
-    public void ContestWithoutBothTimeBoundaries_IsClosed()
-    {
-        var service = new ContestSettingsService(null!, null!, null!, NullLogger<ContestSettingsService>.Instance);
-        var settings = new ContestSettings(null, null, 2);
-
-        Assert.Equal(ContestStatus.Upcoming, service.GetStatus(settings, DateTime.UtcNow));
-    }
-
-    [Fact]
-    public async Task CreateEntry_WhenContestIsClosed_ReturnsContestClosed()
+    public async Task CreateEntry_WhenContestHasNotStarted_ReturnsContestClosed()
     {
         await WithDb(async db =>
         {
-            ContestEntryService service = CreateService(db, new FixedSettings(new ContestSettings(null, null, 2)));
+            long id = await SeedContestAsync(db, start: DateTime.UtcNow.AddHours(1), end: DateTime.UtcNow.AddHours(2));
+            ContestEntryService service = CreateService(db);
 
-            CreateEntryResult result = await service.CreateAsync(new CreateEntryRequest(EntryModes.Anon, null, null, null, null), "127.0.0.1");
+            CreateEntryResult result = await service.CreateAsync(Anon(id), "127.0.0.1");
 
             Assert.Equal("CONTEST_CLOSED", result.Error!.Code);
             Assert.Empty(await db.Entries.ToArrayAsync());
@@ -34,14 +25,120 @@ public class ContestEntryServiceTests
     }
 
     [Fact]
+    public async Task CreateEntry_WhenContestHasEnded_ReturnsContestClosed()
+    {
+        await WithDb(async db =>
+        {
+            long id = await SeedContestAsync(db, start: DateTime.UtcNow.AddHours(-2), end: DateTime.UtcNow.AddHours(-1));
+            ContestEntryService service = CreateService(db);
+
+            CreateEntryResult result = await service.CreateAsync(Anon(id), "127.0.0.1");
+
+            Assert.Equal("CONTEST_CLOSED", result.Error!.Code);
+        });
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(0L)]
+    [InlineData(-5L)]
+    public async Task CreateEntry_WithoutPositiveContestId_IsValidationError(long? contestId)
+    {
+        await WithDb(async db =>
+        {
+            await SeedContestAsync(db);
+            ContestEntryService service = CreateService(db);
+
+            CreateEntryResult result = await service.CreateAsync(Anon(contestId), "127.0.0.1");
+
+            Assert.Equal("VALIDATION", result.Error!.Code);
+            Assert.Contains("contestId", result.Error.Fields!.Keys);
+        });
+    }
+
+    [Fact]
+    public async Task CreateEntry_UnknownOrInactiveContest_ReturnsContestNotFound()
+    {
+        await WithDb(async db =>
+        {
+            long inactive = await SeedContestAsync(db, active: false);
+            ContestEntryService service = CreateService(db);
+
+            Assert.Equal("CONTEST_NOT_FOUND", (await service.CreateAsync(Anon(inactive), "127.0.0.1")).Error!.Code);
+            Assert.Equal("CONTEST_NOT_FOUND", (await service.CreateAsync(Anon(9999), "127.0.0.1")).Error!.Code);
+            Assert.Empty(await db.Entries.ToArrayAsync());
+        });
+    }
+
+    // Thu tu kiem tra R5: du lieu ca nhan sai (400) dung truoc cuoc khong co (404)
+    [Fact]
+    public async Task CreateEntry_InvalidPersonalData_IsReportedBeforeUnknownContest()
+    {
+        await WithDb(async db =>
+        {
+            ContestEntryService service = CreateService(db);
+
+            CreateEntryResult result = await service.CreateAsync(
+                new CreateEntryRequest(9999, EntryModes.Named, "", "abc", null, null), "127.0.0.1");
+
+            Assert.Equal("VALIDATION", result.Error!.Code);
+        });
+    }
+
+    // Hai cuoc khac nhau, cung so: moi cuoc co luot rieng, attemptNo tinh theo cuoc
+    [Fact]
+    public async Task SamePhone_InTwoContests_GetsTwoAttemptsInEach()
+    {
+        await WithDb(async db =>
+        {
+            long a = await SeedContestAsync(db);
+            long b = await SeedContestAsync(db);
+            ContestEntryService service = CreateService(db);
+
+            var results = new List<CreateEntryResult>();
+            foreach (long id in new[] { a, a, b, b, a, b })
+            {
+                results.Add(await service.CreateAsync(Named(id, "0912345678"), "127.0.0.1"));
+            }
+
+            Assert.Equal(new int?[] { 1, 2, 1, 2 }, results.Take(4).Select(x => x.Entry!.AttemptNo));
+            Assert.Equal(new[] { a, a, b, b }, results.Take(4).Select(x => x.Entry!.ContestId));
+            Assert.Equal("ATTEMPT_LIMIT", results[4].Error!.Code);
+            Assert.Equal("ATTEMPT_LIMIT", results[5].Error!.Code);
+            Assert.Equal(2, await db.Entries.CountAsync(e => e.ContestId == a));
+            Assert.Equal(2, await db.Entries.CountAsync(e => e.ContestId == b));
+        });
+    }
+
+    // maxAttempts va thong diep lay tu cuoc, khong viet cung
+    [Fact]
+    public async Task AttemptLimit_UsesContestMaxAttempts()
+    {
+        await WithDb(async db =>
+        {
+            long id = await SeedContestAsync(db, maxAttempts: 1);
+            ContestEntryService service = CreateService(db);
+
+            CreateEntryResult first = await service.CreateAsync(Named(id, "0912345678"), "127.0.0.1");
+            CreateEntryResult second = await service.CreateAsync(Named(id, "0912345678"), "127.0.0.1");
+
+            Assert.Equal(1, first.Entry!.MaxAttempts);
+            Assert.Equal("ATTEMPT_LIMIT", second.Error!.Code);
+            Assert.Equal("Số 0912345678 đã dùng hết 1 lượt của cuộc thi này.", second.Error.Message);
+        });
+    }
+
+    [Fact]
     public async Task TenConcurrentRequests_ForSamePhone_CreateExactlyTwoEntries()
     {
         string databasePath = Path.Combine(Path.GetTempPath(), $"antc-contest-{Guid.NewGuid():N}.db");
+        long contestId;
         try
         {
             await using (AppDbContext setup = CreateDb(databasePath))
             {
                 await setup.Database.EnsureCreatedAsync();
+                contestId = await SeedContestAsync(setup);
             }
 
             var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -51,7 +148,7 @@ public class ContestEntryServiceTests
                 await using AppDbContext db = CreateDb(databasePath);
                 ContestEntryService service = CreateService(db);
                 CreateEntryResult result = await service.CreateAsync(
-                    new CreateEntryRequest(EntryModes.Named, "Nguyễn Văn An", "0912345678", null, true),
+                    Named(contestId, "0912345678"),
                     "127.0.0.1");
                 if (result.Error is { } error)
                 {
@@ -68,6 +165,7 @@ public class ContestEntryServiceTests
             await using AppDbContext verify = CreateDb(databasePath);
             Entry[] entries = await verify.Entries.OrderBy(x => x.AttemptNo).ToArrayAsync();
             Assert.Equal(new int?[] { 1, 2 }, entries.Select(x => x.AttemptNo));
+            Assert.All(entries, x => Assert.Equal(contestId, x.ContestId));
         }
         finally
         {
@@ -82,9 +180,10 @@ public class ContestEntryServiceTests
         await WithDb(async db =>
         {
             ContestEntryService service = CreateService(db);
+            long id = await SeedContestAsync(db);
 
             CreateEntryResult result = await service.CreateAsync(
-                new CreateEntryRequest(EntryModes.Anon, null, null, null, null),
+                new CreateEntryRequest(id, EntryModes.Anon, null, null, null, null),
                 "127.0.0.1");
             Entry stored = await db.Entries.SingleAsync();
 
@@ -107,9 +206,10 @@ public class ContestEntryServiceTests
         await WithDb(async db =>
         {
             ContestEntryService service = CreateService(db, salt: null);
+            long id = await SeedContestAsync(db);
 
             CreateEntryResult result = await service.CreateAsync(
-                new CreateEntryRequest(EntryModes.Anon, null, null, null, null),
+                new CreateEntryRequest(id, EntryModes.Anon, null, null, null, null),
                 "127.0.0.1");
 
             Assert.NotNull(result.Entry);
@@ -126,9 +226,10 @@ public class ContestEntryServiceTests
         await WithDb(async db =>
         {
             ContestEntryService service = CreateService(db);
+            long id = await SeedContestAsync(db);
 
             CreateEntryResult result = await service.CreateAsync(
-                new CreateEntryRequest(EntryModes.Named, "Nguyễn Văn An", input, null, true),
+                new CreateEntryRequest(id, EntryModes.Named, "Nguyễn Văn An", input, null, true),
                 "127.0.0.1");
 
             Assert.NotNull(result.Entry);
@@ -142,9 +243,10 @@ public class ContestEntryServiceTests
         await WithDb(async db =>
         {
             ContestEntryService service = CreateService(db);
+            long id = await SeedContestAsync(db);
 
             CreateEntryResult result = await service.CreateAsync(
-                new CreateEntryRequest(EntryModes.Named, "Nguyễn Văn An", "0912345678", null, null),
+                new CreateEntryRequest(id, EntryModes.Named, "Nguyễn Văn An", "0912345678", null, null),
                 "127.0.0.1");
 
             Assert.Equal("VALIDATION", result.Error!.Code);
@@ -161,9 +263,10 @@ public class ContestEntryServiceTests
         await WithDb(async db =>
         {
             ContestEntryService service = CreateService(db);
+            long id = await SeedContestAsync(db);
 
             CreateEntryResult result = await service.CreateAsync(
-                new CreateEntryRequest(EntryModes.Anon, "", "0912345678", "Don vi", true),
+                new CreateEntryRequest(id, EntryModes.Anon, "", "0912345678", "Don vi", true),
                 "127.0.0.1");
             Entry stored = await db.Entries.SingleAsync();
 
@@ -181,9 +284,10 @@ public class ContestEntryServiceTests
         await WithDb(async db =>
         {
             ContestEntryService service = CreateService(db);
+            long id = await SeedContestAsync(db);
 
             CreateEntryResult result = await service.CreateAsync(
-                new CreateEntryRequest(EntryModes.Anon, null, null, null, null),
+                new CreateEntryRequest(id, EntryModes.Anon, null, null, null, null),
                 "127.0.0.1");
 
             Assert.Equal(EntryModes.Anon, result.Entry!.Mode);
@@ -215,7 +319,35 @@ public class ContestEntryServiceTests
         return new AppDbContext(options);
     }
 
-    private static ContestEntryService CreateService(AppDbContext db, IContestSettings? settings = null, string? salt = "test-salt")
+    private static CreateEntryRequest Anon(long? contestId) => new(contestId, EntryModes.Anon, null, null, null, null);
+
+    private static CreateEntryRequest Named(long contestId, string phone) =>
+        new(contestId, EntryModes.Named, "Nguyễn Văn An", phone, null, true);
+
+    // Mac dinh: cuoc dang dien ra, 2 luot
+    private static async Task<long> SeedContestAsync(
+        AppDbContext db, DateTime? start = null, DateTime? end = null, bool active = true, int maxAttempts = 2)
+    {
+        var campaign = new ContestCampaign
+        {
+            Name = "Cuộc thi thử",
+            IsActive = active,
+            StartAt = start ?? DateTime.UtcNow.AddHours(-1),
+            EndAt = end ?? DateTime.UtcNow.AddHours(1),
+            MaxAttempts = maxAttempts,
+        };
+        db.ContestCampaigns.Add(campaign);
+        await db.SaveChangesAsync();
+        return campaign.Id;
+    }
+
+    private sealed class EmptyBank : IQuestionBank
+    {
+        public QuestionBankSnapshot Current { get; } = new();
+        public void Reload() { }
+    }
+
+    private static ContestEntryService CreateService(AppDbContext db, string? salt = "test-salt")
     {
         var values = new Dictionary<string, string?>();
         if (salt is not null)
@@ -224,25 +356,6 @@ public class ContestEntryServiceTests
         }
 
         IConfiguration config = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
-        return new ContestEntryService(db, settings ?? new FixedSettings(OpenSettings()), config);
-    }
-
-    // Start/End la gio Viet Nam (UTC+7), khong kem mui gio
-    private static ContestSettings OpenSettings() =>
-        new(DateTime.UtcNow.AddHours(7 - 1), DateTime.UtcNow.AddHours(7 + 1), 2);
-
-    // Cai dat co dinh; trang thai tinh bang ContestSettingsService that
-    private sealed class FixedSettings(ContestSettings settings) : IContestSettings
-    {
-        private readonly ContestSettingsService _rules =
-            new(null!, null!, null!, NullLogger<ContestSettingsService>.Instance);
-
-        public Task<ContestSettings?> GetAsync() => Task.FromResult<ContestSettings?>(settings);
-
-        public ContestSettings Read(IPublishedContent page) => settings;
-
-        public ContestStatus GetStatus(ContestSettings s, DateTime nowUtc) => _rules.GetStatus(s, nowUtc);
-
-        public bool IsSubmitOpen(ContestSettings s, DateTime nowUtc) => _rules.IsSubmitOpen(s, nowUtc);
+        return new ContestEntryService(db, new ContestCatalog(db, new EmptyBank(), TimeProvider.System), TimeProvider.System, config);
     }
 }
