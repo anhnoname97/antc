@@ -153,6 +153,9 @@
 .qwait { margin: 0; font-size: 0.875rem; color: var(--c-text-4); }
 .qwait:empty { display: none; }
 
+/* Man Xong chuyen de (FE-27): dong dau cua hop tach rieng dong chu */
+.exam__done .infobox > b { display: block; }
+
 @media (max-width: 900px) {
   .contest__main, .contest__side { flex-basis: 100%; }
 }
@@ -161,7 +164,9 @@
   .page-hero--contest { padding: 56px 0 160px; }
 }
 @media (max-width: 480px) {
+  .qactions { flex-direction: column; align-items: stretch; }
   .qactions .qnav { width: 100%; }
+  .exam__done .exam__actions .qnav { width: 100%; height: auto; min-height: 48px; padding-top: 10px; padding-bottom: 10px; justify-content: center; text-align: center; }
 }
 
 /* Chon cuoc thi (F7): thong tin cuoc dang dang ky va danh sach chon khi co nhieu cuoc */
