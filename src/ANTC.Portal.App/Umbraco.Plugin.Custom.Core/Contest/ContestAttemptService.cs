@@ -12,6 +12,21 @@ public record EntryAnswerDto(
     [property: JsonPropertyName("correct")] bool Correct,
     [property: JsonPropertyName("cd")] string Cd);
 
+/// <summary>Cuoc thi cua luot trong API-02. Phase: open, submit_only, closed.</summary>
+public record EntryContestDto(
+    [property: JsonPropertyName("id")] long Id,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("startAt")] string StartAt,
+    [property: JsonPropertyName("endAt")] string EndAt,
+    [property: JsonPropertyName("submitUntil")] string SubmitUntil,
+    [property: JsonPropertyName("phase")] string Phase,
+    [property: JsonPropertyName("readTimerFactor")] decimal ReadTimerFactor);
+
+/// <summary>Mot chuyen de trong de cua cuoc (API-02), theo thu tu de.</summary>
+public record EntryTopicDto(
+    [property: JsonPropertyName("cd")] string Cd,
+    [property: JsonPropertyName("count")] int Count);
+
 /// <summary>Ket qua API-02. Thoi diem la chuoi ISO 8601 UTC co Z.</summary>
 public record EntryStateDto(
     [property: JsonPropertyName("code")] string Code,
@@ -26,6 +41,8 @@ public record EntryStateDto(
     [property: JsonPropertyName("score")] int? Score,
     [property: JsonPropertyName("total")] int Total,
     [property: JsonPropertyName("submittedAt")] string? SubmittedAt,
+    [property: JsonPropertyName("contest")] EntryContestDto? Contest,
+    [property: JsonPropertyName("topics")] IReadOnlyList<EntryTopicDto> Topics,
     [property: JsonPropertyName("answers")] IReadOnlyList<EntryAnswerDto> Answers);
 
 /// <summary>Than yeu cau API-03.</summary>
@@ -110,12 +127,17 @@ public class ContestAttemptService : IContestAttemptService
     private readonly AppDbContext _db;
     private readonly IContestSettings _settings;
     private readonly IQuestionBank _bank;
+    private readonly IContestCatalog _catalog;
+    private readonly TimeProvider _clock;
 
-    public ContestAttemptService(AppDbContext db, IContestSettings settings, IQuestionBank bank)
+    public ContestAttemptService(AppDbContext db, IContestSettings settings, IQuestionBank bank,
+        IContestCatalog catalog, TimeProvider clock)
     {
         _db = db;
         _settings = settings;
         _bank = bank;
+        _catalog = catalog;
+        _clock = clock;
     }
 
     public async Task<Entry?> AuthenticateAsync(string? token, CancellationToken ct = default)
@@ -136,20 +158,31 @@ public class ContestAttemptService : IContestAttemptService
             .ToList();
 
         bool submitted = entry.Status == EntryStatuses.Submitted;
-        int maxAttempts = ContestSettings.NormalizeMaxAttempts((await _settings.GetAsync())?.MaxAttempts);
-        int total = submitted && entry.TotalQuestions is { } t ? t : _bank.Current.TotalQuestions;
+
+        // Cuoc cua luot; luot cu khong cuoc hoac cuoc bi tat: contest null, coi nhu closed (R5)
+        ContestInfo? contest = entry.ContestId is { } cid ? await _catalog.GetAsync(cid, ct) : null;
+        int maxAttempts = contest?.MaxAttempts
+            ?? ContestSettings.NormalizeMaxAttempts((await _settings.GetAsync())?.MaxAttempts);
+        int total = submitted && entry.TotalQuestions is { } t ? t
+            : contest?.QuestionCount ?? _bank.Current.TotalQuestions;
+        EntryContestDto? contestDto = contest is null ? null : new(
+            contest.Id, contest.Name, ToIso(contest.StartAt), ToIso(contest.EndAt), ToIso(contest.SubmitUntil),
+            PhaseName(contest.PhaseAt(_clock.GetUtcNow().UtcDateTime)), contest.ReadTimerFactor);
+        var topics = contest is null
+            ? new List<EntryTopicDto>()
+            : contest.Topics.Select(x => new EntryTopicDto(x.Cd, x.Count)).ToList();
 
         return new EntryStateDto(
             entry.Code, entry.Mode, entry.FullName, MaskPhone(entry.Phone), entry.Org,
             entry.Mode == EntryModes.Named ? entry.AttemptNo : null, maxAttempts, entry.Status,
             answers.Count, submitted ? entry.Score : null, total,
-            entry.SubmittedAt is { } s ? ToIso(s) : null, answers);
+            entry.SubmittedAt is { } s ? ToIso(s) : null, contestDto, topics, answers);
     }
 
     public async Task<SaveAnswerResult> SaveAnswerAsync(Entry entry, string? q, string? a, CancellationToken ct = default)
     {
-        // Doc cai dat ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa. Khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
-        var settings = await _settings.GetAsync();
+        // Doc cuoc cua luot ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa (R4, QD-014 theo cuoc)
+        ContestInfo? contest = entry.ContestId is { } cid ? await _catalog.GetAsync(cid, ct) : null;
 
         // So khop chu cai phan biet hoa thuong nhu du lieu, khong tu doi
         var bank = _bank.Current;
@@ -169,12 +202,13 @@ public class ContestAttemptService : IContestAttemptService
                 return SaveAnswerResult.Fail(new("ALREADY_SUBMITTED", "Lượt thi này đã được nộp bài."));
             }
 
-            if (!IsOpen(settings))
+            if (contest is null || contest.PhaseAt(_clock.GetUtcNow().UtcDateTime) != ContestPhase.Open)
             {
                 return SaveAnswerResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
             }
 
-            if (key is null)
+            // Cau phai nam trong de cua cuoc, khong chi trong ngan hang
+            if (key is null || !contest.QuestionCodes.Contains(key.Code))
             {
                 return SaveAnswerResult.Fail(new("UNKNOWN_QUESTION", "Câu hỏi không tồn tại."));
             }
@@ -377,6 +411,13 @@ public class ContestAttemptService : IContestAttemptService
         return new SubmitDto("submitted", e.Code, e.Mode, e.Score ?? 0, answered, total,
             !string.IsNullOrEmpty(e.Phone), ToIso(e.SubmittedAt!.Value), byTopic);
     }
+
+    private static string PhaseName(ContestPhase phase) => phase switch
+    {
+        ContestPhase.Open => "open",
+        ContestPhase.SubmitOnly => "submit_only",
+        _ => "closed",
+    };
 
     // Cuoc thi dang mo; khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
     private bool IsOpen(ContestSettings? settings) =>
