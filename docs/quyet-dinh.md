@@ -268,3 +268,11 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Lý do: anhnn trả lời trực tiếp ("làm lần lượt các chuyên đề", "quay số riêng theo cuộc").
 - Ảnh hưởng: F8 khóa chuyên đề thứ n tới khi xong chuyên đề n-1; thứ tự lấy từ `topics` của API-02 (cần xác nhận cột thứ tự, mặc định theo thứ tự lưu trong `contest_topic`/mã chuyên đề); nếu máy chủ cũng phải ép thứ tự ở API-03 thì cần task BE. BE-27/BE-28 thêm tham số cuộc thi, vào hạng mục mới (file 5), không chặn các task hiện tại. Giả định của Claude: "lần lượt" hiểu là bắt buộc theo thứ tự, không chỉ gợi ý.
 
+### QĐ-026 · Giữ nhánh F4b (`wip/CUOC-THI-F4b`) để làm tiếp trong F8
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: F8 (đồng hồ đọc, màn "Xong chuyên đề"), nhánh `wip/CUOC-THI-F4b` (`8dce11fa`)
+- Quyết định: giữ F4b và làm tiếp trong F8; chỉ đổi nguồn `readTimerFactor` sang `contest.readTimerFactor`. Nhánh dở dang chưa kiểm chứng và chưa review, nên F8 phải kiểm chứng và review như code mới.
+- Lý do: đồng hồ đọc và màn Xong chuyên đề không phụ thuộc mô hình cuộc thi.
+- Ảnh hưởng: F8 chuyển "Làm được"; thứ tự chuyên đề theo QĐ-025.
+
