@@ -666,9 +666,9 @@ Ranh giới file (hai luồng không sửa cùng file):
 | **F6** (SỬA F1) | `contest-api.js`/`contest-store.js` theo cuộc | fe | `js/contest/contest-api.js`, `contest-store.js` | M1a, C2 | `createEntry` gửi `contestId`; `getSchedule()` (API-07); `at_entry` lưu theo `contestId` (lượt cuộc khác không ghi đè); QUIZ gọi kèm `?contest=`; mock trả đúng R5 (nhiều cuộc, `phase`, `topics`) | Localhost `?mock=`: hai cuộc, đăng ký cả hai, tải lại thấy đúng tiến độ từng cuộc; ép `closed`, `notfound` | Làm được |
 | **F7** (MỚI) | Trang làm bài: chọn cuộc thi | fe | `Views/Partials/contest/_LuongThi.cshtml`, `register.js`, `contest.css` | M1b, F6 | `?c=<id>` có hiệu lực; không có `?c`: 1 cuộc `ongoing` → dùng luôn, nhiều cuộc → danh sách chọn, không cuộc → "Hiện chưa có cuộc thi đang diễn ra" + cuộc sắp tới + Thử sức; chữ "tối đa n lượt", tên, ngày lấy từ cuộc, không viết cứng | Mock 0/1/2 cuộc; 1440/744/390 | Làm được (M1b, F6 đã vào `dev`) |
 | **F8** (SỬA F3, F4a; gồm F4b nếu giữ) | Luồng làm bài theo đề của cuộc | fe | `exam.js`, `_LuongThi.cshtml` | F7, Q2, Q6 | Danh sách chuyên đề, số câu, tiến độ theo `topics` của API-02; khóa chuyên đề theo Q2 (tạm: chuyên đề đầu tiên của đề); hệ số đồng hồ từ `contest.readTimerFactor`; `phase` khác `open` thì không cho trả lời | Mock đề không có CĐ1; đề 2 chuyên đề; `phase=submit_only` | Làm được (QĐ-025, QĐ-026) |
-| **F9** (SỬA F5) | Nộp bài, kết quả theo cuộc | fe | `submit.js` (mới), `_LuongThi.cshtml`, `contest.css` | F8 | Như "F5 sau CXN-3", tổng câu = `total` của API-02 theo đề; kết quả ghi tên cuộc thi; `submit_only` vẫn nộp được | Như F5 ở trên với mock đề nhỏ | Chờ F8 |
+| **F9** (SỬA F5) | Nộp bài, kết quả theo cuộc | fe | `submit.js` (mới), `_LuongThi.cshtml`, `contest.css` | F8 | Như "F5 sau CXN-3", tổng câu = `total` của API-02 theo đề; kết quả ghi tên cuộc thi; `submit_only` vẫn nộp được | Như F5 ở trên với mock đề nhỏ | Làm được |
 | **S1** (SỬA view của `om:`) | Thanh thông báo và khối tổng quan dùng lịch cuộc thi | chính | `_ContestHeader.cshtml`, `competitionOverviewBlock.cshtml` | B10 merge vào `dev` | Không in "tháng" tính từ `StartAt`; dùng phần tử đầu `ongoing`; không cuộc thì ẩn thanh; liên kết tới trang làm bài `?c=`; số câu/chuyên đề/lượt từ cuộc | `run-local`; 0/1/2 cuộc; tắt JavaScript vẫn thấy chữ | Làm được |
-| **I2** (SỬA I) | Tích hợp đầu–cuối | chính | Merge `lane/CUOC-THI-be`, `lane/CUOC-THI-fe` vào `dev` (điều phối) | B5–B13, F6–F9, S1 đạt review | Kịch bản I ở trên + 4 bước dưới | Như dưới | Chờ |
+| **I2** (SỬA I) | Tích hợp đầu–cuối | chính | Merge `lane/CUOC-THI-be`, `lane/CUOC-THI-fe` vào `dev` (điều phối) | B5–B13, F6–F9, S1 đạt review | Kịch bản I ở trên + 4 bước dưới | Như dưới | Làm được sau F9 trong cùng luồng (mọi task trước đã vào `dev`) |
 
 Kịch bản I2 bổ sung (chạy sau kịch bản I, dùng cuộc mẫu B13 và cuộc tạo thêm trong backoffice):
 1. Hai cuộc cùng `ongoing` với hai đề khác nhau → trang làm bài hiện danh sách chọn; đăng ký cùng số ở cả hai, mỗi cuộc 2 lượt, lượt thứ 3 ở mỗi cuộc → `ATTEMPT_LIMIT`.
@@ -752,4 +752,8 @@ Merge `--no-ff` `lane/CUOC-THI-v4-be1` (B8a, B8b) và `lane/CUOC-THI-v4-be2` (B9
 ## Cập nhật 2026-10-18: Q6 đã trả lời (QĐ-026)
 
 Giữ F4b. F8 "Làm được": làm tiếp từ `wip/CUOC-THI-F4b` (lấy bằng cherry-pick/merge có chọn lọc, không chạy thẳng), thứ tự chuyên đề theo QĐ-025 (khóa ở giao diện; máy chủ chưa ép thứ tự ở API-03, Q2 vế này vẫn mở).
+
+## Cập nhật 2026-10-18: B12, S1, F8 đạt review và đã vào `dev`
+
+Kiểm `dev` sau ghép hai luồng BE (luồng `CUOC-THI-v4-kt`): build 0 lỗi, `dotnet test` 95/95, snapshot EF khớp, `-Reset` ổn, API-07, QUIZ `?contest=`, API-01 và API-02 trên cuộc mẫu chạy đúng, các lỗi 401/404 đúng dạng. Chưa kiểm POST entries chế độ `named`, API-03/04/05. Merge `lane/CUOC-THI-v5-fe` (F8) và `lane/CUOC-THI-v5-be` (B12, S1). F9 "Làm được", I2 làm ngay sau F9 trong cùng luồng.
 
