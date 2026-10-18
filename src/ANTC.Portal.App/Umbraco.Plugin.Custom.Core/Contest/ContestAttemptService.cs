@@ -125,16 +125,17 @@ public interface IContestAttemptService
 public class ContestAttemptService : IContestAttemptService
 {
     private readonly AppDbContext _db;
-    private readonly IContestSettings _settings;
+    // So luot toi da khi luot khong con cuoc (cuoc bi tat); cuoc con hieu luc thi lay tu cuoc
+    private const int DefaultMaxAttempts = 2;
+
     private readonly IQuestionBank _bank;
     private readonly IContestCatalog _catalog;
     private readonly TimeProvider _clock;
 
-    public ContestAttemptService(AppDbContext db, IContestSettings settings, IQuestionBank bank,
+    public ContestAttemptService(AppDbContext db, IQuestionBank bank,
         IContestCatalog catalog, TimeProvider clock)
     {
         _db = db;
-        _settings = settings;
         _bank = bank;
         _catalog = catalog;
         _clock = clock;
@@ -161,8 +162,7 @@ public class ContestAttemptService : IContestAttemptService
 
         // Cuoc cua luot; luot cu khong cuoc hoac cuoc bi tat: contest null, coi nhu closed (R5)
         ContestInfo? contest = entry.ContestId is { } cid ? await _catalog.GetAsync(cid, ct) : null;
-        int maxAttempts = contest?.MaxAttempts
-            ?? ContestSettings.NormalizeMaxAttempts((await _settings.GetAsync())?.MaxAttempts);
+        int maxAttempts = contest?.MaxAttempts ?? DefaultMaxAttempts;
         int total = submitted && entry.TotalQuestions is { } t ? t
             : contest?.QuestionCount ?? _bank.Current.TotalQuestions;
         EntryContestDto? contestDto = contest is null ? null : new(
