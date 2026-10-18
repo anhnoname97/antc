@@ -7,19 +7,17 @@
 
 ## Tình hình
 
-**Gói CUOC-THI theo cuộc thi theo thời gian đã làm xong và tích hợp trong `dev` (2026-10-18).** Đã vào `dev`: M1a (merge `origin/main`, QĐ-022), M1b, B5–B13, F6–F9, S1, I2; mọi task đạt review. I2 chạy đầu–cuối: 48 kiểm API và 28 kiểm giao diện không lỗi (`3-review-CUOC-THI-v6.md`). `dev` chưa push sau các merge; chưa vào `main` (QĐ-017). Không có agent nào đang chạy.
+**Gói CUOC-THI theo cuộc thi theo thời gian đã làm xong, kiểm (K1) và đẩy lên `origin/dev` (2026-10-18).** Đã vào `dev`: M1a (merge `origin/main`, QĐ-022), M1b, B5–B13, F6–F9, S1, I2; mọi task đạt review. I2 chạy đầu–cuối: 48 kiểm API và 28 kiểm giao diện không lỗi (`3-review-CUOC-THI-v6.md`). `dev` chưa push sau các merge; chưa vào `main` (QĐ-017). Không có agent nào đang chạy.
 
 Quyết định đã chốt: QĐ-017 đến QĐ-026 (`docs/quyet-dinh.md`).
 
 ### Việc còn lại
 
-1. **anhnn duyệt giao diện** FE-29 (màn kết quả, hai cuộc, 390px) và câu chữ "đồng ý"; ảnh ở `C:\GTSC\DMSTgent-artifacts\`.
-2. Chưa kiểm: B11 trong backoffice (form gia hạn/hệ số/lĩnh vực), đồng hồ đọc với hệ số khác 0, POST entries chế độ `named`, nhập uSync `cuocThiLamBaiPage` trên CSDL trống.
-3. **Q2 (vế máy chủ):** có ép thứ tự chuyên đề ở API-03 không; hiện chỉ khóa ở giao diện.
-4. Sửa tên bản dựng trong 3 README `docs/ke-hoach` (bị deny): thay `antoantaichinh-ban-dung-thu.html` bằng `an-toan-tai-chinh-website.html` (`anh/README.md`, `anh-v2/README.md`, `anh-v2/cong-cu/README_dau.md`).
-5. Dán `docs/ban-giao/CUOC-THI/5-hang-muc-moi-cho-ke-hoach.md` vào sheet "Công việc" của xlsx; thêm hạng mục quay số theo cuộc (QĐ-025).
-6. Quyết định đẩy `dev`: push, báo nhóm, hoặc đưa vào `main` (QĐ-017). Test đỏ cũ đã sửa; `dotnet test` 95/95 trước F8.
-7. Dọn nhánh/worktree `lane/CUOC-THI-*` và `wip/CUOC-THI-F4b` khi không cần.
+1. **anhnn kiểm bản trên `dev`** (đã push): pull `dev`, `.un-local.ps1 -Reset`, mở http://localhost:11000/cuoc-thi/ (cuộc thi mẫu có sẵn ở Development); quản trị `/umbraco`. Duyệt giao diện bằng mắt: màn kết quả FE-29, hai cuộc, 390px, câu chữ "đồng ý".
+2. **Chỉ khi anhnn xác nhận đạt mới đưa `dev` vào `main`** (QĐ-017, QĐ-027). `main` chưa đụng.
+3. Chưa kiểm: giá trị ngoài khoảng qua HTTP (có test đơn vị), đếm lượt giữa hai cuộc qua HTTP, CSDL cũ có dữ liệu, trình duyệt/điện thoại khác.
+4. anhnn tự làm (thư mục bị deny với agent): sửa tên bản dựng `antoantaichinh-ban-dung-thu.html` thành `an-toan-tai-chinh-website.html` trong 3 README `docs/ke-hoach` (`anh/README.md`, `anh-v2/README.md`, `anh-v2/cong-cu/README_dau.md`); dán `docs/ban-giao/CUOC-THI/5-hang-muc-moi-cho-ke-hoach.md` vào sheet "Công việc" của xlsx, thêm hạng mục quay số theo cuộc (QĐ-025).
+5. Dọn nhánh `lane/CUOC-THI-*`, `wip/CUOC-THI-F4b` khi không cần.
 
 ## Công cụ (nằm ngoài repo, ở `C:\GTSC\DMST`)
 
