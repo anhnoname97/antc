@@ -1,6 +1,26 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var blocks = Model.Value<BlockGridModel>("layout");
 }
-@* Trang tam. Thay toan bo noi dung duoi day khi dung trang that (FE-05, FE-06, FE-07 (FE1) · BE-06 (BE1)). *@
-@await Html.PartialAsync("_PageStub", ("Giới thiệu về website", "Website giúp người dân nhận ra dấu hiệu lừa đảo và rủi ro tài chính, biết cách tự kiểm tra và tự bảo vệ mình.", "FE-05, FE-06, FE-07 (FE1) · BE-06 (BE1)", "gt-02 … gt-09"))
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/home.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/story.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/website-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/official-contacts.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/safety-reminder.css" asp-append-version="true">
+}
+@if (blocks?.Any() == true)
+{
+    <div class="home-content">
+        @await Html.GetBlockGridHtmlAsync(blocks)
+    </div>
+}
+@section Scripts {
+    <script type="module" src="~/assets/js/home.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/story.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/website-check.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/official-contacts.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/safety-reminder.js" asp-append-version="true"></script>
+}

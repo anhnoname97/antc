@@ -1,0 +1,56 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    var content = Model.Content;
+    var site = Umbraco.AssignedContentItem.Root();
+    var domain = site.Value<string>("siteName") ?? "antoantaichinh.vn";
+    var steps = content.Value<BlockListModel>("steps");
+    var link = content.Value<Link>("primaryLink");
+    var safeLink = !string.IsNullOrWhiteSpace(link?.Url) && ((link.Url.StartsWith('/') && !link.Url.StartsWith("//")) || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https"));
+    var emergency = site.Value<BlockListModel>("emergencyNumbers")?.FirstOrDefault(item => item.Content.Value<string>("number")?.Trim() == "113" && item.Content.Value<bool>("enableCall"))?.Content;
+    var number = emergency?.Value<string>("number")?.Trim();
+    var showCall = content.Value<bool>("showEmergencyCall") && emergency is not null;
+    var index = 0;
+    var headingId = "safety-reminder-" + content.Key.ToString("N");
+}
+<div class="safety-reminder" data-safety-reminder aria-labelledby="@headingId">
+    @if (content.Value<bool>("showDecoration"))
+    {
+        <img class="safety-reminder__drum" src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" aria-hidden="true" loading="lazy" decoding="async">
+    }
+    <div class="safety-reminder__content">
+        <div class="safety-reminder__stop" data-safety-entrance>
+            <svg viewBox="0 0 120 120" role="img" aria-label="@content.Value("stopAlt")">
+                <path d="M35 4h50l31 31v50l-31 31H35L4 85V35z" fill="#B3261E" stroke="#fff" stroke-width="4"/>
+                <text x="60" y="68" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-weight="700" font-size="22" fill="#fff" letter-spacing="1">@content.Value("stopLabel")</text>
+            </svg>
+        </div>
+        <div class="safety-reminder__message" data-safety-entrance>
+            <h2 id="@headingId">@content.Value("title") <em>@content.Value("highlightTitle")</em></h2>
+            <p class="safety-reminder__description">@content.Value("description")</p>
+            @if (steps?.Any() == true)
+            {
+                <ol class="safety-reminder__steps">
+                    @foreach (var step in steps)
+                    {
+                        <li><b aria-hidden="true">@(++index)</b><span>@step.Content.Value("title")</span></li>
+                    }
+                </ol>
+            }
+            @if (safeLink || showCall)
+            {
+                <div class="safety-reminder__actions">
+                    @if (safeLink)
+                    {
+                        <a class="safety-reminder__button safety-reminder__button--light" href="@link!.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener noreferrer" : null)">@(link.Name?.Replace("{domain}", domain)) <span aria-hidden="true">⟶</span></a>
+                    }
+                    @if (showCall)
+                    {
+                        <a class="safety-reminder__button safety-reminder__button--red" href="tel:@number">@(content.Value<string>("emergencyLabel")?.Replace("{number}", number ?? ""))</a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

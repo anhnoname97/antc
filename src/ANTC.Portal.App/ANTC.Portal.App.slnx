@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Umbraco.Plugin.Custom.Api/Umbraco.Plugin.Custom.Api.csproj" />
   <Project Path="Umbraco.Plugin.Custom.Core/Umbraco.Plugin.Custom.Core.csproj" />
+  <Project Path="Umbraco.Plugin.Custom.Tests/Umbraco.Plugin.Custom.Tests.csproj" />
   <Project Path="Umbraco.Web.UI/Umbraco.Web.UI.csproj" />
 </Solution>

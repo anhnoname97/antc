@@ -1,0 +1,78 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    var content = Model.Content;
+    var eyebrow = content.Value<string>("eyebrow");
+    var title = content.Value<string>("title");
+    var description = content.Value<string>("description");
+    var items = content.Value<BlockListModel>("items");
+    var index = 0;
+    bool CanRender(Link? link) => !string.IsNullOrWhiteSpace(link?.Url)
+        && (link.Url.StartsWith('/') || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"));
+}
+@if (items?.Any() == true)
+{
+    <div class="site-sections" data-site-sections>
+        <div class="site-sections__heading">
+            <div>
+                @if (!string.IsNullOrWhiteSpace(eyebrow))
+                {
+                    <p class="site-sections__eyebrow">@eyebrow</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(title))
+                {
+                    <h2>@title</h2>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(description))
+            {
+                <p class="site-sections__description">@description</p>
+            }
+        </div>
+        <div class="site-sections__timeline" data-section-timeline>
+            <span class="site-sections__track" aria-hidden="true"><span></span></span>
+            <ol class="site-sections__list">
+                @foreach (var block in items)
+                {
+                    var item = block.Content;
+                    var link = item.Value<Link>("link");
+                    var itemTitle = item.Value<string>("title");
+                    if (!CanRender(link) || string.IsNullOrWhiteSpace(itemTitle)) { continue; }
+                    var icon = item.Value<MediaWithCrops>("icon");
+                    var urgent = item.Value<bool>("isUrgent");
+                    var itemEyebrow = item.Value<string>("eyebrow");
+                    var itemDescription = item.Value<string>("description");
+                    var iconIndex = index++;
+                    <li class="site-sections__item @(urgent ? "is-urgent" : null)">
+                        <span class="site-sections__number" aria-hidden="true">@index.ToString("00")</span>
+                        <a class="site-sections__card" href="@link!.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener noreferrer" : null)">
+                            @if (!string.IsNullOrWhiteSpace(itemEyebrow))
+                            {
+                                <span class="site-sections__label">@itemEyebrow</span>
+                            }
+                            <span class="site-sections__row">
+                                <span class="site-sections__icon" aria-hidden="true">
+                                    @if (icon is not null)
+                                    {
+                                        <img src="@icon.Url()" width="24" height="24" alt="" loading="lazy" decoding="async">
+                                    }
+                                    else
+                                    {
+                                        @await Html.PartialAsync("~/Views/Partials/blockgrid/_NavigationIcon.cshtml", iconIndex)
+                                    }
+                                </span>
+                                <span class="site-sections__title">@itemTitle</span>
+                            </span>
+                            @if (!string.IsNullOrWhiteSpace(itemDescription))
+                            {
+                                <span class="site-sections__summary">@itemDescription</span>
+                            }
+                            <span class="site-sections__go">@(string.IsNullOrWhiteSpace(link.Name) ? "Mở phần" : link.Name) <span aria-hidden="true">⟶</span></span>
+                        </a>
+                    </li>
+                }
+            </ol>
+        </div>
+    </div>
+}

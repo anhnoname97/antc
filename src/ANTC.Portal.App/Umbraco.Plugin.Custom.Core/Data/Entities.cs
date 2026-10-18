@@ -104,6 +104,14 @@ public class QuestionSubmission
     public DateTime? HandledAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? IpHash { get; set; }
+    /// <summary>Câu trả lời đang soạn; nội dung câu hỏi gốc không sửa qua quản trị.</summary>
+    public string? Answer { get; set; }
+    /// <summary>Bản câu trả lời đã được duyệt; sửa nháp không thay đổi bản đang công khai.</summary>
+    public string? PublishedAnswer { get; set; }
+    public bool IsPublished { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+    public string? ApprovedBy { get; set; }
+    public long ReviewVersion { get; set; }
 }
 
 /// <summary>Chuyen de cua ngan hang cau hoi.</summary>
@@ -120,6 +128,7 @@ public class QuizTopic
     public DateTime UpdatedAt { get; set; }
 
     public List<QuizQuestion> Questions { get; set; } = new();
+    public List<ContestTopic> Contests { get; set; } = new();
 }
 
 /// <summary>Cau hoi. Khong xoa han khi da co nguoi tra loi; chi dat IsActive = false.</summary>
@@ -147,6 +156,46 @@ public class QuizQuestion
     public DateTime UpdatedAt { get; set; }
 
     public QuizTopic? Topic { get; set; }
+    public List<ContestQuestion> Contests { get; set; } = new();
+}
+
+/// <summary>Một cuộc thi độc lập, có thể diễn ra trong bất kỳ khoảng ngày/giờ nào.</summary>
+public class ContestCampaign
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = "";
+    public string? Description { get; set; }
+    public DateTime StartAt { get; set; }
+    public DateTime EndAt { get; set; }
+    public int MaxAttempts { get; set; } = 2;
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+
+    public List<ContestTopic> Topics { get; set; } = new();
+    public List<ContestQuestion> Questions { get; set; } = new();
+}
+
+/// <summary>Chuyên đề được chọn cho một cuộc thi.</summary>
+public class ContestTopic
+{
+    public long ContestId { get; set; }
+    public int TopicId { get; set; }
+    public int SortOrder { get; set; }
+
+    public ContestCampaign? Contest { get; set; }
+    public QuizTopic? Topic { get; set; }
+}
+
+/// <summary>Câu hỏi được chọn trong một chuyên đề của cuộc thi.</summary>
+public class ContestQuestion
+{
+    public long ContestId { get; set; }
+    public string QuestionCode { get; set; } = "";
+    public int SortOrder { get; set; }
+
+    public ContestCampaign? Contest { get; set; }
+    public QuizQuestion? Question { get; set; }
 }
 
 /// <summary>Lich su nhap ma tran cau hoi. Id cung la so phien ban ngan hang.</summary>

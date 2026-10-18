@@ -1,0 +1,24 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    var id = $"contest-{Model.ContentKey:N}";
+}
+<section class="contest-half sec" aria-labelledby="@id"><div class="wrap fbk" data-feedback-block>
+<p class="eyebrow">@T("eyebrow")</p><h3 id="@id">@T("title")</h3><p>@T("description")</p>
+<form data-contest-feedback action="/api/v1/questions" method="post" novalidate>
+    <noscript><p>Cần bật JavaScript để gửi góp ý.</p></noscript>
+    <input type="hidden" name="type" value="gop-y">
+    <label class="skip" for="@(id + "-text")">Nội dung góp ý</label>
+    <textarea id="@(id + "-text")" name="content" data-feedback-text placeholder="@T("placeholder")" rows="5" minlength="10" maxlength="2000" required></textarea>
+    <div class="feedback-honeypot" aria-hidden="true"><label for="@(id + "-website")">Website</label><input type="text" id="@(id + "-website")" name="website" tabindex="-1" autocomplete="off" data-feedback-website></div>
+    <p class="feedback-error feedback-alert" data-feedback-error role="alert" tabindex="-1" hidden></p>
+    <div class="row"><small>@T("warning")</small><button class="btn btn-navy" type="submit" data-feedback-submit>@T("buttonLabel")</button></div>
+</form>
+<div class="feedback-success" data-feedback-success role="status" aria-live="polite" tabindex="-1" hidden>
+    <h4>Đã nhận góp ý của bạn</h4>
+    <p>@T("confirmation")</p>
+    <button type="button" class="btn btn-navy" data-feedback-again>Gửi góp ý khác</button>
+</div>
+</div></section>

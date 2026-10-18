@@ -2,5 +2,8 @@
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
 }
-@* Trang tam. Thay toan bo noi dung duoi day khi dung trang that (FE-11, FE-12 (FE1) · BE-13 (BE1)). *@
-@await Html.PartialAsync("_PageStub", ("Các thủ đoạn lừa đảo", "Thủ đoạn đổi liên tục. Nhìn vào thứ họ muốn lấy và cách họ làm, bạn nhận ra được cả thủ đoạn chưa ai đặt tên.", "FE-11, FE-12 (FE1) · BE-13 (BE1)", "td-01 … td-05"))
+<section class="page-hero">
+    <div class="container">
+        <h1>@Model.Name</h1>
+    </div>
+</section>

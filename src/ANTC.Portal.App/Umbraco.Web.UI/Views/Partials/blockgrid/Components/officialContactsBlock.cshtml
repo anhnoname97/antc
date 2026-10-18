@@ -1,0 +1,68 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using System.Text.Json
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    var content = Model.Content;
+    var site = Umbraco.AssignedContentItem.Root();
+    var items = content.Value<BlockListModel>("items");
+    var emergency = site.Value<BlockListModel>("emergencyNumbers")?.FirstOrDefault(item => item.Content.Value<string>("number")?.Trim() == "113" && item.Content.Value<bool>("enableCall"))?.Content;
+    var number = emergency?.Value<string>("number")?.Trim();
+    var showCall = content.Value<bool>("showEmergencyCall") && emergency is not null;
+    var index = 0;
+    string? Source(string? value)
+    {
+        if (value?.Trim().StartsWith('[') == true)
+        {
+            try { value = JsonSerializer.Deserialize<string[]>(value)?.FirstOrDefault(); }
+            catch (JsonException) { return null; }
+        }
+        return value switch {
+            "Nhập trực tiếp" => "manual",
+            "Đơn vị vận hành" => "operator",
+            "Đơn vị góp ý nội dung" => "reviewer",
+            "Đầu mối dữ liệu cá nhân" => "dataContact",
+            "Đầu mối cơ quan có thẩm quyền" => "authorityContact",
+            _ => value
+        };
+    }
+    bool Safe(Link? link) => !string.IsNullOrWhiteSpace(link?.Url) && ((link.Url.StartsWith('/') && !link.Url.StartsWith("//")) || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" or "mailto" or "tel"));
+}
+<div class="official-contacts" data-official-contacts>
+    <p class="official-contacts__eyebrow">@content.Value("eyebrow")</p>
+    <h2>@content.Value("title")</h2>
+    @if (items?.Any() == true)
+    {
+        <ol class="official-contacts__steps" data-contact-steps>
+            @foreach (var block in items)
+            {
+                var item = block.Content;
+                var detail = Source(item.Value<string>("source")) switch {
+                    "dataContact" => site.Value<string>("dataContact"),
+                    "authorityContact" => site.Value<string>("authorityContact"),
+                    "operator" => string.Join(" · ", new[] { site.Value<string>("operatorName"), site.Value<string>("operatorAddress") }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                    "reviewer" => site.Value<string>("reviewerName"),
+                    _ => item.Value<string>("detail")
+                };
+                var link = item.Value<Link>("link");
+                <li class="official-contacts__step" data-contact-step>
+                    <span class="official-contacts__number" aria-hidden="true">@(++index)</span>
+                    <h3>@item.Value("title")</h3>
+                    <p>@item.Value("description")</p>
+                    @if (!string.IsNullOrWhiteSpace(detail)) { <p class="official-contacts__detail">@detail</p> }
+                    @if (Safe(link)) { <a href="@link!.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener noreferrer" : null)">@link.Name ⟶</a> }
+                </li>
+            }
+        </ol>
+    }
+    <div class="official-contacts__warning" data-contact-warning>
+        <p><strong>@content.Value("warningTitle")</strong> @content.Value("warningText")</p>
+        @if (showCall)
+        {
+            <a class="official-contacts__call" href="tel:@number">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
+                @(content.Value<string>("emergencyLabel")?.Replace("{number}", number ?? ""))
+            </a>
+        }
+    </div>
+</div>

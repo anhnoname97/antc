@@ -1,0 +1,47 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using System.Text.RegularExpressions
+@using System.Text.Json
+@{
+    var isHero = Model.Areas.SelectMany(area => area).Any(block => block.Content.ContentType.Alias == "introHeroBlock");
+    var isStory = Model.Areas.SelectMany(area => area).Any(block => block.Content.ContentType.Alias == "introStoryBlock");
+    var isSafetyReminder = Model.Areas.SelectMany(area => area).Any(block => block.Content.ContentType.Alias == "safetyReminderBlock");
+    var isEmergencyHero = Model.Areas.SelectMany(area => area).Any(block => block.Content.ContentType.Alias == "emergencyHeroBlock");
+    var settings = Model.Settings;
+    var theme = settings?.Value<string>("theme")?.Trim();
+    if (theme?.StartsWith('[') == true)
+    {
+        try { theme = JsonSerializer.Deserialize<string[]>(theme)?.FirstOrDefault(); }
+        catch (JsonException) { theme = null; }
+    }
+    if (theme is not ("navy" or "cream" or "white")) { theme = isHero ? "navy" : "cream"; }
+    var anchor = settings?.Value<string>("anchorId");
+    anchor = string.IsNullOrWhiteSpace(anchor) ? null : Regex.Replace(anchor, @"[^a-zA-Z0-9_-]", "");
+    if (string.IsNullOrEmpty(anchor)) { anchor = null; }
+    var top = Math.Clamp(settings?.Value<int>("paddingTop") ?? 0, 0, 600);
+    var bottom = Math.Clamp(settings?.Value<int>("paddingBottom") ?? 0, 0, 600);
+    var customPadding = (top > 0 ? $"--section-padding-top:{top}px;" : "") + (bottom > 0 ? $"--section-padding-bottom:{bottom}px;" : "");
+    var animate = settings?.Value<bool>("enableAnimation") == true;
+}
+<section class="home-section home-section--@theme @(isHero ? "home-section--hero" : null) @(isStory ? "home-section--story" : null) @(isSafetyReminder ? "home-section--safety-reminder" : null) @(isEmergencyHero ? "home-section--emergency-hero" : null)" id="@anchor" style="@customPadding"
+         data-header-hero="@(isHero || isEmergencyHero ? "true" : "false")" data-hero-motion="@(animate ? "true" : "false")">
+    @if (isHero)
+    {
+        <div class="intro-hero__decoration" aria-hidden="true">
+            <div class="intro-hero__sky"></div>
+            <img class="intro-hero__drum" src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" decoding="async">
+            <svg class="intro-hero__shield" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <defs><pattern id="shield-dots-@Model.ContentKey" width=".42" height=".42" patternUnits="userSpaceOnUse"><circle cx=".2" cy=".2" r=".04" fill="#b4c8e6"/></pattern></defs>
+                <path d="M12 2.8 19.5 5.6v6.1c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V5.6z" fill="url(#shield-dots-@Model.ContentKey)" stroke="#e3c88f" stroke-width=".08" stroke-dasharray=".04 .22" stroke-linecap="round"/>
+                <path d="m8.7 12 2.3 2.3 4.3-4.6" stroke="#e3c88f" stroke-width=".15" stroke-dasharray=".03 .25" stroke-linecap="round"/>
+            </svg>
+            @if (animate)
+            {
+                <canvas class="intro-hero__particles" data-hero-particles aria-hidden="true"></canvas>
+            }
+            <div class="intro-hero__shade"></div>
+        </div>
+    }
+    <div class="home-section__inner">
+        @await Html.GetBlockGridItemAreasHtmlAsync(Model)
+    </div>
+</section>

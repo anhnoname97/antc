@@ -1,0 +1,303 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API Hỏi – Đáp dành cho frontend portal",
+    "version": "1.1.0",
+    "description": "Tiếp nhận câu hỏi/góp ý và đọc câu đã được duyệt, công bố. Không yêu cầu đăng nhập. Frontend tự xây dựng giao diện theo hợp đồng này. Quy tắc độ dài content/contact áp dụng sau khi backend trim khoảng trắng hai đầu; FE nên trim trước khi gửi."
+  },
+  "servers": [
+    { "url": "http://localhost:11000", "description": "Môi trường phát triển; thay base URL theo môi trường tích hợp." }
+  ],
+  "security": [],
+  "paths": {
+    "/api/v1/questions": {
+      "post": {
+        "operationId": "submitQuestion",
+        "summary": "Gửi câu hỏi, kiến nghị hoặc góp ý",
+        "description": "API-06. Nội dung mới chưa công khai. Tối đa 5 bản ghi tiếp nhận/IP trong 60 phút gần nhất. Ô bẫy website có chuỗi khác rỗng trả 201 nhưng không lưu; không dùng hạn mức. Yêu cầu sai dữ liệu không dùng hạn mức. Không tự gửi email. Phản hồi thành công không có mã tra cứu riêng.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateQuestionRequest" },
+              "examples": {
+                "question": {
+                  "summary": "Câu hỏi không yêu cầu trả lời riêng",
+                  "value": {
+                    "type": "cau-hoi",
+                    "content": "Tôi có thể gửi góp ý về nội dung website ở đâu?",
+                    "wantReply": false,
+                    "contact": "",
+                    "consent": true,
+                    "website": ""
+                  }
+                },
+                "privateReply": {
+                  "summary": "Câu hỏi có yêu cầu trả lời riêng",
+                  "value": {
+                    "type": "cau-hoi",
+                    "content": "Tôi cần hỏi thêm về cách sử dụng website.",
+                    "wantReply": true,
+                    "contact": "nguoihoi@example.com",
+                    "consent": true,
+                    "website": ""
+                  }
+                },
+                "feedback": {
+                  "summary": "Góp ý xử lý nội bộ",
+                  "value": {
+                    "type": "gop-y",
+                    "content": "Tôi đề nghị bổ sung phần hướng dẫn tìm kiếm nội dung.",
+                    "wantReply": false,
+                    "contact": "",
+                    "consent": true,
+                    "website": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Đã tiếp nhận; hoặc trả cùng phản hồi cho ô bẫy mà không lưu.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreateQuestionResponse" },
+                "example": { "ok": true }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu hoặc JSON không hợp lệ. error.fields ánh xạ tên trường sang thông báo; có thể chứa body khi lỗi JSON.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorResponse" },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "message": "Dữ liệu gửi lên không hợp lệ.",
+                    "fields": { "content": "Nội dung cần từ 10 đến 2000 ký tự." }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Đã tiếp nhận 5 lần trong 60 phút gần nhất từ cùng IP.",
+            "headers": {
+              "Retry-After": {
+                "description": "Số giây cần chờ trước khi gửi lại.",
+                "schema": { "type": "integer", "minimum": 1 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorResponse" },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "message": "Bạn đã gửi 5 lần trong một giờ. Vui lòng thử lại sau.",
+                    "fields": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listPublishedQuestions",
+        "summary": "Đọc câu hỏi và câu trả lời đã duyệt, công bố",
+        "description": "Danh sách công khai có tìm kiếm, phân trang, sắp xếp. Chỉ trả cau-hoi đã công bố, có thời điểm duyệt và bản câu trả lời đã duyệt. Không trả liên hệ, IP, ghi chú, người xử lý hoặc bản nháp. Tìm chuỗi trong câu hỏi và câu trả lời đã duyệt, không phân biệt hoa/thường tiếng Việt, giữ dấu; ký tự wildcard được tìm như văn bản. Cùng thời điểm duyệt thì id sắp xếp cùng chiều. Trang vượt số trang trả items rỗng và giữ nguyên page yêu cầu. Frontend hiển thị question/answer dưới dạng văn bản đã thoát ký tự.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Số trang, tính từ 1.",
+            "schema": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 2147483647, "default": 1 }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "description": "Số mục mỗi trang. Ngoài khoảng 1–50 trả 400, không tự điều chỉnh.",
+            "schema": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 50, "default": 20 }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Từ khóa tối đa 200 ký tự sau trim. Chuỗi trắng không lọc. Tìm literal trong câu hỏi hoặc bản trả lời đã duyệt, hỗ trợ hoa/thường tiếng Việt và giữ dấu.",
+            "schema": { "type": "string", "x-validation": { "trim": true, "maxLengthAfterTrim": 200 } }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Thứ tự theo ngày duyệt và id; newest giảm dần, oldest tăng dần. Bỏ trống hoặc chuỗi trắng dùng mặc định newest.",
+            "schema": { "type": "string", "enum": ["newest", "oldest"], "default": "newest" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách công khai, có thể rỗng.",
+            "headers": {
+              "Cache-Control": {
+                "description": "Có no-store; tải lại danh sách để nhận thay đổi duyệt hoặc gỡ công bố.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PublishedQuestionPage" },
+                "example": {
+                  "items": [
+                    {
+                      "id": 130,
+                      "question": "Tôi có thể gửi góp ý về nội dung website ở đâu?",
+                      "answer": "Bạn chọn Góp ý trong biểu mẫu Hỏi – Đáp và gửi nội dung cho ban biên tập.",
+                      "answeredAt": "2026-10-16T06:00:00+00:00"
+                    }
+                  ],
+                  "total": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 1
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Query sai kiểu, page nhỏ hơn 1, pageSize ngoài 1–50, search quá 200 ký tự hoặc sort không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorResponse" },
+                "example": { "error": { "code": "VALIDATION", "message": "Tham số danh sách không hợp lệ.", "fields": { "pageSize": "Số mục mỗi trang phải từ 1 đến 50." } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/questions/{id}": {
+      "get": {
+        "operationId": "getPublishedQuestion",
+        "summary": "Đọc chi tiết câu hỏi đã công bố",
+        "description": "Chỉ trả câu hỏi và bản trả lời đã được duyệt, công bố. Câu riêng, chưa công bố, đã gỡ, góp ý hoặc không tồn tại đều trả cùng 404. Không trả liên hệ, IP, ghi chú, người xử lý hoặc bản nháp.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Mã bản ghi lấy từ danh sách công khai.",
+            "schema": { "type": "integer", "format": "int64", "minimum": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết công khai; DTO giống một mục danh sách.",
+            "headers": { "Cache-Control": { "description": "Có no-store để gỡ công bố có hiệu lực ở lần tải tiếp theo.", "schema": { "type": "string" } } },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PublishedQuestion" },
+                "example": { "id": 130, "question": "Tôi có thể gửi góp ý về nội dung website ở đâu?", "answer": "Bạn chọn Góp ý trong biểu mẫu Hỏi – Đáp và gửi nội dung cho ban biên tập.", "answeredAt": "2026-10-16T06:00:00+00:00" }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy câu hỏi công khai; không tiết lộ bản riêng có tồn tại hay không.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorResponse" }, "example": { "error": { "code": "NOT_FOUND", "message": "Không tìm thấy câu hỏi.", "fields": null } } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateQuestionRequest": {
+        "type": "object",
+        "required": ["type", "content", "consent"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["cau-hoi", "gop-y"],
+            "description": "Loại nội dung; phân biệt hoa thường. cau-hoi: câu hỏi/kiến nghị, gop-y: góp ý."
+          },
+          "content": {
+            "type": "string",
+            "description": "Nội dung 10–2000 ký tự sau khi trim khoảng trắng hai đầu. HTML được giữ như văn bản, không tự chuyển thành rich text.",
+            "x-validation": { "trim": true, "minLengthAfterTrim": 10, "maxLengthAfterTrim": 2000 }
+          },
+          "wantReply": {
+            "type": "boolean",
+            "default": false,
+            "description": "Muốn nhận trả lời riêng. Nếu true thì contact bắt buộc có nội dung sau trim. Không tự gửi email."
+          },
+          "contact": {
+            "type": "string",
+            "nullable": true,
+            "description": "Thông tin liên hệ tối đa 200 ký tự sau trim; bắt buộc khi wantReply=true. Không giới hạn chỉ email. Để chuỗi rỗng/null hoặc bỏ trường nếu không cần trả lời riêng.",
+            "x-validation": { "trim": true, "maxLengthAfterTrim": 200, "requiredWhen": { "wantReply": true } }
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [true],
+            "description": "Bắt buộc đồng ý, lấy từ checkbox xác nhận của người dùng."
+          },
+          "website": {
+            "type": "string",
+            "nullable": true,
+            "default": "",
+            "description": "Ô bẫy chống bot. FE ẩn và người dùng thật để chuỗi rỗng. Mọi chuỗi khác rỗng, kể cả dấu cách, trả 201 như thành công nhưng không lưu, không tính hạn mức."
+          }
+        }
+      },
+      "CreateQuestionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ok"],
+        "properties": { "ok": { "type": "boolean", "enum": [true] } }
+      },
+      "PublishedQuestion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "question", "answer", "answeredAt"],
+        "properties": {
+          "id": { "type": "integer", "format": "int64", "minimum": 1 },
+          "question": { "type": "string", "description": "Câu hỏi gốc, hiển thị dạng văn bản có thoát ký tự." },
+          "answer": { "type": "string", "description": "Bản câu trả lời đã được duyệt, hiển thị dạng văn bản có thoát ký tự." },
+          "answeredAt": { "type": "string", "format": "date-time", "description": "Thời điểm duyệt/công bố gần nhất, ISO 8601 có múi giờ." }
+        }
+      },
+      "PublishedQuestionPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "total", "page", "pageSize", "totalPages"],
+        "properties": {
+          "items": { "type": "array", "maxItems": 50, "items": { "$ref": "#/components/schemas/PublishedQuestion" } },
+          "total": { "type": "integer", "format": "int32", "minimum": 0 },
+          "page": { "type": "integer", "format": "int32", "minimum": 1 },
+          "pageSize": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 50 },
+          "totalPages": { "type": "integer", "format": "int32", "minimum": 1 }
+        }
+      },
+      "ApiErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "enum": ["VALIDATION", "RATE_LIMITED", "NOT_FOUND"] },
+              "message": { "type": "string" },
+              "fields": { "type": "object", "nullable": true, "additionalProperties": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

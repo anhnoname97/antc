@@ -1,0 +1,21 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
+@model (IEnumerable<BlockListItem>? Items, string CurrentPath, string? LinkClass, bool MarkCurrent)
+@if (Model.Items is not null)
+{
+    foreach (var item in Model.Items)
+    {
+        var target = item.Content.Value<IPublishedContent>("page")
+            ?? item.Content.Value<IPublishedContent>("document");
+        var href = target?.Url();
+        if (string.IsNullOrWhiteSpace(href) || href.StartsWith('#'))
+        {
+            continue;
+        }
+        var label = item.Content.Value<string>("label") ?? target!.Name;
+        var prefix = href.TrimEnd('/');
+        var current = string.Equals(Model.CurrentPath.TrimEnd('/'), prefix, StringComparison.OrdinalIgnoreCase)
+            || (prefix.Length > 0 && Model.CurrentPath.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase));
+        <a href="@href" class="@Model.LinkClass" aria-current="@(Model.MarkCurrent ? (current ? "page" : "false") : null)">@label</a>
+    }
+}
