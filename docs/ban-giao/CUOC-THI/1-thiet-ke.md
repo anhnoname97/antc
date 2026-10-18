@@ -777,3 +777,9 @@ Kiểm `dev` sau ghép hai luồng BE (luồng `CUOC-THI-v4-kt`): build 0 lỗi,
 |---|---|---|---|
 | **B15** | Form sửa cuộc thi không được làm mất giây của `endAt`/`startAt`: giữ nguyên giây (và mili giây) nếu giờ-phút không đổi so với giá trị đang lưu; khi người dùng đổi giờ-phút thì `endAt` kết thúc ở giây :59 như cuộc mẫu B13 (`23:59:59`). Sửa ở `contest-management.js` và/hoặc `ContestAdminService`. | be | Test: lưu form không đổi gì thì `endAt`/`submitUntil` không đổi; đổi giờ-phút thì giây :59. Làm được. |
 
+## Task K2 (2026-10-18, anhnn: "làm nốt cái này đi")
+
+| Task | Việc | Luồng | Ghi chú |
+|---|---|---|---|
+| **K2** | Kiểm 3 mục còn lại của K1, chỉ ghi kết quả, lỗi nhỏ sửa và commit riêng: (1) **CSDL cũ có dữ liệu**: dựng CSDL ở trạng thái TRƯỚC migration `AddEntryContestAndContestSettings` (ví dụ checkout `origin/main` hoặc commit trước B5 vào thư mục tạm, chạy để có `entry`/`contest` có lượt), rồi chạy bản `dev` trên chính file CSDL đó (sao chép, không dùng CSDL của người dùng): migration áp dụng được, lượt cũ `contest_id` rỗng vẫn đọc được, `integrity_check`/`foreign_key_check` sạch, API-07/QUIZ/API-01 không lỗi 500, mô tả hành vi của lượt cũ không thuộc cuộc nào. (2) **Đếm lượt giữa hai cuộc qua HTTP**: tạo cuộc thứ hai trong backoffice/API quản trị, cùng một số điện thoại đăng ký ở cả hai cuộc: mỗi cuộc đủ `maxAttempts` lượt riêng, lượt cuộc A không làm đầy cuộc B, `ATTEMPT_LIMIT` đúng từng cuộc; API-02 theo token của cuộc nào trả đúng cuộc đó. (3) **Trình duyệt khác**: chạy luồng đăng ký, làm một chuyên đề, tải lại trang tiếp tục được, trên Chromium, Firefox, WebKit của Playwright và giả lập điện thoại (390px, iPhone/Android UA, cảm ứng); ghi rõ **không** thay được máy thật. | chính | Làm được. |
+
