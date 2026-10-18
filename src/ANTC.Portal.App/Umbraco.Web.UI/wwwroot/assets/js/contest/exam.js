@@ -1,7 +1,7 @@
 // Dieu phoi man hinh cuoc thi (FE-26): Dang ky, Danh sach chuyen de (#ngan-hang), Gioi thieu chuyen de (#chuyen-de-N), cot ben.
 // Man cau hoi (#chuyen-de-N/cau-hoi, FE-27a). Con thieu cho FE-27b: dong ho doc, man Xong chuyen de, lam lai (xem 'FE-27b' ben duoi).
 // Trang thai lay tu contest-store.js. FE-29 them nop bai va ket qua.
-import { onRegistered } from './register.js';
+import { onRegistered, requestedContestId } from './register.js';
 import { loadEntry } from './contest-api.js';
 import {
   state, init, on, enterPractice, topicProgress, loadTopics, loadQuestions, answer, getAnswer,
@@ -23,8 +23,14 @@ const regSideHtml = sideCards.innerHTML;
 const practiceLink = document.querySelector('[data-practice]');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const contestOpen = main.dataset.contestStatus === 'open';
-const maxAttemptsDefault = Number(main.dataset.maxAttempts) > 0 ? Number(main.dataset.maxAttempts) : 2;
+// register.js dat data-contest-status sau khi tai API-07: 'open' khi co cuoc dang dien ra de dang ky
+const contestOpen = () => main.dataset.contestStatus === 'open';
+// Cuoc cua man hinh: ?c=<id> neu co, khong thi luot gan nhat (init/loadEntry bo trong)
+// ?c sai (requestedContestId = 0) doi thanh -1 de khong trung luot nao da luu
+const urlContest = () => {
+  const c = requestedContestId();
+  return c === null ? undefined : c || -1;
+};
 
 let topics = null; // QUIZ-01
 let topicsError = false;
@@ -111,8 +117,8 @@ function entryBoxHtml() {
   if (e.mode === 'anon') {
     return box('soft', `<b>Đang thi ẩn danh.</b> Mã ẩn danh của bạn là ${esc(e.code)}. Bài làm không được xét giải.`);
   }
-  const max = e.maxAttempts || maxAttemptsDefault;
-  return box('ok', `<b>Đã đăng ký.</b> Mã dự thi của bạn là ${esc(e.code)}.${e.attemptNo ? ` Đây là lượt thứ ${esc(e.attemptNo)} trên ${esc(max)}.` : ''}`);
+  const nth = e.attemptNo && e.maxAttempts ? ` Đây là lượt thứ ${esc(e.attemptNo)} trên ${esc(e.maxAttempts)}.` : '';
+  return box('ok', `<b>Đã đăng ký.</b> Mã dự thi của bạn là ${esc(e.code)}.${nth}`);
 }
 
 function headHtml(eyebrow, title, sub) {
@@ -183,7 +189,7 @@ function sideHtml(view) {
   const e = state.entry;
   if (state.practice) {
     o = `<div class="sidecard">${eyebrowHtml('Luyện tập')}<p class="sidecard__text">Bài làm chỉ lưu trên máy bạn, không tính vào cuộc thi.</p>`
-      + (contestOpen ? '<a class="qnav o qnav--s qnav--block" href="#dang-ky">Đăng ký dự thi</a>' : '') + '</div>';
+      + (contestOpen() ? '<a class="qnav o qnav--s qnav--block" href="#dang-ky">Đăng ký dự thi</a>' : '') + '</div>';
   } else if (e) {
     const anon = e.mode === 'anon';
     o = `<div class="sidecard">${eyebrowHtml(anon ? 'Thí sinh ẩn danh' : 'Thí sinh')}`
@@ -192,7 +198,7 @@ function sideHtml(view) {
       o += '<span class="sidecard__tag">Không xét giải</span>';
     } else {
       if (state.fullName) o += `<p class="sidecard__name">${esc(state.fullName)}</p>`;
-      if (e.attemptNo) o += `<p class="sidecard__meta">Lượt thứ ${esc(e.attemptNo)} / ${esc(e.maxAttempts || maxAttemptsDefault)}</p>`;
+      if (e.attemptNo && e.maxAttempts) o += `<p class="sidecard__meta">Lượt thứ ${esc(e.attemptNo)} / ${esc(e.maxAttempts)}</p>`;
     }
     o += '</div>';
   } else {
@@ -501,7 +507,7 @@ on('dropped', ({ q, code }) => {
 });
 // Tab khac doi luot thi: dung lai tien do tu may chu roi ve man hinh theo luot moi
 on('entry-changed', async () => {
-  const r = await init();
+  const r = await init(urlContest());
   offline = !!r.offline;
   await route(false);
 });
@@ -514,7 +520,7 @@ on('token', () => {
 
 // Dang ky xong: dung lai tien do tu may chu roi vao danh sach chuyen de
 export async function enterExam() {
-  const r = await init();
+  const r = await init(urlContest());
   offline = !!r.offline;
   go('#ngan-hang');
 }
@@ -523,13 +529,13 @@ onRegistered(enterExam);
 // ---- Khoi dong ----
 
 async function boot() {
-  if (loadEntry()) {
+  if (loadEntry(urlContest())) {
     // Co luot da luu: khong cho nhay man dang ky roi moi chuyen
     regView.hidden = true;
     examView.hidden = false;
     examView.innerHTML = '<p class="exam__loading" role="status">Đang tải tiến độ…</p>';
   }
-  const r = await init();
+  const r = await init(urlContest());
   offline = !!r.offline;
   const want = parseHash();
   if (r.view === 'exam') {
