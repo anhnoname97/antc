@@ -50,11 +50,15 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
                 ? Ok(item) : NotFound(Error("CONTEST_NOT_FOUND", "Không tìm thấy cuộc thi."));
         }
         catch (ContestAdminValidationException ex) { return BadRequest(Error("VALIDATION", ex.Message, ex.Fields)); }
+        catch (ContestHasEntriesException ex) { return Conflict(HasEntries(ex)); }
     }
 
     [HttpDelete("campaigns/{id:long}")]
-    public async Task<IActionResult> DeleteCampaign(long id, CancellationToken ct) =>
-        await service.DeleteCampaignAsync(id, ct) ? NoContent() : NotFound();
+    public async Task<IActionResult> DeleteCampaign(long id, CancellationToken ct)
+    {
+        try { return await service.DeleteCampaignAsync(id, ct) ? NoContent() : NotFound(); }
+        catch (ContestHasEntriesException ex) { return Conflict(HasEntries(ex)); }
+    }
 
     [HttpGet("entries")]
     public async Task<ActionResult<PagedResult<ContestEntryAdminDto>>> Entries(
@@ -103,6 +107,9 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
     [HttpDelete("draws/{id:long}")]
     public async Task<IActionResult> DeleteDraw(long id, CancellationToken ct) =>
         await service.DeleteDrawAsync(id, ct) ? NoContent() : NotFound();
+
+    private static ApiErrorResponse HasEntries(ContestHasEntriesException ex) =>
+        Error("CONTEST_HAS_ENTRIES", $"{ex.Message} ({ex.EntryCount} lượt)");
 
     private string Actor() => User.Identity?.Name ?? "backoffice";
     private static ApiErrorResponse Error(string code, string message, IReadOnlyDictionary<string, string>? fields = null) =>

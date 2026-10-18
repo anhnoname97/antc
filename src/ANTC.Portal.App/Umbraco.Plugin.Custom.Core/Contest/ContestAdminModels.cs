@@ -27,7 +27,11 @@ public sealed record ContestCampaignAdminDto(
     int QuestionCount,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    IReadOnlyList<ContestTopicTreeItemDto>? Topics = null);
+    IReadOnlyList<ContestTopicTreeItemDto>? Topics = null,
+    int SubmitGraceHours = 24,
+    decimal ReadTimerFactor = 1m,
+    string? FocusArea = null,
+    int EntryCount = 0);
 
 public sealed record SaveContestTopicRequest(int TopicId, IReadOnlyList<string>? QuestionCodes);
 
@@ -38,7 +42,10 @@ public sealed record SaveContestCampaignRequest(
     DateTime EndAt,
     int MaxAttempts,
     bool IsActive,
-    IReadOnlyList<SaveContestTopicRequest>? Topics);
+    IReadOnlyList<SaveContestTopicRequest>? Topics,
+    int SubmitGraceHours = 24,
+    decimal ReadTimerFactor = 1m,
+    string? FocusArea = null);
 
 public sealed record ContestEntryAdminDto(
     long Id,
@@ -86,3 +93,9 @@ public sealed class ContestAdminValidationException(IReadOnlyDictionary<string, 
     public IReadOnlyDictionary<string, string> Fields { get; } = fields;
 }
 
+/// <summary>Cuoc thi da co luot nen khong xoa/doi bo de duoc (QD-024, 409 CONTEST_HAS_ENTRIES).</summary>
+public sealed class ContestHasEntriesException(int entryCount)
+    : Exception("Cuộc thi đã có lượt dự thi nên không thể xóa hoặc đổi bộ đề.")
+{
+    public int EntryCount { get; } = entryCount;
+}
