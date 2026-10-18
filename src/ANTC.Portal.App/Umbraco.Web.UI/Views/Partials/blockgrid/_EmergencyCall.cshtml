@@ -1,0 +1,11 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.PublishedContent.IPublishedElement>
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    var site = Umbraco.AssignedContentItem.Root();
+    var emergency = site.Value<BlockListModel>("emergencyNumbers")?.FirstOrDefault(item => item.Content.Value<string>("number")?.Trim() == "113" && item.Content.Value<bool>("enableCall"))?.Content;
+    var number = emergency?.Value<string>("number")?.Trim();
+}
+@if (Model.Value<bool>("showEmergencyCall") && emergency is not null)
+{
+    <a class="btn btn-red" href="tel:@number">@(Model.Value<string>("emergencyLabel")?.Replace("{number}", number ?? ""))</a>
+}

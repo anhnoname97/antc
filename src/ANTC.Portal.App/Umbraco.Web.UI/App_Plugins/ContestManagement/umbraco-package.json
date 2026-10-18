@@ -1,0 +1,136 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "ANTC Contest Management",
+  "version": "1.2.1",
+  "allowPublicAccess": true,
+  "extensions": [
+    {
+      "type": "section",
+      "alias": "Antc.Section.ContestManagement",
+      "name": "Contest Management Section",
+      "weight": 450,
+      "meta": {
+        "label": "Quản lý cuộc thi",
+        "pathname": "contest-management"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionUserPermission",
+          "match": "Antc.Section.ContestManagement"
+        }
+      ]
+    },
+    {
+      "type": "menu",
+      "alias": "Antc.Menu.ContestManagement",
+      "name": "Contest Management Menu"
+    },
+    {
+      "type": "sectionSidebarApp",
+      "kind": "menu",
+      "alias": "Antc.SectionSidebarApp.ContestManagement",
+      "name": "Contest Management Sidebar Menu",
+      "weight": 100,
+      "meta": {
+        "label": "Quản lý cuộc thi",
+        "menu": "Antc.Menu.ContestManagement"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionAlias",
+          "match": "Antc.Section.ContestManagement"
+        }
+      ]
+    },
+    {
+      "type": "menuItem",
+      "kind": "link",
+      "alias": "Antc.MenuItem.ContestManagement.Questions",
+      "name": "Contest Questions Menu Item",
+      "weight": 300,
+      "meta": {
+        "label": "Câu hỏi",
+        "icon": "icon-help",
+        "menus": ["Antc.Menu.ContestManagement"],
+        "href": "section/contest-management/view/questions"
+      }
+    },
+    {
+      "type": "menuItem",
+      "kind": "link",
+      "alias": "Antc.MenuItem.ContestManagement.Topics",
+      "name": "Contest Topics Menu Item",
+      "weight": 200,
+      "meta": {
+        "label": "Chuyên đề",
+        "icon": "icon-book-alt",
+        "menus": ["Antc.Menu.ContestManagement"],
+        "href": "section/contest-management/topics"
+      }
+    },
+    {
+      "type": "menuItem",
+      "kind": "link",
+      "alias": "Antc.MenuItem.ContestManagement.QuestionBank",
+      "name": "Question Bank Menu Item",
+      "weight": 100,
+      "meta": {
+        "label": "Cuộc thi",
+        "icon": "icon-trophy",
+        "menus": ["Antc.Menu.ContestManagement"],
+        "href": "section/contest-management/contest"
+      }
+    },
+    {
+      "type": "sectionView",
+      "alias": "Antc.SectionView.ContestManagement.Questions",
+      "name": "Contest Questions View",
+      "elementName": "antc-contest-questions-view",
+      "element": "/App_Plugins/ContestManagement/contest-management.js",
+      "weight": 300,
+      "meta": {
+        "label": "Câu hỏi",
+        "pathname": "questions",
+        "icon": "icon-help"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionAlias",
+          "match": "Antc.Section.ContestManagement"
+        }
+      ]
+    },
+    {
+      "type": "sectionRoute",
+      "alias": "Antc.SectionRoute.ContestManagement.Topics",
+      "name": "Contest Topics Route",
+      "elementName": "antc-contest-topics-view",
+      "element": "/App_Plugins/ContestManagement/contest-management.js",
+      "meta": {
+        "path": "topics"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionAlias",
+          "match": "Antc.Section.ContestManagement"
+        }
+      ]
+    },
+    {
+      "type": "sectionRoute",
+      "alias": "Antc.SectionRoute.ContestManagement.Contest",
+      "name": "Contest Route",
+      "elementName": "antc-contest-view",
+      "element": "/App_Plugins/ContestManagement/contest-management.js",
+      "meta": {
+        "path": "contest"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionAlias",
+          "match": "Antc.Section.ContestManagement"
+        }
+      ]
+    }
+  ]
+}

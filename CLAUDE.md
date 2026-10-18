@@ -31,7 +31,7 @@ Việc nhỏ (sửa chữ, đổi một tham số, sửa lỗi rõ ràng) đư�
 | `docs/ke-hoach/Mo-ta-cong-viec-FE-antoantaichinh-v3.docx` | Mô tả từng việc FE (mô tả, hành vi, responsive, dữ liệu động, tiêu chí nghiệm thu, ảnh tham chiếu), biến thiết kế, hợp đồng API, bảng mã lỗi, câu hỏi mở. Có 56 bảng và 63 ảnh nhúng |
 | `docs/ke-hoach/anh-v2/*.png` + `README.md` | **Ảnh giao diện hiện hành**: 155 ảnh chụp bản dựng v2 ở 1440/744/390px, kèm trạng thái tương tác; README ghi việc liên quan của từng ảnh. Chụp lại bằng `cong-cu/` khi bản dựng đổi |
 | `docs/ke-hoach/anh/*.png` + `README.md` | Ảnh của bản dựng v1 (cũ). **Chỉ còn dùng cho luồng thi** (`th-*`, `mb-06`, `mb-07`; FE-25 đến FE-29) vì v2 chưa có các màn đó; các ảnh khác đã lỗi thời |
-| `docs/ban-dung/antoantaichinh-ban-dung-thu.html` | Bản dựng v2: mẫu cho giao diện, câu chữ và cấu trúc dữ liệu. File rất lớn (2,8 MB, phần lớn là ảnh nhúng) và các trang con nằm trong một khối JSON mã hóa base64; xem ảnh trong `anh-v2/` hoặc tách trang bằng `anh-v2/cong-cu/extract_v2.py` thay vì đọc thẳng |
+| `docs/ban-dung/an-toan-tai-chinh-website.html` | Bản dựng v2: mẫu cho giao diện, câu chữ và cấu trúc dữ liệu. File rất lớn (2,8 MB, phần lớn là ảnh nhúng) và các trang con nằm trong một khối JSON mã hóa base64; xem ảnh trong `anh-v2/` hoặc tách trang bằng `anh-v2/cong-cu/extract_v2.py` thay vì đọc thẳng |
 | `docs/quyet-dinh.md` | Nhật ký quyết định đã xác nhận (`QĐ-xxx`). Không phải tài liệu thiết kế; xem mục "Nhật ký quyết định" bên dưới |
 
 Trong `src/ANTC.Portal.Core` có nhiều file `.md` của Umbraco; đó không phải tài liệu của dự án. Tài liệu có thể được bổ sung ở chỗ khác: khi cần, tìm lại theo phần mở rộng (`.docx .doc .pdf .xlsx .png .jpg .jpeg .webp .md .html`) và theo nội dung, bỏ qua `src/ANTC.Portal.Core`, `node_modules`, `bin`, `obj`.
@@ -191,6 +191,21 @@ Sửa gì trong `ANTC.Portal.Core` thì chạy `core_build.ps1` rồi commit c�
 - **Ngôn ngữ**: comment trong C# và script viết tiếng Việt không dấu. Chữ hiển thị cho người dùng viết tiếng Việt có dấu đầy đủ. Commit message viết tiếng Việt, có tiền tố `feat:`, `docs:`…
 - **API**: tiền tố `/api/v1`, mã API theo sheet "API" (API-xx, QUIZ-xx) ghi trong comment `<summary>` của action.
 - **`.editorconfig`**: xuống dòng LF (riêng `.ps1` dùng CRLF), thụt lề 4 dấu cách; json, css, js, html, csproj, props, config thụt 2.
+
+## Sơ đồ và graph code
+- `docs/so-do/SO-DO.md` là sơ đồ Mermaid tự sinh (project .NET, document type, element type, cây nội dung, mã C#, API). Sinh lại bằng `python docs/so-do/gen_so_do.py` sau khi đổi cấu trúc CMS hoặc code. Đừng sửa tay.
+- Graph mã nguồn cho AI dùng `code-review-graph`. Cách cài và dựng ở `docs/so-do/README.md`. `.mcp.json` chứa đường dẫn riêng của từng máy nên không commit. `.code-review-graphignore` loại Core và Lib khỏi graph.
+- Graph chỉ đọc mã C#, không đọc uSync. Phần CMS xem ở `SO-DO.md`.
+
+## Quy ước làm việc của nhóm (từ origin/main)
+- Cấu trúc CMS (document type, template, data type, nội dung mẫu) đồng bộ qua uSync. Ở môi trường Development uSync tự import khi khởi động và tự export khi Save. Sau khi `git pull`, restart app để nhận thay đổi. Sửa trong backoffice xong thì commit các file `.config` thay đổi.
+- File uSync có gốc `<Empty ... Change="Delete">` ghi nhận việc xóa. Không xóa các file này.
+- File `.db` và `wwwroot/media/` không commit. Mỗi máy có CSDL riêng; dựng lại bằng `run-local --reset`.
+- Không đưa mật khẩu, salt hay khóa thật vào git. `Contest:IpHashSalt` ở Development chỉ là giá trị cục bộ, Production phải cấu hình riêng.
+
+## Lưu ý đã biết
+- `ContestSettingsService` đọc `contestStart`, `contestEnd`, `maxAttempts` từ `thiPage`. Cho đến khi làm B5+ (chuyển cấu hình sang `ContestCampaign` trong CSDL, API quản trị `/api/v1/admin/contest/campaigns`), `POST /api/v1/contest/entries` (API-01) trả `403 CONTEST_CLOSED` nếu `thiPage` chưa có thời gian mở. Kiểm tra lại khi B5+ xong.
+- Build đang cảnh báo lỗ hổng mức cao ở `SixLabors.ImageSharp` và `System.Security.Cryptography.Pkcs`.
 
 ## Việc còn để lại (theo README)
 

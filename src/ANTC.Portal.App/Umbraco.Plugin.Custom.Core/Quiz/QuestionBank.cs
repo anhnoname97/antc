@@ -7,7 +7,7 @@ using Umbraco.Plugin.Custom.Core.Data;
 namespace Umbraco.Plugin.Custom.Core.Quiz;
 
 // Cau truc JSON tra ve cho trinh duyet giu dung nhu du lieu trong ban dung
-// (docs/ban-dung/antoantaichinh-ban-dung-thu.html) de FE dung lai ma hien thi.
+// (docs/ban-dung/an-toan-tai-chinh-website.html) de FE dung lai ma hien thi.
 
 public record TopicDto(
     [property: JsonPropertyName("cd")] string Cd,
@@ -78,14 +78,22 @@ public class QuestionBank : IQuestionBank
     {
         get
         {
-            if (_current is not null)
+            QuestionBankSnapshot? current = Volatile.Read(ref _current);
+            if (current is not null)
             {
-                return _current;
+                return current;
             }
 
             lock (_lock)
             {
-                return _current ??= Load();
+                current = _current;
+                if (current is null)
+                {
+                    current = Load();
+                    Volatile.Write(ref _current, current);
+                }
+
+                return current;
             }
         }
     }
@@ -94,7 +102,7 @@ public class QuestionBank : IQuestionBank
     {
         lock (_lock)
         {
-            _current = Load();
+            Volatile.Write(ref _current, Load());
         }
     }
 
@@ -104,11 +112,15 @@ public class QuestionBank : IQuestionBank
         AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         List<QuizTopic> topics = db.QuizTopics.AsNoTracking().Where(t => t.IsActive).OrderBy(t => t.Id).ToList();
-        List<QuizQuestion> questions = db.QuizQuestions.AsNoTracking().Where(q => q.IsActive)
+        int[] activeTopicIds = topics.Select(t => t.Id).ToArray();
+        List<QuizQuestion> questions = db.QuizQuestions.AsNoTracking()
+            .Where(q => q.IsActive && activeTopicIds.Contains(q.TopicId))
             .OrderBy(q => q.TopicId).ThenBy(q => q.SortOrder).ToList();
         long version = db.QuizImports.Any() ? db.QuizImports.Max(i => i.Id) : 0;
 
-        var byTopic = new Dictionary<int, IReadOnlyList<QuestionDto>>();
+        var byTopic = topics.ToDictionary(
+            topic => topic.Id,
+            _ => (IReadOnlyList<QuestionDto>)Array.Empty<QuestionDto>());
         var keys = new Dictionary<string, AnswerKey>();
         foreach (IGrouping<int, QuizQuestion> group in questions.GroupBy(q => q.TopicId))
         {

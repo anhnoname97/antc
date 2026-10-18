@@ -1,0 +1,26 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Strings
+@{
+    var content = Model.Content;
+    var items = content.Value<BlockListModel>("items");
+    var prefix = "warning-" + content.Key.ToString("N");
+    var index = 0;
+}
+<div class="signs-grid emergency-section" data-warning-signs data-idle-title="@content.Value("idleTitle")" data-idle-text="@content.Value("idleText")" data-hit-title="@content.Value("hitTitle")" data-hit-text="@content.Value("hitText")">
+    <div class="signs-side" data-emergency-reveal><p class="eyebrow">@content.Value("eyebrow")</p><h2>@content.Value("title") <em>@content.Value("highlightTitle")</em></h2><p>@content.Value("description")</p>
+        <div class="stopbox" role="status" aria-live="polite" aria-atomic="true"><svg width="40" height="40" viewBox="0 0 120 120" aria-hidden="true"><path d="M35 4h50l31 31v50l-31 31H35L4 85V35z" fill="#fff" fill-opacity=".14" stroke="#fff" stroke-width="6"/><path d="M60 34v32" stroke="#fff" stroke-width="10" stroke-linecap="round"/><circle cx="60" cy="84" r="6" fill="#fff"/></svg><span><b data-warning-title>@content.Value("idleTitle")</b><span data-warning-text>@content.Value("idleText")</span></span></div>
+        <noscript><p><strong>@content.Value("highlightTitle")</strong> @content.Value("hitText")</p></noscript>
+    </div>
+    <div><ul class="signs">
+        @if (items is not null)
+        {
+            @foreach (var block in items)
+            {
+                var item = block.Content;
+                var id = prefix + "-" + (++index);
+                <li class="sign @(item.Value<bool>("isExtra") ? "extra" : null)" data-emergency-reveal><input type="checkbox" id="@id"><label for="@id"><span class="box" aria-hidden="true">✕</span><span class="t">@(item.Value<IHtmlEncodedString>("text"))</span></label></li>
+            }
+        }
+    </ul><p class="src" data-emergency-reveal>@content.Value("sourceNote")</p></div>
+</div>

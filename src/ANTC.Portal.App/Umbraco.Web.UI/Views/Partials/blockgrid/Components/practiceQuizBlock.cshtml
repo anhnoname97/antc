@@ -1,0 +1,26 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    Link? L(string alias) => c.Value<Link>(alias);
+    var id = $"contest-{Model.ContentKey:N}";
+}
+<section class="sec white" id="thu-suc" aria-labelledby="@id">
+<div class="wrap try">
+<div class="try-side"><p class="eyebrow">@T("eyebrow")</p><h2 id="@id">@T("title")</h2><p>@T("description")</p><p class="demo">@T("notice")</p></div>
+<div class="qz quiz" data-contest-quiz>
+<noscript><p>Cần bật JavaScript để làm bài thử sức.</p></noscript>
+<div data-inline-status role="status" aria-live="polite" hidden><p data-inline-message></p><button type="button" class="btn btn-navy" data-inline-retry hidden>Thử tải lại</button></div>
+<div data-inline-body hidden>
+<div class="qz-top"><span class="qz-k" data-inline-counter></span><span class="dots" data-inline-progress role="group" aria-label="Tiến độ câu hỏi"></span></div>
+<div data-inline-question></div>
+<div data-inline-feedback aria-live="polite" aria-atomic="true"></div>
+<div class="qz-nav"><button type="button" class="btn btn-navy" data-inline-next hidden>Câu tiếp theo ⟶</button></div>
+</div>
+<div class="qz-end" data-inline-end hidden><b data-inline-score tabindex="-1"></b><p data-inline-result></p><button type="button" class="btn btn-line" data-inline-restart>Làm lại</button>
+<div class="invite"><span class="k">@T("inviteLabel")</span><b>@T("inviteText")</b>
+@if (L("entryLink") is { } entry) { <a class="btn btn-red" href="@entry.Url">@entry.Name</a> }
+<small>@T("inviteNotice")</small></div></div>
+</div></div></section>

@@ -1,0 +1,6 @@
+# Mã nguồn Umbraco CMS (core nội bộ), không phải code của project
+src/ANTC.Portal.Core/**
+src/ANTC.Portal.Lib/**
+**/wwwroot/**
+**/bin/**
+**/obj/**

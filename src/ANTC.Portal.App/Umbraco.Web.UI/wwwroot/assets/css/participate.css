@@ -1,0 +1,27 @@
+.participate .participate-hero { padding-bottom: 104px; }
+.participate-hero nav, .participate-hero nav a { color: var(--c-on-brand); font-size: var(--fs-small); }
+.participate .participate-options { position: relative; margin-top: -40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+.participate-card { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 32px; color: var(--c-text); text-decoration: none; }
+.participate-card:hover { color: var(--c-text); }
+.participate-card h2 { color: var(--c-brand); font-size: var(--fs-h3); line-height: 1.25; }
+.participate-card p { color: var(--c-text-3); }
+.participate-contest h2 { font-size: 2.625rem; }
+.participate-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--c-tint); font-size: 2rem; }
+.participate-contest .btn { margin-top: auto; }
+.participate-contest:hover .btn { background: var(--c-danger-600); }
+.participate-small-cards { display: grid; gap: 24px; }
+.participate-link { color: var(--c-brand); font-weight: 700; }
+.participate-share { display: flex; align-items: center; gap: 32px; padding: 40px; border-radius: var(--radius-lg); background: var(--c-brand); color: var(--c-on-brand); }
+.participate-share h2 { font-size: var(--fs-h2-card); color: var(--c-bg); margin: 16px 0; }
+.participate-share p { max-width: 600px; }
+.participate-share-actions { flex-shrink: 0; }
+.participate-share-actions [role="status"] { font-size: var(--fs-small); margin-top: 12px; max-width: 260px; overflow-wrap: anywhere; }
+.participate-family { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 100px; }
+.participate-family span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--c-brand-600); font-weight: 800; }
+@media (max-width: 900px) {
+  .participate .participate-options { grid-template-columns: minmax(0, 1fr); }
+  .participate-share { flex-wrap: wrap; }
+  .participate-family { display: none; }
+  .participate-share-actions { width: 100%; }
+}
+@media (max-width: 479px) { .participate-card, .participate-share { padding: 24px; } }

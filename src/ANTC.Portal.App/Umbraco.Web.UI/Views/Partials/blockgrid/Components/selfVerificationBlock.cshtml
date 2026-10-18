@@ -1,0 +1,23 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Strings
+@{
+    var content = Model.Content;
+    var questions = content.Value<BlockListModel>("questions");
+    var links = content.Value<IEnumerable<Link>>("helpLinks") ?? Enumerable.Empty<Link>();
+    var index = 0;
+}
+<div class="qs emergency-section">
+    <div class="qs-side" data-emergency-reveal><p class="eyebrow">@content.Value("eyebrow")</p><h2>@content.Value("title")</h2><p>@content.Value("description")</p><div class="qs-links">@await Html.PartialAsync("~/Views/Partials/blockgrid/_EmergencyLinks.cshtml", links)</div></div>
+    <div class="qline" data-question-line><span class="qfill" aria-hidden="true"></span>
+        @if (questions is not null)
+        {
+            @foreach (var block in questions)
+            {
+                <div class="qi" data-emergency-reveal><i>@(++index)</i><div>@(block.Content.Value<IHtmlEncodedString>("text"))</div></div>
+            }
+        }
+        <div class="verdict" data-emergency-reveal>@(content.Value<IHtmlEncodedString>("verdict"))</div>
+    </div>
+</div>

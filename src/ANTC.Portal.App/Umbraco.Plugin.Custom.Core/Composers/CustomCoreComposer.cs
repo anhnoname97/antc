@@ -5,9 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Notifications;
+using Umbraco.Plugin.Custom.Core.Backoffice;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
+using Umbraco.Plugin.Custom.Core.Questions;
 using Umbraco.Plugin.Custom.Core.Services;
 
 namespace Umbraco.Plugin.Custom.Core.Composers;
@@ -37,8 +40,25 @@ public class CustomCoreComposer : IComposer
         });
         builder.Services.AddHostedService<AppDbInitializer>();
 
+        builder.Services.AddOptions<ContestSecurityOptions>()
+            .Bind(builder.Config.GetSection(ContestSecurityOptions.SectionName));
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddScoped<QuestionSubmissionService>();
+        builder.Services.AddScoped<IContestAdminService, ContestAdminService>();
+        builder.Services.AddScoped<IQuestionSubmissionService, QuestionSubmissionService>();
+        builder.Services.AddScoped<QuestionModerationService>();
+        builder.Services.AddScoped<IQuestionModerationService>(services => services.GetRequiredService<QuestionModerationService>());
+        builder.Services.AddScoped<IPublishedQuestionService>(services => services.GetRequiredService<QuestionModerationService>());
+        builder.Services.AddScoped<ICurrentContestService, CurrentContestService>();
+
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();
+        builder.Services.AddScoped<IQuizAdminService, QuizAdminService>();
+
+        // Cap quyen section Backoffice cho nhom Administrators sau khi Umbraco khoi dong.
+        builder.AddNotificationAsyncHandler<
+            UmbracoApplicationStartedNotification,
+            ContestManagementSectionAccessHandler>();
 
         // Cai dat cuoc thi doc tu trang thiPage, dung chung cho trang va API cuoc thi
         builder.Services.AddSingleton<IContestSettings, ContestSettingsService>();

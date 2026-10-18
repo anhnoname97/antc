@@ -1,0 +1,51 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    var chapters = Model.Content.Value<BlockListModel>("chapters");
+    var site = Umbraco.AssignedContentItem.Root();
+    var skip = Model.Content.Value<Link>("skipLink");
+    var index = 0;
+    var prefix = "story-" + Model.Content.Key.ToString("N");
+}
+@if (chapters?.Any() == true)
+{
+    <div class="intro-story" data-story>
+        <h2 class="intro-story__heading">@Model.Content.Value("title")</h2>
+        <div class="intro-story__frame" data-story-frame>
+        @if (!string.IsNullOrWhiteSpace(skip?.Url) && (skip.Url.StartsWith('#') || (skip.Url.StartsWith('/') && !skip.Url.StartsWith("//"))))
+        {
+            <a class="intro-story__skip" href="@skip.Url">@skip.Name <span aria-hidden="true">⟶</span></a>
+        }
+        <div class="intro-story__chapters">
+            @foreach (var block in chapters)
+            {
+                var chapter = block.Content;
+                var chapterId = prefix + "-" + (++index);
+                var title = chapter.Value<string>("title") ?? "";
+                var highlight = chapter.Value<string>("highlightTitle");
+                var highlightAt = string.IsNullOrEmpty(highlight) ? -1 : title.IndexOf(highlight, StringComparison.Ordinal);
+                <article class="story-chapter" id="@chapterId" data-story-chapter>
+                    <div class="story-chapter__copy">
+                        <p class="story-chapter__eyebrow">@chapter.Value("eyebrow")</p>
+                        <h3>@if (highlightAt >= 0) { @title[..highlightAt]<em>@highlight</em>@title[(highlightAt + highlight!.Length)..] } else { @title }</h3>
+                        <p class="story-chapter__description">@chapter.Value("description")</p>
+                    </div>
+                    <div class="story-chapter__visual" data-story-visual>
+                        @await Html.PartialAsync("~/Views/Partials/blockgrid/_StoryChapterVisual.cshtml", (chapter, site))
+                    </div>
+                </article>
+            }
+        </div>
+        <div class="intro-story__stage" data-story-stage hidden>
+            <div class="intro-story__panels" data-story-panels></div>
+        </div>
+            <nav class="intro-story__navigation" aria-label="Chọn chương câu chuyện">
+                @for (var i = 0; i < index; i++)
+                {
+                    <button type="button" data-story-go="@i" aria-controls="@(prefix + "-" + (i + 1))" aria-label="Đến chương @(i + 1)" aria-pressed="false"><span></span></button>
+                }
+            </nav>
+        </div>
+    </div>
+}
