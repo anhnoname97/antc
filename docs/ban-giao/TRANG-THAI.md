@@ -2,55 +2,24 @@
 
 **Đọc file này đầu tiên khi mở một phiên điều phối mới**, rồi `CLAUDE.md` (mục "Làm việc hai agent" và "Tiết kiệm lượt dùng"). Cập nhật file này trước khi đóng phiên.
 
-- Cập nhật lần cuối: 2026-10-18 (sau M1a) · bởi phiên điều phối của anhnn
+- Cập nhật lần cuối: 2026-10-18 (sau I2) · bởi phiên điều phối của anhnn
 - Câu mở đầu cho phiên mới: *"Đọc `CLAUDE.md` và `docs/ban-giao/TRANG-THAI.md`, rồi làm tiếp theo mục Việc tiếp theo."*
 
 ## Tình hình
 
-**M1a xong (2026-10-18): `origin/main` đã được merge vào `dev` (QĐ-022, QĐ-023), build 0 lỗi, test 52/52.** Chưa push `dev` sau merge. Việc kế tiếp: CXN-B..G rồi M1b, B5. Còn 3 README ở `docs/ke-hoach` chưa sửa tên bản dựng (bị deny): thay `antoantaichinh-ban-dung-thu.html` bằng `an-toan-tai-chinh-website.html` trong `docs/ke-hoach/anh/README.md`, `anh-v2/README.md`, `anh-v2/cong-cu/README_dau.md`.
+**Gói CUOC-THI theo cuộc thi theo thời gian đã làm xong và tích hợp trong `dev` (2026-10-18).** Đã vào `dev`: M1a (merge `origin/main`, QĐ-022), M1b, B5–B13, F6–F9, S1, I2; mọi task đạt review. I2 chạy đầu–cuối: 48 kiểm API và 28 kiểm giao diện không lỗi (`3-review-CUOC-THI-v6.md`). `dev` chưa push sau các merge; chưa vào `main` (QĐ-017). Không có agent nào đang chạy.
 
-Lý do thiết kế lại: bản dựng đã đổi sang v2 và kế hoạch `Ke-hoach-cong-viec-antoantaichinh-v3.xlsx` đã cập nhật; cuộc thi chuyển sang **cuộc thi theo thời gian** (QĐ-018). Ảnh mới ở `docs/ke-hoach/anh-v2/`; ảnh cũ `docs/ke-hoach/anh/` chỉ còn dùng cho luồng thi (`th-*`, `mb-06`, `mb-07`).
+Quyết định đã chốt: QĐ-017 đến QĐ-026 (`docs/quyet-dinh.md`).
 
-### Quyết định đã chốt trong phiên này (QĐ-017 đến QĐ-021, trong `docs/quyet-dinh.md`)
+### Việc còn lại
 
-| QĐ | Nội dung |
-|---|---|
-| 017 | Nhánh `dev` gom công việc gói CUOC-THI; **chưa vào `main`** vì nhóm vẫn đang làm trên `main`. Cách hợp nhất với `origin/main` chưa quyết |
-| 018 | Cuộc thi theo thời gian: mỗi cuộc có khoảng thời gian riêng; có thể mỗi tháng một cuộc, 2–3 cuộc/tháng, hoặc 2–3 tháng mới có một cuộc |
-| 019 | Đề thi chọn khi tạo cuộc thi. Backoffice trên `origin/main` đã có: chọn chuyên đề rồi chọn từng câu (đã xác minh bằng git, chưa chạy thử) |
-| 020 | Thêm việc Backend cho lịch cuộc thi (nguồn dữ liệu cho FE-32, FE-33, thẻ cuộc thi) |
-| 021 | Số lượt tối đa cấu hình khi thêm cuộc thi; mỗi cuộc thi có lượt riêng |
-
-QĐ-002, 003, 006, 008, 014, 015 đã được ghi chú "Cần xem lại" (vẫn hiệu lực).
-
-### Nhánh và worktree
-
-| Nơi | Nhánh | Tình trạng |
-|---|---|---|
-| Repo chính `C:\GTSC\DMST\26.antc-portal` | **`dev`** (đã đẩy lên máy chủ) | Gom hết: FE-25 + API-01, luồng BE B1–B4 (API-02..05), luồng FE F1–F4a, bản dựng v2, kế hoạch mới, ảnh v2, tài liệu điều phối, thiết kế lại. Build đạt (0 lỗi) |
-| `C:\GTSC\DMST\wt\CUOC-THI-fe` | `lane/CUOC-THI-fe` | Sạch; đã nằm trong `dev` |
-| (giữ lại) | `wip/CUOC-THI-F4b` (chỉ cục bộ) | F4b dở dang theo thiết kế v1, chưa kiểm chứng; không vào `dev`. Khuyến nghị giữ (Q6) |
-| (giữ lại) | `feature/cuoc-thi`, `lane/CUOC-THI-be`, `feature/FE-25` | Đã gộp vào `dev`, giữ để tra lịch sử |
-
-`main` local và `origin/main`: **không đụng**. `origin/main` của nhóm đi trước `dev` 33 commit (kiểm lần cuối `1de97372`); `dev` đi trước `origin/main` 22+ commit.
-
-## Việc tiếp theo, theo thứ tự
-
-Chi tiết và phương án ở `docs/ban-giao/CUOC-THI/1-thiet-ke.md`, mục **"Thiết kế lại theo cuộc thi theo thời gian (2026-10-18)"** (R0 đến R10).
-
-1. ~~CXN-A~~ **Đã xong (QĐ-022, M1a merge vào `dev`).** Mô tả cũ: Ba phương án: (A) merge `origin/main` vào `dev` (khuyến nghị, giữ API-01 của `dev`, nhận project test của nhóm); (B) giữ `dev`, chỉ chép phần cuộc thi của `origin/main`; (C) nhánh mới từ `origin/main` rồi chuyển dần. Cần chốt thêm ai làm (Worker ở luồng `CUOC-THI-hopnhat` hay người trong nhóm) và có báo nhóm trước không.
-2. Chốt các điểm còn lại, mỗi điểm chặn một số task: **CXN-B** schema (`entry.contest_id`, cột mới của `contest`, chặn đổi đề khi đã có lượt); **CXN-C** API-01 có `contestId`; **CXN-D** đề qua `QUIZ-01/02?contest=`; **CXN-E** API-07 lịch cuộc thi và nhãn lĩnh vực, thanh thông báo hiện cuộc nào khi nhiều cuộc cùng diễn ra; **CXN-F** chỗ đặt luồng thi (khuyến nghị document type mới `/cuoc-thi/lam-bai/?c=<id>`); **CXN-G** thay QĐ-008 bằng cuộc thi mẫu trong CSDL local.
-3. Câu hỏi mở (Q1–Q7): thi ẩn danh; quy tắc "làm Chuyên đề 1 trước"; lượt làm dở khi hết cuộc; QĐ-016 (lộ đáp án) và câu hỏi OTP (QĐ-012); cách hợp nhất; F4b; quay số theo cuộc.
-4. Ghi các điểm đã chốt thành QĐ (từ QĐ-022). Orchestrator sửa trạng thái task trong `1-thiet-ke.md`.
-5. Mở luồng. Thứ tự dự kiến: CXN-A → M1a (merge) → CXN-F → M1b (trang làm bài riêng) → hai luồng be/fe. Khi thiết kế đã chốt và task ở trạng thái "Làm được", chạy bằng `antc-pipeline.ps1` cho đỡ tốn lượt dùng.
-6. **Hạng mục mới cho kế hoạch:** `docs/ban-giao/CUOC-THI/5-hang-muc-moi-cho-ke-hoach.md` (10 hạng mục, BE-39 đến BE-45 và FE-35 đến FE-37, tổng ~7 ngày công; mã bắt đầu từ BE-39 vì kế hoạch đã dùng BE-30 đến BE-36 và BE-38). **anhnn dán vào sheet "Công việc" của xlsx**; agent không sửa xlsx.
-
-### Cần biết khi gộp nhánh
-
-- `origin/main` có `CLAUDE.md` riêng của nhóm; `dev` có `CLAUDE.md` khác. Sẽ trùng file khi merge: cần quyết định giữ thế nào (hoặc gộp nội dung).
-- Trên `origin/main`, `thiPage` đã bỏ hết thuộc tính cấu hình cuộc thi nhưng API-01 vẫn đọc `contestStart/End` từ đó, nên đọc code thì API-01 ở đó luôn trả `403 CONTEST_CLOSED`. API-01 của `dev` khác ở: trả 400 khi thi ẩn danh gửi kèm thông tin cá nhân (`dev` bỏ qua), thiếu muối băm IP thì `origin/main` không khởi động (trái QĐ-009), không có `Cache-Control: no-store`.
-- Báo cáo `4a` ghi sai một chỗ: `ContestSettings*` không bị xóa trên `origin/main`, chúng chỉ có ở `dev`.
-- Trước khi làm việc BE/FE lớn: `git fetch`, rồi so với `origin/main`.
+1. **anhnn duyệt giao diện** FE-29 (màn kết quả, hai cuộc, 390px) và câu chữ "đồng ý"; ảnh ở `C:\GTSC\DMSTgent-artifacts\`.
+2. Chưa kiểm: B11 trong backoffice (form gia hạn/hệ số/lĩnh vực), đồng hồ đọc với hệ số khác 0, POST entries chế độ `named`, nhập uSync `cuocThiLamBaiPage` trên CSDL trống.
+3. **Q2 (vế máy chủ):** có ép thứ tự chuyên đề ở API-03 không; hiện chỉ khóa ở giao diện.
+4. Sửa tên bản dựng trong 3 README `docs/ke-hoach` (bị deny): thay `antoantaichinh-ban-dung-thu.html` bằng `an-toan-tai-chinh-website.html` (`anh/README.md`, `anh-v2/README.md`, `anh-v2/cong-cu/README_dau.md`).
+5. Dán `docs/ban-giao/CUOC-THI/5-hang-muc-moi-cho-ke-hoach.md` vào sheet "Công việc" của xlsx; thêm hạng mục quay số theo cuộc (QĐ-025).
+6. Quyết định đẩy `dev`: push, báo nhóm, hoặc đưa vào `main` (QĐ-017). Test đỏ cũ đã sửa; `dotnet test` 95/95 trước F8.
+7. Dọn nhánh/worktree `lane/CUOC-THI-*` và `wip/CUOC-THI-F4b` khi không cần.
 
 ## Công cụ (nằm ngoài repo, ở `C:\GTSC\DMST`)
 
