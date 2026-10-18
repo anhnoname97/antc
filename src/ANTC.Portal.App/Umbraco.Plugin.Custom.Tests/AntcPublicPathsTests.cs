@@ -9,6 +9,8 @@ public class AntcPublicPathsTests
     [InlineData("home", "/")]
     [InlineData("ungPhoPage", "/ung-pho/")]
     [InlineData("thiThuPage", "/thu-suc/")]
+    [InlineData("thiPage", "/cuoc-thi/")]
+    [InlineData("cuocThiLamBaiPage", "/cuoc-thi/lam-bai/")]
     [InlineData("searchPage", "/tim-kiem/")]
     [InlineData("chinhSachPage", "/chinh-sach/")]
     public void Page_paths_do_not_expose_management_nodes(string alias, string path)
