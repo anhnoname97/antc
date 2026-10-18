@@ -757,3 +757,10 @@ Giữ F4b. F8 "Làm được": làm tiếp từ `wip/CUOC-THI-F4b` (lấy bằng
 
 Kiểm `dev` sau ghép hai luồng BE (luồng `CUOC-THI-v4-kt`): build 0 lỗi, `dotnet test` 95/95, snapshot EF khớp, `-Reset` ổn, API-07, QUIZ `?contest=`, API-01 và API-02 trên cuộc mẫu chạy đúng, các lỗi 401/404 đúng dạng. Chưa kiểm POST entries chế độ `named`, API-03/04/05. Merge `lane/CUOC-THI-v5-fe` (F8) và `lane/CUOC-THI-v5-be` (B12, S1). F9 "Làm được", I2 làm ngay sau F9 trong cùng luồng.
 
+## Cập nhật 2026-10-18: task B14 và K1 (QĐ-027)
+
+| Task | Việc | Luồng | Ghi chú |
+|---|---|---|---|
+| **B14** | Ép thứ tự chuyên đề ở API-03 theo QĐ-025: chỉ lưu đáp án chuyên đề n khi chuyên đề n-1 (theo thứ tự `topics` của đề) đã xong; vi phạm trả lỗi theo dạng QĐ-004. Worker đọc code hiện tại (cách tính "xong chuyên đề", thứ tự `topics`), chọn mã lỗi và HTTP status nhất quán với bảng mã lỗi trong `1-thiet-ke.md`/sheet "API", **ghi rõ trong bàn giao**; FE (`exam.js`) xử lý mã lỗi mới nếu cần. | be (+ chỉnh nhỏ fe) | Test: chuyên đề 2 trước khi xong 1 bị từ chối; làm đúng thứ tự thì được; đề không có CĐ1; lượt ở cuộc khác không ảnh hưởng. Làm được. |
+| **K1** | Kiểm các mục chưa kiểm: POST entries chế độ `named` (có `consent`, số điện thoại, đếm lượt theo cuộc), API-03/04/05 thật, form quản trị B11 trong backoffice (gia hạn, hệ số, lĩnh vực; `409 CONTEST_HAS_ENTRIES`), đồng hồ đọc với hệ số khác 0, nhập uSync `cuocThiLamBaiPage` trên CSDL trống (`-Reset`). Chỉ ghi kết quả; lỗi nhỏ được sửa và commit riêng. | chính | Sau B14. Làm được. |
+

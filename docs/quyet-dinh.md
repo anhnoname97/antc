@@ -276,3 +276,11 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Lý do: đồng hồ đọc và màn Xong chuyên đề không phụ thuộc mô hình cuộc thi.
 - Ảnh hưởng: F8 chuyển "Làm được"; thứ tự chuyên đề theo QĐ-025.
 
+### QĐ-027 · Máy chủ cũng ép thứ tự chuyên đề; gói CUOC-THI đẩy lên `dev` để kiểm
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn ("làm nốt đi", "tất cả đẩy dev thôi, khi ok mới đẩy vào main") · Trạng thái: Hiệu lực
+- Phạm vi: API-03 (lưu đáp án chuyên đề), QĐ-025, nhánh `dev`
+- Quyết định: (1) máy chủ ép thứ tự chuyên đề của QĐ-025 ở API-03, theo khuyến nghị ép cả hai phía; mã lỗi và chi tiết do task B14 đề xuất trong `1-thiet-ke.md`, theo dạng lỗi QĐ-004. (2) Toàn bộ gói CUOC-THI đẩy lên `origin/dev` để anhnn kiểm; **chỉ đưa vào `main` khi anhnn xác nhận đạt** (làm rõ QĐ-017).
+- Giả định của Claude: "làm nốt" gồm B14 và việc kiểm các mục còn chưa kiểm (K1).
+- Ảnh hưởng: thêm task B14 (BE) và K1 (kiểm chứng).
+
