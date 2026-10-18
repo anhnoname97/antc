@@ -1,0 +1,32 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using System.Text.RegularExpressions
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@{
+    var content = Model.Content;
+    var numbers = Umbraco.AssignedContentItem.Root().Value<BlockListModel>("emergencyNumbers");
+    var bankLink = content.Value<Link>("bankHelpLink");
+    var note = content.Value<string>("verificationNote");
+}
+<div class="emergency-section">
+    <div class="sec-head" data-emergency-reveal><div><p class="eyebrow">@content.Value("eyebrow")</p><h2>@content.Value("title") <em>@content.Value("highlightTitle")</em></h2></div></div>
+    <div class="nums">
+        @if (numbers is not null)
+        {
+            @foreach (var block in numbers)
+            {
+                var item = block.Content;
+                var number = item.Value<string>("number")?.Trim() ?? "";
+                var isNumber = Regex.IsMatch(number, @"^\+?[0-9]{3,15}$");
+                var call = isNumber && item.Value<bool>("enableCall");
+                var sms = isNumber && item.Value<bool>("enableSms");
+                <div class="num @(!isNumber ? "first" : number == "113" ? "e113" : null)" data-emergency-reveal><span class="k">@item.Value("label")</span><span class="big @(!isNumber ? "sm" : null)">@number</span><p>@item.Value("description")</p><div class="acts">
+                    @if (call) { <a href="tel:@number">@(item.Value<string>("callButtonText") ?? "Gọi")</a> }
+                    @if (sms) { <a href="sms:@number">Nhắn tin</a> }
+                    @if (!isNumber && bankLink is not null) { @await Html.PartialAsync("~/Views/Partials/blockgrid/_EmergencyLinks.cshtml", new[] { bankLink }) }
+                </div></div>
+            }
+        }
+    </div>
+    @if (!string.IsNullOrWhiteSpace(note)) { <p class="verified" data-emergency-reveal>✓ @note</p> }
+</div>

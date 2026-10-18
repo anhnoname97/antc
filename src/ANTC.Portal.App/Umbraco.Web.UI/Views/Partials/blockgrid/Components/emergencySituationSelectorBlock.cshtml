@@ -1,0 +1,41 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@{
+    var content = Model.Content;
+    var items = content.Value<BlockListModel>("items");
+    var alternatives = content.Value<BlockListModel>("alternatives");
+    var index = 0;
+}
+<div class="emergency-section">
+    <div class="sec-head" data-emergency-reveal><div><p class="eyebrow">@content.Value("eyebrow")</p><h2>@content.Value("title")</h2></div><p>@content.Value("description")</p></div>
+    <div class="choose">
+        @if (items is not null)
+        {
+            @foreach (var block in items)
+            {
+                var item = block.Content;
+                var link = item.Value<Link>("link");
+                if (link?.Url?.StartsWith('#') != true && !(link?.Url?.StartsWith('/') == true && !link.Url.StartsWith("//"))) { continue; }
+                var i = index++;
+                <a class="ch @(i == 0 ? "danger" : i == 1 ? "hurt" : "check")" href="@link.Url" data-emergency-reveal>
+                    <span class="n">@index.ToString("00")</span><span class="ico" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/blockgrid/_EmergencySituationIcon.cshtml", i)</span>
+                    <h3>@item.Value("title")</h3><p>@item.Value("description")</p><span class="go">@link.Name</span>
+                </a>
+            }
+        }
+    </div>
+    @if (alternatives?.Any() == true)
+    {
+        <div class="alt">
+            @foreach (var block in alternatives)
+            {
+                var item = block.Content;
+                var link = item.Value<Link>("link");
+                if (link?.Url?.StartsWith('#') != true) { continue; }
+                <a href="@link.Url" data-emergency-reveal><span><b>@item.Value("title")</b><small>@item.Value("description")</small></span><i aria-hidden="true">›</i></a>
+            }
+        </div>
+    }
+    <p class="helper" data-emergency-reveal>@content.Value("helperText")</p>
+</div>

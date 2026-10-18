@@ -1,0 +1,6 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<System.Collections.Generic.IEnumerable<Umbraco.Cms.Core.Models.Link>>
+@foreach (var link in Model)
+{
+    if (string.IsNullOrWhiteSpace(link.Url) || !((link.Url.StartsWith('/') && !link.Url.StartsWith("//")) || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" or "tel" or "sms" or "mailto"))) { continue; }
+    <a href="@link.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener noreferrer" : null)">@link.Name</a>
+}

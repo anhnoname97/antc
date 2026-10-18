@@ -1,15 +1,43 @@
-@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
 @using Umbraco.Cms.Core.Models
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
-    var c = Model.Content;
-    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
-    Link? L(string alias) => c.Value<Link>(alias);
-    var id = $"contest-{Model.ContentKey:N}";
+    var content = Model.Content;
+    var primary = content.Value<Link>("primaryLink");
+    var next = content.Value<Link>("nextLink");
+    var urgent = content.Value<Link>("urgentLink");
+    var isContest = next is not null || urgent is not null;
+    bool Safe(Link? link) => !string.IsNullOrWhiteSpace(link?.Url)
+        && ((link.Url.StartsWith('/') && !link.Url.StartsWith("//")) || link.Url.StartsWith('#')
+            || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" or "tel"));
 }
-<section class="next" aria-label="Phần tiếp theo"><svg class="next-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
-<div class="wrap next-in"><div><p class="eyebrow">@T("eyebrow")</p>
-@if (L("nextLink") is { } next) { <a class="big" href="@next.Url">@(next.Name?.TrimEnd().TrimEnd('⟶').TrimEnd()) <span aria-hidden="true">⟶</span></a> }
-<p>@T("description")</p></div><div class="next-cta">
-@if (L("urgentLink") is { } urgent) { <a class="btn btn-light" href="@urgent.Url">@urgent.Name</a> }
-</div></div></section>
+@if (isContest)
+{
+    <section class="next" aria-label="Phần tiếp theo">
+        <svg class="next-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
+        <div class="wrap next-in"><div><p class="eyebrow">@content.Value("eyebrow")</p>
+            @if (Safe(next))
+            {
+                <a class="big" href="@next!.Url" target="@next.Target" rel="@(next.Target == "_blank" ? "noopener noreferrer" : null)">@(next.Name?.TrimEnd().TrimEnd('⟶').TrimEnd()) <span aria-hidden="true">⟶</span></a>
+            }
+            <p>@content.Value("description")</p></div><div class="next-cta">
+            @if (Safe(urgent))
+            {
+                <a class="btn btn-light" href="@urgent!.Url" target="@urgent.Target" rel="@(urgent.Target == "_blank" ? "noopener noreferrer" : null)">@urgent.Name</a>
+            }
+        </div></div>
+    </section>
+}
+else
+{
+    var title = content.Value<string>("title");
+    <div class="next emergency-section">
+        <div class="next-drum" aria-hidden="true"><img src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" loading="lazy"></div>
+        <div class="next-in" data-emergency-reveal><div><p class="eyebrow">@content.Value("eyebrow")</p>
+            @if (Safe(primary))
+            {
+                <a class="big" href="@primary!.Url" target="@primary.Target" rel="@(primary.Target == "_blank" ? "noopener noreferrer" : null)">@(string.IsNullOrWhiteSpace(title) ? primary.Name : title) <span aria-hidden="true">⟶</span></a>
+            }
+            <p>@content.Value("description")</p></div><div class="next-cta">@await Html.PartialAsync("~/Views/Partials/blockgrid/_EmergencyCall.cshtml", content)</div>
+        </div>
+    </div>
+}
