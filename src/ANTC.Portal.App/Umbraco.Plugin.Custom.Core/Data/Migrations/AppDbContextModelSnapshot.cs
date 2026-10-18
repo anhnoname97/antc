@@ -37,6 +37,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("end_at");
 
+                    b.Property<string>("FocusArea")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("focus_area");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER")
                         .HasColumnName("is_active");
@@ -51,9 +56,18 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("name");
 
+                    b.Property<decimal>("ReadTimerFactor")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("read_timer_factor");
+
                     b.Property<DateTime>("StartAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("start_at");
+
+                    b.Property<int>("SubmitGraceHours")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("submit_grace_hours");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT")
@@ -218,6 +232,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("consent_at");
 
+                    b.Property<long?>("ContestId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("contest_id");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
@@ -281,6 +299,8 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.HasIndex("TokenHash")
                         .IsUnique();
+
+                    b.HasIndex("ContestId", "Phone");
 
                     b.HasIndex("Status", "Score");
 
@@ -625,6 +645,16 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Draw");
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.Entry", b =>
+                {
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", "Contest")
+                        .WithMany()
+                        .HasForeignKey("ContestId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Contest");
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.EntryAnswer", b =>

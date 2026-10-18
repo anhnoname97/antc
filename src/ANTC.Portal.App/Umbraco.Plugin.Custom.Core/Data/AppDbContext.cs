@@ -46,6 +46,8 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.TokenHash).IsUnique();
             e.HasIndex(x => x.Phone);
             e.HasIndex(x => new { x.Status, x.Score });
+            e.HasOne(x => x.Contest).WithMany().HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => new { x.ContestId, x.Phone });
         });
 
         b.Entity<EntryAnswer>(e =>
@@ -117,6 +119,8 @@ public class AppDbContext : DbContext
             e.ToTable("contest");
             e.Property(x => x.Name).HasMaxLength(200);
             e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.FocusArea).HasMaxLength(50);
+            e.Property(x => x.ReadTimerFactor).HasPrecision(4, 2);
             e.HasIndex(x => new { x.IsActive, x.StartAt, x.EndAt });
         });
 

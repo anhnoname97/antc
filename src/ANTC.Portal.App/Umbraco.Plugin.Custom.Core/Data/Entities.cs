@@ -29,7 +29,10 @@ public class Entry
     public DateTime CreatedAt { get; set; }
     public DateTime? SubmittedAt { get; set; }
     public string? IpHash { get; set; }
+    /// <summary>Cuoc thi cua luot nay; rong voi luot cu tao truoc khi co nhieu cuoc thi (QD-024).</summary>
+    public long? ContestId { get; set; }
 
+    public ContestCampaign? Contest { get; set; }
     public List<EntryAnswer> Answers { get; set; } = new();
 }
 
@@ -168,6 +171,12 @@ public class ContestCampaign
     public DateTime StartAt { get; set; }
     public DateTime EndAt { get; set; }
     public int MaxAttempts { get; set; } = 2;
+    /// <summary>So gio con cho nop bai sau EndAt (QD-014 theo cuoc).</summary>
+    public int SubmitGraceHours { get; set; } = 24;
+    /// <summary>He so thoi gian doc moi cau (1 = mac dinh).</summary>
+    public decimal ReadTimerFactor { get; set; } = 1m;
+    /// <summary>Khoa linh vuc (trang Thu doan) de hien nhan; rong neu khong gan.</summary>
+    public string? FocusArea { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
