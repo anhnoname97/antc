@@ -2,12 +2,12 @@
 
 **Đọc file này đầu tiên khi mở một phiên điều phối mới**, rồi `CLAUDE.md` (mục "Làm việc hai agent" và "Tiết kiệm lượt dùng"). Cập nhật file này trước khi đóng phiên.
 
-- Cập nhật lần cuối: 2026-10-18 · bởi phiên điều phối của anhnn
+- Cập nhật lần cuối: 2026-10-18 (sau M1a) · bởi phiên điều phối của anhnn
 - Câu mở đầu cho phiên mới: *"Đọc `CLAUDE.md` và `docs/ban-giao/TRANG-THAI.md`, rồi làm tiếp theo mục Việc tiếp theo."*
 
 ## Tình hình
 
-**Gói CUOC-THI đã thiết kế lại xong nhưng chưa có task nào làm được ngay: mọi việc chờ anhnn chốt CXN-A** (cách hợp nhất `dev` với `origin/main`). Agent đang tạm dừng, không có phiên nào chạy.
+**M1a xong (2026-10-18): `origin/main` đã được merge vào `dev` (QĐ-022, QĐ-023), build 0 lỗi, test 52/52.** Chưa push `dev` sau merge. Việc kế tiếp: CXN-B..G rồi M1b, B5. Còn 3 README ở `docs/ke-hoach` chưa sửa tên bản dựng (bị deny): thay `antoantaichinh-ban-dung-thu.html` bằng `an-toan-tai-chinh-website.html` trong `docs/ke-hoach/anh/README.md`, `anh-v2/README.md`, `anh-v2/cong-cu/README_dau.md`.
 
 Lý do thiết kế lại: bản dựng đã đổi sang v2 và kế hoạch `Ke-hoach-cong-viec-antoantaichinh-v3.xlsx` đã cập nhật; cuộc thi chuyển sang **cuộc thi theo thời gian** (QĐ-018). Ảnh mới ở `docs/ke-hoach/anh-v2/`; ảnh cũ `docs/ke-hoach/anh/` chỉ còn dùng cho luồng thi (`th-*`, `mb-06`, `mb-07`).
 
@@ -38,7 +38,7 @@ QĐ-002, 003, 006, 008, 014, 015 đã được ghi chú "Cần xem lại" (vẫn
 
 Chi tiết và phương án ở `docs/ban-giao/CUOC-THI/1-thiet-ke.md`, mục **"Thiết kế lại theo cuộc thi theo thời gian (2026-10-18)"** (R0 đến R10).
 
-1. **anhnn chốt CXN-A: cách hợp nhất `dev` với `origin/main`.** Ba phương án: (A) merge `origin/main` vào `dev` (khuyến nghị, giữ API-01 của `dev`, nhận project test của nhóm); (B) giữ `dev`, chỉ chép phần cuộc thi của `origin/main`; (C) nhánh mới từ `origin/main` rồi chuyển dần. Cần chốt thêm ai làm (Worker ở luồng `CUOC-THI-hopnhat` hay người trong nhóm) và có báo nhóm trước không.
+1. ~~CXN-A~~ **Đã xong (QĐ-022, M1a merge vào `dev`).** Mô tả cũ: Ba phương án: (A) merge `origin/main` vào `dev` (khuyến nghị, giữ API-01 của `dev`, nhận project test của nhóm); (B) giữ `dev`, chỉ chép phần cuộc thi của `origin/main`; (C) nhánh mới từ `origin/main` rồi chuyển dần. Cần chốt thêm ai làm (Worker ở luồng `CUOC-THI-hopnhat` hay người trong nhóm) và có báo nhóm trước không.
 2. Chốt các điểm còn lại, mỗi điểm chặn một số task: **CXN-B** schema (`entry.contest_id`, cột mới của `contest`, chặn đổi đề khi đã có lượt); **CXN-C** API-01 có `contestId`; **CXN-D** đề qua `QUIZ-01/02?contest=`; **CXN-E** API-07 lịch cuộc thi và nhãn lĩnh vực, thanh thông báo hiện cuộc nào khi nhiều cuộc cùng diễn ra; **CXN-F** chỗ đặt luồng thi (khuyến nghị document type mới `/cuoc-thi/lam-bai/?c=<id>`); **CXN-G** thay QĐ-008 bằng cuộc thi mẫu trong CSDL local.
 3. Câu hỏi mở (Q1–Q7): thi ẩn danh; quy tắc "làm Chuyên đề 1 trước"; lượt làm dở khi hết cuộc; QĐ-016 (lộ đáp án) và câu hỏi OTP (QĐ-012); cách hợp nhất; F4b; quay số theo cuộc.
 4. Ghi các điểm đã chốt thành QĐ (từ QĐ-022). Orchestrator sửa trạng thái task trong `1-thiet-ke.md`.

@@ -25,3 +25,13 @@ Sau khi đăng ký ở `/tham-gia/cuoc-thi`, thí sinh vào được danh sách 
 ## Worker
 
 Chờ `1-thiet-ke.md`. Mỗi luồng ghi bàn giao vào `2-ban-giao-<luồng>.md`.
+
+## 2026-10-18: giao M1a cho Worker
+
+- Luồng `CUOC-THI-hopnhat` (nhánh `lane/CUOC-THI-hopnhat` từ `dev`, `-AllowCommit`). Chỉ làm task **M1a** trong `1-thiet-ke.md`; QĐ-022.
+- Báo cáo vào `2-ban-giao-CUOC-THI-hopnhat.md`. Không push, không merge vào `dev` (điều phối làm sau khi review).
+
+
+## 2026-10-18: sửa theo review M1a (QĐ-023)
+
+Worker, luồng `CUOC-THI-hopnhat`: xử lý mục "Worker phải sửa" của `3-review-CUOC-THI-hopnhat.md` (1: sửa gạch "Lưu ý đã biết" trong `CLAUDE.md`; 2: BỎ gạch "Google Sheet là bản chuẩn"; 3: sửa tham chiếu tên bản dựng) và sửa test `AntcPublicPathsTests.Manual_faq_documents_do_not_have_a_public_route` theo hành vi code (không sửa `AntcPublicPaths.cs`). Chạy `dotnet test` phải sạch. Thêm mục vào `2-ban-giao-CUOC-THI-hopnhat.md`. Commit riêng, không push; điều phối sẽ merge vào `dev`.

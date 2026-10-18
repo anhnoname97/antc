@@ -232,3 +232,22 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: số lượt tối đa được cấu hình khi thêm cuộc thi. Mỗi cuộc thi có lượt thi riêng; **không còn tính trọn đời hay theo tháng**.
 - Lý do: mỗi cuộc có thời gian và bộ đề riêng.
 - Ảnh hưởng: lượt (`entry`) phải gắn với cuộc thi và việc đếm lượt theo cuộc thi; chi tiết schema do bước thiết kế sau làm. QĐ-003 cần xem lại (nguồn `maxAttempts`).
+
+### QĐ-022 · Hợp nhất `origin/main` vào `dev` theo phương án A
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: nhánh `dev`, `origin/main`, gói CUOC-THI (task M1a), `CLAUDE.md`
+- Vấn đề: `origin/main` đi trước `dev` 33 commit, `dev` đi trước 22+ commit; hai bên cùng viết phần cuộc thi theo hai cách (`dev`: cài đặt ở `thiPage`; `origin/main`: bảng `contest` + backoffice). Thử merge cho 6 file xung đột nội dung (xem `1-thiet-ke.md`, mục "Cập nhật 2026-10-18").
+- Quyết định: merge `origin/main` vào `dev` (phương án A của CXN-A), do Worker làm ở luồng `CUOC-THI-hopnhat` theo task M1a. Phần liên quan Claude (`CLAUDE.md`, quy trình điều phối) lấy từ `dev` vì mới hơn. Việc đưa `dev` vào `main` vẫn theo QĐ-017 (chưa).
+- Lý do: giữ API-01 và luồng thi của `dev`, nhận backoffice cuộc thi và project test của nhóm.
+- Ảnh hưởng: `ContestEntryService`/`ContestController` lấy bản `dev`; cuộc thi chuyển sang đọc từ bảng `contest` ở các task sau (B-xx). Chưa merge vào `main`, chưa báo nhóm (chưa được yêu cầu).
+
+### QĐ-023 · Sau merge `origin/main`: nguồn kế hoạch chuẩn, thi ẩn danh, test đỏ
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `CLAUDE.md`, API-01 (thi ẩn danh), `AntcPublicPathsTests`, review M1a (`3-review-CUOC-THI-hopnhat.md`)
+- Vấn đề: `CLAUDE.md` của `origin/main` nói Google Sheet là kế hoạch chuẩn, của `dev` coi xlsx là tài liệu thiết kế; API-01 `dev` bỏ qua trường cá nhân khi thi ẩn danh, `origin/main` trả 400; test `Manual_faq_documents_do_not_have_a_public_route` đỏ sẵn trên `origin/main`.
+- Quyết định: (1) kế hoạch chuẩn là **file xlsx** trong `docs/ke-hoach/`, không phải Google Sheet; (2) thi ẩn danh gửi kèm thông tin cá nhân: **giữ như `dev`** (bỏ qua, không lưu, không trả lỗi); (3) test đỏ: **sửa test**, không sửa code `AntcPublicPaths`; (4) cho phép merge `lane/CUOC-THI-hopnhat` vào `dev` sau khi Worker sửa xong các mục của review.
+- Lý do: thống nhất nguồn tài liệu của dự án; giữ contract API-01 đang có.
+- Ảnh hưởng: bỏ gạch "Google Sheet là bản chuẩn" khỏi `CLAUDE.md` đã chèn; ca test ẩn danh giữ theo hành vi bỏ qua; test sửa theo hành vi code hiện tại (`/hoi-dap/cau-hoi/`).
+
