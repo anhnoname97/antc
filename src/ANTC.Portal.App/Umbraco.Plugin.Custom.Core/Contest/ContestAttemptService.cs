@@ -261,8 +261,8 @@ public class ContestAttemptService : IContestAttemptService
 
     public async Task<AttachContactResult> AttachContactAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default)
     {
-        // Doc cai dat ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa. Khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
-        var settings = await _settings.GetAsync();
+        // Doc cuoc cua luot ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa. Luot khong cuoc coi nhu dong (R5, QD-014 theo cuoc)
+        ContestInfo? contest = entry.ContestId is { } cid ? await _catalog.GetAsync(cid, ct) : null;
 
         await ContestEntryService.WriteLock.WaitAsync(ct);
         try
@@ -281,7 +281,7 @@ public class ContestAttemptService : IContestAttemptService
                 return AttachContactResult.Fail(new("ALREADY_NAMED", "Lượt thi này đã có thông tin dự thi."));
             }
 
-            if (!IsOpen(settings))
+            if (contest is null || contest.PhaseAt(_clock.GetUtcNow().UtcDateTime) != ContestPhase.Open)
             {
                 return AttachContactResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
             }
@@ -294,12 +294,12 @@ public class ContestAttemptService : IContestAttemptService
                 return AttachContactResult.Fail(new("VALIDATION", fields.Values.First(), fields));
             }
 
-            int maxAttempts = settings!.MaxAttempts;
-            int used = await _db.Entries.CountAsync(e => e.Phone == phone, ct);
+            int maxAttempts = contest.MaxAttempts;
+            int used = await _db.Entries.CountAsync(e => e.ContestId == contest.Id && e.Phone == phone, ct);
             if (used >= maxAttempts)
             {
                 return AttachContactResult.Fail(new("ATTEMPT_LIMIT",
-                    $"Số {phone} đã dùng hết {maxAttempts} lượt thi. Mỗi số điện thoại chỉ được thi tối đa {maxAttempts} lượt."));
+                    $"Số {phone} đã dùng hết {maxAttempts} lượt của cuộc thi này."));
             }
 
             current.Mode = EntryModes.Named;
@@ -321,8 +321,8 @@ public class ContestAttemptService : IContestAttemptService
 
     public async Task<SubmitResult> SubmitAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default)
     {
-        // Doc cai dat ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa
-        var settings = await _settings.GetAsync();
+        // Doc cuoc cua luot ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa
+        ContestInfo? contest = entry.ContestId is { } cid ? await _catalog.GetAsync(cid, ct) : null;
         var bank = _bank.Current;
 
         await ContestEntryService.WriteLock.WaitAsync(ct);
@@ -340,18 +340,21 @@ public class ContestAttemptService : IContestAttemptService
             // Da nop: tra lai ket qua da luu bat ke thoi gian, bo qua than yeu cau
             if (current.Status == EntryStatuses.Submitted)
             {
-                return SubmitResult.Ok(BuildResult(current, current.Answered, current.TotalQuestions ?? bank.TotalQuestions,
-                    rows.Where(r => r.IsCorrect).Select(r => r.Topic), bank));
+                return SubmitResult.Ok(BuildResult(current, current.Answered,
+                    current.TotalQuestions ?? contest?.QuestionCount ?? bank.TotalQuestions,
+                    rows.Where(r => r.IsCorrect).Select(r => r.Topic), TopicCounts(contest, bank)));
             }
 
-            if (settings is null || !_settings.IsSubmitOpen(settings, DateTime.UtcNow))
+            // Han nop = end_at + submit_grace_hours cua cuoc (open va submit_only deu nop duoc)
+            if (contest is null || contest.PhaseAt(_clock.GetUtcNow().UtcDateTime) == ContestPhase.Closed)
             {
                 return SubmitResult.Fail(new("CONTEST_CLOSED", "Cuộc thi đã hết hạn nộp bài."));
             }
 
-            // Du cau: moi ma cau trong ban chup hien tai deu co dap an; cau da ngung dung khong tinh
-            int total = bank.TotalQuestions;
-            int covered = rows.Count(r => bank.Keys.ContainsKey(r.QuestionCode));
+            // Du cau: moi cau cua de cuoc deu co dap an (QD-015 theo QD-019); de da loai cau ngung dung
+            int total = contest.QuestionCount;
+            var exam = contest.QuestionCodes.ToHashSet(StringComparer.Ordinal);
+            int covered = rows.Count(r => exam.Contains(r.QuestionCode));
             if (covered < total)
             {
                 return SubmitResult.Fail(new("INCOMPLETE_ANSWERS",
@@ -368,12 +371,12 @@ public class ContestAttemptService : IContestAttemptService
                     return SubmitResult.Fail(new("VALIDATION", fields.Values.First(), fields));
                 }
 
-                int maxAttempts = settings.MaxAttempts;
-                int used = await _db.Entries.CountAsync(e => e.Phone == phone, ct);
+                int maxAttempts = contest.MaxAttempts;
+                int used = await _db.Entries.CountAsync(e => e.ContestId == contest.Id && e.Phone == phone, ct);
                 if (used >= maxAttempts)
                 {
                     return SubmitResult.Fail(new("ATTEMPT_LIMIT",
-                        $"Số {phone} đã dùng hết {maxAttempts} lượt thi. Mỗi số điện thoại chỉ được thi tối đa {maxAttempts} lượt."));
+                        $"Số {phone} đã dùng hết {maxAttempts} lượt của cuộc thi này."));
                 }
 
                 current.Mode = EntryModes.Named;
@@ -392,7 +395,8 @@ public class ContestAttemptService : IContestAttemptService
             await _db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
 
-            return SubmitResult.Ok(BuildResult(current, rows.Count, total, rows.Where(r => r.IsCorrect).Select(r => r.Topic), bank));
+            return SubmitResult.Ok(BuildResult(current, rows.Count, total,
+                rows.Where(r => r.IsCorrect).Select(r => r.Topic), TopicCounts(contest, bank)));
         }
         finally
         {
@@ -401,11 +405,18 @@ public class ContestAttemptService : IContestAttemptService
         }
     }
 
-    // Moi chuyen de dang dung theo thu tu cd: correct = so dong dung cua chuyen de, count = so cau dang dung
-    private static SubmitDto BuildResult(Entry e, int answered, int total, IEnumerable<int> correctTopics, QuestionBankSnapshot bank)
+    // Chuyen de de tinh byTopic: theo de cua cuoc; luot cu khong con cuoc thi theo ban chup ngan hang
+    private static IReadOnlyList<(string Cd, int Count)> TopicCounts(ContestInfo? contest, QuestionBankSnapshot bank) =>
+        contest is null
+            ? bank.Topics.Select(t => (t.Cd, t.Count)).ToList()
+            : contest.Topics.Select(t => (t.Cd, t.Count)).ToList();
+
+    // Moi chuyen de cua de theo thu tu de: correct = so dong dung cua chuyen de, count = so cau cua de trong chuyen de
+    private static SubmitDto BuildResult(Entry e, int answered, int total, IEnumerable<int> correctTopics,
+        IReadOnlyList<(string Cd, int Count)> topics)
     {
         var correctByTopic = correctTopics.GroupBy(t => t).ToDictionary(g => g.Key, g => g.Count());
-        var byTopic = bank.Topics
+        var byTopic = topics
             .Select(t => new TopicScoreDto(t.Cd, correctByTopic.GetValueOrDefault(int.Parse(t.Cd)), t.Count))
             .ToList();
         return new SubmitDto("submitted", e.Code, e.Mode, e.Score ?? 0, answered, total,
@@ -418,10 +429,6 @@ public class ContestAttemptService : IContestAttemptService
         ContestPhase.SubmitOnly => "submit_only",
         _ => "closed",
     };
-
-    // Cuoc thi dang mo; khong co trang thiPage thi coi nhu dong (QD-006, QD-014)
-    private bool IsOpen(ContestSettings? settings) =>
-        settings is not null && _settings.GetStatus(settings, DateTime.UtcNow) == ContestStatus.Open;
 
     /// <summary>3 so dau + **** + 3 so cuoi; null khi khong co so.</summary>
     private static string? MaskPhone(string? phone) =>

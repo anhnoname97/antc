@@ -7,7 +7,7 @@ using Umbraco.Plugin.Custom.Core.Quiz;
 
 namespace Umbraco.Plugin.Custom.Tests;
 
-/// <summary>B8a: API-02 va API-03 theo cuoc cua luot.</summary>
+/// <summary>B8a, B8b: API-02 den API-05 theo cuoc cua luot.</summary>
 public class ContestAttemptServiceTests
 {
     private static readonly DateTime Now = new(2026, 10, 16, 5, 0, 0, DateTimeKind.Utc);
@@ -149,5 +149,101 @@ public class ContestAttemptServiceTests
         var closed = await f.AddContestAsync(Now.AddDays(-3), Now.AddDays(-1), grace: 0);
         var e2 = await f.AddEntryAsync(closed.Id);
         Assert.Equal("closed", (await f.Service().GetStateAsync(e2)).Contest!.Phase);
+    }
+
+    // De 2 cau: A1, B1 (chuyen de 1 va 2), A2 nam ngoai de
+    private static async Task<ContestCampaign> AddTwoTopicContestAsync(Fixture f, DateTime start, DateTime end, int grace, int max = 2)
+    {
+        var c = new ContestCampaign
+        {
+            Name = "Cuộc B", IsActive = true, StartAt = start, EndAt = end, SubmitGraceHours = grace, MaxAttempts = max,
+            Topics = [new ContestTopic { TopicId = 1, SortOrder = 1 }, new ContestTopic { TopicId = 2, SortOrder = 2 }],
+            Questions = [new ContestQuestion { QuestionCode = "A1", SortOrder = 1 }, new ContestQuestion { QuestionCode = "B1", SortOrder = 2 }],
+        };
+        f.Db.ContestCampaigns.Add(c);
+        await f.Db.SaveChangesAsync();
+        return c;
+    }
+
+    [Fact]
+    public async Task Submit_IncompleteByExam_ThenComplete_UsesExamTotalAndByTopic()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var c = await AddTwoTopicContestAsync(f, Now.AddDays(-1), Now.AddDays(1), 24);
+        var e = await f.AddEntryAsync(c.Id);
+
+        var none = await f.Service().SubmitAsync(e, null);
+        Assert.Equal("INCOMPLETE_ANSWERS", none.Error?.Code);
+        Assert.Contains("0/2", none.Error!.Message);
+
+        Assert.Null((await f.Service().SaveAnswerAsync(e, "A1", "A")).Error);
+        var partial = await f.Service().SubmitAsync(e, null);
+        Assert.Equal("INCOMPLETE_ANSWERS", partial.Error?.Code);
+        Assert.Contains("1/2", partial.Error!.Message);
+
+        Assert.Null((await f.Service().SaveAnswerAsync(e, "B1", "B")).Error);
+        var done = await f.Service().SubmitAsync(e, null);
+        Assert.Null(done.Error);
+        Assert.Equal(2, done.Result!.Total);
+        Assert.Equal(1, done.Result.Score);
+        Assert.Equal(new[] { ("1", 1, 1), ("2", 0, 1) }, done.Result.ByTopic.Select(t => (t.Cd, t.Correct, t.Count)));
+        Assert.Equal(2, f.Db.Entries.AsNoTracking().Single(x => x.Id == e.Id).TotalQuestions);
+
+        // nop lai tra ket qua cu
+        var again = await f.Service().SubmitAsync(e, null);
+        Assert.Equal(done.Result.SubmittedAt, again.Result!.SubmittedAt);
+    }
+
+    [Theory]
+    [InlineData(0, "CONTEST_CLOSED")]
+    [InlineData(24, null)]
+    public async Task Submit_AfterEnd_FollowsContestGrace(int grace, string? expectedError)
+    {
+        await using var f = await Fixture.CreateAsync();
+        var c = await AddTwoTopicContestAsync(f, Now.AddDays(-3), Now.AddHours(-2), grace);
+        var e = await f.AddEntryAsync(c.Id);
+        // dien san dap an de nop duoc khi trong han
+        f.Db.EntryAnswers.AddRange(
+            new EntryAnswer { EntryId = e.Id, QuestionCode = "A1", Topic = 1, Chosen = "A", IsCorrect = true, AnsweredAt = Now },
+            new EntryAnswer { EntryId = e.Id, QuestionCode = "B1", Topic = 2, Chosen = "A", IsCorrect = true, AnsweredAt = Now });
+        await f.Db.SaveChangesAsync();
+
+        Assert.Equal(expectedError, (await f.Service().SubmitAsync(e, null)).Error?.Code);
+    }
+
+    [Fact]
+    public async Task Submit_LegacyEntryWithoutContest_IsClosed()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var e = await f.AddEntryAsync(null);
+        Assert.Equal("CONTEST_CLOSED", (await f.Service().SubmitAsync(e, null)).Error?.Code);
+    }
+
+    [Fact]
+    public async Task AttachContact_CountsAttemptsPerContest()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var a = await AddTwoTopicContestAsync(f, Now.AddDays(-1), Now.AddDays(1), 24, max: 1);
+        var b = await AddTwoTopicContestAsync(f, Now.AddDays(-1), Now.AddDays(1), 24, max: 1);
+        var contact = new ContactRequest("Nguyễn Văn A", "0912345678", "Đơn vị", true);
+
+        var a1 = await f.AddEntryAsync(a.Id);
+        Assert.Equal(1, (await f.Service().AttachContactAsync(a1, contact)).Contact?.AttemptNo);
+        // cung so, cuoc khac: con luot
+        var b1 = await f.AddEntryAsync(b.Id);
+        Assert.Equal(1, (await f.Service().AttachContactAsync(b1, contact)).Contact?.AttemptNo);
+        // cuoc A da het 1 luot
+        var a2 = await f.AddEntryAsync(a.Id);
+        Assert.Equal("ATTEMPT_LIMIT", (await f.Service().AttachContactAsync(a2, contact)).Error?.Code);
+    }
+
+    [Fact]
+    public async Task AttachContact_SubmitOnlyPhase_IsClosed()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var c = await AddTwoTopicContestAsync(f, Now.AddDays(-3), Now.AddHours(-2), 24);
+        var e = await f.AddEntryAsync(c.Id);
+        var r = await f.Service().AttachContactAsync(e, new ContactRequest("Nguyễn Văn A", "0912345678", "Đơn vị", true));
+        Assert.Equal("CONTEST_CLOSED", r.Error?.Code);
     }
 }
