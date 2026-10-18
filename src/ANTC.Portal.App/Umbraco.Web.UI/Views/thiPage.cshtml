@@ -23,6 +23,7 @@
     var dataContact = Or(home?.Value<string>("dataContact"));
 }
 @section Head {
+    <link rel="stylesheet" href="~/assets/css/quiz.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/contest.css" asp-append-version="true">
 }
 
@@ -39,6 +40,7 @@
     <div class="container contest__row">
         <div id="cmain" class="contest__main" data-max-attempts="@maxAttempts" data-contest-status="@status.ToString().ToLowerInvariant()">
             <noscript><p>Cần bật JavaScript để đăng ký dự thi.</p></noscript>
+            <div id="regview">
             <p class="eyebrow">Bước 1</p>
             <h2 id="vh" tabindex="-1" class="contest__h2">Đăng ký dự thi</h2>
 
@@ -122,20 +124,20 @@
                 <b>Chưa đăng ký được</b>
                 <p>Cuộc thi chưa mở hoặc đã kết thúc. Bạn vẫn có thể luyện tập với ngân hàng câu hỏi.</p>
             </div>
-            <div id="donebox" class="contest__block notebox" tabindex="-1" hidden>
-                <b>Đã vào cuộc thi</b>
-                <p id="donetext"></p>
-            </div>
 
             <a class="practice" href="#ngan-hang" data-practice>
                 <span>Chỉ muốn luyện tập, không dự thi: vào ngân hàng câu hỏi</span><span aria-hidden="true">›</span>
             </a>
+            </div>
+            <div id="examview" hidden></div>
         </div>
 
         <aside id="cside" class="contest__side" aria-label="Thí sinh và tiến độ">
-            <div class="sidecard">
-                <p class="eyebrow">Thí sinh</p>
-                <p class="sidecard__text">Chưa đăng ký dự thi.</p>
+            <div id="sidecards" class="contest__sidecards">
+                <div class="sidecard">
+                    <p class="eyebrow">Thí sinh</p>
+                    <p class="sidecard__text">Chưa đăng ký dự thi.</p>
+                </div>
             </div>
             <div class="sidewarn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.8 19.5h18.4z" /><path d="M12 10v4.2" /><circle cx="12" cy="16.8" r=".7" fill="currentColor" /></svg>
@@ -146,5 +148,5 @@
 </section>
 
 @section Scripts {
-    <script type="module" src="~/assets/js/contest/register.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/contest/exam.js" asp-append-version="true"></script>
 }

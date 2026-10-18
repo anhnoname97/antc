@@ -1,6 +1,6 @@
 // Man Dang ky du thi (FE-25): doi che do, kiem tra phia trinh duyet, goi API-01, xu ly loi.
 import { normalizePhone, isValidPhone } from './phone.js';
-import { createEntry, saveEntry, loadEntry, markPractice } from './contest-api.js';
+import { createEntry, saveEntry } from './contest-api.js';
 
 const MSG_NAME = 'Chưa có họ tên. Ban Tổ chức cần tên để xác minh khi trao giải.';
 const MSG_PHONE = 'Số điện thoại chưa đúng. Nhập số bạn đang dùng, chỉ gồm chữ số.';
@@ -13,8 +13,6 @@ const form = document.getElementById('rgform');
 const modesBox = document.getElementById('modes');
 const anonBox = document.getElementById('anonbox');
 const closedBox = document.getElementById('closedbox');
-const doneBox = document.getElementById('donebox');
-const doneText = document.getElementById('donetext');
 const errBox = document.getElementById('rgerr');
 const anonErrBox = document.getElementById('anonerr');
 const nameEl = document.getElementById('rgname');
@@ -30,6 +28,12 @@ const maxAttempts = Number(main.dataset.maxAttempts) > 0 ? Number(main.dataset.m
 const fieldEls = { fullName: nameEl, phone: phoneEl, org: orgEl, consent: okEl };
 
 let busy = false;
+let registeredHandler = null;
+
+// exam.js dang ky ham chuyen sang man danh sach chuyen de sau khi dang ky xong
+export function onRegistered(fn) {
+  registeredHandler = fn;
+}
 
 function currentErrBox() {
   return anonBox.hidden ? errBox : anonErrBox;
@@ -78,25 +82,6 @@ function showClosed() {
   closedBox.hidden = false;
 }
 
-// Man cho tam, FE-26 thay bang danh sach chuyen de
-function showRegistered(entry) {
-  hideFlow();
-  closedBox.hidden = true;
-  doneText.textContent = entry.mode === 'anon'
-    ? `Đã đăng ký thi ẩn danh. Mã dự thi ${entry.code}.`
-    : `Đã đăng ký. Mã dự thi ${entry.code}${entry.attemptNo ? `, lượt ${entry.attemptNo}/${entry.maxAttempts}` : ''}.`;
-  doneBox.hidden = false;
-  doneBox.focus();
-}
-
-function showPractice() {
-  hideFlow();
-  closedBox.hidden = true;
-  doneText.textContent = 'Chế độ luyện tập. Ngân hàng câu hỏi sẽ mở ở đây.';
-  doneBox.hidden = false;
-  doneBox.focus();
-}
-
 function showApiError(error, payload) {
   switch (error.code) {
     case 'ATTEMPT_LIMIT': {
@@ -134,9 +119,13 @@ async function submit(payload) {
     result = { ok: false, error: { code: 'NETWORK', message: '', fields: null } };
   }
   if (result.ok) {
-    const entry = saveEntry(result.data);
-    location.hash = '#ngan-hang';
-    showRegistered(entry);
+    saveEntry(result.data);
+    // Giu nut khoa cho toi khi man hinh da chuyen (API-02 co the cham), tranh dang ky lan hai tao them luot
+    try {
+      if (registeredHandler) await registeredHandler();
+    } finally {
+      setBusy(false);
+    }
     return;
   }
   setBusy(false);
@@ -171,15 +160,4 @@ if (isOpen) {
     showError('');
     await submit({ mode: 'anon' });
   });
-}
-
-document.querySelector('[data-practice]').addEventListener('click', () => {
-  markPractice();
-  showPractice();
-});
-
-// Mo lai trang voi #ngan-hang: neu da co luot thi thi hien man cho tam (FE-28 xu ly day du)
-if (location.hash === '#ngan-hang') {
-  const entry = loadEntry();
-  if (entry && entry.code) showRegistered(entry);
 }

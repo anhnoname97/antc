@@ -79,10 +79,87 @@
 .sidewarn svg { flex-shrink: 0; margin-top: 4px; color: var(--c-danger-600); }
 .sidewarn a { font-weight: 700; }
 
+/* Danh sach chuyen de, gioi thieu chuyen de, cot ben (FE-26) */
+.exam__sub { margin: 0; color: var(--c-text-3); }
+.exam__sub b { color: var(--c-text); }
+.exam__note { margin: 20px 0 0; font-size: 0.84375rem; color: var(--c-text-4); }
+.exam__loading { color: var(--c-text-3); }
+.exam__actions { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; }
+.exam__intro-head { margin-top: 20px; }
+.exam__intro { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 1.03125rem; }
+.exam__intro p { margin: 0; }
+
+.infobox { margin-top: 18px; border: 1px solid var(--c-border); border-radius: var(--radius); padding: 14px 18px; font-size: 0.9375rem; }
+.infobox > b { display: block; }
+.infobox--ok { background: var(--c-ok-bg); border-color: var(--c-ok-border); }
+.infobox--ok > b, .infobox--soft > b { display: inline; }
+.infobox--soft { background: var(--c-bg-soft); }
+.infobox--warn { background: var(--c-tint); border-color: var(--c-tint-border); }
+
+.toplist { margin: 22px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.toplist .qrow { text-decoration: none; }
+.toplist .qrow__n { width: 40px; height: 40px; }
+.qrow__t { display: block; font-weight: 700; font-size: 1.03125rem; }
+.qrow__go { font-weight: 700; font-size: 1.25rem; color: var(--c-brand-600); }
+.qrow--done .qrow__n { background: var(--c-ok); color: #fff; }
+.qrow--lock { color: var(--c-text-4); background: var(--c-lock-bg); cursor: default; }
+.qrow--lock:hover { border-color: var(--c-border); transform: none; }
+.qrow--lock .qrow__n { background: var(--c-lock-n); color: var(--c-lock-text); }
+.qrow__lock { flex-shrink: 0; }
+
+.qnav--s { height: 40px; padding: 0 14px; font-size: 0.875rem; gap: 6px; }
+.qnav--block { width: 100%; margin-top: 14px; }
+.exam__intro-head .qeyebrow { margin-top: 0; }
+
+.peek { margin-top: 22px; border: 1px solid var(--c-border); border-radius: var(--radius); padding: 0 18px; }
+.peek summary { padding: 14px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; list-style: none; }
+.peek summary::-webkit-details-marker { display: none; }
+.peek summary:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+.peek summary b { display: block; }
+.peek__n { font-size: 0.84375rem; color: var(--c-text-4); }
+.peek__pk { font-size: 1.5rem; line-height: 1; color: var(--c-brand-600); }
+.peek__pk::before { content: "+"; }
+.peek[open] .peek__pk::before { content: "×"; }
+.peek dl { margin: 0; padding: 0 0 16px; display: flex; flex-direction: column; gap: 12px; font-size: 0.9375rem; }
+.peek dt { font-weight: 700; }
+.peek dd { margin: 2px 0 0; color: var(--c-text-3); }
+
+.contest__sidecards { display: flex; flex-direction: column; gap: 20px; }
+.sidecard__label { margin: 12px 0 0; font-size: 0.84375rem; color: var(--c-text-4); }
+.sidecard__code { display: block; font-size: 1.625rem; line-height: 1.25; letter-spacing: .02em; color: var(--c-brand); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.sidecard__code--anon { letter-spacing: .06em; }
+.sidecard__name { margin: 2px 0 0; font-size: 0.9375rem; }
+.sidecard__meta { margin: 8px 0 0; font-size: 0.875rem; color: var(--c-text-3); }
+.sidecard__tag { display: inline-flex; margin-top: 8px; background: var(--c-bg-soft-2); color: var(--c-text-3); font-size: 0.78125rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-sm); }
+.sidecard__text--tight { margin: 8px 0 12px; }
+.sidecard .qbar { margin: 0; }
+.sidelist { margin: 14px 0 0; padding: 0; list-style: none; }
+.sidelist li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--c-bg-soft-2); font-size: 0.875rem; }
+.sidelist li.is-on { font-weight: 700; color: var(--c-brand); }
+.sidelist li.is-lock { color: var(--c-lock-text); }
+.sidelist__n { width: 22px; height: 22px; border-radius: var(--radius-sm); flex-shrink: 0; display: grid; place-items: center; font-size: 0.75rem; font-weight: 800; background: var(--c-bg-soft-2); color: var(--c-text-4); }
+.sidelist li.is-on .sidelist__n { background: var(--c-brand); color: #fff; }
+.sidelist__n.is-done { background: var(--c-ok); color: #fff; }
+.sidelist__t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+
+/* Man cau hoi (FE-27) */
+.qtop { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.qcount { font-weight: 800; font-size: 0.9375rem; color: var(--c-brand); font-variant-numeric: tabular-nums; }
+.qstem .qsit { margin: 14px 0 0; }
+.qstem .qtitle { margin: 14px 0 20px; }
+.qnote { margin: 14px 0 0; font-size: 0.9375rem; font-weight: 600; color: var(--c-danger-600); }
+.qactions { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.qwait { margin: 0; font-size: 0.875rem; color: var(--c-text-4); }
+.qwait:empty { display: none; }
+
 @media (max-width: 900px) {
   .contest__main, .contest__side { flex-basis: 100%; }
 }
 @media (max-width: 640px) {
   .contest__main { padding: 24px; }
   .page-hero--contest { padding: 56px 0 160px; }
+}
+@media (max-width: 480px) {
+  .qactions .qnav { width: 100%; }
 }
