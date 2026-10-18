@@ -2,7 +2,7 @@
 // May chu la nguon dung: init() goi API-02 va dung lai tien do. Che do luyen tap khong goi /api/v1/contest.
 import {
   getMe, saveAnswer, attachContact as apiAttachContact, submitEntry as apiSubmitEntry,
-  loadEntry, saveEntry, clearEntry, markPractice, fetchTopics, fetchQuestions,
+  loadEntry, saveEntry, clearEntry, allEntries, markPractice, fetchTopics, fetchQuestions,
 } from './contest-api.js';
 
 const KEY_ENTRY = 'at_entry';
@@ -15,7 +15,10 @@ const DROP_CODES = ['CONTEST_CLOSED', 'UNKNOWN_QUESTION', 'INVALID_OPTION'];
 
 export const state = {
   practice: false, // dang o che do luyen tap (khong goi API)
-  entry: null, // { code, token, mode, attemptNo, maxAttempts }
+  entry: null, // { code, token, mode, attemptNo, maxAttempts, contestId }
+  contestId: null, // cuoc thi cua man hinh (null: luot cu khong co cuoc, hoac luyen tap); QUIZ goi kem ?contest= khi co
+  contest: null, // tu API-02: { id, name, startAt, endAt, submitUntil, phase, readTimerFactor }
+  topics: [], // tu API-02: de cua cuoc [{ cd, count }]
   status: 'in_progress', // in_progress | submitted
   synced: false, // da lay duoc tien do tu may chu (API-02) chua; false thi tu lay lai khi co mang
   total: null, // tong so cau tu API-02 (khong viet cung)
@@ -94,10 +97,11 @@ function enqueue(item) {
   writeQueue(q);
 }
 
-// Bo cac muc cua luot khac (khong gui dap an luot cu bang token luot moi)
-function pruneQueue(code) {
+// Bo cac muc khong con thuoc luot nao dang luu (luot cu da bi thay); luot cua cac cuoc khac van giu
+function pruneQueue() {
+  const codes = new Set(allEntries().map((e) => e.code));
   const q = readQueue();
-  const keep = q.filter((x) => x.entry === code);
+  const keep = q.filter((x) => codes.has(x.entry));
   if (keep.length !== q.length) writeQueue(keep);
 }
 
@@ -114,6 +118,9 @@ export function pendingCount() {
 
 function resetState() {
   state.entry = null;
+  state.contestId = null;
+  state.contest = null;
+  state.topics = [];
   state.status = 'in_progress';
   state.synced = false;
   state.total = null;
@@ -127,16 +134,13 @@ function resetState() {
 }
 
 // Token khong hop le: xoa luot va hang doi (khong dung toi tien do luyen tap).
-// Neu at_entry da doi sang luot khac o tab khac thi giu nguyen luot do va hang doi cua no.
+// Neu at_entry da doi sang luot khac o tab khac thi giu nguyen luot do; luot cua cuoc thi khac khong bi dung toi.
 function clearSession() {
-  const cur = loadEntry();
+  const cid = state.entry ? state.entry.contestId ?? null : undefined;
+  const cur = loadEntry(cid);
   const code = state.entry && state.entry.code;
-  if (!cur || !state.entry || cur.token === state.entry.token) {
-    clearEntry();
-    remove(KEY_QUEUE);
-  } else if (code) {
-    writeQueue(readQueue().filter((x) => x.entry !== code));
-  }
+  if (cur && state.entry && cur.token === state.entry.token) clearEntry(cid);
+  if (code) writeQueue(readQueue().filter((x) => x.entry !== code));
   resetState();
   clearTimeout(retryTimer);
   attempt = 0;
@@ -144,9 +148,9 @@ function clearSession() {
 }
 
 function syncEntry(patch) {
-  const cur = loadEntry();
+  const cur = state.entry ? loadEntry(state.entry.contestId ?? null) : null;
   // Chi cap nhat khi at_entry van la luot dang lam (tab khac co the da doi sang luot khac)
-  if (!cur || !state.entry || cur.token !== state.entry.token) return;
+  if (!cur || cur.token !== state.entry.token) return;
   state.entry = saveEntry({ ...cur, ...patch });
 }
 
@@ -168,6 +172,7 @@ function savePracticeAnswers() {
 export function enterPractice() {
   markPractice();
   state.practice = true;
+  state.contestId = null; // Thu suc dung ca ngan hang, khong loc theo cuoc
   state.answers = loadPracticeAnswers();
   emit('change');
 }
@@ -187,21 +192,24 @@ export function resetPractice(cd) {
 
 // ---- Khoi tao / khoi phuc tien do ----
 
+// contestId: cuoc thi cua man hinh (vd ?c=3); bo trong thi dung luot gan nhat. Moi cuoc co luot rieng.
 // Tra ve { view: 'exam' | 'register', practice, offline?, error? }
 // 'exam': co luot hop le (hoac chua xac minh duoc vi loi mang/may chu, offline=true).
 // 'register': khong co luot (chua co, hoac token bi tu choi va da xoa).
-export async function init() {
+export async function init(contestId) {
   resetState();
   state.practice = false;
-  const entry = loadEntry();
+  const entry = loadEntry(contestId == null ? undefined : contestId);
   if (!entry || !entry.token) {
-    remove(KEY_QUEUE);
+    pruneQueue();
+    state.contestId = contestId ?? null;
     state.practice = readJson(KEY_PRACTICE, null) !== null;
     if (state.practice) state.answers = loadPracticeAnswers();
     return { view: 'register', practice: state.practice };
   }
-  pruneQueue(entry.code);
+  pruneQueue();
   state.entry = entry;
+  state.contestId = entry.contestId ?? null;
   const r = await getMe(entry.token);
   if (state.entry !== entry) return { view: 'register', practice: state.practice };
   if (!r.ok) {
@@ -230,6 +238,8 @@ function applyServer(d) {
   state.submittedAt = d.submittedAt;
   state.fullName = d.fullName || null;
   state.phoneMasked = d.phoneMasked || null;
+  state.contest = d.contest || null;
+  state.topics = Array.isArray(d.topics) ? d.topics.map((t) => ({ cd: String(t.cd), count: t.count })) : [];
   state.answers = new Map(d.answers.map((x) => [x.q, { a: x.a, correct: x.correct, cd: String(x.cd), pending: false, stored: true }]));
   syncEntry({ code: d.code, mode: d.mode, attemptNo: d.attemptNo, maxAttempts: d.maxAttempts });
   if (d.status === 'submitted') {
@@ -373,7 +383,7 @@ if (typeof window !== 'undefined') {
   // at_entry doi sang luot khac o tab khac: dung gui, bao man hinh dung lai bang init()
   window.addEventListener('storage', (ev) => {
     if (ev.key !== KEY_ENTRY || !state.entry || state.practice) return;
-    const cur = loadEntry();
+    const cur = loadEntry(state.entry.contestId ?? null);
     if (!cur || cur.token !== state.entry.token) {
       clearTimeout(retryTimer);
       emit('entry-changed', { code: cur ? cur.code : null });
@@ -451,5 +461,6 @@ export function getAnswer(q) {
 }
 
 // Ngan hang cau hoi tai theo nhu cau (QUIZ-01 khi vao trang, QUIZ-02 khi mo chuyen de)
-export const loadTopics = fetchTopics;
-export const loadQuestions = fetchQuestions;
+// Mac dinh theo cuoc cua man hinh (state.contestId); truyen contestId de doc cuoc khac
+export const loadTopics = (contestId) => fetchTopics(contestId === undefined ? state.contestId : contestId);
+export const loadQuestions = (cd, contestId) => fetchQuestions(cd, contestId === undefined ? state.contestId : contestId);
