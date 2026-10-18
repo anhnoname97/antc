@@ -156,6 +156,63 @@ public class ContestAttemptServiceTests
         return c;
     }
 
+    // De 3 cau: chuyen de 1 co A1, A2; chuyen de 2 co B1. topicOrder doi thu tu chuyen de cua de
+    private static async Task<ContestCampaign> AddOrderedContestAsync(Fixture f, params int[] topicOrder)
+    {
+        var codes = new Dictionary<int, string[]> { [1] = ["A1", "A2"], [2] = ["B1"] };
+        var c = new ContestCampaign
+        {
+            Name = "Cuộc T", IsActive = true, StartAt = Now.AddDays(-1), EndAt = Now.AddDays(1), SubmitGraceHours = 24, MaxAttempts = 2,
+            Topics = topicOrder.Select((t, i) => new ContestTopic { TopicId = t, SortOrder = i + 1 }).ToList(),
+            Questions = topicOrder.SelectMany(t => codes[t]).Select((q, i) => new ContestQuestion { QuestionCode = q, SortOrder = i + 1 }).ToList(),
+        };
+        f.Db.ContestCampaigns.Add(c);
+        await f.Db.SaveChangesAsync();
+        return c;
+    }
+
+    [Fact]
+    public async Task SaveAnswer_TopicsMustBeDoneInExamOrder()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var c = await AddOrderedContestAsync(f, 1, 2);
+        var e = await f.AddEntryAsync(c.Id);
+
+        // chuyen de 2 truoc khi xong chuyen de 1: bi tu choi, khong luu
+        Assert.Equal("TOPIC_LOCKED", (await f.Service().SaveAnswerAsync(e, "B1", "B")).Error?.Code);
+        Assert.Empty(f.Db.EntryAnswers.AsNoTracking().Where(x => x.EntryId == e.Id));
+
+        // chuyen de 1 moi xong mot nua van chua mo chuyen de 2
+        Assert.Null((await f.Service().SaveAnswerAsync(e, "A1", "A")).Error);
+        Assert.Equal("TOPIC_LOCKED", (await f.Service().SaveAnswerAsync(e, "B1", "B")).Error?.Code);
+
+        // xong chuyen de 1 thi chuyen de 2 duoc ghi; gui lai cau da co van tra stored=false
+        Assert.Null((await f.Service().SaveAnswerAsync(e, "A2", "A")).Error);
+        Assert.True((await f.Service().SaveAnswerAsync(e, "B1", "B")).Answer!.Stored);
+        Assert.False((await f.Service().SaveAnswerAsync(e, "A1", "B")).Answer!.Stored);
+    }
+
+    [Fact]
+    public async Task SaveAnswer_ExamWithoutTopic1_FirstTopicOfExamIsFree_AndOtherContestUnaffected()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var onlyB = await AddOrderedContestAsync(f, 2);
+        var reversed = await AddOrderedContestAsync(f, 2, 1);
+        var eB = await f.AddEntryAsync(onlyB.Id);
+        var eR = await f.AddEntryAsync(reversed.Id);
+        var eFull = await f.AddEntryAsync((await AddOrderedContestAsync(f, 1, 2)).Id);
+
+        Assert.Null((await f.Service().SaveAnswerAsync(eB, "B1", "B")).Error);
+
+        // thu tu theo de: chuyen de 2 dung truoc chuyen de 1
+        Assert.Equal("TOPIC_LOCKED", (await f.Service().SaveAnswerAsync(eR, "A1", "A")).Error?.Code);
+        Assert.Null((await f.Service().SaveAnswerAsync(eR, "B1", "B")).Error);
+        Assert.Null((await f.Service().SaveAnswerAsync(eR, "A1", "A")).Error);
+
+        // dap an o cuoc khac khong tinh vao luot nay
+        Assert.Equal("TOPIC_LOCKED", (await f.Service().SaveAnswerAsync(eFull, "B1", "B")).Error?.Code);
+    }
+
     [Fact]
     public async Task Submit_IncompleteByExam_ThenComplete_UsesExamTotalAndByTopic()
     {
