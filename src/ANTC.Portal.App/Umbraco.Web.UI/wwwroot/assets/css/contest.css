@@ -192,3 +192,31 @@
 .cpick__up { margin-top: 16px; }
 #pickbox > .notebox + .cpick__h { margin-top: 20px; }
 #pickbox > p { margin: 16px 0 0; }
+
+/* Nop bai, hop thoai, man ket qua (F9 / FE-29) */
+.submitbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.submitbar p { margin: 0; flex: 1 1 260px; }
+
+.restable { margin-top: 22px; width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.restable th, .restable td { padding: 12px 14px; border-top: 1px solid var(--c-border); text-align: left; vertical-align: middle; }
+.restable thead th { border-top: 0; font-size: 0.78125rem; letter-spacing: .1em; text-transform: uppercase; color: var(--c-brand-600); }
+.restable tbody th { font-weight: 700; }
+.restable td { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.restable thead th:last-child { text-align: right; }
+.restable__n { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-right: 10px; border-radius: var(--radius-sm); background: var(--c-bg-soft-2); color: var(--c-text-3); font-size: 0.8125rem; font-weight: 800; }
+
+.sdlg { width: min(560px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--c-border); border-radius: var(--radius); background: var(--c-bg); color: var(--c-text); overflow: auto; }
+.sdlg::backdrop { background: rgba(0, 0, 0, .5); }
+.sdlg__form { padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+.sdlg__h { margin: 0; font-size: var(--fs-h3); line-height: 1.25; outline: none; }
+.sdlg__sum { margin: 0; }
+.sdlg__anon, .sdlg__legal { margin: 0; font-size: 0.9375rem; color: var(--c-text-3); }
+.sdlg__fields { display: flex; flex-direction: column; gap: 14px; }
+.sdlg__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 480px) {
+  .sdlg { width: 100%; max-width: none; max-height: 100dvh; height: 100dvh; margin: 0; border-radius: 0; border: 0; }
+  .sdlg__form { padding: 20px 16px 28px; }
+  .sdlg__actions { flex-direction: column; }
+  .sdlg__actions .qnav { width: 100%; justify-content: center; }
+  .submitbar .qnav { width: 100%; justify-content: center; }
+}

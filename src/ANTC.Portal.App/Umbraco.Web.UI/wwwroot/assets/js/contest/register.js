@@ -1,11 +1,8 @@
 // Man Dang ky du thi (FE-25): chon cuoc thi (API-07, ?c=<id>), doi che do, kiem tra phia trinh duyet, goi API-01, xu ly loi.
-import { normalizePhone, isValidPhone } from './phone.js';
+import { checkContact } from './phone.js';
 import { createEntry, saveEntry, getSchedule } from './contest-api.js';
 import { esc } from '../quiz/quiz-ui.js';
 
-const MSG_NAME = 'Chưa có họ tên. Ban Tổ chức cần tên để xác minh khi trao giải.';
-const MSG_PHONE = 'Số điện thoại chưa đúng. Nhập số bạn đang dùng, chỉ gồm chữ số.';
-const MSG_CONSENT = 'Cần tích ô đồng ý với Thể lệ và nội dung xử lý dữ liệu thì mới vào thi được.';
 const MSG_RATE = 'Bạn thao tác hơi nhanh. Đợi một chút rồi bấm lại.';
 const MSG_NETWORK = 'Chưa kết nối được tới máy chủ. Kiểm tra mạng rồi bấm lại.';
 
@@ -67,12 +64,9 @@ function showError(message, field) {
 
 // Tra ve { error, field } hoac { payload }, kiem tra theo thu tu ten, so, dong y.
 export function validate() {
-  const fullName = nameEl.value.trim();
-  const phone = normalizePhone(phoneEl.value);
-  if (!fullName) return { error: MSG_NAME, field: nameEl };
-  if (!isValidPhone(phone)) return { error: MSG_PHONE, field: phoneEl };
-  if (!okEl.checked) return { error: MSG_CONSENT, field: okEl };
-  return { payload: { mode: 'named', fullName, phone, org: orgEl.value.trim(), consent: true } };
+  const r = checkContact({ fullName: nameEl.value, phone: phoneEl.value, org: orgEl.value, consent: okEl.checked });
+  if (r.error) return { error: r.error, field: fieldEls[r.field] };
+  return { payload: { mode: 'named', ...r.contact } };
 }
 
 function setBusy(on) {

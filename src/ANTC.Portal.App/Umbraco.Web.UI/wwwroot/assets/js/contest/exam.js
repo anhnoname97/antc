@@ -1,11 +1,14 @@
 // Dieu phoi man hinh cuoc thi (FE-26): Dang ky, Danh sach chuyen de (#ngan-hang), Gioi thieu chuyen de (#chuyen-de-N), cot ben.
 // Man cau hoi (#chuyen-de-N/cau-hoi) co dong ho doc, man Xong chuyen de (#chuyen-de-N/xong), lam lai (FE-27).
-// Trang thai lay tu contest-store.js. FE-29 them nop bai va ket qua.
+// Trang thai lay tu contest-store.js. Nop bai, hop thoai va man ket qua (#ket-qua) o submit.js (FE-29).
 import { onRegistered, requestedContestId } from './register.js';
 import { loadEntry } from './contest-api.js';
 import {
-  state, init, on, enterPractice, resetPractice, topicProgress, loadTopics, loadQuestions, answer, getAnswer,
+  state, init, on, enterPractice, resetPractice, topicProgress, loadTopics, loadQuestions, answer, getAnswer, submit as submitEntry,
 } from './contest-store.js';
+import {
+  setup as setupSubmit, resetSubmit, setNotice, panelHtml, attachButtonHtml, resultHtml, wire as wireSubmit,
+} from './submit.js';
 import {
   esc, eyebrowHtml, progressHtml, situationHtml, questionHtml, optionsHtml, resultBodyHtml, navButtonHtml,
   focusResult, focusQuestion,
@@ -108,6 +111,7 @@ function parseHash() {
   const m = /^#chuyen-de-(\d+)(\/cau-hoi|\/xong)?$/.exec(h);
   if (m) return { view: m[2] === '/cau-hoi' ? 'q' : m[2] === '/xong' ? 'done' : 'intro', cd: m[1] };
   if (h === '#dang-ky') return { view: 'register' };
+  if (h === '#ket-qua') return { view: 'result' };
   return null;
 }
 
@@ -129,7 +133,7 @@ function entryBoxHtml() {
   const e = state.entry;
   if (!e) return '';
   if (state.status === 'submitted') {
-    return box('ok', `<b>Đã nộp bài.</b> Mã dự thi của bạn là ${esc(e.code)}.`);
+    return box('ok', `<b>Đã nộp bài.</b> Mã dự thi của bạn là ${esc(e.code)}. <a href="#ket-qua">Xem kết quả lượt thi ›</a>`);
   }
   if (e.mode === 'anon') {
     return box('soft', `<b>Đang thi ẩn danh.</b> Mã ẩn danh của bạn là ${esc(e.code)}. Bài làm không được xét giải.`);
@@ -159,6 +163,7 @@ function menuHtml() {
   if (offline) o += box('warn', '<b>Chưa kết nối được máy chủ.</b> Tiến độ có thể chưa mới nhất; các đáp án chưa gửi sẽ tự gửi lại khi có mạng.');
   o += phaseHtml();
   o += entryBoxHtml();
+  o += panelHtml(topics);
   o += '<ol class="toplist">';
   for (const t of topics) {
     const p = prog.find((x) => x.cd === String(t.cd));
@@ -226,6 +231,7 @@ function doneHtml(t) {
   if (!state.practice && state.entry && state.entry.mode === 'anon') {
     o += box('soft', `<b>Bạn đang thi ẩn danh</b> (mã ${esc(state.entry.code)}), nên kết quả này không được xét giải.`);
   }
+  o += panelHtml(topics);
   const next = rest ? `Chọn chuyên đề tiếp theo, còn ${rest} ›` : `Đã làm hết ${topics.length} chuyên đề, xem lại danh sách ›`;
   o += `<div class="exam__actions"><a class="qnav f" href="#ngan-hang">${esc(next)}</a>`
     + `<button type="button" class="qnav o" data-redo="${esc(cd)}">Làm lại chuyên đề ${esc(cd)}</button></div>`
@@ -238,13 +244,14 @@ function sideHtml(view) {
   const e = state.entry;
   if (state.practice) {
     o = `<div class="sidecard">${eyebrowHtml('Luyện tập')}<p class="sidecard__text">Bài làm chỉ lưu trên máy bạn, không tính vào cuộc thi.</p>`
+      + (state.entry && state.status === 'submitted' ? '<button type="button" class="qnav o qnav--s qnav--block" data-back-result>Về kết quả lượt thi</button>' : '')
       + (contestOpen() ? '<a class="qnav o qnav--s qnav--block" href="#dang-ky">Đăng ký dự thi</a>' : '') + '</div>';
   } else if (e) {
     const anon = e.mode === 'anon';
     o = `<div class="sidecard">${eyebrowHtml(anon ? 'Thí sinh ẩn danh' : 'Thí sinh')}`
       + `<p class="sidecard__label">${anon ? 'Mã ẩn danh' : 'Mã dự thi'}</p><b class="sidecard__code${anon ? ' sidecard__code--anon' : ''}">${esc(e.code)}</b>`;
     if (anon) {
-      o += '<span class="sidecard__tag">Không xét giải</span>';
+      o += `<span class="sidecard__tag">Không xét giải</span>${attachButtonHtml()}`;
     } else {
       if (state.fullName) o += `<p class="sidecard__name">${esc(state.fullName)}</p>`;
       if (e.attemptNo && e.maxAttempts) o += `<p class="sidecard__meta">Lượt thứ ${esc(e.attemptNo)} / ${esc(e.maxAttempts)}</p>`;
@@ -518,6 +525,7 @@ function resetLoaded() {
   qs = null;
   contestClosed = false;
   qcache.clear();
+  resetSubmit();
 }
 
 async function ensureTopics() {
@@ -568,6 +576,8 @@ async function route(focus) {
     return;
   }
   let view = want || { view: 'menu' };
+  // Man ket qua chi co khi luot da nop
+  if (view.view === 'result' && (state.practice || state.status !== 'submitted')) view = { view: 'menu' };
   if (view.view === 'intro' || view.view === 'q' || view.view === 'done') {
     const t = topicOf(view.cd);
     // Chuyen de khong ton tai hoac con khoa: ve danh sach (khong vao duoc bang URL)
@@ -590,9 +600,13 @@ async function route(focus) {
   }
   if (view.view !== 'q') qs = null;
   const wantHash = view.view === 'q' ? `#chuyen-de-${view.cd}/cau-hoi` : view.view === 'done' ? `#chuyen-de-${view.cd}/xong`
-    : view.view === 'intro' ? `#chuyen-de-${view.cd}` : '#ngan-hang';
+    : view.view === 'intro' ? `#chuyen-de-${view.cd}` : view.view === 'result' ? '#ket-qua' : '#ngan-hang';
   if (location.hash !== wantHash) history.replaceState(null, '', wantHash);
   current = view;
+  if (view.view === 'result') {
+    await showResult(stale, focus);
+    return;
+  }
   if (view.view === 'q') {
     // Vao (hoac tai lai) chuyen de: tiep tu cau chua tra loi dau tien
     const list = qcache.get(String(view.cd));
@@ -602,6 +616,27 @@ async function route(focus) {
   }
   examView.innerHTML = view.view === 'done' ? doneHtml(topicOf(view.cd)) : view.view === 'intro' ? introHtml(topicOf(view.cd)) : menuHtml();
   renderSide(view.view);
+  if (focus) focusHeading(document.getElementById('eh'));
+}
+
+// Co the thi them luot: da nop co ten, con luot, cuoc con mo
+function canRetry() {
+  const e = state.entry;
+  return !!e && e.mode === 'named' && Number(e.attemptNo) > 0 && Number(e.maxAttempts) > Number(e.attemptNo)
+    && !!state.contest && state.contest.phase === 'open';
+}
+
+// Man ket qua: lay lai ket qua da luu bang API-05 (luot da nop thi tra lai ket qua cu, khong tinh lai) khi chua co trong bo nho
+async function showResult(stale, focus) {
+  renderSide('result');
+  if (!state.result) {
+    examView.innerHTML = '<p class="exam__loading" role="status">Đang tải kết quả…</p>';
+    await submitEntry();
+    if (stale() || current.view !== 'result') return;
+  }
+  if (!state.entry) return; // token bi tu choi trong luc cho: man dang ky da duoc ve
+  examView.innerHTML = resultHtml(topics, state.result, canRetry());
+  renderSide('result');
   if (focus) focusHeading(document.getElementById('eh'));
 }
 
@@ -636,8 +671,8 @@ function refresh() {
     }
     return;
   }
-  if (current.view === 'done') {
-    renderSide('done');
+  if (current.view === 'done' || current.view === 'result') {
+    renderSide(current.view);
     return;
   }
   const active = document.activeElement;
@@ -665,6 +700,17 @@ examView.addEventListener('click', (e) => {
     go(`#chuyen-de-${start.dataset.start}/cau-hoi`);
     return;
   }
+  if (e.target.closest('[data-result-retry]')) {
+    route(true);
+    return;
+  }
+  if (e.target.closest('[data-review-bank]')) {
+    // Luyen tap dung ca ngan hang, khong loc theo de cua cuoc: bo du lieu da tai roi vao che do luyen tap
+    resetLoaded();
+    enterPractice();
+    go('#ngan-hang');
+    return;
+  }
   const redo = e.target.closest('[data-redo]');
   if (redo) {
     // Luot thi: xem lai cac cau da luu, khong gui API-03. Luyen tap: xoa bai lam cua chuyen de roi lam lai tu dau
@@ -682,6 +728,40 @@ examView.addEventListener('click', (e) => {
   else if (e.target.closest('[data-next]')) stepQuestion(1);
 });
 
+sideCards.addEventListener('click', async (e) => {
+  if (!e.target.closest('[data-back-result]')) return;
+  // Tu luyen tap ve ket qua luot thi da nop: dung lai tien do tu may chu
+  resetLoaded();
+  const r = await init(urlContest());
+  offline = !!r.offline;
+  go('#ket-qua');
+});
+
+wireSubmit(examView, () => topics || []);
+wireSubmit(sideCards, () => topics || []);
+setupSubmit({
+  onSubmitted: () => go('#ket-qua'),
+  // Da gan thong tin (API-04): lay lai ten, so luot tu API-02 cho cot ben
+  onAttached: async () => {
+    const r = await init(urlContest());
+    offline = !!r.offline;
+    refresh();
+  },
+  // INCOMPLETE_ANSWERS: lay lai tien do (API-02), hien thong bao cua may chu o danh sach chuyen de
+  onIncomplete: async (message) => {
+    resetLoaded();
+    setNotice(message);
+    const r = await init(urlContest());
+    offline = !!r.offline;
+    go('#ngan-hang');
+  },
+  onClosed: () => route(false),
+  focusFallback: () => {
+    if (current && current.view === 'q') focusQuestion(examView);
+    else focusHeading(document.getElementById('eh'));
+  },
+});
+
 if (practiceLink) {
   practiceLink.addEventListener('click', (e) => {
     e.preventDefault();
@@ -693,9 +773,9 @@ if (practiceLink) {
 window.addEventListener('hashchange', () => route(true));
 on('change', refresh);
 on('submitted', () => {
-  // Luot da nop o noi khac: het tra loi duoc, ve danh sach (man ket qua la viec FE-29)
-  if (current && current.view === 'q') go('#ngan-hang');
-  else refresh();
+  // Luot da nop o noi khac: het tra loi duoc, sang man ket qua
+  if (state.practice) refresh();
+  else go('#ket-qua');
 });
 on('dropped', ({ q, code }) => {
   // Dap an dang cho bi may chu tu choi (vd cuoc thi da dong): cau tro lai chua tra loi, bao ly do
@@ -709,6 +789,7 @@ on('entry-changed', async () => {
   resetLoaded();
   const r = await init(urlContest());
   offline = !!r.offline;
+  if (state.status === 'submitted' && !state.practice) history.replaceState(null, '', '#ket-qua');
   await route(false);
 });
 on('token', () => {
@@ -742,6 +823,12 @@ async function boot() {
   const r = await init(urlContest());
   offline = !!r.offline;
   const want = parseHash();
+  // Luot da nop: mo lai trang luon hien man ket qua (tru khi dang o man dang ky de thi luot moi)
+  if (r.view === 'exam' && state.status === 'submitted' && !(want && want.view === 'register')) {
+    history.replaceState(null, '', '#ket-qua');
+    await route(false);
+    return;
+  }
   // Tai lai giua chuyen de (dang lam cau hoi hoac o man Xong) thi ve danh sach chuyen de; vao lai se tiep tu cau chua lam
   const reopen = () => {
     if (want && (want.view === 'q' || want.view === 'done')) history.replaceState(null, '', '#ngan-hang');
