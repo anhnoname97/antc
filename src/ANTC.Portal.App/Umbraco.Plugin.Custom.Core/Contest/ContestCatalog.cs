@@ -16,7 +16,7 @@ public sealed record ContestExamTopic(string Cd, int TopicId, string Title, int 
 public sealed record ContestInfo(
     long Id, string Name, string? Description, DateTime StartAt, DateTime EndAt,
     int MaxAttempts, int SubmitGraceHours, decimal ReadTimerFactor, string? FocusArea,
-    IReadOnlyList<ContestExamTopic> Topics, IReadOnlyList<string> QuestionCodes)
+    IReadOnlyList<ContestExamTopic> Topics, IReadOnlyList<string> QuestionCodes, DateTime UpdatedAt)
 {
     /// <summary>Han nop = EndAt + SubmitGraceHours (QD-014 theo cuoc).</summary>
     public DateTime SubmitUntil => EndAt.AddHours(SubmitGraceHours);
@@ -128,6 +128,6 @@ public sealed class ContestCatalog(AppDbContext db, IQuestionBank questionBank, 
 
         return new ContestInfo(campaign.Id, campaign.Name, campaign.Description, campaign.StartAt, campaign.EndAt,
             campaign.MaxAttempts, campaign.SubmitGraceHours, campaign.ReadTimerFactor,
-            string.IsNullOrWhiteSpace(campaign.FocusArea) ? null : campaign.FocusArea, topics, codes);
+            string.IsNullOrWhiteSpace(campaign.FocusArea) ? null : campaign.FocusArea, topics, codes, campaign.UpdatedAt);
     }
 }
