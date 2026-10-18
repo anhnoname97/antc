@@ -764,3 +764,10 @@ Kiểm `dev` sau ghép hai luồng BE (luồng `CUOC-THI-v4-kt`): build 0 lỗi,
 | **B14** | Ép thứ tự chuyên đề ở API-03 theo QĐ-025: chỉ lưu đáp án chuyên đề n khi chuyên đề n-1 (theo thứ tự `topics` của đề) đã xong; vi phạm trả lỗi theo dạng QĐ-004. Worker đọc code hiện tại (cách tính "xong chuyên đề", thứ tự `topics`), chọn mã lỗi và HTTP status nhất quán với bảng mã lỗi trong `1-thiet-ke.md`/sheet "API", **ghi rõ trong bàn giao**; FE (`exam.js`) xử lý mã lỗi mới nếu cần. | be (+ chỉnh nhỏ fe) | Test: chuyên đề 2 trước khi xong 1 bị từ chối; làm đúng thứ tự thì được; đề không có CĐ1; lượt ở cuộc khác không ảnh hưởng. Làm được. |
 | **K1** | Kiểm các mục chưa kiểm: POST entries chế độ `named` (có `consent`, số điện thoại, đếm lượt theo cuộc), API-03/04/05 thật, form quản trị B11 trong backoffice (gia hạn, hệ số, lĩnh vực; `409 CONTEST_HAS_ENTRIES`), đồng hồ đọc với hệ số khác 0, nhập uSync `cuocThiLamBaiPage` trên CSDL trống (`-Reset`). Chỉ ghi kết quả; lỗi nhỏ được sửa và commit riêng. | chính | Sau B14. Làm được. |
 
+## Cập nhật 2026-10-18: B14 và K1 đạt review, đã vào `dev`
+
+- **Bảng mã lỗi bổ sung:** `409 TOPIC_LOCKED` (API-03: lưu đáp án chuyên đề khi chuyên đề đứng trước chưa xong; QĐ-025, QĐ-027). Dạng lỗi theo QĐ-004.
+- K1 đạt cả 5 nhóm (uSync trên CSDL trống, POST entries `named`, API-02..05 thật, form quản trị B11, đồng hồ đọc 0.5/2/0). Không sửa mã.
+- **Lỗi nhỏ còn lại (chưa sửa, cần quyết):** form sửa cuộc thi dùng `datetime-local` nên mỗi lần lưu làm tròn mất giây giờ kết thúc (`23:59:59` thành `23:59:00`, mất tối đa 59 giây cuối cuộc).
+- Chưa kiểm: giá trị ngoài khoảng qua HTTP (có test đơn vị), đếm lượt giữa hai cuộc qua HTTP, CSDL cũ có dữ liệu, trình duyệt/điện thoại khác.
+
