@@ -465,3 +465,256 @@ Kết hợp QĐ-014 và QĐ-015: từ `contestEnd` API-03 không nhận đáp á
 
 - Điều phối mở luồng `CUOC-THI-be` (B1) và giao tiếp luồng `CUOC-THI-fe` (F1). Đợt 1: B1 → B2; F1 → F3 → F4. Đợt 2: B3 → B4; F5.
 - Orchestrator review F2 khi được giao (`nhận việc CUOC-THI` ở bước review).
+
+---
+
+## Thiết kế lại theo cuộc thi theo thời gian (2026-10-18)
+
+Người viết: Orchestrator (`/feature-design`). Mục này **thay** mô hình "một cuộc thi cấu hình ở `thiPage`" của các mục trên. Contract API-02…05, bảng task B1–B4/F1–F5 và kịch bản tích hợp ở trên vẫn là nền, trừ những chỗ mục này ghi là đổi. Chưa có task nào trong mục này được giao; **mọi task đều chờ CXN-A (cách hợp nhất)**.
+
+Ký hiệu nguồn: `om:` = `origin/main` (`1de97372`, đọc bằng `git show origin/main:<đường dẫn>`, không checkout); `dev:` = nhánh `dev` (`72395f92`); đường dẫn code tính từ `src/ANTC.Portal.App/`. Orchestrator **không build, không chạy** code của nhánh nào; mọi nhận định về hành vi là đọc code.
+
+### R0. Mục tiêu và phạm vi
+
+- Mục tiêu: chuyển gói CUOC-THI sang mô hình nhiều cuộc thi theo thời gian (QĐ-018), mỗi cuộc có bộ đề chọn khi tạo (QĐ-019), số lượt riêng (QĐ-021); có nguồn dữ liệu lịch cuộc thi cho thanh thông báo, thẻ cuộc thi, trang Cuộc thi, nhãn lĩnh vực (QĐ-020); hợp nhất `dev` với `origin/main` (QĐ-017).
+- Trong phạm vi: hợp nhất nhánh; schema gắn lượt với cuộc thi; API-01…05, QUIZ-01/02 theo cuộc thi; API lịch cuộc thi mới; bỏ cấu hình thời gian/lượt khỏi `thiPage`; luồng thi FE chọn cuộc thi và làm theo đề của cuộc; nối dữ liệu cho thanh thông báo và thẻ cuộc thi đã có trên `origin/main`.
+- **Không làm** trong gói: giao diện FE-32/FE-33/FE-05/FE-12/FE-20 (của nhóm, chỉ cấp dữ liệu và sửa chỗ đọc dữ liệu); kết quả công bố, xếp giải, quay số theo cuộc thi (BE-27/BE-28, chỉ ghi đề xuất ở file 5); ô "Nhắc tôi khi có cuộc thi sau"; OTP (QĐ-012); đổi giao diện luồng thi sang hệ v2 (chờ FE-01); BE-26 giới hạn tần suất.
+
+### R1. Mô hình cuộc thi trên `origin/main` (đọc code)
+
+**Thực thể** (`om:Umbraco.Plugin.Custom.Core/Data/Entities.cs:162-199`, migration `om:…/Data/Migrations/20261016044750_AddContestCampaigns.cs`):
+
+| Bảng | Cột | Ghi chú |
+|---|---|---|
+| `contest` (`ContestCampaign`) | `id`, `name` (≤ 200), `description` (≤ 2000, rỗng được), `start_at`, `end_at` (UTC), `max_attempts`, `is_active`, `created_at`, `updated_at` | Chỉ mục `(is_active, start_at, end_at)`. Không có cột gia hạn nộp, hệ số đồng hồ, lĩnh vực trọng tâm |
+| `contest_topic` | khóa `(contest_id, topic_id)`, `sort_order` | FK `contest` xóa theo (Cascade), FK `quiz_topic` Restrict |
+| `contest_question` | khóa `(contest_id, question_code)`, `sort_order` | FK `contest` Cascade, FK `quiz_question` Restrict |
+| `entry` | **không có `contest_id`** (`om:…/Data/Entities.cs:8-34`) | Lượt thi chưa gắn với cuộc thi |
+| `draw`, `draw_winner` | **không có `contest_id`** (`:62-88`) | Quay số trên mọi lượt đã nộp (`om:…/Contest/ContestAdminService.cs:149-150`) |
+
+**Backoffice tạo cuộc thi và chọn đề**:
+- API quản trị `om:Umbraco.Plugin.Custom.Api/Controllers/ContestAdminController.cs:11-12`: tiền tố `/api/v1/admin/contest`, chính sách `RequireAdminAccess`; `campaigns` (GET tìm/lọc, GET `{id}`, POST, PUT, DELETE), `campaigns/question-tree`, `entries` (xem lượt), `draws` (quay số). Giao diện `om:Umbraco.Web.UI/App_Plugins/ContestManagement/contest-management.js:6-7` gọi `/api/v1/admin/quiz` và `/api/v1/admin/contest`.
+- Chọn đề: cây chuyên đề → câu (`ContestAdminService.cs:282-299`); lưu `Topics[{ TopicId, QuestionCodes[] }]` (`ContestAdminModels.cs:32-41`). Kiểm tra khi lưu (`ContestAdminService.cs:212-250`): tên 2–200 ký tự; có bắt đầu, kết thúc, kết thúc sau bắt đầu (`:220-223`); `MaxAttempts` 1–1.000 (`:224`); ít nhất một chuyên đề, không trùng, mỗi chuyên đề ít nhất một câu, câu không lặp, câu phải thuộc đúng chuyên đề (`:226-247`). Giờ không có múi giờ được hiểu là giờ Việt Nam rồi đổi sang UTC (`:325-330`).
+- Sửa cuộc thi thay luôn bộ đề (`:74-83`, `:252-280`) và xóa cuộc thi (`:85-92`) **không kiểm tra đã có lượt thi** (lượt chưa gắn cuộc thi nên không có gì chặn).
+- Quản trị câu hỏi: `om:…/Api/Controllers/QuizAdminController.cs:12-13` (`/api/v1/admin/quiz`, topics/questions CRUD); `QuizAdminService.cs:226` gọi `bank.Reload()`.
+
+**"Cuộc thi hiện tại"**: `om:…/Contest/CurrentContestService.cs:19-33` lấy cuộc `IsActive` và `StartAt ≤ now ≤ EndAt`, chồng thời gian thì lấy cuộc bắt đầu muộn nhất; trả `QuestionCount`, tên các chuyên đề. Chỉ dùng ở hai view: thanh thông báo `om:…/Views/Partials/_ContestHeader.cshtml:13-28` (in "Cuộc thi tháng MM/yyyy" tính từ `StartAt`, liên kết `#cuoc-thi`) và khối tổng quan `om:…/Views/Partials/blockgrid/Components/competitionOverviewBlock.cshtml:10-53` (số câu, số chuyên đề, số lượt lấy từ cuộc hiện tại).
+
+**API công khai danh sách cuộc thi**: **chưa có**. `git grep` trên `om:` chỉ thấy `ICurrentContestService` được tiêm vào hai view trên; các lời gọi API ở `wwwroot`/`App_Plugins` chỉ có `/api/v1/quiz/sample` và hai API quản trị.
+
+**Giới hạn lượt theo cuộc thi**: **chưa có**. API-01 trên `om:` đếm mọi lượt của số điện thoại (`om:…/Contest/ContestEntryService.cs:64-65`) và lấy `MaxAttempts` từ `thiPage`, không từ `contest.max_attempts`.
+
+**`thiPage` trên `om:`** là trang Block Grid ở `/cuoc-thi/`, chỉ còn thuộc tính `layout` (`om:…/uSync/v18/ContentTypes/thipage.config:7, 27-44`: "Cấu hình nghiệp vụ cuộc thi không đặt ở document này"); không còn `contestStart`, `contestEnd`, `maxAttempts`, `submitGraceHours`, `readTimerFactor`. Trong khi đó `om:…/Contest/UmbracoContestSettingsProvider.cs:22-33` vẫn đọc ba thuộc tính đầu từ `thiPage`. **Suy ra từ code (chưa chạy): API-01 trên `om:` luôn trả `403 CONTEST_CLOSED`** vì không còn ngày nào để đọc. `docs/noi-dung/bo-cuc-cuoc-thi.md` (trên `om:`) ghi các số 200/8/2 trên trang là nội dung hiển thị, và "khi có màn thi tháng" thì cập nhật liên kết thẻ dự thi: màn làm bài chưa có trên `om:`.
+
+**API-01: `om:` so với `dev:`**
+
+| Điểm | `om:` | `dev:` |
+|---|---|---|
+| Action | Chỉ API-01 (`om:…/Api/Controllers/ContestController.cs:18-59`) | API-01…05 (`dev:…/Api/Controllers/ContestController.cs:31, 53, 70, 88, 107`) |
+| Request | `mode, fullName, phone, org, consent` (`om:…/Api/Models/ContestEntryModels.cs:5-10`); không có mã cuộc thi | Như `om:`; không có mã cuộc thi |
+| Kiểm tra | Lớp `ContestEntryRequestValidator` riêng; ẩn danh gửi kèm họ tên/số/đơn vị/đồng ý → `400` (`om:…/Validation/ContestEntryRequestValidator.cs:30-40, 90-113`); câu thông báo chung | Kiểm tra trong `ContestEntryService.Validate`; ẩn danh bỏ qua các trường cá nhân, không lưu (`dev:…/Contest/ContestEntryService.cs:70-78`); câu thông báo theo bản dựng (`:148-173`) |
+| Response 201 | `code, token, mode, attemptNo, maxAttempts, status` (`ContestEntryModels.cs:12-18`) | Cùng 6 trường (`dev:…/ContestEntryService.cs:15, 127`); `attemptNo` ẩn danh `null` ở cả hai (QĐ-010) |
+| Lỗi | `400 VALIDATION` (message chung "Dữ liệu đăng ký không hợp lệ."), `403 CONTEST_CLOSED`, `409 ATTEMPT_LIMIT`; dạng `{ error: { code, message, fields } }` | Cùng mã, cùng dạng (QĐ-004); thêm `Cache-Control: no-store` (`dev:…/ContestController.cs:34`) |
+| Trạng thái cuộc thi | `ContestSettings.IsOpenAt`: có cả hai ngày, `Start ≤ now ≤ End` (`om:…/Contest/ContestModels.cs:10-14`), đọc `thiPage` | `GetStatus` theo giờ VN, thiếu ngày → chưa mở (QĐ-006, `dev:…/ContestSettingsService.cs:88`), đọc `thiPage` |
+| Đếm lượt | Theo số, trọn đời, trong `BEGIN IMMEDIATE` (`om:…/ContestEntryService.cs:55-72`) | Theo số, trọn đời, trong khóa ghi của tiến trình + giao dịch (`dev:…/ContestEntryService.cs:90-104`) |
+| Muối băm IP | `ValidateOnStart`: thiếu `Contest:IpHashSalt` thì **không khởi động** (`om:…/Composers/CustomCoreComposer.cs:44-48`) | Thiếu muối vẫn chạy, `ip_hash` rỗng, cảnh báo lúc khởi động (QĐ-009; `dev:…/ContestEntryService.cs:202-206`, `ContestConfigCheck.cs:26`) |
+| Băm token | SHA-256 hex chữ thường (`om:…/ContestEntryService.cs:134-135`) | Giống hệt (`dev:…/ContestEntryService.cs:199-200`); token hai bên tương thích |
+| Kiểm thử | Project xUnit `Umbraco.Plugin.Custom.Tests` (có trong `ANTC.Portal.App.slnx`): `ContestEntryServiceTests` (đóng khi thiếu ngày; 10 yêu cầu đồng thời cùng số → đúng 2 lượt; token chỉ lưu băm), `ContestEntryRequestValidatorTests`, `CurrentContestServiceTests`, `ContestCampaignAdminServiceTests` (4 ca), và các test câu hỏi | Không có project test |
+
+### R2. Đối chiếu với `dev`: giữ, đổi, trùng
+
+Các file **cả hai nhánh cùng sửa** từ gốc chung `3c035da2` (`git diff --name-only` hai phía, giao nhau): `Api/Controllers/ContestController.cs` (cả hai thêm mới), `Core/Contest/ContestEntryService.cs` (cả hai thêm mới), `Core/Composers/CustomCoreComposer.cs`, `Web.UI/Views/thiPage.cshtml`, `wwwroot/assets/css/quiz.css` (cả hai thêm mới), `wwwroot/assets/css/tokens.css`, `uSync/v18/Content/cuộc-thi-trực-tuyến.config`; ngoài code còn `CLAUDE.md` (hai bên cùng sửa) và `docs/ban-dung/antoantaichinh-ban-dung-thu.html` (`dev` sửa sang v2, `om:` xóa và thêm `an-toan-tai-chinh-website.html`). Ngoài ra có **xung đột ngữ nghĩa** không hiện thành conflict: `om:` bỏ các thuộc tính của `thipage.config` mà `dev:…/ContestSettingsService.cs:56-79` và `dev:…/Views/thiPage.cshtml:4-17` đang đọc; `om:` đổi tên bản dựng (`docs/ban-dung/an-toan-tai-chinh-website.html`, xóa `antoantaichinh-ban-dung-thu.html`) mà `CLAUDE.md` và `docs/ke-hoach/anh-v2/cong-cu/` của `dev` còn trỏ tới tên cũ.
+
+Ghi chú sửa báo cáo 4a/TRANG-THAI: `ContestSettings`, `ContestSettingsService`, `ContestConfigCheck` **không bị xóa** trên `om:`; chúng chỉ có ở `dev` (thêm sau gốc chung), `om:` có bản riêng `UmbracoContestSettingsProvider`.
+
+| Thành phần `dev` | Kết luận | Lý do / nguồn |
+|---|---|---|
+| `ContestController` (API-01…05, bảng mã lỗi, `no-store`) | **Giữ**, đổi phần đọc cuộc thi | Đã review, đã nối FE; `om:` chỉ có API-01 |
+| `ContestEntryService` (API-01) | **Giữ, sửa**: nhận `contestId`, đếm lượt theo cuộc, gắn `contest_id` | Theo QĐ-004/009/010 đã chốt; `om:` trái QĐ-009. Trùng việc với `om:…/ContestEntryService.cs` → bỏ bản `om:` khi hợp nhất (khuyến nghị CXN-A) |
+| `IContestSettings`, `ContestSettings`, `ContestSettingsService` (đọc `thiPage`) | **Bỏ**, thay bằng dịch vụ đọc bảng `contest` | QĐ-018/021; `thiPage` trên `om:` không còn các thuộc tính |
+| `ContestConfigCheck` | **Giữ** phần cảnh báo muối IP | QĐ-009 |
+| `ContestAttemptService` API-02…05 | **Giữ, sửa**: cửa sổ thời gian, `maxAttempts`, đếm lượt, tổng câu, "đủ câu", `byTopic` theo cuộc của lượt | `dev:…/ContestAttemptService.cs:139-140, 157, 263-264, 313, 319-323, 337-338, 383` |
+| `thiPage.cshtml` luồng thi (FE-25, F3, F4a) | **Giữ nội dung, dời chỗ** sang trang làm bài riêng (CXN-F) | `om:` dùng `thiPage` cho trang Cuộc thi v2 ở `/cuoc-thi/` |
+| `contest-api.js`, `contest-store.js` (F1) | **Giữ, sửa**: `contestId`, `at_entry` theo cuộc, lịch cuộc thi, mock theo contract mới | `dev:…/js/contest/contest-api.js:11` |
+| `exam.js` (F3, F4a) | **Giữ, sửa**: danh sách chuyên đề và số câu theo đề của cuộc; quy tắc "chuyên đề đầu" (Q2) | Đề cuộc thi có thể không có CĐ1 |
+| F4b (`wip/CUOC-THI-F4b`, `8dce11fa`, chưa kiểm chứng) | Đọc `readTimerFactor` từ `thiPage` (`wip:…/Views/thiPage.cshtml:23`) → phải đổi nguồn. Giữ hay bỏ: Q6 | |
+| `quiz-ui.js` + `quiz.css` của F2 | **Giữ**, đổi tên CSS để khỏi trùng `om:…/css/quiz.css` (Thử sức v2) | add/add cùng tên |
+| uSync nội dung ngày mẫu (QĐ-008) | **Bỏ** (thuộc tính không còn); thay bằng cuộc thi mẫu trong CSDL (CXN-G) | |
+| Phần của `om:` dùng lại | Bảng `contest*`, `ContestAdminService/Controller`, backoffice `ContestManagement`, `CurrentContestService` (thay bằng dịch vụ lịch), `QuizAdmin*`, project test | QĐ-019 |
+
+### R3. Phương án hợp nhất (CXN-A, chưa chốt)
+
+| | A. Merge `origin/main` vào `dev` (khuyến nghị) | B. Giữ `dev` làm nền, chép riêng phần cuộc thi của `om:` | C. Nhánh mới từ `origin/main`, chuyển code `dev` sang từng phần |
+|---|---|---|---|
+| Cách làm | Worktree luồng `CUOC-THI-hopnhat` từ `dev`, `git merge origin/main`, giải 7 file xung đột theo quy tắc ở task M1a, build, chạy `dotnet test`; điều phối đưa vào `dev` | Cherry-pick/chép tay migration `AddContestCampaigns`, entity, `ContestAdmin*`, `App_Plugins/ContestManagement`, test liên quan vào `dev`; chưa merge `om:` | Tạo nhánh từ `origin/main`, merge hoặc cherry-pick từng commit `dev` (F1–F4a, B1–B4) theo task |
+| Lợi ích | Một lần giải xung đột, giữ lịch sử cả hai bên; về sau `dev` → `main` chỉ còn khác phần gói CUOC-THI; dùng được header/khối v2, quản trị câu hỏi, project test của nhóm | Ít xung đột ngay; không đụng 300+ file khác của `om:` | Nền sạch là bản của nhóm; mỗi task tự chịu phần chuyển |
+| Đánh đổi | Một task lớn (≈ 1 ngày công), phải hiểu cả code `om:`; uSync `om:` đổi nhiều document type, lần đầu chạy local cần `-Reset` | `dev` càng xa `om:` (33 commit, 345 file); migration chép tay có thể lệch snapshot EF; lần merge sau vẫn phải giải các xung đột này cộng thêm phần trùng do chép | Lịch sử `dev` bị cắt; cherry-pick 20+ commit qua merge commit dễ sót; FE/BE của gói phải kiểm lại từ đầu |
+| Công | ≈ 1–1,5 ngày công (M1a + M1b) | ≈ 0,75 ngày ngay, cộng ≈ 1,5 ngày khi hợp nhất thật về sau | ≈ 1,5–2 ngày công |
+| Rủi ro xung đột | Vừa: 7 file code + 2 file tài liệu biết trước, 2 xung đột ngữ nghĩa (R2) | Thấp lúc đầu, **cao** về sau | Vừa, rải theo từng task |
+
+Khuyến nghị **A**, kèm hai lựa chọn con: (A1) API-01 lấy bản `dev` (vì đã chốt QĐ-004/009/010 và dùng chung khóa ghi với API-03…05), chuyển các ca kiểm thử API-01 của `om:` sang bản `dev` thay vì bỏ; (A2) nhận project test của nhóm vào `dev` (CLAUDE.md ghi thêm project test là quyết định kiến trúc; nhóm đã thêm trên `om:`). Merge do Worker làm trong nhánh `lane/*` (QĐ-011), điều phối đưa vào `dev`; không push (QĐ-017).
+
+### R4. Mô hình mục tiêu (đề xuất, chờ CXN-B…G)
+
+- **Cuộc thi** = dòng `contest` (`om:`), thêm: `submit_grace_hours` (số nguyên 0–168, mặc định 24; thay `submitGraceHours` của `thiPage`, QĐ-014), `read_timer_factor` (số thực 0–5, mặc định 1; thay `readTimerFactor`), `focus_area` (chuỗi rỗng được: khóa lĩnh vực trang Thủ đoạn như `vieclam`, để FE-12 gắn nhãn). Sửa được trong backoffice cùng form.
+- **Đề của cuộc thi** ("đề") = các dòng `contest_question` mà câu còn trong bản chụp ngân hàng (`IQuestionBank.Current.Keys`) và chuyên đề có trong `contest_topic`; thứ tự `contest_topic.sort_order` rồi `contest_question.sort_order`. Tổng số câu của cuộc = số câu của đề. Câu bị ngừng dùng sau khi tạo cuộc thì rời khỏi đề (như QĐ-015 với câu ngừng dùng).
+- **Lượt thi** gắn cuộc thi: `entry.contest_id` (FK `contest`, `Restrict`, cho phép rỗng để migration không phải xóa lượt cũ ở CSDL local; mọi lượt mới bắt buộc có), chỉ mục `(contest_id, phone)`. Lượt không có cuộc thi: API-02 đọc được, API-03/04/05 trả `403 CONTEST_CLOSED`.
+- **Trạng thái cuộc thi** (thay QĐ-006 cho từng cuộc): chỉ cuộc `is_active`; `upcoming` khi `now < start_at`; `ongoing` khi `start_at ≤ now < end_at`; `ended` khi `now ≥ end_at`. So sánh theo thời điểm UTC (giờ nhập trong backoffice là giờ Việt Nam, `ContestAdminService.cs:325-330`); chữ ngày hiển thị theo giờ Việt Nam. Hạn nộp = `end_at + submit_grace_hours` (QĐ-014 theo cuộc).
+- **Lượt tối đa** = `contest.max_attempts`, đếm `entry` cùng `contest_id` và cùng `phone` (QĐ-021). Ẩn danh không đếm (giữ như cũ, chờ Q1).
+- **Ràng buộc quản trị**: cuộc thi đã có lượt thì không xóa và không đổi bộ đề (`409 CONTEST_HAS_ENTRIES`); vẫn sửa được tên, mô tả, thời gian, số lượt, gia hạn, hệ số, lĩnh vực.
+- **Một dịch vụ dùng chung** `IContestCatalog` (Core, Scoped): đọc cuộc thi theo id, lịch (`ongoing`/`upcoming`/`ended`), trạng thái, hạn nộp, đề. API-01…05, QUIZ-01/02, API-07 và các view Razor (thanh thông báo, khối tổng quan, trang làm bài) cùng dùng, để trang và API không lệch nhau. Thay `IContestSettings` (`dev`) và `ICurrentContestService` (`om:`).
+- **`thiPage`**: không còn cấu hình nghiệp vụ (đúng bản `om:`). Luồng thi chuyển sang trang làm bài riêng (CXN-F).
+
+### R5. Contract (đề xuất, chờ CXN-C, CXN-D, CXN-E)
+
+Chung: như mục "Contract" ở trên (dạng lỗi QĐ-004, thời điểm ISO UTC có `Z`, `no-store` cho `/contest/entries*`). Mã lỗi mới: `404 CONTEST_NOT_FOUND` (không có hoặc `is_active = false`), `409 CONTEST_HAS_ENTRIES` (API quản trị).
+
+**API-07 (mới) · `GET /api/v1/contests`** (BE-39 đề xuất): lịch cuộc thi công khai.
+
+```json
+{
+  "serverTime": "2026-10-18T03:00:00Z",
+  "ongoing": [
+    {
+      "id": 3,
+      "name": "Việc làm, làm thêm",
+      "description": "Nhận diện tin tuyển dụng việc nhẹ lương cao…",
+      "startAt": "2026-09-30T17:00:00Z",
+      "endAt": "2026-10-31T16:59:59Z",
+      "submitUntil": "2026-11-01T16:59:59Z",
+      "maxAttempts": 2,
+      "questionCount": 200,
+      "topics": [ { "cd": "5", "title": "Việc làm, tuyển dụng và nhiệm vụ trực tuyến", "count": 23 } ],
+      "focusArea": "vieclam"
+    }
+  ],
+  "upcoming": [],
+  "ended": []
+}
+```
+
+- Chỉ cuộc `is_active`. `ongoing` sắp `startAt` giảm dần (giữ quy tắc chọn của `CurrentContestService`: phần tử đầu là cuộc chính cho thanh thông báo); `upcoming` sắp `startAt` tăng dần; `ended` sắp `endAt` giảm dần, tối đa 12 cuộc.
+- Không có cuộc nào: `200` với ba mảng rỗng. `focusArea` `null` khi trống. Không có `200`, `8`, `2` viết cứng: số lấy từ cuộc.
+- `Cache-Control: public, max-age=60`. Không có lỗi nghiệp vụ (chỉ `5xx`).
+- Cùng dữ liệu cấp cho Razor qua `IContestCatalog.GetScheduleAsync(now)` để thanh thông báo in sẵn vào HTML (FE-32: "máy chủ in sẵn chữ vào HTML").
+
+**API-01 · `POST /api/v1/contest/entries`** (đổi): request thêm `"contestId": 3` (bắt buộc).
+
+| # | Điều kiện | Kết quả |
+|---|---|---|
+| 1 | Thiếu `contestId` hoặc không phải số nguyên dương | `400 VALIDATION`, `fields.contestId` |
+| 2 | Dữ liệu cá nhân sai (chế độ có tên) | `400 VALIDATION` như cũ |
+| 3 | Không có cuộc hoặc `is_active = false` | `404 CONTEST_NOT_FOUND` |
+| 4 | Cuộc không ở `ongoing` | `403 CONTEST_CLOSED` |
+| 5 | Số đã đủ `contest.max_attempts` lượt **trong cuộc này** | `409 ATTEMPT_LIMIT`, câu "Số … đã dùng hết {n} lượt của cuộc thi này." |
+| 6 | Còn lại | `201` như cũ, thêm `"contestId": 3`; `maxAttempts` = của cuộc; `attemptNo` = số lượt của số trong cuộc + 1 |
+
+Ẩn danh gửi kèm trường cá nhân: giữ cách của `dev` (bỏ qua, không lưu), không theo `om:` (`400`), để FE hiện có không vỡ (CXN-C).
+
+**API-02 · `GET /api/v1/contest/entries/me`** (thêm trường, tương thích ngược):
+
+```json
+{
+  "code": "AD-7KQ2MX", "mode": "named", "attemptNo": 1, "maxAttempts": 2,
+  "status": "in_progress", "answered": 2, "score": null, "total": 200, "submittedAt": null,
+  "contest": {
+    "id": 3, "name": "Việc làm, làm thêm",
+    "startAt": "2026-09-30T17:00:00Z", "endAt": "2026-10-31T16:59:59Z", "submitUntil": "2026-11-01T16:59:59Z",
+    "phase": "open", "readTimerFactor": 1
+  },
+  "topics": [ { "cd": "5", "count": 23 }, { "cd": "1", "count": 19 } ],
+  "answers": [ { "q": "CĐ5-001", "a": "B", "correct": true, "cd": "5" } ]
+}
+```
+
+- `phase`: `open` (nhận API-03/04/05), `submit_only` (sau `endAt`, trước `submitUntil`: chỉ API-05), `closed`. Lượt không có cuộc: `contest: null`, `topics: []`, coi như `closed`.
+- `topics`: đề của cuộc theo thứ tự đề; `total` (khi `in_progress`) = tổng `count`; khi `submitted` giữ `entry.total_questions`. `maxAttempts` = của cuộc.
+
+**API-03**: bước 3 "cuộc thi không mở" xét `phase == open` của cuộc của lượt; bước 4 `400 UNKNOWN_QUESTION` khi `q` không thuộc **đề của cuộc**. Còn lại giữ.
+**API-04**: cửa sổ theo cuộc của lượt; đếm lượt theo `(contest_id, phone)`.
+**API-05**: hạn nộp = `submitUntil` của cuộc; "đủ câu" (QĐ-015) = mọi câu của đề có đáp án; `total_questions` = số câu của đề; `byTopic` theo `topics` của đề; đếm lượt khi kèm `contact` theo cuộc. Câu `INCOMPLETE_ANSWERS` giữ dạng "Bạn mới trả lời x/y câu…".
+
+**QUIZ-01 / QUIZ-02** (thêm tham số, không đổi khi không có tham số):
+- `GET /api/v1/quiz/topics?contest=3`: chỉ chuyên đề của đề, `count` = số câu của đề trong chuyên đề, thứ tự đề.
+- `GET /api/v1/quiz/topics/{n}/questions?contest=3`: chỉ câu của đề trong chuyên đề `n`, thứ tự đề; vẫn trả `ans`, `exp` (QĐ-016).
+- Cuộc không có hoặc không `is_active`: `404 CONTEST_NOT_FOUND`; cuộc `upcoming`: `403 CONTEST_CLOSED` (không lộ đề trước giờ mở); chuyên đề không thuộc đề: `404 UNKNOWN_TOPIC`.
+- ETag: `"{bankVersion}-c{contestId}-{contest.updated_at ticks}"`.
+
+### R6. Task
+
+Ranh giới file (hai luồng không sửa cùng file):
+- **chính** (M1a, M1b, S1, I2): mọi file khi merge; `Views/Partials/_ContestHeader.cshtml`, `Views/Partials/blockgrid/Components/competitionOverviewBlock.cshtml`; uSync document type/template của trang làm bài.
+- **`CUOC-THI-be`**: `Umbraco.Plugin.Custom.Core/Contest/*`, `Core/Data/*` (entity, `AppDbContext`, migration, `AppDbInitializer`), `Core/Quiz/*`, `Core/Composers/CustomCoreComposer.cs`, `Api/Controllers/ContestController.cs`, `QuizController.cs`, `ContestAdminController.cs`, `ContestsController.cs` (mới), `App_Plugins/ContestManagement/*`, `Umbraco.Plugin.Custom.Tests/*`.
+- **`CUOC-THI-fe`**: view trang làm bài và `Views/Partials/contest/*` (sau M1b), `wwwroot/assets/js/contest/*`, `js/quiz/*`, `css/contest.css`, `css/contest-quiz.css`. Không sửa C#.
+- Mọi task: không sửa `docs/ke-hoach`, `docs/quyet-dinh.md`.
+
+| # | Task | Luồng | Phạm vi / file dự kiến | Phụ thuộc | Tiêu chí hoàn thành | Cách kiểm chứng | Trạng thái |
+|---|---|---|---|---|---|---|---|
+| **C2** | Contract R5 | Orchestrator | File này | CXN-C, D, E | Không còn điểm chờ | Người dùng chốt | Chờ xác nhận |
+| **M1a** (MỚI) | Hợp nhất `origin/main` vào `dev` (phương án A) | chính (worktree `CUOC-THI-hopnhat` từ `dev`, `-AllowCommit`) | 7 file xung đột theo quy tắc: `ContestController.cs`, `ContestEntryService.cs` → bản `dev`; xóa `om:` `UmbracoContestSettingsProvider.cs`, các kiểu API-01 trong `ContestModels.cs`, `Api/Models/ContestEntryModels.cs`, `Validation/ContestEntryRequestValidator.cs`; **chuyển** `ContestEntryServiceTests.cs`, `ContestEntryRequestValidatorTests.cs` sang API-01 của `dev` (giữ đủ ca, không xóa ca); `CustomCoreComposer.cs` = hợp hai bên, **bỏ** `ValidateOnStart` muối IP (QĐ-009), giữ tạm `IContestSettings`; `thiPage.cshtml` → bản `om:`, nội dung luồng thi của `dev` chuyển nguyên vào `Views/Partials/contest/_LuongThi.cshtml` (chưa gắn trang); `quiz.css` → bản `om:`, `quiz.css` của `dev` đổi tên `contest-quiz.css` và sửa chỗ nạp; `tokens.css` → bản `om:` cộng biến `dev` còn thiếu; uSync nội dung `cuộc-thi-trực-tuyến.config` → bản `om:`; bản dựng: so `dev:docs/ban-dung/antoantaichinh-ban-dung-thu.html` với `om:docs/ban-dung/an-toan-tai-chinh-website.html` (`cmp`/SHA-256), giống nhau thì nhận tên của `om:`, khác thì giữ cả hai và ghi khác biệt vào bàn giao; `CLAUDE.md`: giữ bản `dev`, chèn các đoạn mới của `om:`, liệt kê từng đoạn trong bàn giao để anhnn duyệt; chỗ nào trong `docs/ke-hoach/anh-v2/cong-cu` hay `CLAUDE.md` còn trỏ tên bản dựng cũ thì **ghi vào bàn giao, không sửa** | CXN-A | Merge commit trên `lane/CUOC-THI-hopnhat`; `dotnet build` slnx sạch; `dotnet test` đạt; web chạy với CSDL mới; `/cuoc-thi/` 200; API quản trị cuộc thi tạo được một cuộc | `.\run-local.ps1 -Reset`; `dotnet test src/ANTC.Portal.App/ANTC.Portal.App.slnx`; vào backoffice tạo cuộc thi; `Invoke-RestMethod` API-01 (dự kiến `403`, ghi vào bàn giao vì `thiPage` không còn ngày); `git diff dev...HEAD --stat` ghi vào bàn giao | Chờ CXN-A |
+| **M1b** (MỚI) | Trang làm bài riêng | chính | Document type + template mới theo CXN-F (đề xuất `cuocThiLamBaiPage`, con của `thiPage`, `/cuoc-thi/lam-bai/`), tạo trong backoffice, commit file uSync; template render `_LuongThi.cshtml`; liên kết thẻ dự thi của khối tổng quan trỏ tới trang này (nội dung) | M1a, CXN-F | Trang mở được, luồng thi cũ hiển thị như trước (API-01 còn đóng là đúng ở bước này) | `run-local`; mở trang 1440/390; kiểm file uSync mới | Chờ CXN-F |
+| **B5** (MỚI) | Schema: lượt gắn cuộc thi, cột cấu hình | be | `Entities.cs`, `AppDbContext.cs`, migration `AddEntryContestAndContestSettings` (`entry.contest_id` + chỉ mục; `contest.submit_grace_hours`, `read_timer_factor`, `focus_area`) | M1a, CXN-B | Migration áp dụng được trên CSDL đã có lượt (cột rỗng) và CSDL mới; snapshot khớp | `dotnet ef migrations add …` theo `CLAUDE.md`; `run-local` trên CSDL cũ và `-Reset`; `PRAGMA table_info(entry)`, `PRAGMA index_list(entry)` bằng Python `sqlite3` | Chờ CXN-B |
+| **B6** (MỚI) | `IContestCatalog`: lịch, trạng thái, hạn nộp, đề | be | `Contest/ContestCatalog.cs` (mới), đăng ký trong composer; `CurrentContestService` gọi qua catalog (giữ interface cho hai view tới S1) | B5 | Đúng R4 (trạng thái, hạn nộp, đề loại câu ngừng dùng); không viết cứng chu kỳ tháng | Thêm test vào project test: biên `start_at`/`end_at`, gia hạn 0/24, cuộc không `is_active`, câu ngừng dùng rời đề, nhiều cuộc cùng `ongoing`; `dotnet test` | Chờ B5 |
+| **B7** (SỬA B-API-01) | API-01 theo cuộc thi | be | `ContestEntryService.cs`, `ContestController.cs` (mã `CONTEST_NOT_FOUND → 404`) | B6, CXN-C | Bảng API-01 ở R5; đếm lượt theo `(contest_id, phone)`; ca đồng thời vẫn đúng 2 lượt mỗi cuộc | Test đồng thời của `om:` sửa theo cuộc + ca "hai cuộc khác nhau, cùng số, mỗi cuộc 2 lượt"; `Invoke-RestMethod` từng hàng của bảng | Chờ B6, CXN-C |
+| **B8a** (SỬA B1, B2) | API-02, API-03 theo cuộc của lượt | be | `ContestAttemptService.cs` | B7 | `contest`, `topics`, `phase`, `total` theo đề; API-03 từ chối câu ngoài đề, đóng theo `phase` | Lượt cuộc A gửi câu không thuộc đề A → `400 UNKNOWN_QUESTION`; đặt `end_at` cuộc về quá khứ trong backoffice → `403`; lượt cũ không cuộc → API-02 `contest: null`, API-03 `403` | Chờ B7 |
+| **B8b** (SỬA B3, B4) | API-04, API-05 theo cuộc của lượt | be | `ContestAttemptService.cs` | B8a | Hạn nộp theo `submit_grace_hours` của cuộc; "đủ câu" theo đề (QĐ-015 theo QĐ-019); `byTopic` theo đề; đếm lượt theo cuộc | Script B4 (ở trên) đổi sang `?contest=`: trả lời đủ trừ 1 câu → `409 INCOMPLETE_ANSWERS "x/y"` với y = số câu đề; đủ → `200`, `total_questions` = y; gia hạn 0 và 24 | Chờ B8a |
+| **B9** (MỚI) | QUIZ-01/02 lọc theo cuộc thi | be | `QuizController.cs` | B6, CXN-D | Đúng R5; không tham số thì như cũ (luyện tập, Thử sức không đổi) | So `count` QUIZ-01 `?contest=` với số dòng `contest_question` của cuộc bằng `sqlite3`; ETag đổi khi sửa cuộc; cuộc `upcoming` → `403` | Chờ CXN-D |
+| **B10** (MỚI, BE-39) | API-07 lịch cuộc thi | be | `Api/Controllers/ContestsController.cs` (mới) | B6, CXN-E | Đúng R5; 0, 1, nhiều cuộc `ongoing`; chỉ `is_active`; `Cache-Control` | Tạo 4 cuộc trong backoffice (đã qua, đang, đang chồng, sắp tới) và 1 cuộc tắt; `Invoke-RestMethod`; tắt hết → ba mảng rỗng | Chờ CXN-E |
+| **B11** (MỚI) | Quản trị: cột mới và ràng buộc khi đã có lượt | be | `ContestAdminModels.cs`, `ContestAdminService.cs`, `ContestAdminController.cs`, `App_Plugins/ContestManagement/contest-management.js` | B5, CXN-B | Form có gia hạn, hệ số, lĩnh vực; xóa/đổi bộ đề cuộc đã có lượt → `409 CONTEST_HAS_ENTRIES` | Test trong `ContestCampaignAdminServiceTests`; thao tác trong backoffice | Chờ CXN-B |
+| **B12** (MỚI) | Bỏ `IContestSettings` và cấu hình `thiPage` | be | Xóa `ContestSettings.cs`, `ContestSettingsService.cs`, đăng ký trong composer; `ContestConfigCheck` chỉ giữ cảnh báo muối | B8b, B9 | Grep `contestStart\|maxAttempts\|submitGraceHours\|readTimerFactor` trong C# không còn đọc từ Umbraco | `dotnet build`, `dotnet test`; Grep | Chờ B8b |
+| **B13** (MỚI) | Cuộc thi mẫu khi chạy local | be | `AppDbInitializer` (chỉ `Development`, khi bảng `contest` trống): một cuộc gồm mọi câu đang dùng, 2026-10-01 → 2026-12-31 giờ VN | B5, CXN-G | `-Reset` xong là có cuộc đang diễn ra; môi trường khác không tạo | `run-local -Reset`; đổi `ASPNETCORE_ENVIRONMENT` khác `Development` → không có dòng | Chờ CXN-G |
+| **F6** (SỬA F1) | `contest-api.js`/`contest-store.js` theo cuộc | fe | `js/contest/contest-api.js`, `contest-store.js` | M1a, C2 | `createEntry` gửi `contestId`; `getSchedule()` (API-07); `at_entry` lưu theo `contestId` (lượt cuộc khác không ghi đè); QUIZ gọi kèm `?contest=`; mock trả đúng R5 (nhiều cuộc, `phase`, `topics`) | Localhost `?mock=`: hai cuộc, đăng ký cả hai, tải lại thấy đúng tiến độ từng cuộc; ép `closed`, `notfound` | Chờ C2 |
+| **F7** (MỚI) | Trang làm bài: chọn cuộc thi | fe | `Views/Partials/contest/_LuongThi.cshtml`, `register.js`, `contest.css` | M1b, F6 | `?c=<id>` có hiệu lực; không có `?c`: 1 cuộc `ongoing` → dùng luôn, nhiều cuộc → danh sách chọn, không cuộc → "Hiện chưa có cuộc thi đang diễn ra" + cuộc sắp tới + Thử sức; chữ "tối đa n lượt", tên, ngày lấy từ cuộc, không viết cứng | Mock 0/1/2 cuộc; 1440/744/390 | Chờ M1b, F6 |
+| **F8** (SỬA F3, F4a; gồm F4b nếu giữ) | Luồng làm bài theo đề của cuộc | fe | `exam.js`, `_LuongThi.cshtml` | F7, Q2, Q6 | Danh sách chuyên đề, số câu, tiến độ theo `topics` của API-02; khóa chuyên đề theo Q2 (tạm: chuyên đề đầu tiên của đề); hệ số đồng hồ từ `contest.readTimerFactor`; `phase` khác `open` thì không cho trả lời | Mock đề không có CĐ1; đề 2 chuyên đề; `phase=submit_only` | Chờ F7 |
+| **F9** (SỬA F5) | Nộp bài, kết quả theo cuộc | fe | `submit.js` (mới), `_LuongThi.cshtml`, `contest.css` | F8 | Như "F5 sau CXN-3", tổng câu = `total` của API-02 theo đề; kết quả ghi tên cuộc thi; `submit_only` vẫn nộp được | Như F5 ở trên với mock đề nhỏ | Chờ F8 |
+| **S1** (SỬA view của `om:`) | Thanh thông báo và khối tổng quan dùng lịch cuộc thi | chính | `_ContestHeader.cshtml`, `competitionOverviewBlock.cshtml` | B10 merge vào `dev` | Không in "tháng" tính từ `StartAt`; dùng phần tử đầu `ongoing`; không cuộc thì ẩn thanh; liên kết tới trang làm bài `?c=`; số câu/chuyên đề/lượt từ cuộc | `run-local`; 0/1/2 cuộc; tắt JavaScript vẫn thấy chữ | Chờ B10 |
+| **I2** (SỬA I) | Tích hợp đầu–cuối | chính | Merge `lane/CUOC-THI-be`, `lane/CUOC-THI-fe` vào `dev` (điều phối) | B5–B13, F6–F9, S1 đạt review | Kịch bản I ở trên + 4 bước dưới | Như dưới | Chờ |
+
+Kịch bản I2 bổ sung (chạy sau kịch bản I, dùng cuộc mẫu B13 và cuộc tạo thêm trong backoffice):
+1. Hai cuộc cùng `ongoing` với hai đề khác nhau → trang làm bài hiện danh sách chọn; đăng ký cùng số ở cả hai, mỗi cuộc 2 lượt, lượt thứ 3 ở mỗi cuộc → `ATTEMPT_LIMIT`.
+2. Làm cuộc có đề nhỏ (ví dụ 2 chuyên đề, 10 câu) tới khi đủ → nút Nộp bài hiện ở 10/10; `entry.total_questions = 10`.
+3. Đặt `end_at` cuộc về quá khứ, `submit_grace_hours = 24` → không trả lời thêm, vẫn nộp được; `submit_grace_hours = 0` → `CONTEST_CLOSED`.
+4. API-07 và thanh thông báo cùng đổi khi bật/tắt cuộc trong backoffice; trang Ứng phó không có thanh (FE-32).
+
+Tổng: **10 task mới** (M1a, M1b, B5, B6, B9, B10, B11, B12, B13, F7) và **7 task sửa** (B7, B8a, B8b, F6, F8, F9, S1), cộng C2 và I2.
+
+### R7. Thứ tự
+
+1. CXN-A → M1a → M1b (chính). Song song: Orchestrator chốt C2 khi có trả lời CXN-C, D, E.
+2. Mở `CUOC-THI-be`: B5 → B6 → B7 → B8a → B8b → B9 → B10 → B11 → B12 → B13. Mở `CUOC-THI-fe` sau M1b + C2: F6 → F7 → F8 → F9.
+3. Merge hai luồng → S1 → I2.
+4. Review theo mức rủi ro: M1a, B5, B7, B8b, B11 review riêng; B9+B10, B12+B13, F6+F7 gộp.
+
+### R8. Cần người dùng xác nhận
+
+**CXN-A · Cách hợp nhất `dev` với `origin/main`** (kiến trúc; chặn mọi task). Phương án ở R3. Khuyến nghị A + A1 + A2. Cần chốt thêm: ai làm (Worker ở luồng `CUOC-THI-hopnhat` hay người trong nhóm), và có cần báo nhóm trước khi `dev` lấy về các thay đổi của `origin/main` không.
+
+**CXN-B · Schema** (chặn B5, B11). `entry.contest_id` rỗng được (khuyến nghị) hay bắt buộc (phải xóa lượt cũ local); thêm `submit_grace_hours`, `read_timer_factor` vào `contest` (khuyến nghị) hay đặt trong `appsettings` chung cho mọi cuộc; chặn xóa/đổi bộ đề khi đã có lượt (khuyến nghị) hay cho đổi (lượt đang làm phải làm thêm câu mới, như ghi chú ngân hàng đổi ở QĐ-015).
+
+**CXN-C · API-01 có `contestId`** (contract; chặn B7, F6). Khuyến nghị: bắt buộc, `404 CONTEST_NOT_FOUND`, ẩn danh gửi kèm trường cá nhân thì bỏ qua (cách `dev`). Phương án khác: không gửi `contestId`, máy chủ tự chọn cuộc `ongoing` (như `CurrentContestService`): đơn giản hơn nhưng không làm được nhiều cuộc cùng lúc.
+
+**CXN-D · Đề cuộc thi qua QUIZ-01/02 `?contest=`** (contract; chặn B9, F6, F8). Khuyến nghị như R5 (công khai, có đáp án theo QĐ-016, chặn cuộc `upcoming`). Phương án khác: API theo token `/contest/entries/me/topics/...` (chỉ người đã đăng ký thấy đề; thêm 2 action; vẫn lộ đáp án theo QĐ-016).
+
+**CXN-E · API-07 lịch cuộc thi và nhãn lĩnh vực** (contract + schema; chặn B10, S1). Khuyến nghị như R5, cột `focus_area` chọn từ danh sách khóa lĩnh vực của trang Thủ đoạn. Phương án khác cho nhãn lĩnh vực: suy từ chuyên đề câu hỏi (cần bảng ánh xạ chuyên đề ↔ lĩnh vực; 2 tháng `mxh`, `chinhsach` của v2 không có lĩnh vực, xem 4b L5–L6). Cũng cần chốt: thanh thông báo hiện cuộc nào khi nhiều cuộc cùng diễn ra (khuyến nghị cuộc bắt đầu muộn nhất, như `om:`).
+
+**CXN-F · Chỗ đặt luồng thi** (URL/kiến trúc; chặn M1b, F7). `om:` đã dùng `thiPage` cho trang Cuộc thi v2 ở `/cuoc-thi/`. Khuyến nghị: document type mới, trang con `/cuoc-thi/lam-bai/?c=<id>`. Phương án khác: một khối Block Grid trong `thiPage` (khó tách CSS/JS, khối trang trí và luồng thi chung một trang).
+
+**CXN-G · Thay QĐ-008 bằng cuộc thi mẫu trong CSDL local** (chặn B13). Khuyến nghị: chỉ `Development`, khi bảng `contest` trống.
+
+### R9. Câu hỏi còn mở (anhnn hoặc chủ quản)
+
+| # | Câu hỏi | Ai | Chặn | Mặc định tạm trong thiết kế (chưa phải quyết định) |
+|---|---|---|---|---|
+| Q1 | Còn giữ **thi ẩn danh** (và API-04 "Dự thi có tên để xét giải") không? v2 chỉ ghi "Nhập số điện thoại để nhận lượt thi" (4b Q6) | Chủ quản | F7, F9; nếu bỏ thì bỏ API-04 và nhánh ẩn danh | Giữ như hiện có; ẩn danh không đếm lượt |
+| Q2 | Quy tắc **"làm Chuyên đề 1 trước"** còn không, khi đề của cuộc có thể không có CĐ1? | Chủ quản | F8 | Khóa theo chuyên đề đầu tiên của đề; bỏ được bằng một điều kiện |
+| Q3 | **Lượt làm dở khi hết cuộc**: giữ QĐ-014 theo từng cuộc (hết `end_at` không trả lời thêm; nộp tới `end_at + gia hạn`, chưa đủ câu thì không nộp được) hay khác? | anhnn | B8a, B8b, F8 | Giữ QĐ-014 theo cuộc |
+| Q4 | **QĐ-016 và OTP (QĐ-012)**: v2 có giải tiền mặt mỗi cuộc, xét "người đạt điểm tối đa"; có giữ QUIZ-02 trả đáp án và không xác minh số điện thoại không? | Chủ quản | CXN-D (nếu đổi thì đề phải ẩn đáp án) | Giữ QĐ-016 |
+| Q5 | **Cách hợp nhất**: CXN-A (và ai báo nhóm) | anhnn | Mọi task | Phương án A |
+| Q6 | **F4b** dở dang ở `wip/CUOC-THI-F4b` (`8dce11fa`, chưa kiểm chứng, chưa review): giữ để làm tiếp trong F8 hay bỏ? | anhnn | F8 | Khuyến nghị giữ: đồng hồ đọc và màn Xong chuyên đề không phụ thuộc mô hình cuộc thi; chỉ đổi nguồn `readTimerFactor` |
+| Q7 | Quay số/xếp giải và `draw` theo từng cuộc thi (BE-27/BE-28): làm trong gói này hay để sau? | anhnn | Không chặn | Để sau, ghi ở file 5 |
+
+### R10. Việc tiếp theo
+
+- anhnn trả lời CXN-A…G và Q1–Q7; Orchestrator ghi QĐ mới (thay hoặc bổ sung QĐ-002, 003, 006, 008, 014, 015) và chốt C2.
+- Hạng mục đề xuất cho kế hoạch: `docs/ban-giao/CUOC-THI/5-hang-muc-moi-cho-ke-hoach.md`.
+- `TRANG-THAI.md` do phiên điều phối cập nhật; điểm cần sửa ở đó: mục "Kết quả phân tích" ý 1 (các file `ContestSettings*` không bị xóa trên `origin/main`) và câu hỏi chặn 1–5 đã được QĐ-017…021 trả lời một phần.

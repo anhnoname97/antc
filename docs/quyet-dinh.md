@@ -43,6 +43,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: làm giao diện và lớp gọi API mỏng có mock trước (T1, T2); sau đó Worker trên FE-25 làm API-01 tối thiểu (T4, chỉ phần API-01 của BE-22) rồi nối vào API thật (T5). Lớp `contest-api.js` viết theo chữ ký FE-28 để FE-28 bổ sung. Giới hạn tần suất 10 lần/giờ/IP chưa làm ở FE-25, để BE-26.
 - Lý do: bảng `entry` đã có (`Data/Entities.cs`), chi phí thấp; là cách duy nhất kiểm được AC4, AC5 thật.
 - Ảnh hưởng: BE-22 khi làm tiếp phải dựa trên `ContestController` và dịch vụ tạo lượt đã có, không viết lại. BE-26 bổ sung giới hạn tần suất cho API-01.
+- Cần xem lại theo QĐ-021: lượt thi gắn với từng cuộc thi, trong khi API-01 tối thiểu đang tính theo một cuộc duy nhất. Chưa quyết; giữ Hiệu lực.
 
 ### QĐ-003 · API cuộc thi đọc Cài đặt cuộc thi từ nội dung Umbraco
 
@@ -52,6 +53,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: đọc từ nút nội dung loại `thiPage` qua `IUmbracoContextFactory`, gói trong một dịch vụ `IContestSettings` đăng ký ở `CustomCoreComposer.cs`. Không đưa các cài đặt này vào `appsettings`.
 - Lý do: giữ đúng sheet "Nội dung Umbraco"; ban biên tập đổi được trong backoffice; BE-23/24 dùng lại.
 - Ảnh hưởng: không sửa uSync hay document type.
+- Cần xem lại theo QĐ-018, QĐ-021: cuộc thi có thời gian và số lượt riêng, cấu hình khi thêm cuộc thi (QĐ-019: backoffice trên `origin/main` lưu ở bảng `contest`), nên `thiPage` có thể không còn là nguồn duy nhất của `contestStart`/`contestEnd`/`maxAttempts`. Chưa quyết thay thế; giữ Hiệu lực.
 
 ### QĐ-004 · API-01 trả lỗi đủ dạng `{ error: { code, message, fields } }`
 
@@ -79,6 +81,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: thiếu một trong hai ngày → "chưa mở" (không đăng ký được). Tính theo giờ Việt Nam; mở từ `contestStart`, đóng đăng ký tại `contestEnd`. `submitGraceHours` không áp dụng cho đăng ký, chỉ cho nộp bài (BE-24). Trang và API dùng cùng một cách tính.
 - Lý do: tránh mở cổng ngoài ý muốn trên môi trường thật.
 - Ảnh hưởng: để kiểm thử local, Worker nhập ngày mẫu trong backoffice; uSync xuất lại file nội dung.
+- Cần xem lại theo QĐ-018: quy tắc tính trên một cặp ngày duy nhất; với nhiều cuộc thi, trạng thái phải tính theo từng cuộc. Chưa quyết; giữ Hiệu lực.
 
 ### QĐ-007 · Màn đăng ký ghi rõ lượt thi gắn với trình duyệt
 
@@ -97,6 +100,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: commit ngày mẫu vào file nội dung uSync: `contestStart` = 2026-10-01 00:00, `contestEnd` = 2026-12-31 23:59, giờ Việt Nam. Người dùng chọn trái khuyến nghị và chấp nhận rủi ro.
 - Lý do: ai lấy repo về chạy local cũng thấy ngay cuộc thi đang mở, không phải tự nhập ngày trong backoffice.
 - Ảnh hưởng: QĐ-006 giữ nguyên (thiếu ngày → "chưa mở"); bỏ ghi chú "trả file nội dung uSync về nguyên trạng" ở review T3/T4. Với ngày này, nếu triển khai lên môi trường có CSDL trống thì uSync nhập nội dung và **cuộc thi mở ngay** (hôm nay nằm trong khoảng ngày mẫu), trái với QĐ-012. **Trước khi triển khai thật phải nhập ngày thật trong backoffice** (hoặc xóa ngày để giữ "chưa mở"); đưa việc này vào danh sách kiểm tra triển khai.
+- Cần xem lại theo QĐ-018: ngày mẫu của một cuộc ở `thiPage` có thể không còn phù hợp khi cuộc thi được tạo trong backoffice. Chưa quyết; giữ Hiệu lực.
 
 ### QĐ-009 · Muối băm IP đặt trong cấu hình; thiếu khóa thì vẫn cho đăng ký, `ip_hash` để rỗng
 
@@ -158,6 +162,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
   - API-05 nhận tới `contestEnd + submitGraceHours` (giờ Việt Nam; `submitGraceHours` rỗng hoặc âm → 24, `0` → không gia hạn); quá hạn trả `403 CONTEST_CLOSED`. Lượt đã nộp vẫn trả lại kết quả cũ bất kể thời gian.
 - Lý do: đúng tài liệu ở API-03 và thời gian gia hạn; sau giờ đóng thí sinh chỉ còn nộp, không làm thêm câu.
 - Ảnh hưởng: thêm `CONTEST_CLOSED` vào bảng lỗi API-04, API-05; BE-24 đọc `submitGraceHours`. Kết hợp với QĐ-015: lượt chưa trả lời đủ câu lúc `contestEnd` thì không nộp được nữa (thời gian gia hạn chỉ giúp lượt đã làm đủ mà chưa nộp). Khi làm tài liệu bản v4, sửa sheet "API" r8–r9.
+- Cần xem lại theo QĐ-018, QĐ-021: các cửa sổ thời gian (`contestEnd`, `submitGraceHours`) phải tính theo từng cuộc thi. Chưa quyết; giữ Hiệu lực.
 
 ### QĐ-015 · Phải trả lời đủ mọi câu của ngân hàng mới được nộp bài
 
@@ -167,6 +172,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: thí sinh phải trả lời **đủ mọi câu** của ngân hàng đang dùng mới được nộp. Máy chủ từ chối nộp khi chưa đủ; nút Nộp bài chỉ hiện khi đã trả lời hết. Tổng số câu lấy từ ngân hàng đang dùng (`IQuestionBank.Current.TotalQuestions` ở BE; `total` của API-02 / tổng `count` QUIZ-01 ở FE), không viết cứng 200. Người dùng chọn trái khuyến nghị và khác giả định của "Câu hỏi mở" #1.
 - Lý do: quyết định nghiệp vụ của người dùng.
 - Ảnh hưởng: API-05 thêm kiểm tra "đủ câu" và mã lỗi riêng (chi tiết ở `1-thiet-ke.md` › mục cập nhật 2026-10-17); task B4, F5 và mock của F1 đổi theo. Với QĐ-014, lượt chưa đủ câu khi cuộc thi đóng thì không nộp được. Cần báo chủ quản để đóng "Câu hỏi mở" #1; khi làm tài liệu bản v4, sửa FE-29, BE-24 và sheet "API" r9.
+- Cần xem lại theo QĐ-019: "mọi câu của ngân hàng đang dùng" có thể phải hiểu là mọi câu trong bộ đề của cuộc thi đó. Chưa quyết; giữ Hiệu lực.
 
 ### QĐ-016 · QUIZ-02 công khai vẫn trả `ans` và `exp`, kể cả khi dùng cho cuộc thi
 
@@ -177,3 +183,52 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Rủi ro đã chấp nhận: **tính công bằng** của cuộc thi. Người rành kỹ thuật (mở công cụ nhà phát triển, gọi thẳng QUIZ-02) biết đáp án đúng trước khi trả lời và có thể đạt điểm tối đa. Dữ liệu điểm không bị giả mạo, nhưng điểm cao không chứng minh người dự thi tự trả lời. Người dùng chấp nhận rủi ro này.
 - Lý do: đề thi dùng chung ngân hàng luyện tập, đáp án vốn đã công khai ở trang luyện tập; giữ contract hiện có, không thêm API.
 - Ảnh hưởng: không đổi code hay contract. FE-28 giữ cách tính `correct` tạm từ `ans`. Nếu sau này cần bảo đảm công bằng (ví dụ giải thưởng giá trị lớn), phải có QĐ mới thay QĐ này, kèm thay đổi contract QUIZ-02/API-03. Nên báo chủ quản rủi ro này cùng câu hỏi OTP (QĐ-012).
+
+### QĐ-017 · Nhánh `dev` gom công việc gói CUOC-THI; chưa đưa vào `main`
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: quản lý nhánh git của gói CUOC-THI (`dev`, `feature/cuoc-thi`, `lane/CUOC-THI-fe`, `main`, `origin/main`)
+- Vấn đề: cả nhóm vẫn làm trên `main`; `origin/main` hiện đi trước 33 commit. Công việc gói CUOC-THI nằm ở `feature/cuoc-thi` và các nhánh `lane/*`.
+- Quyết định: tạo nhánh `dev` (đã tạo cục bộ từ `feature/cuoc-thi`, đã merge luồng FE `lane/CUOC-THI-fe`) để gom toàn bộ công việc gói CUOC-THI. **Chưa đưa vào `main`.** Đẩy `dev` lên máy chủ khi có kết nối mạng. Cách hợp nhất `dev` với `origin/main` làm sau, **chưa quyết**.
+- Lý do: tránh chen vào `main` khi nhóm đang làm trên đó.
+- Ảnh hưởng: nhánh mã công việc của gói CUOC-THI nay là `dev`. Việc push do người dùng thực hiện (agent không push, theo QĐ-011). Chưa có quyết định về merge hay rebase với `origin/main`.
+
+### QĐ-018 · Cuộc thi theo thời gian, mỗi cuộc có khoảng thời gian riêng, không ràng "mỗi tháng một kỳ"
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: mô hình cuộc thi (CUOC-THI), thanh thông báo FE-32, thẻ cuộc thi, trang FE-33, BE-22 đến BE-24
+- Vấn đề: bản dựng và kế hoạch cũ có xu hướng coi cuộc thi là kỳ theo tháng (xem `docs/ban-giao/CUOC-THI/4a-phan-tich-ke-hoach-moi.md`, `4b-phan-tich-ban-dung-v2-va-code.md`); code trên `dev` chỉ có một cuộc thi cấu hình ở `thiPage` (QĐ-003).
+- Quyết định: cuộc thi gắn với thời gian nhưng không ràng cứng "mỗi tháng một kỳ". Có thể mỗi tháng một cuộc, hoặc 2 đến 3 cuộc trong một tháng, hoặc 2 đến 3 tháng mới có một cuộc. Mỗi cuộc thi có khoảng thời gian (bắt đầu, kết thúc) riêng.
+- Lý do: lịch cuộc thi do ban tổ chức quyết định theo từng đợt.
+- Ảnh hưởng: không viết cứng chu kỳ tháng ở dữ liệu hay giao diện. Chi tiết mô hình dữ liệu để bước thiết kế sau làm. QĐ-003, QĐ-006, QĐ-008, QĐ-014 cần xem lại (xem ghi chú ở từng mục).
+
+### QĐ-019 · Đề thi được chọn khi tạo cuộc thi (nguyên tắc)
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: tạo/sửa cuộc thi trong backoffice, API đọc câu hỏi cuộc thi (QUIZ-02, API-03…), `IQuestionBank`
+- Vấn đề: anhnn nhớ là backoffice đã có code chọn đề khi tạo cuộc thi trên `origin/main` nhưng chưa chắc. Kiểm chứng bằng git, không cần mạng (`git show origin/main:<đường dẫn>`, `git diff --name-only main..origin/main`):
+  - **Xác minh được** trên `origin/main` (các file này chưa có ở `dev`): bảng `contest` (`name`, `description`, `start_at`, `end_at`, `max_attempts`, `is_active`), `contest_topic` (khóa `contest_id` + `topic_id`), `contest_question` (khóa `contest_id` + `question_code`) trong migration `Umbraco.Plugin.Custom.Core/Data/Migrations/20261016044750_AddContestCampaigns.cs`; `Contest/ContestAdminService.cs` và `ContestAdminModels.cs` (`SaveContestCampaignRequest` có `Topics`, mỗi phần tử gồm `TopicId` và `QuestionCodes`); `Contest/CurrentContestService.cs`; `Umbraco.Plugin.Custom.Api/Controllers/ContestAdminController.cs`; giao diện backoffice `Umbraco.Web.UI/App_Plugins/ContestManagement/contest-management.js`.
+  - Cách chọn đề theo code đó: **chọn chuyên đề, rồi chọn từng câu trong chuyên đề**. Kiểm tra khi lưu: phải chọn ít nhất một chuyên đề, mỗi chuyên đề ít nhất một câu, không trùng chuyên đề hay câu, câu phải thuộc đúng chuyên đề đã chọn (`ContestAdminService.cs:226-247`); `MaxAttempts` từ 1 đến 1.000 (`:224`); kết thúc phải sau bắt đầu (`:222`).
+  - `CurrentContestService` chọn cuộc đang diễn ra: `IsActive` và `StartAt <= now <= EndAt`; nếu các cuộc chồng thời gian thì lấy cuộc bắt đầu muộn nhất (`CurrentContestService.cs:19-24`). Đây là hành vi của code, **chưa phải quyết định**.
+  - **Chưa xác minh**: code backoffice có build và chạy đúng không (Orchestrator không build/chạy); `ContestEntryService` và API thí sinh trên `origin/main` đã lấy đề theo `contest_question` hay chưa (chưa đọc kỹ); các thay đổi khác trên `origin/main` (ví dụ `docs/noi-dung/bo-cuc-cuoc-thi.md`, `thiPage`/uSync) xung đột thế nào với `dev`.
+- Quyết định: **về nguyên tắc**, đề thi được chọn khi tạo cuộc thi (mỗi cuộc có bộ đề riêng). Chi tiết cách chọn (theo chuyên đề hay theo câu) lấy theo code backoffice trên `origin/main`, vì code đúng như anhnn nhớ. Chưa quyết cách đưa code đó vào `dev` (xem QĐ-017).
+- Lý do: mỗi cuộc thi có thời gian và lượt riêng (QĐ-018, QĐ-021) nên cần bộ đề riêng.
+- Ảnh hưởng: "ngân hàng đang dùng" ở QĐ-015 cần xem lại theo bộ đề của từng cuộc; tổng số câu lấy từ cuộc thi, không còn từ toàn ngân hàng.
+
+### QĐ-020 · Cần thêm việc Backend cho lịch cuộc thi (nguyên tắc)
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: kế hoạch công việc (`docs/ke-hoach/Ke-hoach-cong-viec-antoantaichinh-v3.xlsx` › "Công việc"), FE-32 (thanh thông báo), thẻ cuộc thi, FE-33
+- Vấn đề: lịch tháng/lịch cuộc thi chưa có việc nào trong kế hoạch, trong khi FE-32, thẻ cuộc thi và FE-33 cần dữ liệu.
+- Quyết định: tạo thêm việc cho Backend làm nguồn dữ liệu lịch cuộc thi cho thanh thông báo FE-32, thẻ cuộc thi và trang FE-33. Chi tiết (mã việc, API, schema, task) do bước thiết kế sau (`/feature-design`) làm; ở đây chỉ ghi nguyên tắc.
+- Lý do: các màn FE trên không có dữ liệu thật nếu thiếu BE.
+- Ảnh hưởng: bước thiết kế sau thêm mã việc BE và chốt contract trước khi mở luồng FE.
+
+### QĐ-021 · Số lượt tối đa cấu hình khi thêm cuộc thi, tính riêng từng cuộc
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `maxAttempts`, API-01 và API-02 (đếm lượt), FE-25, FE-26, bảng `entry`
+- Vấn đề: hiện `maxAttempts` là cài đặt `thiPage` (QĐ-003), đếm lượt theo số điện thoại; tài liệu cũ chưa rõ lượt tính trọn đời hay theo tháng. Backoffice trên `origin/main` đã có `contest.max_attempts` (QĐ-019).
+- Quyết định: số lượt tối đa được cấu hình khi thêm cuộc thi. Mỗi cuộc thi có lượt thi riêng; **không còn tính trọn đời hay theo tháng**.
+- Lý do: mỗi cuộc có thời gian và bộ đề riêng.
+- Ảnh hưởng: lượt (`entry`) phải gắn với cuộc thi và việc đếm lượt theo cuộc thi; chi tiết schema do bước thiết kế sau làm. QĐ-003 cần xem lại (nguồn `maxAttempts`).

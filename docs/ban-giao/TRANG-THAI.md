@@ -7,57 +7,57 @@
 
 ## Tình hình
 
-**Gói CUOC-THI đang tạm dừng, chờ anhnn trả lời các câu hỏi chặn ở mục dưới.** Lý do tạm dừng: bản dựng giao diện đã đổi sang v2 và kế hoạch `Ke-hoach-cong-viec-antoantaichinh-v3.xlsx` đã cập nhật (cả hai commit ở `05847bac`). Ảnh mới ở `docs/ke-hoach/anh-v2/`; ảnh cũ `docs/ke-hoach/anh/` chỉ còn dùng cho luồng thi (`th-*`, `mb-06`, `mb-07`).
+**Gói CUOC-THI đã thiết kế lại xong nhưng chưa có task nào làm được ngay: mọi việc chờ anhnn chốt CXN-A** (cách hợp nhất `dev` với `origin/main`). Agent đang tạm dừng, không có phiên nào chạy.
+
+Lý do thiết kế lại: bản dựng đã đổi sang v2 và kế hoạch `Ke-hoach-cong-viec-antoantaichinh-v3.xlsx` đã cập nhật; cuộc thi chuyển sang **cuộc thi theo thời gian** (QĐ-018). Ảnh mới ở `docs/ke-hoach/anh-v2/`; ảnh cũ `docs/ke-hoach/anh/` chỉ còn dùng cho luồng thi (`th-*`, `mb-06`, `mb-07`).
+
+### Quyết định đã chốt trong phiên này (QĐ-017 đến QĐ-021, trong `docs/quyet-dinh.md`)
+
+| QĐ | Nội dung |
+|---|---|
+| 017 | Nhánh `dev` gom công việc gói CUOC-THI; **chưa vào `main`** vì nhóm vẫn đang làm trên `main`. Cách hợp nhất với `origin/main` chưa quyết |
+| 018 | Cuộc thi theo thời gian: mỗi cuộc có khoảng thời gian riêng; có thể mỗi tháng một cuộc, 2–3 cuộc/tháng, hoặc 2–3 tháng mới có một cuộc |
+| 019 | Đề thi chọn khi tạo cuộc thi. Backoffice trên `origin/main` đã có: chọn chuyên đề rồi chọn từng câu (đã xác minh bằng git, chưa chạy thử) |
+| 020 | Thêm việc Backend cho lịch cuộc thi (nguồn dữ liệu cho FE-32, FE-33, thẻ cuộc thi) |
+| 021 | Số lượt tối đa cấu hình khi thêm cuộc thi; mỗi cuộc thi có lượt riêng |
+
+QĐ-002, 003, 006, 008, 014, 015 đã được ghi chú "Cần xem lại" (vẫn hiệu lực).
 
 ### Nhánh và worktree
 
 | Nơi | Nhánh | Tình trạng |
 |---|---|---|
-| Repo chính `C:\GTSC\DMST\26.antc-portal` | `feature/cuoc-thi` (`2f7565db`) | FE-25 + API-01 (đã vào `main` local), luồng BE B1 đến B4 (API-02 đến 05) đã merge, bản dựng v2, kế hoạch mới, ảnh v2. Chưa push |
-| `C:\GTSC\DMST\wt\CUOC-THI-fe` | `lane/CUOC-THI-fe` | F1 (FE-28), F2 (FE-23), F3 (FE-26), F4a (màn câu hỏi) đã commit. **F4b dở dang: 3 file chưa commit** (`thiPage.cshtml`, `contest.css`, `exam.js`), làm theo thiết kế v1 |
-| (nhánh giữ lại) | `lane/CUOC-THI-be`, `feature/FE-25` | Đã merge, giữ để tra lịch sử |
+| Repo chính `C:\GTSC\DMST\26.antc-portal` | **`dev`** (đã đẩy lên máy chủ) | Gom hết: FE-25 + API-01, luồng BE B1–B4 (API-02..05), luồng FE F1–F4a, bản dựng v2, kế hoạch mới, ảnh v2, tài liệu điều phối, thiết kế lại. Build đạt (0 lỗi) |
+| `C:\GTSC\DMST\wt\CUOC-THI-fe` | `lane/CUOC-THI-fe` | Sạch; đã nằm trong `dev` |
+| (giữ lại) | `wip/CUOC-THI-F4b` (chỉ cục bộ) | F4b dở dang theo thiết kế v1, chưa kiểm chứng; không vào `dev`. Khuyến nghị giữ (Q6) |
+| (giữ lại) | `feature/cuoc-thi`, `lane/CUOC-THI-be`, `feature/FE-25` | Đã gộp vào `dev`, giữ để tra lịch sử |
 
-`main` local chưa có gì của gói CUOC-THI ngoài FE-25 và chưa từng được push. Không push khi chưa có BE-26 (QĐ-012).
-
-### Chưa commit trong repo chính
-
-`CLAUDE.md`, `.claude/skills/feature-design/SKILL.md`, `docs/quyet-dinh.md` (QĐ-002 đến QĐ-016), toàn bộ `docs/ban-giao/CUOC-THI/` (gồm hai báo cáo phân tích), file này. **Nên commit sớm** vì đây là sản phẩm của các lượt chạy; chờ anhnn đồng ý.
-
-## Kết quả phân tích bản dựng v2 (xong 2026-10-18)
-
-Báo cáo đầy đủ: `docs/ban-giao/CUOC-THI/4a-phan-tich-ke-hoach-moi.md` (kế hoạch mới so cũ, QĐ còn hiệu lực không) và `4b-phan-tich-ban-dung-v2-va-code.md` (bản dựng v2 so code). Mỗi báo cáo kết thúc bằng danh sách câu hỏi cần xác nhận.
-
-1. **`origin/main` của nhóm đã đi trước `main` local 33 commit** (kiểm bằng git ngày 2026-10-18), của MinhNB (trang cuộc thi), AnVu29 (trang Ứng phó, header, footer), nguyentainam3011 (backend câu hỏi, CMS). Trên đó đã có một bản `ContestController` và `ContestEntryService` khác, các lớp quản trị cuộc thi (`ContestAdminController`, `ContestAdminService`), `QuizAdminController`, bảng `contest`, `contest_topic`, `contest_question`, một bộ kiểm tra dữ liệu đầu vào, project test; `ContestSettings`, `ContestSettingsService`, `ContestConfigCheck` của gói này bị xóa ở đó. **Code của gói CUOC-THI (FE-25, API-01 đến 05) trùng việc và nhiều khả năng xung đột với nhánh đó.** Cần biết nhánh nào là chuẩn trước khi làm tiếp bất cứ việc BE nào.
-2. **Cuộc thi theo tháng chỉ mới có ở giao diện** (FE-32 thanh thông báo, FE-33 trang cuộc thi tháng, FE-34 hiệu ứng cuộn; thêm thẻ tháng vào FE-05, FE-12, FE-20, FE-24). Kế hoạch không có việc BE nào cho lịch tháng; sheet API, CSDL, Nội dung Umbraco không đổi.
-3. **Mô hình dữ liệu hiện tại lệch v2:** `thiPage` chỉ có một khoảng ngày; bảng `entry` không có cột kỳ/tháng; ba chỗ đếm lượt (API-01, 04, 05) đếm trọn đời. Áp dụng "2 lượt trong tháng" thì phải sửa schema và contract (ảnh hưởng Lớn).
-4. **Luồng thi (FE-25 đến FE-29) giữ nguyên** hành vi và API; v2 không có các màn này (nút "Đăng ký dự thi" trỏ về chính khối 4 bước), chỉ đổi khung và màu. Thiết kế và code luồng thi phần lớn dùng được (Nhỏ đến Vừa). FE-23 đổi màu đáp án sai sang hổ phách, code đang tô đỏ.
-5. **8 chuyên đề của lịch tháng không khớp ngân hàng câu hỏi**: chỉ 6 khớp; "Mạng xã hội, tài khoản bị chiếm" và "Bảo hiểm, y tế, chính sách" chưa có câu nào.
-6. **QĐ cần xem lại:** QĐ-003, 006, 008, 014, 015, 016 (QĐ-016: v2 có giải tiền mặt 2.000.000 đồng/tháng, đúng điều kiện mà chính QĐ-016 nói phải xem lại). Các QĐ còn lại còn hiệu lực. File docx mô tả FE đã lỗi thời ở toàn bộ phần giao diện.
-7. **Ước lượng công làm lại (thô):** P1 (mỗi tháng thi lại 200 câu cả 8 chuyên đề) 5–6,5 ngày công; P2 (mỗi tháng một đề riêng theo chuyên đề tháng) 8,5–11,5 ngày công. Chưa gồm FE-01, FE-32, FE-33 và nội dung câu hỏi mới.
-
-### Câu hỏi đang chặn (đầy đủ ở cuối hai báo cáo)
-
-1. Nhánh nào là chuẩn: `origin/main` hay `feature/cuoc-thi`? Hợp nhất thế nào?
-2. Cuộc thi có thật sự chuyển sang mỗi tháng một kỳ riêng không?
-3. Đề mỗi tháng: P1 hay P2?
-4. Lịch tháng lưu ở đâu, và việc BE nào làm (FE-32 cần nguồn dữ liệu này)?
-5. "Tối đa 2 lượt" tính trong mỗi tháng hay cả chương trình?
-6. Sau đó: giữ thi ẩn danh không; giữ quy tắc "làm Chuyên đề 1 trước" không; lượt làm dở khi hết tháng xử lý thế nào.
+`main` local và `origin/main`: **không đụng**. `origin/main` của nhóm đi trước `dev` 33 commit (kiểm lần cuối `1de97372`); `dev` đi trước `origin/main` 22+ commit.
 
 ## Việc tiếp theo, theo thứ tự
 
-1. anhnn lấy câu trả lời cho nhóm câu hỏi chặn (đặc biệt câu 1, có thể cần hỏi nhóm: ai đang làm API cuộc thi ở `origin/main`). **Chưa mở lại agent nào cho tới khi chốt nhánh chuẩn.**
-2. Ghi các quyết định thành QĐ mới (từ QĐ-017) trong `docs/quyet-dinh.md`; đổi trạng thái các QĐ bị thay.
-3. Orchestrator cập nhật `1-thiet-ke.md` và chia lại task theo v2 và nhánh chuẩn (`/feature-design`).
-4. Mở lại các luồng. F4b dở dang chỉ giữ nếu còn hợp; phần logic làm bài (F1, F2 JS, F4a) ít phụ thuộc mô hình tháng.
-5. Chờ chủ quản: câu hỏi OTP (QĐ-012) và rủi ro lộ đáp án (QĐ-016).
+Chi tiết và phương án ở `docs/ban-giao/CUOC-THI/1-thiet-ke.md`, mục **"Thiết kế lại theo cuộc thi theo thời gian (2026-10-18)"** (R0 đến R10).
+
+1. **anhnn chốt CXN-A: cách hợp nhất `dev` với `origin/main`.** Ba phương án: (A) merge `origin/main` vào `dev` (khuyến nghị, giữ API-01 của `dev`, nhận project test của nhóm); (B) giữ `dev`, chỉ chép phần cuộc thi của `origin/main`; (C) nhánh mới từ `origin/main` rồi chuyển dần. Cần chốt thêm ai làm (Worker ở luồng `CUOC-THI-hopnhat` hay người trong nhóm) và có báo nhóm trước không.
+2. Chốt các điểm còn lại, mỗi điểm chặn một số task: **CXN-B** schema (`entry.contest_id`, cột mới của `contest`, chặn đổi đề khi đã có lượt); **CXN-C** API-01 có `contestId`; **CXN-D** đề qua `QUIZ-01/02?contest=`; **CXN-E** API-07 lịch cuộc thi và nhãn lĩnh vực, thanh thông báo hiện cuộc nào khi nhiều cuộc cùng diễn ra; **CXN-F** chỗ đặt luồng thi (khuyến nghị document type mới `/cuoc-thi/lam-bai/?c=<id>`); **CXN-G** thay QĐ-008 bằng cuộc thi mẫu trong CSDL local.
+3. Câu hỏi mở (Q1–Q7): thi ẩn danh; quy tắc "làm Chuyên đề 1 trước"; lượt làm dở khi hết cuộc; QĐ-016 (lộ đáp án) và câu hỏi OTP (QĐ-012); cách hợp nhất; F4b; quay số theo cuộc.
+4. Ghi các điểm đã chốt thành QĐ (từ QĐ-022). Orchestrator sửa trạng thái task trong `1-thiet-ke.md`.
+5. Mở luồng. Thứ tự dự kiến: CXN-A → M1a (merge) → CXN-F → M1b (trang làm bài riêng) → hai luồng be/fe. Khi thiết kế đã chốt và task ở trạng thái "Làm được", chạy bằng `antc-pipeline.ps1` cho đỡ tốn lượt dùng.
+6. **Hạng mục mới cho kế hoạch:** `docs/ban-giao/CUOC-THI/5-hang-muc-moi-cho-ke-hoach.md` (10 hạng mục, BE-39 đến BE-45 và FE-35 đến FE-37, tổng ~7 ngày công; mã bắt đầu từ BE-39 vì kế hoạch đã dùng BE-30 đến BE-36 và BE-38). **anhnn dán vào sheet "Công việc" của xlsx**; agent không sửa xlsx.
+
+### Cần biết khi gộp nhánh
+
+- `origin/main` có `CLAUDE.md` riêng của nhóm; `dev` có `CLAUDE.md` khác. Sẽ trùng file khi merge: cần quyết định giữ thế nào (hoặc gộp nội dung).
+- Trên `origin/main`, `thiPage` đã bỏ hết thuộc tính cấu hình cuộc thi nhưng API-01 vẫn đọc `contestStart/End` từ đó, nên đọc code thì API-01 ở đó luôn trả `403 CONTEST_CLOSED`. API-01 của `dev` khác ở: trả 400 khi thi ẩn danh gửi kèm thông tin cá nhân (`dev` bỏ qua), thiếu muối băm IP thì `origin/main` không khởi động (trái QĐ-009), không có `Cache-Control: no-store`.
+- Báo cáo `4a` ghi sai một chỗ: `ContestSettings*` không bị xóa trên `origin/main`, chúng chỉ có ở `dev`.
+- Trước khi làm việc BE/FE lớn: `git fetch`, rồi so với `origin/main`.
 
 ## Công cụ (nằm ngoài repo, ở `C:\GTSC\DMST`)
 
 | Cái gì | Ở đâu | Dùng |
 |---|---|---|
 | Chạy một agent | `antc-agent.ps1` | `-Role orchestrator\|worker`, `-Prompt`, `-Lane`, `-Base`, `-AllowCommit`, `-Model sonnet`, `-MaxTurns`. Chạy nền. Ghi hồ sơ vào `agent-runs\`, log vào `agent-logs\` |
-| **Chạy cả chuỗi không cần phiên điều phối** | `antc-pipeline.ps1` | `-Code CUOC-THI -Lane CUOC-THI-fe -Tasks F5,F6 [-ReviewEvery 2] [-MaxFixRounds 2] [-MaxRuns 12] [-DryRun]`. Làm → review (Sonnet) → sửa → task kế tiếp; dừng và báo khi cần quyết định. Mẫu lời giao việc ở `pipeline-prompts\`. Tên task phải có trong `1-thiet-ke.md` |
+| **Chạy cả chuỗi không cần phiên điều phối** | `antc-pipeline.ps1` | `-Code CUOC-THI -Lane CUOC-THI-fe -Tasks F5,F6 [-ReviewEvery 2] [-MaxFixRounds 2] [-MaxRuns 12] [-DryRun]`. Làm → review (Sonnet) → sửa → task kế tiếp; dừng và báo khi cần quyết định. Mẫu lời giao việc ở `pipeline-prompts\`. Tên task phải có trong `1-thiet-ke.md`. Đã chạy thử thật, chạy tốt |
 | Trang theo dõi | `agent-monitor\start.cmd` → http://127.0.0.1:8799 | Ai đang chạy, bao lâu, nút dừng. Cổng 8787 đã bị chương trình khác giữ |
 | Worktree luồng | `wt\<luồng>` | Cổng web mỗi luồng ghi ở `wt\ports.json` |
 | Ảnh, kết quả kiểm chứng | `agent-artifacts\` | Nơi chung để Orchestrator xem được |
@@ -65,11 +65,11 @@ Báo cáo đầy đủ: `docs/ban-giao/CUOC-THI/4a-phan-tich-ke-hoach-moi.md` (k
 
 ## Bài học (đã gặp, để khỏi lặp lại)
 
-- Dừng web chỉ bằng PID của chính mình (qua cổng); **cấm `taskkill /IM dotnet.exe`** hay mọi lệnh diệt theo tên.
+- Dừng web chỉ bằng PID của chính mình (qua cổng); **cấm `taskkill /IM dotnet.exe`** hay mọi lệnh diệt theo tên. Sau `dotnet build`, tắt máy chủ biên dịch bằng `dotnet build-server shutdown`.
 - Orchestrator **không** build, không chạy web, không sửa `src/`; Worker không sửa tài liệu gốc và `docs/quyet-dinh.md`. Hai bên không nhắn tin trực tiếp, chỉ qua file.
 - Mỗi luồng ghi bàn giao/review vào file riêng (`2-ban-giao-<luồng>.md`, `3-review-<luồng>.md`) để phiên song song không ghi cùng một file.
 - Script chạy agent tự ép UTF-8 và tự thoát dấu nháy kép; nếu thấy chữ vỡ, kiểm tra hai điểm đó trước. Script `.ps1` chỉ dùng ký tự ASCII (PowerShell 5.1 đọc file không có BOM theo bảng mã ANSI); chữ tiếng Việt đặt trong file `.txt`/`.md` đọc bằng `-Encoding UTF8`.
 - `git show <rev>:<file> > out` trong PowerShell làm hỏng file nhị phân (xlsx, png); dùng Bash.
 - Chụp ảnh bản dựng: chế độ giảm chuyển động, công cụ ở `docs/ke-hoach/anh-v2/cong-cu/`.
-- Nhóm đang làm song song trên `origin/main`: trước khi làm việc BE/FE lớn, `git fetch` rồi so với `origin/main`.
+- Kết nối tới máy chủ git (VPN) có lúc chập chờn: kiểm tra bằng `git ls-remote --heads origin dev` rồi mới đẩy; đẩy lúc kết nối đang thông.
 - Phiên điều phối kéo dài rất tốn lượt dùng (xem "Tiết kiệm lượt dùng" trong `CLAUDE.md`).
