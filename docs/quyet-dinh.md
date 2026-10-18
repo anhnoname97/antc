@@ -251,3 +251,11 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Lý do: thống nhất nguồn tài liệu của dự án; giữ contract API-01 đang có.
 - Ảnh hưởng: bỏ gạch "Google Sheet là bản chuẩn" khỏi `CLAUDE.md` đã chèn; ca test ẩn danh giữ theo hành vi bỏ qua; test sửa theo hành vi code hiện tại (`/hoi-dap/cau-hoi/`).
 
+### QĐ-024 · Chốt CXN-B đến CXN-G của gói CUOC-THI theo khuyến nghị thiết kế
+
+- Ngày: 2026-10-18 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `docs/ban-giao/CUOC-THI/1-thiet-ke.md` mục R4, R5 và "Cần xác nhận"; bảng `entry`, `contest`; API-01, QUIZ-01/02, API-07; trang làm bài; `AppDbInitializer`
+- Quyết định: (B) `entry.contest_id` cho phép rỗng; thêm `submit_grace_hours`, `read_timer_factor`, `focus_area` vào `contest`; chặn xóa/đổi bộ đề khi cuộc đã có lượt (`409 CONTEST_HAS_ENTRIES`). (C) API-01 bắt buộc `contestId`, `404 CONTEST_NOT_FOUND`; thi ẩn danh gửi kèm trường cá nhân thì bỏ qua. (D) đề thi qua QUIZ-01/02 `?contest=` (công khai, có đáp án theo QĐ-016, chặn cuộc `upcoming`). (E) API-07 `GET /api/v1/contests` như R5; nhãn lĩnh vực từ cột `focus_area`; thanh thông báo hiện cuộc `ongoing` bắt đầu muộn nhất. (F) luồng thi ở document type mới (`cuocThiLamBaiPage`), `/cuoc-thi/lam-bai/?c=<id>`. (G) cuộc thi mẫu thay QĐ-008: chỉ `Development`, khi bảng `contest` trống.
+- Lý do: khuyến nghị của bước thiết kế lại; hỗ trợ nhiều cuộc cùng lúc (QĐ-018, QĐ-021).
+- Ảnh hưởng: mở các task B5, M1b, F6 (làm được ngay); B6–B13 mở dần theo phụ thuộc. QĐ-008 được thay bằng (G) khi B13 xong; QĐ-003 lấy `maxAttempts` từ `contest`.
+
