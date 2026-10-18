@@ -771,3 +771,9 @@ Kiểm `dev` sau ghép hai luồng BE (luồng `CUOC-THI-v4-kt`): build 0 lỗi,
 - **Lỗi nhỏ còn lại (chưa sửa, cần quyết):** form sửa cuộc thi dùng `datetime-local` nên mỗi lần lưu làm tròn mất giây giờ kết thúc (`23:59:59` thành `23:59:00`, mất tối đa 59 giây cuối cuộc).
 - Chưa kiểm: giá trị ngoài khoảng qua HTTP (có test đơn vị), đếm lượt giữa hai cuộc qua HTTP, CSDL cũ có dữ liệu, trình duyệt/điện thoại khác.
 
+## Task B15 (2026-10-18, anhnn: "làm nốt đi cho xong mục này")
+
+| Task | Việc | Luồng | Ghi chú |
+|---|---|---|---|
+| **B15** | Form sửa cuộc thi không được làm mất giây của `endAt`/`startAt`: giữ nguyên giây (và mili giây) nếu giờ-phút không đổi so với giá trị đang lưu; khi người dùng đổi giờ-phút thì `endAt` kết thúc ở giây :59 như cuộc mẫu B13 (`23:59:59`). Sửa ở `contest-management.js` và/hoặc `ContestAdminService`. | be | Test: lưu form không đổi gì thì `endAt`/`submitUntil` không đổi; đổi giờ-phút thì giây :59. Làm được. |
+
