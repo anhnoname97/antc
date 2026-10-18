@@ -1,6 +1,5 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
@@ -22,14 +21,6 @@ public class ContestAttemptServiceTests
                 x => x.Item1, x => new AnswerKey(x.Item1, x.Item2, "A", new HashSet<string> { "A", "B" })),
         };
         public void Reload() { }
-    }
-
-    private sealed class NoSettings : IContestSettings
-    {
-        public Task<ContestSettings?> GetAsync() => Task.FromResult<ContestSettings?>(null);
-        public ContestSettings Read(IPublishedContent page) => throw new NotSupportedException();
-        public ContestStatus GetStatus(ContestSettings settings, DateTime utcNow) => ContestStatus.Closed;
-        public bool IsSubmitOpen(ContestSettings settings, DateTime utcNow) => false;
     }
 
     private sealed class Fixture : IAsyncDisposable
@@ -54,7 +45,7 @@ public class ContestAttemptServiceTests
         public ContestAttemptService Service()
         {
             var bank = new FakeBank();
-            return new ContestAttemptService(Db, new NoSettings(), bank, new ContestCatalog(Db, bank, new Clock()), new Clock());
+            return new ContestAttemptService(Db, bank, new ContestCatalog(Db, bank, new Clock()), new Clock());
         }
 
         // Cuoc chi co chuyen de 1 voi cau A1 (de nho): A2 va B1 nam ngoai de

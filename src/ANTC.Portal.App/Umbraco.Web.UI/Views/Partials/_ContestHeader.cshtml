@@ -12,7 +12,6 @@
     var path = Context.Request.Path.Value ?? "/";
     var contest = await CurrentContests.GetAsync(Context.RequestAborted);
     var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
-    var contestMonth = contest is null ? string.Empty : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), vietnam).ToString("MM/yyyy");
     string DateLabel(DateTime value) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value, DateTimeKind.Utc), vietnam).ToString("dd/MM/yyyy");
 }
 <header class="contest-header" data-contest-header>
@@ -21,8 +20,8 @@
         <div class="contest-announcement" data-contest-banner role="region" aria-label="Cuộc thi đang diễn ra">
             <div class="contest-announcement-inner">
                 <span class="contest-announcement-dot" aria-hidden="true"></span>
-                <span><b>Cuộc thi tháng @contestMonth</b><span class="contest-announcement-details"> · @contest.Name · @DateLabel(contest.StartAt) – @DateLabel(contest.EndAt)</span></span>
-                <a href="#cuoc-thi">Tham gia ⟶</a>
+                <span><b>Cuộc thi đang diễn ra</b><span class="contest-announcement-details"> · @contest.Name · @DateLabel(contest.StartAt) – @DateLabel(contest.EndAt)</span></span>
+                <a href="/cuoc-thi/lam-bai/?c=@contest.Id">Tham gia ⟶</a>
                 <button type="button" class="contest-banner-close" data-contest-banner-close aria-label="Ẩn thông báo cuộc thi">×</button>
             </div>
         </div>
