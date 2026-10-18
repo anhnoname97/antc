@@ -99,7 +99,8 @@ export function panelHtml(topics) {
 
 // Nut o cot ben cho luot an danh chua nop
 export function attachButtonHtml() {
-  if (!inEntry() || state.entry.mode !== 'anon' || submitExpired()) return '';
+  // API-04 chi nhan khi phase 'open' (submit_only da dong gan ten, chi con nop bai)
+  if (!inEntry() || state.entry.mode !== 'anon' || submitExpired() || !state.contest || state.contest.phase !== 'open') return '';
   return '<button type="button" class="qnav o qnav--s qnav--block" data-attach-open>Dự thi có tên để xét giải</button>';
 }
 
@@ -235,8 +236,14 @@ function handleError(err, contact) {
       deps.onIncomplete(err.message);
       return;
     case 'CONTEST_CLOSED':
-      expired = true;
+      const attaching = kind === 'attach';
       closeDialog();
+      if (attaching) {
+        // Chi het han gan ten, nop bai co the con (submit_only): doc lai API-02 de cot ben an nut, khong khoa nop bai
+        deps.onAttached();
+        return;
+      }
+      expired = true;
       deps.onClosed();
       return;
     case 'ALREADY_NAMED':
