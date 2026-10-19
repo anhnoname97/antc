@@ -38,6 +38,7 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
             return CreatedAtAction(nameof(Campaign), new { id = item.Id }, item);
         }
         catch (ContestAdminValidationException ex) { return BadRequest(Error("VALIDATION", ex.Message, ex.Fields)); }
+        catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
     }
 
     [HttpPut("campaigns/{id:long}")]
@@ -50,11 +51,15 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
                 ? Ok(item) : NotFound(Error("CONTEST_NOT_FOUND", "Không tìm thấy cuộc thi."));
         }
         catch (ContestAdminValidationException ex) { return BadRequest(Error("VALIDATION", ex.Message, ex.Fields)); }
+        catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
     }
 
     [HttpDelete("campaigns/{id:long}")]
-    public async Task<IActionResult> DeleteCampaign(long id, CancellationToken ct) =>
-        await service.DeleteCampaignAsync(id, ct) ? NoContent() : NotFound();
+    public async Task<IActionResult> DeleteCampaign(long id, CancellationToken ct)
+    {
+        try { return await service.DeleteCampaignAsync(id, ct) ? NoContent() : NotFound(); }
+        catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
+    }
 
     [HttpGet("entries")]
     public async Task<ActionResult<PagedResult<ContestEntryAdminDto>>> Entries(

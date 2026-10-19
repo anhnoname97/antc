@@ -27,7 +27,8 @@ public sealed record ContestCampaignAdminDto(
     int QuestionCount,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    IReadOnlyList<ContestTopicTreeItemDto>? Topics = null);
+    IReadOnlyList<ContestTopicTreeItemDto>? Topics = null,
+    long Revision = 1);
 
 public sealed record SaveContestTopicRequest(int TopicId, IReadOnlyList<string>? QuestionCodes);
 
@@ -38,7 +39,8 @@ public sealed record SaveContestCampaignRequest(
     DateTime EndAt,
     int MaxAttempts,
     bool IsActive,
-    IReadOnlyList<SaveContestTopicRequest>? Topics);
+    IReadOnlyList<SaveContestTopicRequest>? Topics,
+    long? ExpectedRevision = null);
 
 public sealed record ContestEntryAdminDto(
     long Id,
@@ -53,7 +55,9 @@ public sealed record ContestEntryAdminDto(
     int? TotalQuestions,
     int? AttemptNo,
     DateTime CreatedAt,
-    DateTime? SubmittedAt);
+    DateTime? SubmittedAt,
+    long? ContestId = null,
+    string? ContestName = null);
 
 public sealed record DrawWinnerAdminDto(
     int Rank,
@@ -72,17 +76,25 @@ public sealed record DrawAdminDto(
     int EligibleCount,
     bool ExcludePrevious,
     string? Note,
-    IReadOnlyList<DrawWinnerAdminDto> Winners);
+    IReadOnlyList<DrawWinnerAdminDto> Winners,
+    long? ContestId = null,
+    string? ContestName = null);
 
 public sealed record SaveDrawRequest(
     int MinScore,
     int WinnersRequested,
     bool ExcludePrevious,
-    string? Note);
+    string? Note,
+    long? ContestId = null);
 
 public sealed class ContestAdminValidationException(IReadOnlyDictionary<string, string> fields)
     : Exception("Dữ liệu cuộc thi không hợp lệ.")
 {
     public IReadOnlyDictionary<string, string> Fields { get; } = fields;
+}
+
+public sealed class ContestAdminConflictException(string code, string message) : Exception(message)
+{
+    public string Code { get; } = code;
 }
 

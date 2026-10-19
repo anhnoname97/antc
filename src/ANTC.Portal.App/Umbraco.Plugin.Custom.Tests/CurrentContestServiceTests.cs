@@ -21,7 +21,7 @@ public class CurrentContestServiceTests
         var question = new QuizQuestion { Code = "TEST01", TopicId = 1 };
         db.QuizTopics.Add(topic); db.QuizQuestions.Add(question);
         var chosen = new ContestCampaign { Name = "Đang thi", IsActive = true, StartAt = Now.AddDays(-1), EndAt = Now.AddDays(1), MaxAttempts = 3,
-            Topics = [new ContestTopic { TopicId = 1 }], Questions = [new ContestQuestion { QuestionCode = "TEST01" }] };
+            Topics = [new ContestTopic { TopicId = 1, Title = "Việc làm", Intro = "[]" }], Questions = [new ContestQuestion { QuestionCode = "TEST01" }] };
         db.ContestCampaigns.AddRange(chosen,
             new ContestCampaign { Name = "Cũ hơn", IsActive = true, StartAt = Now.AddDays(-2), EndAt = Now.AddDays(1) },
             new ContestCampaign { Name = "Đã tắt", IsActive = false, StartAt = Now, EndAt = Now.AddDays(1) },

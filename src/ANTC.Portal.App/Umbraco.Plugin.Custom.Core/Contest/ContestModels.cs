@@ -7,12 +7,6 @@ public sealed class ContestSecurityOptions
     public string IpHashSalt { get; set; } = "";
 }
 
-public sealed record ContestSettings(DateTimeOffset? Start, DateTimeOffset? End, int MaxAttempts)
-{
-    public bool IsOpenAt(DateTimeOffset instant) =>
-        Start is not null && End is not null && End >= Start && instant >= Start && instant <= End;
-}
-
 public sealed record ContestEntryRegistration(
     string Mode,
     string? FullName,
@@ -27,11 +21,6 @@ public sealed record ContestEntryCreationResult(
     int? AttemptNo,
     int MaxAttempts,
     string Status);
-
-public interface IContestSettingsProvider
-{
-    ContestSettings GetCurrent();
-}
 
 public interface IContestEntryService
 {

@@ -23,7 +23,7 @@ public interface IContestAdminService
     Task<bool> DeleteDrawAsync(long id, CancellationToken ct);
 }
 
-public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvider) : IContestAdminService
+public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvider, IQuestionBank? bank = null) : IContestAdminService
 {
     public async Task<PagedResult<ContestCampaignAdminDto>> SearchCampaignsAsync(
         string? search, bool? isActive, int page, int pageSize, CancellationToken ct)
@@ -39,7 +39,7 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         if (isActive is not null) query = query.Where(x => x.IsActive == isActive);
 
         int total = await query.CountAsync(ct);
-        List<ContestCampaign> items = await query.Include(x => x.Topics).Include(x => x.Questions)
+        List<ContestCampaign> items = await query.Include(x => x.Topics).Include(x => x.Questions).AsSplitQuery()
             .OrderByDescending(x => x.StartAt).ThenByDescending(x => x.Id)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return Page(items.Select(x => MapCampaign(x)).ToList(), page, pageSize, total);
@@ -48,7 +48,7 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     public async Task<ContestCampaignAdminDto?> GetCampaignAsync(long id, CancellationToken ct)
     {
         ContestCampaign? campaign = await db.ContestCampaigns.AsNoTracking()
-            .Include(x => x.Topics).Include(x => x.Questions).SingleOrDefaultAsync(x => x.Id == id, ct);
+            .Include(x => x.Topics).Include(x => x.Questions).AsSplitQuery().SingleOrDefaultAsync(x => x.Id == id, ct);
         if (campaign is null) return null;
         return MapCampaign(campaign, await BuildQuestionTreeAsync(campaign, ct));
     }
@@ -56,7 +56,7 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     public async Task<IReadOnlyList<ContestTopicTreeItemDto>> GetQuestionTreeAsync(long? contestId, CancellationToken ct)
     {
         ContestCampaign? campaign = contestId is null ? null : await db.ContestCampaigns.AsNoTracking()
-            .Include(x => x.Topics).Include(x => x.Questions).SingleOrDefaultAsync(x => x.Id == contestId, ct);
+            .Include(x => x.Topics).Include(x => x.Questions).AsSplitQuery().SingleOrDefaultAsync(x => x.Id == contestId, ct);
         return await BuildQuestionTreeAsync(campaign, ct);
     }
 
@@ -64,21 +64,41 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     {
         ValidatedCampaign validated = await ValidateCampaignAsync(request, ct);
         DateTime now = UtcNow();
-        var campaign = new ContestCampaign { CreatedAt = now };
+        var campaign = new ContestCampaign { CreatedAt = now, Revision = 1,
+            BankVersion = await CurrentBankVersionAsync(ct) };
         ApplyCampaign(campaign, request, validated, now);
         db.ContestCampaigns.Add(campaign);
         await db.SaveChangesAsync(ct);
+        bank?.Reload();
         return (await GetCampaignAsync(campaign.Id, ct))!;
     }
 
     public async Task<ContestCampaignAdminDto?> UpdateCampaignAsync(long id, SaveContestCampaignRequest request, CancellationToken ct)
     {
         ContestCampaign? campaign = await db.ContestCampaigns.Include(x => x.Topics).Include(x => x.Questions)
+            .AsSplitQuery()
             .SingleOrDefaultAsync(x => x.Id == id, ct);
         if (campaign is null) return null;
+        if (request.ExpectedRevision is not null && request.ExpectedRevision != campaign.Revision)
+            throw new ContestAdminConflictException("CONTEST_CHANGED", "Cuộc thi đã được người khác cập nhật. Hãy tải lại dữ liệu.");
+        bool locked = campaign.StartAt <= UtcNow() || await db.Entries.AnyAsync(x => x.ContestId == id, ct);
+        if (locked && IsOnlyActivationChange(campaign, request))
+        {
+            campaign.IsActive = request.IsActive;
+            campaign.UpdatedAt = UtcNow();
+            campaign.Revision++;
+            await db.SaveChangesAsync(ct);
+            bank?.Reload();
+            return (await GetCampaignAsync(id, ct))!;
+        }
+        if (locked)
+            throw new ContestAdminConflictException("CONTEST_LOCKED", "Cuộc thi đã bắt đầu hoặc đã có lượt dự thi; chỉ được thay đổi trạng thái sử dụng.");
         ValidatedCampaign validated = await ValidateCampaignAsync(request, ct);
+        campaign.BankVersion = await CurrentBankVersionAsync(ct);
+        campaign.Revision++;
         ApplyCampaign(campaign, request, validated, UtcNow());
         await db.SaveChangesAsync(ct);
+        bank?.Reload();
         return (await GetCampaignAsync(id, ct))!;
     }
 
@@ -86,8 +106,12 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     {
         ContestCampaign? campaign = await db.ContestCampaigns.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (campaign is null) return false;
+        if (campaign.StartAt <= UtcNow() || await db.Entries.AnyAsync(x => x.ContestId == id, ct) ||
+            await db.Draws.AnyAsync(x => x.ContestId == id, ct))
+            throw new ContestAdminConflictException("CONTEST_IN_USE", "Không thể xóa cuộc thi đã bắt đầu, có lượt dự thi hoặc có lần quay số; hãy chuyển sang ngừng sử dụng.");
         db.ContestCampaigns.Remove(campaign);
         await db.SaveChangesAsync(ct);
+        bank?.Reload();
         return true;
     }
 
@@ -95,14 +119,15 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         string? search, string? status, string? mode, int page, int pageSize, CancellationToken ct)
     {
         (page, pageSize) = NormalizePaging(page, pageSize);
-        IQueryable<Entry> query = db.Entries.AsNoTracking();
+        IQueryable<Entry> query = db.Entries.AsNoTracking().Include(x => x.Contest);
         if (!string.IsNullOrWhiteSpace(search))
         {
             string term = search.Trim().ToLower();
             query = query.Where(x => x.Code.ToLower().Contains(term) ||
                 (x.FullName != null && x.FullName.ToLower().Contains(term)) ||
                 (x.Phone != null && x.Phone.Contains(term)) ||
-                (x.Org != null && x.Org.ToLower().Contains(term)));
+                (x.Org != null && x.Org.ToLower().Contains(term)) ||
+                (x.Contest != null && x.Contest.Name.ToLower().Contains(term)));
         }
 
         if (!string.IsNullOrWhiteSpace(status)) query = query.Where(x => x.Status == status);
@@ -114,44 +139,50 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     }
 
     public async Task<ContestEntryAdminDto?> GetEntryAsync(long id, CancellationToken ct) =>
-        await db.Entries.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) is { } entry
+        await db.Entries.AsNoTracking().Include(x => x.Contest).SingleOrDefaultAsync(x => x.Id == id, ct) is { } entry
             ? MapEntry(entry) : null;
 
     public async Task<PagedResult<DrawAdminDto>> SearchDrawsAsync(
         string? search, int page, int pageSize, CancellationToken ct)
     {
         (page, pageSize) = NormalizePaging(page, pageSize);
-        IQueryable<Draw> query = db.Draws.AsNoTracking();
+        IQueryable<Draw> query = db.Draws.AsNoTracking().Include(x => x.Contest);
         if (!string.IsNullOrWhiteSpace(search))
         {
             string term = search.Trim().ToLower();
             query = query.Where(x => x.CreatedBy.ToLower().Contains(term) ||
-                (x.Note != null && x.Note.ToLower().Contains(term)));
+                (x.Note != null && x.Note.ToLower().Contains(term)) ||
+                (x.Contest != null && x.Contest.Name.ToLower().Contains(term)));
         }
 
         int total = await query.CountAsync(ct);
-        List<Draw> draws = await query.Include(x => x.Winners).OrderByDescending(x => x.CreatedAt)
+        List<Draw> draws = await query.Include(x => x.Winners).AsSplitQuery().OrderByDescending(x => x.CreatedAt)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return Page(draws.Select(MapDraw).ToList(), page, pageSize, total);
     }
 
     public async Task<DrawAdminDto?> GetDrawAsync(long id, CancellationToken ct) =>
-        await db.Draws.AsNoTracking().Include(x => x.Winners)
+        await db.Draws.AsNoTracking().Include(x => x.Winners).Include(x => x.Contest).AsSplitQuery()
             .SingleOrDefaultAsync(x => x.Id == id, ct) is { } draw ? MapDraw(draw) : null;
 
     public async Task<DrawAdminDto> CreateDrawAsync(SaveDrawRequest request, string actor, CancellationToken ct)
     {
         Validate(request);
+        ContestCampaign contest = await db.ContestCampaigns.SingleOrDefaultAsync(x => x.Id == request.ContestId, ct)
+            ?? throw new ContestAdminValidationException(new Dictionary<string, string> { ["contestId"] = "Cuộc thi không tồn tại." });
         DateTime now = UtcNow();
         List<long> previousWinnerIds = request.ExcludePrevious
-            ? await db.DrawWinners.Where(x => x.EntryId != null).Select(x => x.EntryId!.Value).Distinct().ToListAsync(ct)
+            ? await db.DrawWinners.Where(x => x.EntryId != null && x.Draw!.ContestId == contest.Id)
+                .Select(x => x.EntryId!.Value).Distinct().ToListAsync(ct)
             : [];
         IQueryable<Entry> eligibleQuery = db.Entries.Where(x =>
-            x.Status == EntryStatuses.Submitted && x.Score >= request.MinScore);
+            x.ContestId == contest.Id && x.Status == EntryStatuses.Submitted && x.Score >= request.MinScore);
         if (previousWinnerIds.Count > 0) eligibleQuery = eligibleQuery.Where(x => !previousWinnerIds.Contains(x.Id));
         List<Entry> eligible = await eligibleQuery.OrderBy(_ => EF.Functions.Random()).ToListAsync(ct);
         Draw draw = new()
         {
+            ContestId = contest.Id,
+            Contest = contest,
             CreatedAt = now,
             CreatedBy = NormalizeActor(actor),
             MinScore = request.MinScore,
@@ -181,8 +212,10 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     public async Task<DrawAdminDto?> UpdateDrawAsync(long id, SaveDrawRequest request, CancellationToken ct)
     {
         Validate(request);
-        Draw? draw = await db.Draws.Include(x => x.Winners).SingleOrDefaultAsync(x => x.Id == id, ct);
+        Draw? draw = await db.Draws.Include(x => x.Winners).Include(x => x.Contest).SingleOrDefaultAsync(x => x.Id == id, ct);
         if (draw is null) return null;
+        if (request.ContestId != draw.ContestId)
+            throw new ContestAdminValidationException(new Dictionary<string, string> { ["contestId"] = "Không được đổi cuộc thi của một lần quay đã tạo." });
         draw.MinScore = request.MinScore;
         draw.WinnersRequested = request.WinnersRequested;
         draw.ExcludePrevious = request.ExcludePrevious;
@@ -203,6 +236,7 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     private static void Validate(SaveDrawRequest request)
     {
         var fields = new Dictionary<string, string>();
+        if (request.ContestId is null or <= 0) fields["contestId"] = "Phải chọn cuộc thi.";
         if (request.MinScore < 0) fields["minScore"] = "Điểm tối thiểu không được âm.";
         if (request.WinnersRequested is < 1 or > 1000) fields["winnersRequested"] = "Số người trúng phải từ 1 đến 1.000.";
         if (request.Note?.Trim().Length > 200) fields["note"] = "Ghi chú tối đa 200 ký tự.";
@@ -236,17 +270,22 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
             fields["questions"] = "Một câu hỏi không được chọn lặp lại.";
 
         int[] topicIds = selections.Select(x => x.TopicId).ToArray();
-        List<int> existingTopicIds = await db.QuizTopics.Where(x => topicIds.Contains(x.Id)).Select(x => x.Id).ToListAsync(ct);
-        if (existingTopicIds.Count != topicIds.Distinct().Count()) fields["topics"] = "Có chuyên đề không tồn tại.";
+        Dictionary<int, QuizTopic> existingTopics = await db.QuizTopics.Where(x => topicIds.Contains(x.Id) && x.IsActive)
+            .ToDictionaryAsync(x => x.Id, ct);
+        if (existingTopics.Count != topicIds.Distinct().Count()) fields["topics"] = "Có chuyên đề không tồn tại hoặc đang ngừng dùng.";
         string[] codes = selections.SelectMany(x => x.Questions).Select(x => x.Code).ToArray();
-        Dictionary<string, int> questionTopics = await db.QuizQuestions.Where(x => codes.Contains(x.Code))
-            .ToDictionaryAsync(x => x.Code, x => x.TopicId, ct);
-        if (questionTopics.Count != codes.Distinct().Count()) fields["questions"] = "Có câu hỏi không tồn tại.";
+        Dictionary<string, QuizQuestion> existingQuestions = await db.QuizQuestions.Where(x => codes.Contains(x.Code) && x.IsActive)
+            .ToDictionaryAsync(x => x.Code, ct);
+        if (existingQuestions.Count != codes.Distinct().Count()) fields["questions"] = "Có câu hỏi không tồn tại hoặc đang ngừng dùng.";
         if (selections.Any(topic => topic.Questions.Any(question =>
-                questionTopics.TryGetValue(question.Code, out int topicId) && topicId != topic.TopicId)))
+                existingQuestions.TryGetValue(question.Code, out QuizQuestion? item) && item.TopicId != topic.TopicId)))
             fields["questions"] = "Câu hỏi phải thuộc đúng chuyên đề đã chọn.";
         if (fields.Count > 0) throw new ContestAdminValidationException(fields);
-        return new ValidatedCampaign(name, startAt, endAt, selections);
+        return new ValidatedCampaign(name, startAt, endAt, selections.Select(topic => topic with
+        {
+            Topic = existingTopics[topic.TopicId],
+            Questions = topic.Questions.Select(question => question with { Question = existingQuestions[question.Code] }).ToList()
+        }).ToList());
     }
 
     private static void ApplyCampaign(
@@ -264,8 +303,15 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         foreach (ValidatedTopic selected in validated.Topics)
         {
             ContestTopic? current = campaign.Topics.SingleOrDefault(x => x.TopicId == selected.TopicId);
-            if (current is null) campaign.Topics.Add(new ContestTopic { TopicId = selected.TopicId, SortOrder = selected.SortOrder });
-            else current.SortOrder = selected.SortOrder;
+            if (current is null)
+            {
+                current = new ContestTopic { TopicId = selected.TopicId };
+                campaign.Topics.Add(current);
+            }
+            current.SortOrder = selected.SortOrder;
+            current.Title = selected.Topic!.Title;
+            current.Intro = selected.Topic.Intro;
+            current.Terms = selected.Topic.Terms;
         }
 
         Dictionary<string, ValidatedQuestion> selectedQuestions = validated.Topics.SelectMany(x => x.Questions)
@@ -274,8 +320,24 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         foreach (ValidatedQuestion selected in selectedQuestions.Values)
         {
             ContestQuestion? current = campaign.Questions.SingleOrDefault(x => x.QuestionCode == selected.Code);
-            if (current is null) campaign.Questions.Add(new ContestQuestion { QuestionCode = selected.Code, SortOrder = selected.SortOrder });
-            else current.SortOrder = selected.SortOrder;
+            if (current is null)
+            {
+                current = new ContestQuestion { QuestionCode = selected.Code };
+                campaign.Questions.Add(current);
+            }
+            QuizQuestion source = selected.Question!;
+            current.TopicId = source.TopicId;
+            current.SortOrder = selected.SortOrder;
+            current.Kind = source.Kind;
+            current.Situation = source.Situation;
+            current.QuestionText = source.Question;
+            current.Options = source.Options;
+            current.Answer = source.Answer;
+            current.Explanations = source.Explanations;
+            current.SafeAction = source.SafeAction;
+            current.ReadSeconds = source.ReadSeconds;
+            current.SampleOrder = source.SampleOrder;
+            current.SampleLabel = source.SampleLabel;
         }
     }
 
@@ -301,16 +363,17 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     private static ContestCampaignAdminDto MapCampaign(
         ContestCampaign x, IReadOnlyList<ContestTopicTreeItemDto>? topics = null) => new(
         x.Id, x.Name, x.Description, AsUtc(x.StartAt), AsUtc(x.EndAt), x.MaxAttempts, x.IsActive,
-        x.Topics.Count, x.Questions.Count, AsUtc(x.CreatedAt), AsUtc(x.UpdatedAt), topics);
+        x.Topics.Count, x.Questions.Count, AsUtc(x.CreatedAt), AsUtc(x.UpdatedAt), topics, x.Revision);
 
     private static ContestEntryAdminDto MapEntry(Entry x) => new(
         x.Id, x.Code, x.Mode, x.FullName, x.Phone, x.Org, x.Status, x.Answered,
-        x.Score, x.TotalQuestions, x.AttemptNo, x.CreatedAt, x.SubmittedAt);
+        x.Score, x.TotalQuestions, x.AttemptNo, x.CreatedAt, x.SubmittedAt, x.ContestId, x.Contest?.Name);
 
     private static DrawAdminDto MapDraw(Draw x) => new(
         x.Id, x.CreatedAt, x.CreatedBy, x.MinScore, x.WinnersRequested, x.EligibleCount,
         x.ExcludePrevious, x.Note, x.Winners.OrderBy(w => w.Rank)
-            .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, w.Phone, w.Score)).ToList());
+            .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, w.Phone, w.Score)).ToList(),
+        x.ContestId, x.Contest?.Name);
 
     private static (int Page, int PageSize) NormalizePaging(int page, int pageSize) =>
         (Math.Max(1, page), Math.Clamp(pageSize, 1, 100));
@@ -330,7 +393,35 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     };
     private static string NormalizeActor(string actor) => string.IsNullOrWhiteSpace(actor) ? "backoffice" : actor[..Math.Min(actor.Length, 100)];
     private static string? NullIfEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private async Task<long> CurrentBankVersionAsync(CancellationToken ct) =>
+        await db.QuizImports.Select(x => (long?)x.Id).MaxAsync(ct) ?? 0;
+
+    private static bool IsOnlyActivationChange(ContestCampaign campaign, SaveContestCampaignRequest request)
+    {
+        DateTime start = NormalizeInstant(request.StartAt);
+        DateTime end = NormalizeInstant(request.EndAt);
+        var requestedTopics = (request.Topics ?? []).Select((x, index) => new
+        {
+            x.TopicId,
+            SortOrder = index,
+            Questions = (x.QuestionCodes ?? []).Select((code, questionIndex) => new
+            {
+                Code = code.Trim().ToUpperInvariant(),
+                SortOrder = questionIndex,
+            }).ToList(),
+        }).ToList();
+        bool sameTopics = requestedTopics.Count == campaign.Topics.Count && requestedTopics.All(x =>
+            campaign.Topics.Any(current => current.TopicId == x.TopicId && current.SortOrder == x.SortOrder));
+        bool sameQuestions = requestedTopics.SelectMany(x => x.Questions).Count() == campaign.Questions.Count &&
+            requestedTopics.SelectMany(x => x.Questions).All(x => campaign.Questions.Any(current =>
+                current.QuestionCode == x.Code && current.SortOrder == x.SortOrder));
+        return string.Equals(campaign.Name, request.Name?.Trim(), StringComparison.Ordinal) &&
+               string.Equals(campaign.Description, NullIfEmpty(request.Description), StringComparison.Ordinal) &&
+               campaign.StartAt == start && campaign.EndAt == end && campaign.MaxAttempts == request.MaxAttempts &&
+               sameTopics && sameQuestions;
+    }
+
     private sealed record ValidatedCampaign(string Name, DateTime StartAt, DateTime EndAt, IReadOnlyList<ValidatedTopic> Topics);
-    private sealed record ValidatedTopic(int TopicId, int SortOrder, IReadOnlyList<ValidatedQuestion> Questions);
-    private sealed record ValidatedQuestion(string Code, int SortOrder);
+    private sealed record ValidatedTopic(int TopicId, int SortOrder, IReadOnlyList<ValidatedQuestion> Questions, QuizTopic? Topic = null);
+    private sealed record ValidatedQuestion(string Code, int SortOrder, QuizQuestion? Question = null);
 }

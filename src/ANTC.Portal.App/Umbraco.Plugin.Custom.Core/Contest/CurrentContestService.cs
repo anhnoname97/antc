@@ -22,13 +22,14 @@ public sealed class CurrentContestService(AppDbContext db, TimeProvider clock) :
         ContestCampaign? campaign = await db.ContestCampaigns.AsNoTracking()
             .Where(x => x.IsActive && x.StartAt <= now && x.EndAt >= now)
             .OrderByDescending(x => x.StartAt).ThenByDescending(x => x.Id)
-            .Include(x => x.Topics).ThenInclude(x => x.Topic)
+            .Include(x => x.Topics)
             .Include(x => x.Questions)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(cancellationToken);
         if (campaign is null) return null;
         return new CurrentContest(campaign.Id, campaign.Name, campaign.Description,
             campaign.StartAt, campaign.EndAt, campaign.MaxAttempts, campaign.Questions.Count,
             campaign.Topics.OrderBy(x => x.SortOrder).ThenBy(x => x.TopicId)
-                .Select(x => x.Topic?.Title ?? "").ToList());
+                .Select(x => x.Title).ToList());
     }
 }

@@ -17,18 +17,15 @@ public class ContestEntryService : IContestEntryService
     private const int MaxCodeGenerationAttempts = 32;
 
     private readonly AppDbContext _db;
-    private readonly IContestSettingsProvider _settingsProvider;
     private readonly ContestSecurityOptions _security;
     private readonly TimeProvider _timeProvider;
 
     public ContestEntryService(
         AppDbContext db,
-        IContestSettingsProvider settingsProvider,
         IOptions<ContestSecurityOptions> security,
         TimeProvider timeProvider)
     {
         _db = db;
-        _settingsProvider = settingsProvider;
         _security = security.Value;
         _timeProvider = timeProvider;
     }
@@ -38,12 +35,7 @@ public class ContestEntryService : IContestEntryService
         string? ipAddress,
         CancellationToken cancellationToken = default)
     {
-        ContestSettings settings = _settingsProvider.GetCurrent();
         DateTimeOffset now = _timeProvider.GetUtcNow();
-        if (!settings.IsOpenAt(now))
-        {
-            throw new ContestClosedException();
-        }
 
         await _db.Database.OpenConnectionAsync(cancellationToken);
         try
@@ -58,12 +50,23 @@ public class ContestEntryService : IContestEntryService
                 await _db.Database.UseTransactionAsync(sqliteTransaction, cancellationToken)
                 ?? throw new InvalidOperationException("Khong the khoi tao transaction tao luot thi.");
 
+            DateTime utcNow = now.UtcDateTime;
+            ContestCampaign? contest = await _db.ContestCampaigns
+                .Where(x => x.IsActive && x.StartAt <= utcNow && x.EndAt >= utcNow)
+                .OrderByDescending(x => x.StartAt).ThenByDescending(x => x.Id)
+                .Include(x => x.Questions)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (contest is null)
+            {
+                throw new ContestClosedException();
+            }
+
             int? attemptNo = null;
             if (registration.Mode == EntryModes.Named)
             {
                 int usedAttempts = await _db.Entries
-                    .CountAsync(e => e.Phone == registration.Phone, cancellationToken);
-                if (usedAttempts >= settings.MaxAttempts)
+                    .CountAsync(e => e.ContestId == contest.Id && e.Phone == registration.Phone, cancellationToken);
+                if (usedAttempts >= contest.MaxAttempts)
                 {
                     throw new AttemptLimitException();
                 }
@@ -77,6 +80,7 @@ public class ContestEntryService : IContestEntryService
 
             var entry = new Entry
             {
+                ContestId = contest.Id,
                 Code = code,
                 TokenHash = Hash(token),
                 Mode = registration.Mode,
@@ -87,7 +91,8 @@ public class ContestEntryService : IContestEntryService
                 AttemptNo = attemptNo,
                 Status = EntryStatuses.InProgress,
                 Answered = 0,
-                CreatedAt = now.UtcDateTime,
+                CreatedAt = utcNow,
+                TotalQuestions = contest.Questions.Count,
                 IpHash = string.IsNullOrWhiteSpace(ipAddress)
                     ? null
                     : Hash(ipAddress + "|" + _security.IpHashSalt),
@@ -102,7 +107,7 @@ public class ContestEntryService : IContestEntryService
                 token,
                 entry.Mode,
                 entry.AttemptNo,
-                settings.MaxAttempts,
+                contest.MaxAttempts,
                 entry.Status);
         }
         finally

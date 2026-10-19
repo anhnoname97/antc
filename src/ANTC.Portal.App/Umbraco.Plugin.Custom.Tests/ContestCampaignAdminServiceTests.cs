@@ -17,7 +17,38 @@ public class ContestCampaignAdminServiceTests
         Assert.Equal(1, result.QuestionCount);
         Assert.Single(await test.Db.ContestTopics.ToListAsync());
         Assert.Equal("Q-001", (await test.Db.ContestQuestions.SingleAsync()).QuestionCode);
+        Assert.Equal("Câu hỏi Q-001", (await test.Db.ContestQuestions.SingleAsync()).QuestionText);
+        Assert.Equal("Chuyên đề 1", (await test.Db.ContestTopics.SingleAsync()).Title);
         Assert.True(result.Topics!.Single(x => x.Id == 1).Questions.Single(x => x.Code == "Q-001").IsSelected);
+    }
+
+    [Fact]
+    public async Task Snapshot_DoesNotChangeWhenQuestionBankIsEdited()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        ContestCampaignAdminDto created = await test.Service.CreateCampaignAsync(Request(1, "Q-001"), default);
+        QuizQuestion question = await test.Db.QuizQuestions.SingleAsync(x => x.Code == "Q-001");
+        question.Question = "Nội dung ngân hàng đã sửa";
+        question.Answer = "B";
+        await test.Db.SaveChangesAsync();
+        test.Db.ChangeTracker.Clear();
+
+        ContestQuestion snapshot = await test.Db.ContestQuestions.SingleAsync(x => x.ContestId == created.Id);
+        Assert.Equal("Câu hỏi Q-001", snapshot.QuestionText);
+        Assert.Equal("A", snapshot.Answer);
+    }
+
+    [Fact]
+    public async Task CreateCampaign_RejectsInactiveContent()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        (await test.Db.QuizQuestions.SingleAsync(x => x.Code == "Q-001")).IsActive = false;
+        await test.Db.SaveChangesAsync();
+
+        ContestAdminValidationException error = await Assert.ThrowsAsync<ContestAdminValidationException>(
+            () => test.Service.CreateCampaignAsync(Request(1, "Q-001"), default));
+
+        Assert.Contains("questions", error.Fields);
     }
 
     [Fact]
@@ -71,8 +102,8 @@ public class ContestCampaignAdminServiceTests
     private static SaveContestCampaignRequest Request(int topicId, string questionCode) => new(
         "Cuộc thi tháng 10",
         "Kiểm tra cấu hình cây",
-        new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc),
-        new DateTime(2026, 10, 31, 23, 59, 0, DateTimeKind.Utc),
+        new DateTime(2030, 10, 1, 0, 0, 0, DateTimeKind.Utc),
+        new DateTime(2030, 10, 31, 23, 59, 0, DateTimeKind.Utc),
         2,
         true,
         [new SaveContestTopicRequest(topicId, [questionCode])]);

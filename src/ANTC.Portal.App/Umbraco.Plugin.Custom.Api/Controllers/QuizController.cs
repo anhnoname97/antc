@@ -14,8 +14,15 @@ namespace Umbraco.Plugin.Custom.Api.Controllers;
 public class QuizController : ControllerBase
 {
     private readonly IQuestionBank _bank;
+    private readonly TimeProvider _clock;
 
-    public QuizController(IQuestionBank bank) => _bank = bank;
+    public QuizController(IQuestionBank bank, TimeProvider? clock = null)
+    {
+        _bank = bank;
+        _clock = clock ?? TimeProvider.System;
+    }
+
+    private QuestionBankSnapshot Snapshot() => _bank.CurrentAt(_clock.GetUtcNow().UtcDateTime);
 
     /// <summary>QUIZ-01: danh sach chuyen de dang dung.</summary>
     [HttpGet("topics")]
@@ -23,8 +30,8 @@ public class QuizController : ControllerBase
     [ProducesResponseType(StatusCodes.Status304NotModified)]
     public IActionResult Topics()
     {
-        QuestionBankSnapshot snapshot = _bank.Current;
-        return Cached(snapshot.Topics, snapshot.Version);
+        QuestionBankSnapshot snapshot = Snapshot();
+        return Cached(snapshot.Topics, CacheKey(snapshot));
     }
 
     /// <summary>QUIZ-02: cau hoi dang dung cua mot chuyen de.</summary>
@@ -34,7 +41,7 @@ public class QuizController : ControllerBase
     [ProducesResponseType<ApiErrorResponse>(StatusCodes.Status404NotFound)]
     public IActionResult Questions(int topic)
     {
-        QuestionBankSnapshot snapshot = _bank.Current;
+        QuestionBankSnapshot snapshot = Snapshot();
         if (!snapshot.QuestionsByTopic.TryGetValue(topic, out var questions))
         {
             return NotFound(new ApiErrorResponse(new ApiError(
@@ -43,7 +50,7 @@ public class QuizController : ControllerBase
                 new Dictionary<string, string>())));
         }
 
-        return Cached(questions, snapshot.Version);
+        return Cached(questions, CacheKey(snapshot));
     }
 
     /// <summary>QUIZ-03: cac cau cua trang Thu suc, theo thu tu.</summary>
@@ -52,13 +59,13 @@ public class QuizController : ControllerBase
     [ProducesResponseType(StatusCodes.Status304NotModified)]
     public IActionResult Sample()
     {
-        QuestionBankSnapshot snapshot = _bank.Current;
-        return Cached(snapshot.Sample, snapshot.Version);
+        QuestionBankSnapshot snapshot = Snapshot();
+        return Cached(snapshot.Sample, CacheKey(snapshot));
     }
 
-    private IActionResult Cached(object payload, long version)
+    private IActionResult Cached(object payload, string cacheKey)
     {
-        string etag = $"\"quiz-v{version}\"";
+        string etag = $"\"{(string.IsNullOrWhiteSpace(cacheKey) ? "quiz-v0" : cacheKey)}\"";
         Response.Headers.ETag = etag;
         Response.Headers.CacheControl = "public, max-age=300";
         if (MatchesIfNoneMatch(etag))
@@ -68,6 +75,9 @@ public class QuizController : ControllerBase
 
         return Ok(payload);
     }
+
+    private static string CacheKey(QuestionBankSnapshot snapshot) =>
+        string.IsNullOrWhiteSpace(snapshot.CacheKey) ? $"quiz-v{snapshot.Version}" : snapshot.CacheKey;
 
     private bool MatchesIfNoneMatch(string etag)
     {

@@ -11,7 +11,6 @@ using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
 using Umbraco.Plugin.Custom.Core.Questions;
-using Umbraco.Plugin.Custom.Core.Questions;
 using Umbraco.Plugin.Custom.Core.Services;
 
 namespace Umbraco.Plugin.Custom.Core.Composers;
@@ -47,7 +46,6 @@ public class CustomCoreComposer : IComposer
                 "Contest:IpHashSalt phai duoc cau hinh de bam dia chi IP.")
             .ValidateOnStart();
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddScoped<IContestSettingsProvider, UmbracoContestSettingsProvider>();
         builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
         builder.Services.AddScoped<QuestionSubmissionService>();
         builder.Services.AddScoped<IContestAdminService, ContestAdminService>();
