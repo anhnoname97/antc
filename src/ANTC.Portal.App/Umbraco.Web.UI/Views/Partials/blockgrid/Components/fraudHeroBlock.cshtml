@@ -1,0 +1,22 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@{ var c = Model.Content; var id = "fraud-search-" + Model.ContentKey; }
+<div class="ph" data-header-hero="true">
+    <div class="ph-sky"></div>
+    <div class="ph-drum" aria-hidden="true"><img src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt=""></div>
+    <span class="ph-num" aria-hidden="true">03</span><div class="ph-shade"></div>
+    <div class="ph-copy">
+        <nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>@c.Value("breadcrumbLabel")</span></nav>
+        <p class="eyebrow">@c.Value("eyebrow")</p>
+        <h1><span class="line"><span data-line>@c.Value("title")</span></span><span class="line"><span data-line><em>@c.Value("highlightTitle")</em></span></span></h1>
+        <p class="lead">@c.Value("description")</p>
+        <div class="search" data-intro>
+            <form role="search" data-fraud-search action="#linh-vuc">
+                <label for="@id" class="fraud-sr-only">Tìm lĩnh vực thủ đoạn</label>
+                <input id="@id" type="search" placeholder="@c.Value("searchPlaceholder")" autocomplete="off" maxlength="150" aria-describedby="@(id)-privacy">
+                <button type="submit">@c.Value("searchButtonLabel")</button>
+            </form>
+            <small id="@(id)-privacy"><b aria-hidden="true">⚠</b>@c.Value("privacyNote")</small>
+            <noscript><small>Chọn trực tiếp trong danh sách lĩnh vực phía dưới.</small></noscript>
+        </div>
+    </div>
+</div>

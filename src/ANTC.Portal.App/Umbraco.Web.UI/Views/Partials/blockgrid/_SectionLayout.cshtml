@@ -6,6 +6,7 @@
     var isStory = Model.Areas.SelectMany(area => area).Any(block => block.Content.ContentType.Alias == "introStoryBlock");
     var isSafetyReminder = Model.Areas.SelectMany(area => area).Any(block => block.Content.ContentType.Alias == "safetyReminderBlock");
     var isEmergencyHero = Model.Areas.SelectMany(area => area).Any(block => block.Content.ContentType.Alias == "emergencyHeroBlock");
+    var isFraudHero = Model.Areas.SelectMany(area => area).Any(block => block.Content.ContentType.Alias == "fraudHeroBlock");
     var settings = Model.Settings;
     var theme = settings?.Value<string>("theme")?.Trim();
     if (theme?.StartsWith('[') == true)
@@ -23,7 +24,7 @@
     var animate = settings?.Value<bool>("enableAnimation") == true;
 }
 <section class="home-section home-section--@theme @(isHero ? "home-section--hero" : null) @(isStory ? "home-section--story" : null) @(isSafetyReminder ? "home-section--safety-reminder" : null) @(isEmergencyHero ? "home-section--emergency-hero" : null)" id="@anchor" style="@customPadding"
-         data-header-hero="@(isHero || isEmergencyHero ? "true" : "false")" data-hero-motion="@(animate ? "true" : "false")">
+         data-header-hero="@(isHero || isEmergencyHero || isFraudHero ? "true" : "false")" data-hero-motion="@(animate ? "true" : "false")">
     @if (isHero)
     {
         <div class="intro-hero__decoration" aria-hidden="true">
