@@ -28,17 +28,21 @@ public sealed record QuestionPage(IReadOnlyList<QuestionRow> Items, int Total, i
 public sealed record QuestionRow(long Id, string Type, string Content, bool WantReply, string? Contact,
     string Status, string? AdminNote, string? HandledBy, DateTimeOffset? HandledAt, DateTimeOffset CreatedAt,
     string? Answer = null, string? PublishedAnswer = null, bool IsPublished = false,
-    DateTimeOffset? ApprovedAt = null, string? ApprovedBy = null, long ReviewVersion = 0)
+    DateTimeOffset? ApprovedAt = null, string? ApprovedBy = null, long ReviewVersion = 0,
+    string? GuidanceLabel = null, string? GuidanceUrl = null, string? PublishedGuidanceLabel = null, string? PublishedGuidanceUrl = null)
 {
     public static QuestionRow FromEntity(QuestionSubmission row) => new(row.Id, row.Type, row.Content,
         row.WantReply, row.Contact, row.Status, row.AdminNote, row.HandledBy,
         row.HandledAt is { } handled ? QuestionValues.AsUtc(handled) : null, QuestionValues.AsUtc(row.CreatedAt),
         row.Answer, row.PublishedAnswer, row.IsPublished,
-        row.ApprovedAt is { } approved ? QuestionValues.AsUtc(approved) : null, row.ApprovedBy, row.ReviewVersion);
+        row.ApprovedAt is { } approved ? QuestionValues.AsUtc(approved) : null, row.ApprovedBy, row.ReviewVersion,
+        row.GuidanceLabel, row.GuidanceUrl, row.PublishedGuidanceLabel, row.PublishedGuidanceUrl);
 }
 
-public sealed record QuestionReview(long ReviewVersion, string Status, string? AdminNote, string? Answer);
-public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt);
+public sealed record QuestionReview(long ReviewVersion, string Status, string? AdminNote, string? Answer,
+    string? GuidanceLabel = null, string? GuidanceUrl = null);
+public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt,
+    string? GuidanceLabel = null, string? GuidanceUrl = null);
 public sealed record PublishedQuestionQuery(int Page = 1, int PageSize = PublishedQuestionPage.DefaultPageSize,
     string? Search = null, string Sort = "newest")
 {

@@ -65,3 +65,6 @@ body.contest-site { font-family: 'Roboto', Arial, Helvetica, sans-serif; font-si
   .contest-site .contest-tools .ic { display: none; }
   .contest-site .contest-font-toggle, .contest-site .contest-brand small { display: none; }
 }
+
+/* Its fixed transparent header overlays the hero; shared header spacing must not apply. */
+body.contest-site #noi-dung { padding-top: 0; }

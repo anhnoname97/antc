@@ -1,0 +1,38 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    var id = $"qa-submit-{Model.ContentKey:N}";
+}
+<section class="qa-submit-shell" id="gui" data-qa-submission aria-labelledby="@id">
+<div class="form">
+<form action="/api/v1/questions" method="post" data-qa-form novalidate>
+<p class="eyebrow">@T("eyebrow")</p>
+<h2 id="@id">@T("title")</h2>
+<input type="hidden" name="type" value="cau-hoi">
+<label class="lb" for="@(id + "-content")">@T("contentLabel")</label>
+<textarea name="content" id="@(id + "-content")" rows="5" minlength="10" maxlength="2000" placeholder="@T("placeholder")" aria-describedby="@(id + "-meter") @(id + "-content-error")" required></textarea>
+<div class="meter" id="@(id + "-meter")"><span>@T("hint")</span><span data-qa-count>0 / 2000</span></div>
+<p class="qa-error" id="@(id + "-content-error")" data-field-error="content" hidden></p>
+<div class="guard" data-qa-guard role="status" hidden><span aria-hidden="true">⚠</span><span>Có vẻ bạn vừa gõ một dãy số. Đừng gửi mã OTP, số thẻ, số tài khoản hay số điện thoại. Hãy xóa dãy số đó đi.</span></div>
+<label class="chk" hidden><input type="checkbox" name="wantReply" aria-controls="@(id + "-contact-fields")" aria-expanded="false"><span>@T("replyLabel") <small>@T("replyNote")</small></span></label>
+<div class="mailbox" id="@(id + "-contact-fields")" data-qa-contact-fields hidden>
+<label class="lb" for="@(id + "-contact")">@T("contactLabel")</label><input type="text" name="contact" id="@(id + "-contact")" maxlength="200" aria-describedby="@(id + "-contact-error")" disabled>
+</div>
+<p class="qa-error" id="@(id + "-contact-error")" data-field-error="contact" hidden></p>
+<label class="chk"><input type="checkbox" name="consent" aria-describedby="@(id + "-consent-error")" required><span><b>Tôi đồng ý</b> @T("consentLabel")</span></label>
+<p class="qa-error" id="@(id + "-consent-error")" data-field-error="consent" hidden></p>
+<div class="qa-honeypot" aria-hidden="true"><label for="@(id + "-website")">Website</label><input type="text" name="website" id="@(id + "-website")" tabindex="-1" autocomplete="off"></div>
+<p class="qa-error" data-qa-error role="alert" tabindex="-1" hidden></p>
+<div class="row"><small style="color:var(--ink2)">@T("submitHint")</small><button type="submit" class="btn btn-navy" data-qa-submit disabled>@T("buttonLabel") ⟶</button></div>
+<p class="legal">@T("legal")</p>
+<noscript><p>Cần bật JavaScript để gửi câu hỏi.</p></noscript>
+</form>
+<div class="qa-success" data-qa-success role="status" aria-live="polite" tabindex="-1" hidden>
+<h2>@T("successTitle")</h2><p>@T("successDescription")</p>
+<p><a href="/ung-pho/">Xem phần Ứng phó khẩn cấp →</a></p>
+<button type="button" class="btn btn-navy" data-qa-again>Gửi câu hỏi khác</button>
+</div>
+</div>
+</section>
