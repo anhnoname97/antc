@@ -26,12 +26,6 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
             migrationBuilder.AddColumn<long>(
                 name: "contest_id",
-                table: "entry",
-                type: "INTEGER",
-                nullable: true);
-
-            migrationBuilder.AddColumn<long>(
-                name: "contest_id",
                 table: "draw",
                 type: "INTEGER",
                 nullable: true);
@@ -172,11 +166,6 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                 defaultValue: 1L);
 
             migrationBuilder.CreateIndex(
-                name: "IX_entry_contest_id_phone",
-                table: "entry",
-                columns: new[] { "contest_id", "phone" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_draw_contest_id",
                 table: "draw",
                 column: "contest_id");
@@ -189,13 +178,6 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                 principalColumn: "id",
                 onDelete: ReferentialAction.Restrict);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_entry_contest_contest_id",
-                table: "entry",
-                column: "contest_id",
-                principalTable: "contest",
-                principalColumn: "id",
-                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />
@@ -204,14 +186,6 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_draw_contest_contest_id",
                 table: "draw");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_entry_contest_contest_id",
-                table: "entry");
-
-            migrationBuilder.DropIndex(
-                name: "IX_entry_contest_id_phone",
-                table: "entry");
 
             migrationBuilder.DropIndex(
                 name: "IX_draw_contest_id",
@@ -224,10 +198,6 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
             migrationBuilder.DropColumn(
                 name: "revision",
                 table: "quiz_question");
-
-            migrationBuilder.DropColumn(
-                name: "contest_id",
-                table: "entry");
 
             migrationBuilder.DropColumn(
                 name: "contest_id",

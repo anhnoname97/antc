@@ -35,7 +35,7 @@ let deps = null; // { onSubmitted, onAttached, onIncomplete, onClosed, focusFall
 let kind = null; // 'submit' | 'attach'
 let busy = false;
 let opener = null;
-let notice = ''; // thong bao tu may chu (vd INCOMPLETE_ANSWERS), hien tren thanh nop bai cho toi khi tien do doi hoac doi luot
+let notice = ''; // thong bao tu may chu (vd NOTHING_TO_SUBMIT), hien tren thanh nop bai cho toi khi tien do doi hoac doi luot
 let noticeAt = null; // so cau da tra loi luc thong bao hien lan dau; doi so nay (tra loi them) thi bo thong bao
 let expired = false; // da nhan CONTEST_CLOSED o API-04/05: het han nop
 
@@ -86,14 +86,13 @@ export function panelHtml(topics) {
   }
   let o = notice ? box('warn', esc(notice)) : '';
   if (submitExpired()) {
-    return o + box('warn', complete
-      ? '<b>Đã hết hạn nộp bài.</b> Bài của bạn không nộp thêm được nữa.'
-      : `<b>Đã hết hạn nộp bài.</b> Lượt này mới trả lời ${answered} / ${total} câu nên không nộp được. Bạn vẫn xem lại được ngân hàng câu hỏi ở chế độ luyện tập.`);
+    return o + box('warn', '<b>Đã hết hạn nộp bài.</b> Bạn vẫn xem lại được ngân hàng câu hỏi ở chế độ luyện tập.');
   }
-  if (!complete) {
-    return o + box('soft', `<b>Đã trả lời ${answered} / ${total} câu.</b> Trả lời hết các câu để nộp bài.`);
+  if (answered === 0) {
+    return o + box('soft', `<b>Đã trả lời 0 / ${total} câu.</b> Trả lời ít nhất một câu để nộp bài.`);
   }
-  return o + `<div class="infobox infobox--ok submitbar"><p><b>Bạn đã trả lời hết ${total} câu.</b> Nộp bài để chốt kết quả. Nộp rồi thì không làm tiếp được trong lượt này.</p>`
+  const progress = complete ? `Bạn đã trả lời hết ${total} câu.` : `Bạn đã trả lời ${answered} / ${total} câu. Câu chưa trả lời không được tính đúng.`;
+  return o + `<div class="infobox infobox--ok submitbar"><p><b>${progress}</b> Nộp bài để chốt kết quả. Nộp rồi thì không làm tiếp được trong lượt này.</p>`
     + '<button type="button" class="qnav f" data-submit-open>Nộp bài dự thi</button></div>';
 }
 
@@ -231,7 +230,7 @@ function handleError(err, contact) {
     case 'QUEUE_PENDING':
       showErr(err.message);
       return;
-    case 'INCOMPLETE_ANSWERS':
+    case 'NOTHING_TO_SUBMIT':
       closeDialog();
       deps.onIncomplete(err.message);
       return;

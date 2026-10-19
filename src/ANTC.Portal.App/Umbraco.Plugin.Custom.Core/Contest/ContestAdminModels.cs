@@ -28,6 +28,10 @@ public sealed record ContestCampaignAdminDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     IReadOnlyList<ContestTopicTreeItemDto>? Topics = null,
+    int SubmitGraceHours = 24,
+    decimal ReadTimerFactor = 1m,
+    string? FocusArea = null,
+    int EntryCount = 0,
     long Revision = 1);
 
 public sealed record SaveContestTopicRequest(int TopicId, IReadOnlyList<string>? QuestionCodes);
@@ -40,6 +44,9 @@ public sealed record SaveContestCampaignRequest(
     int MaxAttempts,
     bool IsActive,
     IReadOnlyList<SaveContestTopicRequest>? Topics,
+    int SubmitGraceHours = 24,
+    decimal ReadTimerFactor = 1m,
+    string? FocusArea = null,
     long? ExpectedRevision = null);
 
 public sealed record ContestEntryAdminDto(
@@ -96,5 +103,11 @@ public sealed class ContestAdminValidationException(IReadOnlyDictionary<string, 
 public sealed class ContestAdminConflictException(string code, string message) : Exception(message)
 {
     public string Code { get; } = code;
+}
+
+public sealed class ContestHasEntriesException(int entryCount)
+    : Exception("Cuộc thi đã có lượt dự thi nên không thể xóa hoặc đổi bộ đề.")
+{
+    public int EntryCount { get; } = entryCount;
 }
 

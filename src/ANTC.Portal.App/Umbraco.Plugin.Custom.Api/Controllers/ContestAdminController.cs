@@ -38,6 +38,7 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
             return CreatedAtAction(nameof(Campaign), new { id = item.Id }, item);
         }
         catch (ContestAdminValidationException ex) { return BadRequest(Error("VALIDATION", ex.Message, ex.Fields)); }
+        catch (ContestHasEntriesException ex) { return Conflict(HasEntries(ex)); }
         catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
     }
 
@@ -51,6 +52,7 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
                 ? Ok(item) : NotFound(Error("CONTEST_NOT_FOUND", "Không tìm thấy cuộc thi."));
         }
         catch (ContestAdminValidationException ex) { return BadRequest(Error("VALIDATION", ex.Message, ex.Fields)); }
+        catch (ContestHasEntriesException ex) { return Conflict(HasEntries(ex)); }
         catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
     }
 
@@ -58,6 +60,7 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
     public async Task<IActionResult> DeleteCampaign(long id, CancellationToken ct)
     {
         try { return await service.DeleteCampaignAsync(id, ct) ? NoContent() : NotFound(); }
+        catch (ContestHasEntriesException ex) { return Conflict(HasEntries(ex)); }
         catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
     }
 
@@ -110,6 +113,8 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
         await service.DeleteDrawAsync(id, ct) ? NoContent() : NotFound();
 
     private string Actor() => User.Identity?.Name ?? "backoffice";
+    private static ApiErrorResponse HasEntries(ContestHasEntriesException ex) =>
+        Error("CONTEST_HAS_ENTRIES", $"{ex.Message} ({ex.EntryCount} lượt)");
     private static ApiErrorResponse Error(string code, string message, IReadOnlyDictionary<string, string>? fields = null) =>
         new(new ApiError(code, message, fields ?? new Dictionary<string, string>()));
 }

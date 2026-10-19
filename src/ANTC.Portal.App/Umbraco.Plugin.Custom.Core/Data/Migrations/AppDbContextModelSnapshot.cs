@@ -41,6 +41,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("end_at");
 
+                    b.Property<string>("FocusArea")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("focus_area");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER")
                         .HasColumnName("is_active");
@@ -55,6 +60,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("name");
 
+                    b.Property<decimal>("ReadTimerFactor")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("read_timer_factor");
+
                     b.Property<long>("Revision")
                         .IsConcurrencyToken()
                         .HasColumnType("INTEGER")
@@ -63,6 +73,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Property<DateTime>("StartAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("start_at");
+
+                    b.Property<int>("SubmitGraceHours")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("submit_grace_hours");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT")
@@ -343,6 +357,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("TEXT")
                         .HasColumnName("status");
+
+                    b.Property<string>("SubmissionResultJson")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("submission_result_json");
 
                     b.Property<DateTime?>("SubmittedAt")
                         .HasColumnType("TEXT")

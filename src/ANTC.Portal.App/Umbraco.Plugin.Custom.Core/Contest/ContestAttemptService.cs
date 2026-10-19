@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Umbraco.Plugin.Custom.Core.Data;
@@ -185,7 +186,8 @@ public class ContestAttemptService : IContestAttemptService
         ContestInfo? contest = entry.ContestId is { } cid ? await _catalog.GetAsync(cid, ct) : null;
 
         // So khop chu cai phan biet hoa thuong nhu du lieu, khong tu doi
-        var bank = _bank.Current;
+        var root = _bank.Current;
+        var bank = root.Contests.FirstOrDefault(x => x.ContestId == entry.ContestId)?.Bank ?? root;
         AnswerKey? key = null;
         if (!string.IsNullOrEmpty(q)) bank.Keys.TryGetValue(q, out key);
 
@@ -225,69 +227,26 @@ public class ContestAttemptService : IContestAttemptService
                 return SaveAnswerResult.Ok(new(existing.QuestionCode, existing.Chosen, existing.IsCorrect, false));
             }
 
-            // QD-025, QD-027: chuyen de n chi nhan dap an khi cac chuyen de dung truoc (theo thu tu de) da xong
-            string? locked = await FirstUnfinishedBeforeAsync(entry.Id, contest, key.TopicId, ct);
-            if (locked is not null)
-            {
-                return SaveAnswerResult.Fail(new("TOPIC_LOCKED",
-                    $"Hãy hoàn thành Chuyên đề {locked} trước khi làm chuyên đề này."));
-            }
-
-            var row = new EntryAnswer
-            {
-                EntryId = entry.Id,
-                QuestionCode = key.Code,
-                Topic = key.TopicId,
-                Chosen = a,
-                IsCorrect = a == key.Answer,
-                AnsweredAt = DateTime.UtcNow
-            };
-            _db.EntryAnswers.Add(row);
-            try
-            {
-                await _db.SaveChangesAsync(ct);
-            }
-            catch (DbUpdateException)
-            {
-                // Tien trinh khac da ghi cau nay (khoa chinh): doc lai dong dang co, tra stored=false
-                _db.ChangeTracker.Clear();
-                var stored = await _db.EntryAnswers.AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.EntryId == entry.Id && x.QuestionCode == key.Code, ct);
-                if (stored is null) throw;
-                return SaveAnswerResult.Ok(new(stored.QuestionCode, stored.Chosen, stored.IsCorrect, false));
-            }
-
+            // Thu tu chuyen de va dong ho doc chi duoc kiem tra o trinh duyet.
+            // Khoa chinh la trong tai cuoi cung, ke ca khi co nhieu tien trinh web.
+            // Chi bo qua xung dot dung cap khoa; cac loi CSDL khac van duoc bao loi.
+            DateTime answeredAt = _clock.GetUtcNow().UtcDateTime;
+            bool isCorrect = a == key.Answer;
+            int inserted = await _db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO entry_answer (entry_id, question_code, topic, chosen, is_correct, answered_at)
+                VALUES ({entry.Id}, {key.Code}, {key.TopicId}, {a}, {isCorrect}, {answeredAt})
+                ON CONFLICT (entry_id, question_code) DO NOTHING
+                """, ct);
+            var stored = await _db.EntryAnswers.AsNoTracking()
+                .SingleAsync(x => x.EntryId == entry.Id && x.QuestionCode == key.Code, ct);
             await tx.CommitAsync(ct);
-            return SaveAnswerResult.Ok(new(row.QuestionCode, row.Chosen, row.IsCorrect, true));
+            return SaveAnswerResult.Ok(new(stored.QuestionCode, stored.Chosen, stored.IsCorrect, inserted == 1));
         }
         finally
         {
             _db.ChangeTracker.Clear();
             ContestEntryService.WriteLock.Release();
         }
-    }
-
-    // Chuyen de dau tien (theo thu tu de) dung truoc chuyen de dang ghi ma chua tra loi du cau cua de; null neu khong co.
-    // Chuyen de xong = so cau cua de da co dap an >= so cau cua de trong chuyen de
-    private async Task<string?> FirstUnfinishedBeforeAsync(long entryId, ContestInfo contest, int topicId, CancellationToken ct)
-    {
-        int index = contest.Topics.ToList().FindIndex(t => t.TopicId == topicId);
-        if (index <= 0) return null;
-
-        var answered = (await _db.EntryAnswers.AsNoTracking()
-            .Where(a => a.EntryId == entryId)
-            .Select(a => a.QuestionCode)
-            .ToListAsync(ct)).ToHashSet(StringComparer.Ordinal);
-        var exam = contest.QuestionCodes.ToHashSet(StringComparer.Ordinal);
-        var bank = _bank.Current;
-
-        foreach (var earlier in contest.Topics.Take(index))
-        {
-            int done = answered.Count(c => exam.Contains(c)
-                && bank.Keys.TryGetValue(c, out AnswerKey? k) && k.TopicId == earlier.TopicId);
-            if (done < earlier.Count) return earlier.Cd;
-        }
-        return null;
     }
 
     public async Task<AttachContactResult> AttachContactAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default)
@@ -317,31 +276,11 @@ public class ContestAttemptService : IContestAttemptService
                 return AttachContactResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
             }
 
-            var fields = ContestEntryService.Validate(
-                contact?.FullName, contact?.Phone, contact?.Org, contact?.Consent,
-                out string? fullName, out string? phone, out string? org);
-            if (fields.Count > 0)
-            {
-                return AttachContactResult.Fail(new("VALIDATION", fields.Values.First(), fields));
-            }
-
-            int maxAttempts = contest.MaxAttempts;
-            int used = await _db.Entries.CountAsync(e => e.ContestId == contest.Id && e.Phone == phone, ct);
-            if (used >= maxAttempts)
-            {
-                return AttachContactResult.Fail(new("ATTEMPT_LIMIT",
-                    $"Số {phone} đã dùng hết {maxAttempts} lượt của cuộc thi này."));
-            }
-
-            current.Mode = EntryModes.Named;
-            current.FullName = fullName;
-            current.Phone = phone;
-            current.Org = org;
-            current.ConsentAt = DateTime.UtcNow;
-            current.AttemptNo = used + 1;
+            ContestError? error = await ApplyContactAsync(current, contact, contest, ct);
+            if (error is not null) return AttachContactResult.Fail(error);
             await _db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
-            return AttachContactResult.Ok(new(current.Mode, used + 1, maxAttempts));
+            return AttachContactResult.Ok(new(current.Mode, current.AttemptNo!.Value, contest.MaxAttempts));
         }
         finally
         {
@@ -352,10 +291,6 @@ public class ContestAttemptService : IContestAttemptService
 
     public async Task<SubmitResult> SubmitAsync(Entry entry, ContactRequest? contact, CancellationToken ct = default)
     {
-        // Doc cuoc cua luot ngoai khoa ghi; thoi diem so sanh lay sau khi vao khoa
-        ContestInfo? contest = entry.ContestId is { } cid ? await _catalog.GetAsync(cid, ct) : null;
-        var bank = _bank.Current;
-
         await ContestEntryService.WriteLock.WaitAsync(ct);
         try
         {
@@ -363,6 +298,16 @@ public class ContestAttemptService : IContestAttemptService
 
             // Doc lai luot co theo doi trong khoa: entry tu AuthenticateAsync khong theo doi va co the da cu
             var current = await _db.Entries.FirstAsync(e => e.Id == entry.Id, ct);
+            if (current.Status == EntryStatuses.Submitted && current.SubmissionResultJson is { } saved)
+            {
+                // Không đọc lại đáp án hay tính lại kết quả đã chốt.
+                return SubmitResult.Ok(JsonSerializer.Deserialize<SubmitDto>(saved)
+                    ?? throw new InvalidOperationException("Kết quả nộp bài đã lưu không hợp lệ."));
+            }
+
+            ContestInfo? contest = current.ContestId is { } cid ? await _catalog.GetAsync(cid, ct) : null;
+            var root = _bank.Current;
+            var bank = root.Contests.FirstOrDefault(x => x.ContestId == current.ContestId)?.Bank ?? root;
             var rows = await _db.EntryAnswers.AsNoTracking()
                 .Where(a => a.EntryId == current.Id)
                 .Select(a => new { a.QuestionCode, a.Topic, a.IsCorrect })
@@ -371,69 +316,76 @@ public class ContestAttemptService : IContestAttemptService
             // Da nop: tra lai ket qua da luu bat ke thoi gian, bo qua than yeu cau
             if (current.Status == EntryStatuses.Submitted)
             {
-                return SubmitResult.Ok(BuildResult(current, current.Answered,
+                // Dữ liệu cũ trước khi có snapshot kết quả: giữ nguyên điểm, số câu và ngày nộp đã lưu.
+                var legacyResult = BuildResult(current, current.Answered,
                     current.TotalQuestions ?? contest?.QuestionCount ?? bank.TotalQuestions,
-                    rows.Where(r => r.IsCorrect).Select(r => r.Topic), TopicCounts(contest, bank)));
+                    rows.Where(r => r.IsCorrect).Select(r => r.Topic), TopicCounts(contest, bank));
+                current.SubmissionResultJson = JsonSerializer.Serialize(legacyResult);
+                await _db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+                return SubmitResult.Ok(legacyResult);
             }
 
             // Han nop = end_at + submit_grace_hours cua cuoc (open va submit_only deu nop duoc)
-            if (contest is null || contest.PhaseAt(_clock.GetUtcNow().UtcDateTime) == ContestPhase.Closed)
+            if (contest is null || current.CreatedAt >= contest.EndAt ||
+                contest.PhaseAt(_clock.GetUtcNow().UtcDateTime) == ContestPhase.Closed)
             {
                 return SubmitResult.Fail(new("CONTEST_CLOSED", "Cuộc thi đã hết hạn nộp bài."));
             }
 
-            // Du cau: moi cau cua de cuoc deu co dap an (QD-015 theo QD-019); de da loai cau ngung dung
+            // Có ít nhất một đáp án là được nộp; câu bỏ trống không có dòng và không được tính đúng.
             int total = contest.QuestionCount;
-            var exam = contest.QuestionCodes.ToHashSet(StringComparer.Ordinal);
-            int covered = rows.Count(r => exam.Contains(r.QuestionCode));
-            if (covered < total)
+            if (rows.Count == 0)
             {
-                return SubmitResult.Fail(new("INCOMPLETE_ANSWERS",
-                    $"Bạn mới trả lời {covered}/{total} câu. Hãy trả lời hết các câu rồi nộp bài."));
+                return SubmitResult.Fail(new("NOTHING_TO_SUBMIT", "Bạn cần trả lời ít nhất một câu trước khi nộp bài."));
             }
 
             if (current.Mode == EntryModes.Anon && contact is not null)
             {
-                var fields = ContestEntryService.Validate(
-                    contact.FullName, contact.Phone, contact.Org, contact.Consent,
-                    out string? fullName, out string? phone, out string? org);
-                if (fields.Count > 0)
-                {
-                    return SubmitResult.Fail(new("VALIDATION", fields.Values.First(), fields));
-                }
-
-                int maxAttempts = contest.MaxAttempts;
-                int used = await _db.Entries.CountAsync(e => e.ContestId == contest.Id && e.Phone == phone, ct);
-                if (used >= maxAttempts)
-                {
-                    return SubmitResult.Fail(new("ATTEMPT_LIMIT",
-                        $"Số {phone} đã dùng hết {maxAttempts} lượt của cuộc thi này."));
-                }
-
-                current.Mode = EntryModes.Named;
-                current.FullName = fullName;
-                current.Phone = phone;
-                current.Org = org;
-                current.ConsentAt = DateTime.UtcNow;
-                current.AttemptNo = used + 1;
+                ContestError? error = await ApplyContactAsync(current, contact, contest, ct);
+                if (error is not null) return SubmitResult.Fail(error);
             }
 
             current.Status = EntryStatuses.Submitted;
             current.Answered = rows.Count;
             current.Score = rows.Count(r => r.IsCorrect);
             current.TotalQuestions = total;
-            current.SubmittedAt = DateTime.UtcNow;
+            current.SubmittedAt = _clock.GetUtcNow().UtcDateTime;
+            var result = BuildResult(current, rows.Count, total,
+                rows.Where(r => r.IsCorrect).Select(r => r.Topic), TopicCounts(contest, bank));
+            current.SubmissionResultJson = JsonSerializer.Serialize(result);
             await _db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
 
-            return SubmitResult.Ok(BuildResult(current, rows.Count, total,
-                rows.Where(r => r.IsCorrect).Select(r => r.Topic), TopicCounts(contest, bank)));
+            return SubmitResult.Ok(result);
         }
         finally
         {
             _db.ChangeTracker.Clear();
             ContestEntryService.WriteLock.Release();
         }
+    }
+
+    // Chỉ gọi trong transaction đang giữ khóa ghi chung với API-01; đếm mọi trạng thái theo cuộc thi.
+    private async Task<ContestError?> ApplyContactAsync(
+        Entry current, ContactRequest? contact, ContestInfo contest, CancellationToken ct)
+    {
+        var fields = ContestEntryService.Validate(
+            contact?.FullName, contact?.Phone, contact?.Org, contact?.Consent,
+            out string? fullName, out string? phone, out string? org);
+        if (fields.Count > 0) return new("VALIDATION", fields.Values.First(), fields);
+
+        int used = await _db.Entries.CountAsync(e => e.ContestId == contest.Id && e.Phone == phone, ct);
+        if (used >= contest.MaxAttempts)
+            return new("ATTEMPT_LIMIT", $"Số {phone} đã dùng hết {contest.MaxAttempts} lượt của cuộc thi này.");
+
+        current.Mode = EntryModes.Named;
+        current.FullName = fullName;
+        current.Phone = phone;
+        current.Org = org;
+        current.ConsentAt = _clock.GetUtcNow().UtcDateTime;
+        current.AttemptNo = used + 1;
+        return null;
     }
 
     // Chuyen de de tinh byTopic: theo de cua cuoc; luot cu khong con cuoc thi theo ban chup ngan hang

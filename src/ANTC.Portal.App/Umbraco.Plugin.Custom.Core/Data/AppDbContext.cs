@@ -123,6 +123,8 @@ public class AppDbContext : DbContext
             e.ToTable("contest");
             e.Property(x => x.Name).HasMaxLength(200);
             e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.FocusArea).HasMaxLength(50);
+            e.Property(x => x.ReadTimerFactor).HasPrecision(4, 2);
             e.Property(x => x.Revision).IsConcurrencyToken();
             e.HasIndex(x => new { x.IsActive, x.StartAt, x.EndAt });
         });

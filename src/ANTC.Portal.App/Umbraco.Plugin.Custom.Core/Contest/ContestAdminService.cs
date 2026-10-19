@@ -25,6 +25,9 @@ public interface IContestAdminService
 
 public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvider, IQuestionBank? bank = null) : IContestAdminService
 {
+    private static readonly System.Text.RegularExpressions.Regex FocusAreaPattern =
+        new("^[a-z0-9_-]{1,50}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     public async Task<PagedResult<ContestCampaignAdminDto>> SearchCampaignsAsync(
         string? search, bool? isActive, int page, int pageSize, CancellationToken ct)
     {
@@ -42,7 +45,9 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         List<ContestCampaign> items = await query.Include(x => x.Topics).Include(x => x.Questions).AsSplitQuery()
             .OrderByDescending(x => x.StartAt).ThenByDescending(x => x.Id)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
-        return Page(items.Select(x => MapCampaign(x)).ToList(), page, pageSize, total);
+        long[] ids = items.Select(x => x.Id).ToArray();
+        Dictionary<long, int> counts = await CountEntriesAsync(ids, ct);
+        return Page(items.Select(x => MapCampaign(x, null, counts.GetValueOrDefault(x.Id))).ToList(), page, pageSize, total);
     }
 
     public async Task<ContestCampaignAdminDto?> GetCampaignAsync(long id, CancellationToken ct)
@@ -50,7 +55,8 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         ContestCampaign? campaign = await db.ContestCampaigns.AsNoTracking()
             .Include(x => x.Topics).Include(x => x.Questions).AsSplitQuery().SingleOrDefaultAsync(x => x.Id == id, ct);
         if (campaign is null) return null;
-        return MapCampaign(campaign, await BuildQuestionTreeAsync(campaign, ct));
+        int entryCount = await db.Entries.CountAsync(x => x.ContestId == id, ct);
+        return MapCampaign(campaign, await BuildQuestionTreeAsync(campaign, ct), entryCount);
     }
 
     public async Task<IReadOnlyList<ContestTopicTreeItemDto>> GetQuestionTreeAsync(long? contestId, CancellationToken ct)
@@ -81,8 +87,8 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         if (campaign is null) return null;
         if (request.ExpectedRevision is not null && request.ExpectedRevision != campaign.Revision)
             throw new ContestAdminConflictException("CONTEST_CHANGED", "Cuộc thi đã được người khác cập nhật. Hãy tải lại dữ liệu.");
-        bool locked = campaign.StartAt <= UtcNow() || await db.Entries.AnyAsync(x => x.ContestId == id, ct);
-        if (locked && IsOnlyActivationChange(campaign, request))
+        bool started = campaign.StartAt <= UtcNow();
+        if (started && IsOnlyActivationChange(campaign, request))
         {
             campaign.IsActive = request.IsActive;
             campaign.UpdatedAt = UtcNow();
@@ -91,9 +97,14 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
             bank?.Reload();
             return (await GetCampaignAsync(id, ct))!;
         }
-        if (locked)
+        if (started)
             throw new ContestAdminConflictException("CONTEST_LOCKED", "Cuộc thi đã bắt đầu hoặc đã có lượt dự thi; chỉ được thay đổi trạng thái sử dụng.");
         ValidatedCampaign validated = await ValidateCampaignAsync(request, ct);
+        if (DeckChanged(campaign, validated))
+        {
+            int entryCount = await db.Entries.CountAsync(x => x.ContestId == id, ct);
+            if (entryCount > 0) throw new ContestHasEntriesException(entryCount);
+        }
         campaign.BankVersion = await CurrentBankVersionAsync(ct);
         campaign.Revision++;
         ApplyCampaign(campaign, request, validated, UtcNow());
@@ -106,8 +117,9 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     {
         ContestCampaign? campaign = await db.ContestCampaigns.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (campaign is null) return false;
-        if (campaign.StartAt <= UtcNow() || await db.Entries.AnyAsync(x => x.ContestId == id, ct) ||
-            await db.Draws.AnyAsync(x => x.ContestId == id, ct))
+        int entryCount = await db.Entries.CountAsync(x => x.ContestId == id, ct);
+        if (entryCount > 0) throw new ContestHasEntriesException(entryCount);
+        if (campaign.StartAt <= UtcNow() || await db.Draws.AnyAsync(x => x.ContestId == id, ct))
             throw new ContestAdminConflictException("CONTEST_IN_USE", "Không thể xóa cuộc thi đã bắt đầu, có lượt dự thi hoặc có lần quay số; hãy chuyển sang ngừng sử dụng.");
         db.ContestCampaigns.Remove(campaign);
         await db.SaveChangesAsync(ct);
@@ -256,6 +268,13 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         if (request.StartAt != default && request.EndAt != default && endAt <= startAt)
             fields["endAt"] = "Thời gian kết thúc phải sau thời gian bắt đầu.";
         if (request.MaxAttempts is < 1 or > 1000) fields["maxAttempts"] = "Số lượt tối đa phải từ 1 đến 1.000.";
+        if (request.SubmitGraceHours is < 0 or > 168)
+            fields["submitGraceHours"] = "Thời gian gia hạn nộp bài phải từ 0 đến 168 giờ.";
+        if (request.ReadTimerFactor is < 0m or > 5m)
+            fields["readTimerFactor"] = "Hệ số thời gian đọc phải từ 0 đến 5.";
+        string? focusArea = NullIfEmpty(request.FocusArea);
+        if (focusArea is not null && !FocusAreaPattern.IsMatch(focusArea))
+            fields["focusArea"] = "Lĩnh vực chỉ gồm chữ thường không dấu, số, gạch ngang hoặc gạch dưới (tối đa 50 ký tự).";
 
         List<SaveContestTopicRequest> topics = request.Topics?.ToList() ?? [];
         if (topics.Count == 0) fields["topics"] = "Phải chọn ít nhất một chuyên đề.";
@@ -285,7 +304,7 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         {
             Topic = existingTopics[topic.TopicId],
             Questions = topic.Questions.Select(question => question with { Question = existingQuestions[question.Code] }).ToList()
-        }).ToList());
+        }).ToList(), focusArea);
     }
 
     private static void ApplyCampaign(
@@ -296,6 +315,9 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         campaign.StartAt = validated.StartAt;
         campaign.EndAt = validated.EndAt;
         campaign.MaxAttempts = request.MaxAttempts;
+        campaign.SubmitGraceHours = request.SubmitGraceHours;
+        campaign.ReadTimerFactor = request.ReadTimerFactor;
+        campaign.FocusArea = validated.FocusArea;
         campaign.IsActive = request.IsActive;
         campaign.UpdatedAt = now;
         Dictionary<int, ValidatedTopic> selectedTopics = validated.Topics.ToDictionary(x => x.TopicId);
@@ -361,9 +383,10 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     }
 
     private static ContestCampaignAdminDto MapCampaign(
-        ContestCampaign x, IReadOnlyList<ContestTopicTreeItemDto>? topics = null) => new(
+        ContestCampaign x, IReadOnlyList<ContestTopicTreeItemDto>? topics = null, int entryCount = 0) => new(
         x.Id, x.Name, x.Description, AsUtc(x.StartAt), AsUtc(x.EndAt), x.MaxAttempts, x.IsActive,
-        x.Topics.Count, x.Questions.Count, AsUtc(x.CreatedAt), AsUtc(x.UpdatedAt), topics, x.Revision);
+        x.Topics.Count, x.Questions.Count, AsUtc(x.CreatedAt), AsUtc(x.UpdatedAt), topics,
+        x.SubmitGraceHours, x.ReadTimerFactor, x.FocusArea, entryCount, x.Revision);
 
     private static ContestEntryAdminDto MapEntry(Entry x) => new(
         x.Id, x.Code, x.Mode, x.FullName, x.Phone, x.Org, x.Status, x.Answered,
@@ -396,6 +419,16 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
     private async Task<long> CurrentBankVersionAsync(CancellationToken ct) =>
         await db.QuizImports.Select(x => (long?)x.Id).MaxAsync(ct) ?? 0;
 
+    private async Task<Dictionary<long, int>> CountEntriesAsync(long[] contestIds, CancellationToken ct) =>
+        await db.Entries.Where(x => x.ContestId != null && contestIds.Contains(x.ContestId.Value))
+            .GroupBy(x => x.ContestId!.Value).Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+    private static bool DeckChanged(ContestCampaign campaign, ValidatedCampaign validated) =>
+        !campaign.Topics.Select(x => x.TopicId).ToHashSet().SetEquals(validated.Topics.Select(x => x.TopicId)) ||
+        !campaign.Questions.Select(x => x.QuestionCode).ToHashSet(StringComparer.Ordinal)
+            .SetEquals(validated.Topics.SelectMany(x => x.Questions).Select(x => x.Code));
+
     private static bool IsOnlyActivationChange(ContestCampaign campaign, SaveContestCampaignRequest request)
     {
         DateTime start = NormalizeInstant(request.StartAt);
@@ -418,10 +451,15 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         return string.Equals(campaign.Name, request.Name?.Trim(), StringComparison.Ordinal) &&
                string.Equals(campaign.Description, NullIfEmpty(request.Description), StringComparison.Ordinal) &&
                campaign.StartAt == start && campaign.EndAt == end && campaign.MaxAttempts == request.MaxAttempts &&
+               campaign.SubmitGraceHours == request.SubmitGraceHours &&
+               campaign.ReadTimerFactor == request.ReadTimerFactor &&
+               string.Equals(campaign.FocusArea, NullIfEmpty(request.FocusArea), StringComparison.Ordinal) &&
                sameTopics && sameQuestions;
     }
 
-    private sealed record ValidatedCampaign(string Name, DateTime StartAt, DateTime EndAt, IReadOnlyList<ValidatedTopic> Topics);
+    private sealed record ValidatedCampaign(
+        string Name, DateTime StartAt, DateTime EndAt,
+        IReadOnlyList<ValidatedTopic> Topics, string? FocusArea);
     private sealed record ValidatedTopic(int TopicId, int SortOrder, IReadOnlyList<ValidatedQuestion> Questions, QuizTopic? Topic = null);
     private sealed record ValidatedQuestion(string Code, int SortOrder, QuizQuestion? Question = null);
 }

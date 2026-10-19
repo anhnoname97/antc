@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Umbraco.Plugin.Custom.Core.Contest;
+using Umbraco.Plugin.Custom.Core.Data;
 
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
@@ -101,11 +103,11 @@ public class ContestController : ControllerBase
     }
 
     /// <summary>
-    /// API-05: nop bai; luot an danh co the kem contact de xet giai. Chi nop khi da tra loi du cau (QD-015),
-    /// con han nop (QD-014). Nop lai tra ket qua da luu.
+    /// API-05: nộp khi có ít nhất một đáp án và còn hạn; contact cho lượt ẩn danh được gắn cùng transaction.
+    /// Nộp lại trả nguyên kết quả đã chốt.
     /// </summary>
     [HttpPost("entries/me/submit")]
-    public async Task<IActionResult> Submit([FromBody] SubmitRequest? request, CancellationToken ct)
+    public async Task<IActionResult> Submit([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] SubmitRequest? request, CancellationToken ct)
     {
         Response.Headers.CacheControl = "no-store";
 
@@ -114,6 +116,9 @@ public class ContestController : ControllerBase
         {
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
+
+        if (!ModelState.IsValid && entry.Status != EntryStatuses.Submitted)
+            return Error(new ContestError("VALIDATION", "Dữ liệu gửi lên không hợp lệ."));
 
         var result = await _attempts.SubmitAsync(entry, request?.Contact, ct);
         return result.Result is { } submitted ? Ok(submitted) : Error(result.Error!);
@@ -128,7 +133,7 @@ public class ContestController : ControllerBase
             "INVALID_TOKEN" => StatusCodes.Status401Unauthorized,
             "CONTEST_NOT_FOUND" => StatusCodes.Status404NotFound,
             "CONTEST_CLOSED" => StatusCodes.Status403Forbidden,
-            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "INCOMPLETE_ANSWERS" or "TOPIC_LOCKED" => StatusCodes.Status409Conflict,
+            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "NOTHING_TO_SUBMIT" => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
         return StatusCode(status, new { error = new { code = error.Code, message = error.Message, fields = error.Fields ?? new Dictionary<string, string>() } });

@@ -30,13 +30,12 @@ public class Entry
     public int? TotalQuestions { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? SubmittedAt { get; set; }
+    /// <summary>JSON kết quả chốt khi nộp bài; trả nguyên bản khi nộp lại, không tính lại.</summary>
+    public string? SubmissionResultJson { get; set; }
     public string? IpHash { get; set; }
-    /// <summary>Cuoc thi cua luot nay; rong voi luot cu tao truoc khi co nhieu cuoc thi (QD-024).</summary>
-    public long? ContestId { get; set; }
 
     public ContestCampaign? Contest { get; set; }
     public List<EntryAnswer> Answers { get; set; } = new();
-    public ContestCampaign? Contest { get; set; }
 }
 
 public static class EntryModes
