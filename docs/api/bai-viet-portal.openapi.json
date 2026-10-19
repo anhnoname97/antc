@@ -1,0 +1,717 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ANTC Portal — API danh mục và bài viết",
+    "version": "1.0.0",
+    "description": "Hợp đồng dữ liệu BE-07 cho FE, không dựng giao diện portal. CMS là nguồn dữ liệu duy nhất; tạo/sửa/xóa và xuất bản qua Content của Umbraco. API chỉ đọc bản đã xuất bản và không bật xem trước theo cookie, query hoặc header. Không trả bản nháp, nội dung thùng rác, nội dung bị bảo vệ hoặc bài có tổ tiên chưa xuất bản. Save chỉ lưu nháp; Save and publish mới cập nhật API. Không đệm để FE nhận thay đổi ở yêu cầu kế tiếp. Tất cả chuỗi trừ bodyHtml là dữ liệu chữ và phải được FE thoát ký tự."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Cùng origin với host Umbraco; FE cấu hình base URL của môi trường triển khai."
+    }
+  ],
+  "tags": [
+    {
+      "name": "Bài viết",
+      "description": "Dữ liệu danh mục, danh sách và chi tiết từ CMS."
+    }
+  ],
+  "security": [],
+  "paths": {
+    "/api/v1/article-categories": {
+      "get": {
+        "operationId": "listArticleCategories",
+        "tags": [
+          "Bài viết"
+        ],
+        "summary": "Danh mục bài viết và số bài đã xuất bản",
+        "description": "Gồm danh mục trong Quản lý nội dung → Thủ đoạn và kho Chính sách. Danh mục chưa có bài vẫn xuất hiện với articleCount=0. Sắp theo thứ tự trong CMS, rồi khóa Guid.",
+        "responses": {
+          "200": {
+            "description": "Mảng danh mục; [] khi chưa có dữ liệu.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ArticleCategory"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "cda7084d-12ac-4edf-bbd9-94b53d78cecc",
+                    "title": "Cảnh báo",
+                    "slug": "canh-bao",
+                    "url": "/thu-doan/canh-bao/",
+                    "summary": "Các cảnh báo mới.",
+                    "isField": false,
+                    "fieldIcon": null,
+                    "role": "Cảnh báo",
+                    "articleCount": 13
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/article-categories/{id}/articles": {
+      "get": {
+        "operationId": "listCategoryArticles",
+        "tags": [
+          "Bài viết"
+        ],
+        "summary": "Danh sách bài trong danh mục, 12 bài mỗi trang",
+        "description": "Sắp theo updatedDate giảm dần, sau đó Guid tăng dần để ổn định khi cùng ngày. Không dùng ngày sửa kỹ thuật của CMS. Ngày cập nhật trống xếp cuối. Trang vượt tổng số trang trả items=[] và giữ thông tin tổng. Danh mục rỗng: total=0, totalPages=0. Không có tham số pageSize; cố định 12 theo BE-07.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Khóa Guid ổn định của nút nội dung Umbraco, lấy từ API danh mục hoặc danh sách bài.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trang",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 2147483647,
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trang dữ liệu.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticlePage"
+                },
+                "example": {
+                  "category": {
+                    "id": "cda7084d-12ac-4edf-bbd9-94b53d78cecc",
+                    "title": "Cảnh báo",
+                    "slug": "canh-bao",
+                    "url": "/thu-doan/canh-bao/",
+                    "summary": "Các cảnh báo mới.",
+                    "isField": false,
+                    "fieldIcon": null,
+                    "role": "Cảnh báo",
+                    "articleCount": 13
+                  },
+                  "items": [
+                    {
+                      "id": "5d706044-a2ce-4314-8215-753c24a41322",
+                      "title": "Mời góp vốn qua ứng dụng cam kết lợi nhuận cố định",
+                      "slug": "moi-gop-von-qua-ung-dung-cam-ket-loi-nhuan-co-dinh",
+                      "url": "/thu-doan/canh-bao/moi-gop-von-qua-ung-dung-cam-ket-loi-nhuan-co-dinh/",
+                      "summary": "Thận trọng trước lời mời góp vốn.",
+                      "image": null,
+                      "label": {
+                        "type": "unverified",
+                        "text": "Cần kiểm chứng · Chưa có kết luận"
+                      },
+                      "source": {
+                        "agency": "[Tên cơ quan]",
+                        "documentNumber": null,
+                        "documentDate": null
+                      },
+                      "updatedDate": "2026-08-21",
+                      "isDraft": false,
+                      "review": {
+                        "lastReviewedDate": "2026-01-01",
+                        "maxAgeDays": 90,
+                        "isOverdue": true,
+                        "message": "Nội dung đang chờ rà soát lại. Lần rà soát gần nhất đã quá 90 ngày."
+                      }
+                    }
+                  ],
+                  "total": 13,
+                  "page": 2,
+                  "pageSize": 12,
+                  "totalPages": 2
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "trang không hợp lệ.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "message": "Tham số danh sách không hợp lệ.",
+                    "fields": {
+                      "trang": "Số trang phải là số nguyên từ 1 trở lên."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tồn tại, chưa xuất bản, bị gỡ xuất bản, nằm ngoài kho bài hoặc được bảo vệ bằng quyền thành viên.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Không tìm thấy bài viết."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/articles/{id}": {
+      "get": {
+        "operationId": "getArticle",
+        "tags": [
+          "Bài viết"
+        ],
+        "summary": "Chi tiết bài viết và tối đa 3 bài liên quan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Khóa Guid ổn định của nút nội dung Umbraco, lấy từ API danh mục hoặc danh sách bài.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bài viết đã xuất bản.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleDetail"
+                },
+                "example": {
+                  "id": "5d706044-a2ce-4314-8215-753c24a41322",
+                  "title": "Mời góp vốn qua ứng dụng cam kết lợi nhuận cố định",
+                  "slug": "moi-gop-von-qua-ung-dung-cam-ket-loi-nhuan-co-dinh",
+                  "url": "/thu-doan/canh-bao/moi-gop-von-qua-ung-dung-cam-ket-loi-nhuan-co-dinh/",
+                  "summary": "Thận trọng trước lời mời góp vốn.",
+                  "image": null,
+                  "label": {
+                    "type": "unverified",
+                    "text": "Cần kiểm chứng · Chưa có kết luận"
+                  },
+                  "source": {
+                    "agency": "[Tên cơ quan]",
+                    "documentNumber": null,
+                    "documentDate": null
+                  },
+                  "updatedDate": "2026-08-21",
+                  "isDraft": false,
+                  "review": {
+                    "lastReviewedDate": "2026-01-01",
+                    "maxAgeDays": 90,
+                    "isOverdue": true,
+                    "message": "Nội dung đang chờ rà soát lại. Lần rà soát gần nhất đã quá 90 ngày."
+                  },
+                  "category": {
+                    "id": "cda7084d-12ac-4edf-bbd9-94b53d78cecc",
+                    "title": "Cảnh báo",
+                    "slug": "canh-bao",
+                    "url": "/thu-doan/canh-bao/",
+                    "summary": "Các cảnh báo mới.",
+                    "isField": false,
+                    "fieldIcon": null,
+                    "role": "Cảnh báo",
+                    "articleCount": 13
+                  },
+                  "bodyHtml": "<h2>Dấu hiệu cần kiểm tra</h2><p>Kiểm chứng nguồn thông tin trước khi giao dịch.</p>",
+                  "safeAction": "Dừng chuyển tiền và kiểm chứng qua kênh chính thức.",
+                  "seo": {
+                    "title": "Mời góp vốn qua ứng dụng cam kết lợi nhuận cố định",
+                    "description": "Thận trọng trước lời mời góp vốn.",
+                    "image": null,
+                    "hideFromSearch": false
+                  },
+                  "relatedArticles": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tồn tại, chưa xuất bản, bị gỡ xuất bản, nằm ngoài kho bài hoặc được bảo vệ bằng quyền thành viên.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Không tìm thấy bài viết."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ArticleImage": {
+        "type": "object",
+        "required": [
+          "url",
+          "alt"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Đường dẫn media."
+          },
+          "alt": {
+            "type": "string",
+            "description": "Mô tả ảnh, FE phải thoát ký tự khi đưa vào thuộc tính."
+          }
+        },
+        "additionalProperties": false,
+        "nullable": true
+      },
+      "ArticleLabel": {
+        "type": "object",
+        "required": [
+          "type",
+          "text"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "none",
+              "official-warning",
+              "unverified"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "description": "Nhãn tiếng Việt để hiển thị dưới dạng chữ.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArticleSource": {
+        "type": "object",
+        "required": [
+          "agency",
+          "documentNumber",
+          "documentDate"
+        ],
+        "properties": {
+          "agency": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArticleReview": {
+        "type": "object",
+        "required": [
+          "lastReviewedDate",
+          "maxAgeDays",
+          "isOverdue",
+          "message"
+        ],
+        "properties": {
+          "lastReviewedDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "maxAgeDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650
+          },
+          "isOverdue": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Tính theo ngày Việt Nam (Asia/Ho_Chi_Minh). Chỉ quá hạn khi số ngày đã qua > maxAgeDays; đúng ngưỡng chưa quá hạn. Không có ngày rà soát: isOverdue=false, message=null. Ngưỡng lấy từ bản đã xuất bản của An toàn tài chính → Thông tin chung → Số ngày nhắc rà soát bài viết; trống dùng 90."
+      },
+      "ArticleSeo": {
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "image",
+          "hideFromSearch"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image": {
+            "$ref": "#/components/schemas/ArticleImage"
+          },
+          "hideFromSearch": {
+            "type": "boolean",
+            "description": "Chỉ là cờ SEO; không phải trạng thái gỡ xuất bản."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArticleCategory": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "url",
+          "summary",
+          "isField",
+          "fieldIcon",
+          "role",
+          "articleCount"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL portal dự kiến, không chứa các nút quản lý CMS."
+          },
+          "summary": {
+            "type": "string"
+          },
+          "isField": {
+            "type": "boolean"
+          },
+          "fieldIcon": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": true
+          },
+          "articleCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArticleCard": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "url",
+          "summary",
+          "image",
+          "label",
+          "source",
+          "updatedDate",
+          "isDraft",
+          "review"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "image": {
+            "$ref": "#/components/schemas/ArticleImage"
+          },
+          "label": {
+            "$ref": "#/components/schemas/ArticleLabel"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ArticleSource"
+          },
+          "updatedDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isDraft": {
+            "type": "boolean",
+            "description": "Cờ nhãn “Bản dự thảo” của văn bản chính sách. Khác với bản nháp chưa xuất bản của CMS."
+          },
+          "review": {
+            "$ref": "#/components/schemas/ArticleReview"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArticlePage": {
+        "type": "object",
+        "required": [
+          "category",
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
+        ],
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/ArticleCategory"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArticleCard"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "enum": [
+              12
+            ]
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "ApiError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "VALIDATION",
+                  "NOT_FOUND"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "object",
+                "nullable": true,
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArticleDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "url",
+          "summary",
+          "image",
+          "label",
+          "source",
+          "updatedDate",
+          "isDraft",
+          "review",
+          "category",
+          "bodyHtml",
+          "safeAction",
+          "seo",
+          "relatedArticles"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "image": {
+            "$ref": "#/components/schemas/ArticleImage"
+          },
+          "label": {
+            "$ref": "#/components/schemas/ArticleLabel"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ArticleSource"
+          },
+          "updatedDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isDraft": {
+            "type": "boolean",
+            "description": "Cờ nhãn “Bản dự thảo” của văn bản chính sách. Khác với bản nháp chưa xuất bản của CMS."
+          },
+          "review": {
+            "$ref": "#/components/schemas/ArticleReview"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ArticleCategory"
+          },
+          "bodyHtml": {
+            "type": "string",
+            "description": "HTML được làm sạch ở máy chủ. Cho phép p, br, h2, h3, strong/b, em/i, ul/ol/li, a, blockquote, bảng và ảnh có chú thích. Loại script, iframe, sự kiện, CSS và URL nguy hiểm. Liên kết HTTP(S) tuyệt đối hoặc // tự thêm target=\"_blank\" và rel=\"noopener noreferrer\"; liên kết nội bộ dùng /đường-dẫn hoặc #neo."
+          },
+          "safeAction": {
+            "type": "string",
+            "description": "Nội dung chữ thuần cho hộp Hành động an toàn; FE phải thoát ký tự khi hiển thị.",
+            "nullable": true
+          },
+          "seo": {
+            "$ref": "#/components/schemas/ArticleSeo"
+          },
+          "relatedArticles": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "$ref": "#/components/schemas/ArticleCard"
+            },
+            "description": "Tối đa 3 bài mới nhất cùng danh mục, đã xuất bản; không gồm bài đang xem."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
