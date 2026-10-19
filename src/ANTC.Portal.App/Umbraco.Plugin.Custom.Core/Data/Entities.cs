@@ -87,7 +87,7 @@ public class DrawWinner
     public Draw? Draw { get; set; }
 }
 
-/// <summary>Cau hoi, kien nghi, gop y gui tu trang Hoi - Dap.</summary>
+/// <summary>Câu hỏi, kiến nghị, góp ý gửi từ portal hoặc tạo trong quản trị.</summary>
 public class QuestionSubmission
 {
     public long Id { get; set; }
@@ -96,7 +96,10 @@ public class QuestionSubmission
     public string Content { get; set; } = "";
     public bool WantReply { get; set; }
     public string? Contact { get; set; }
-    public DateTime ConsentAt { get; set; }
+    /// <summary>Thời điểm người gửi portal đồng ý; để trống với nội dung do ban biên tập tạo.</summary>
+    public DateTime? ConsentAt { get; set; }
+    public string Source { get; set; } = "portal";
+    public string? CreatedBy { get; set; }
     /// <summary>moi | dang-xu-ly | da-xu-ly | bo-qua</summary>
     public string Status { get; set; } = "moi";
     public string? AdminNote { get; set; }

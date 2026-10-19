@@ -7,6 +7,26 @@ namespace Umbraco.Plugin.Custom.Core.Questions;
 public sealed class QuestionModerationService(AppDbContext db, TimeProvider clock)
     : IQuestionModerationService, IPublishedQuestionService
 {
+    public async Task<QuestionRow> CreateAsync(QuestionDraft draft, string actor, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(draft);
+        var fields = draft.Validate();
+        if (fields.Count > 0)
+            throw new QuestionModerationException("VALIDATION", "Kiểm tra các trường cần nhập.", fields);
+        Validate(new QuestionReview(0, "moi", draft.AdminNote, draft.Answer), actor, false);
+        var row = new QuestionSubmission
+        {
+            Type = draft.Type!, Content = draft.Content!.Trim(), Answer = Trim(draft.Answer),
+            AdminNote = Trim(draft.AdminNote), Source = QuestionValues.BackofficeSource, CreatedBy = actor,
+            CreatedAt = clock.GetUtcNow().UtcDateTime, Status = "moi"
+        };
+        // Tạo trực tiếp trong quản trị không giả lập sự đồng ý hoặc địa chỉ IP của người gửi portal.
+        // Nội dung luôn ở bản nháp; công bố vẫn đi qua bước duyệt có kiểm tra phiên bản.
+        db.QuestionSubmissions.Add(row);
+        await db.SaveChangesAsync(ct);
+        return QuestionRow.FromEntity(row);
+    }
+
     public async Task<QuestionRow?> GetAsync(long id, CancellationToken ct = default)
     {
         var entity = await db.QuestionSubmissions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
@@ -35,7 +55,7 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
             throw new QuestionModerationException("VALIDATION", "Góp ý chỉ xử lý nội bộ, không công bố thành câu hỏi.");
         DateTime now = clock.GetUtcNow().UtcDateTime;
         // Duyệt và chụp bản trả lời trong cùng một UPDATE có kiểm tra phiên bản.
-        // Câu hỏi, liên hệ và thời điểm đồng ý luôn giữ nguyên từ yêu cầu của người dùng.
+        // Giữ nguyên câu hỏi, nguồn tạo và thông tin tiếp nhận khi duyệt câu trả lời.
         string answer = review.Answer!.Trim();
         int count = await db.QuestionSubmissions.Where(x => x.Id == id && x.ReviewVersion == review.ReviewVersion)
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.Status, "da-xu-ly")

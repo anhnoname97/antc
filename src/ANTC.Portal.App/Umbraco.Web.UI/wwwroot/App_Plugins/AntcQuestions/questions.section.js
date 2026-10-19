@@ -3,7 +3,7 @@ import { html, css, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_MODAL_MANAGER_CONTEXT, UmbModalToken } from '@umbraco-cms/backoffice/modal';
 import { UmbTextStyles } from '@umbraco-cms/backoffice/style';
-import { statuses, types, date, confirmDiscard } from './questions.shared.js';
+import { statuses, types, sources, date, confirmDiscard } from './questions.shared.js';
 
 const base = '/umbraco/management/api/v1/antc/questions';
 const reviewModal = new UmbModalToken('Antc.Modal.QuestionReview', {
@@ -60,7 +60,9 @@ export class AntcQuestionsSection extends UmbLitElement {
             if (response.status === 401) throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại Umbraco.');
             if (response.status === 403) throw new Error('Bạn chưa được cấp quyền vào section Hỏi – Đáp.');
             const problem = await response.json().catch(() => null);
-            throw new Error(problem?.error?.message || problem?.detail || `Không thực hiện được thao tác (${response.status}).`);
+            const error = new Error(problem?.error?.message || problem?.detail || `Không thực hiện được thao tác (${response.status}).`);
+            error.fields = problem?.error?.fields || {};
+            throw error;
         }
         return response;
     }
@@ -84,13 +86,17 @@ export class AntcQuestionsSection extends UmbLitElement {
         this._rowDrafts.clear();
         this._busy = true; this._error = ''; this._message = '';
         try {
-            const row = await (await this._request('/' + id)).json();
+            const row = id === null ? null : await (await this._request('/' + id)).json();
             const manager = await this.getContext(UMB_MODAL_MANAGER_CONTEXT);
             if (!this.isConnected) return;
             if (!manager) throw new Error('Không mở được khung xử lý trong Umbraco. Vui lòng tải lại trang.');
-            this._selected = id;
+            this._selected = id ?? 'new';
             const modal = manager.open(this, reviewModal, { data: {
                 row, request: this._request.bind(this),
+                onCreated: created => {
+                    this._selected = created.id;
+                    this._load(1);
+                },
                 onUpdated: updated => {
                     this._data = { ...this._data, items: this._data.items.map(item => item.id === updated.id ? updated : item) };
                 },
@@ -147,14 +153,18 @@ export class AntcQuestionsSection extends UmbLitElement {
     render() {
         return html`
             <umb-body-layout headline="Hỏi – Đáp">
+                <uui-button slot="action-menu" class="create-button" look="primary" label="Tạo mới nội dung Hỏi – Đáp"
+                    ?disabled=${this._busy || !!this._selected} @click=${event => this._select(null, event.currentTarget)}>
+                    <umb-icon name="icon-add"></umb-icon><span>Tạo mới</span>
+                </uui-button>
                 <uui-button slot="action-menu" class="export-button" look="outline" label="Xuất CSV theo bộ lọc" @click=${this._export}>
                     <umb-icon name="icon-download"></umb-icon><span>Xuất CSV theo bộ lọc</span>
                 </uui-button>
             <div class="page-shell">
-            <p class="page-description">Tiếp nhận và xử lý câu hỏi, kiến nghị, góp ý từ portal.</p>
+            <p class="page-description">Tiếp nhận từ portal hoặc tạo trực tiếp câu hỏi, kiến nghị, góp ý. Duyệt câu trả lời trước khi công bố.</p>
             ${this._error ? html`<div class="notice error" role="alert">${this._error}</div>` : nothing}
             ${this._message ? html`<div class="notice success" role="status">${this._message}</div>` : nothing}
-            <uui-box headline="Danh sách tiếp nhận">
+            <uui-box headline="Danh sách nội dung">
                 <form class="filters" @submit=${this._applyFilters}>
                     <div class="field filter-search"><uui-label for="filter-search">Tìm trong nội dung</uui-label>
                         <uui-input id="filter-search" type="search" maxlength="200" label="Tìm trong nội dung" placeholder="Nhập từ khóa cần tìm…"
@@ -179,11 +189,12 @@ export class AntcQuestionsSection extends UmbLitElement {
                 <div class="table-scroll"><table aria-label="Câu hỏi và góp ý đã tiếp nhận">
                     <colgroup><col class="column-content"><col class="column-contact"><col class="column-status"><col class="column-note"><col class="column-public"><col class="column-handler"><col class="column-actions"></colgroup>
                     <thead><tr>
-                    <th>Nội dung gửi</th><th>Liên hệ</th>
+                    <th>Nội dung</th><th>Liên hệ</th>
                     <th>Trạng thái</th><th>Ghi chú nội bộ</th><th>Công khai</th><th>Người xử lý</th><th>Thao tác</th>
                 </tr></thead><tbody>
                     ${this._data.items.map(row => html`<tr>
-                        <td class="content"><div class="content-meta"><span class="type-label">${types[row.type] || row.type}</span><time>${date(row.createdAt)}</time></div>
+                        <td class="content"><div class="content-meta"><span class="type-label">${types[row.type] || row.type}</span>
+                            <span class="source-label">${sources[row.source] || 'Portal'}</span><time>${date(row.createdAt)}</time></div>
                             <div class="content-preview">${row.content.length > 200 ? row.content.slice(0, 200) + '…' : row.content}</div></td>
                         <td><span class="reply-preference">${row.wantReply ? 'Muốn trả lời riêng' : 'Không yêu cầu'}</span><div class="contact" title=${row.contact || ''}>${row.contact || '—'}</div></td>
                         <td><uui-select label=${`Trạng thái dòng ${row.id}`}
@@ -201,7 +212,7 @@ export class AntcQuestionsSection extends UmbLitElement {
                     </tr>`)}
                     ${!this._data.items.length ? html`<tr><td colspan="7" class="empty"><div class="empty-state"><umb-icon name="icon-chat"></umb-icon>
                         <strong>${this._busy ? 'Đang tải nội dung…' : 'Chưa có nội dung phù hợp'}</strong>
-                        <p>${this._busy ? 'Vui lòng đợi trong giây lát.' : 'Câu hỏi và góp ý người dùng gửi từ portal sẽ xuất hiện tại đây.'}</p>
+                        <p>${this._busy ? 'Vui lòng đợi trong giây lát.' : 'Nhận nội dung từ portal hoặc bấm Tạo mới để nhập trực tiếp trong quản trị.'}</p>
                     </div></td></tr>` : nothing}
                 </tbody></table></div>
                 <div class="pagination"><uui-button label="Trang trước" look="outline" ?disabled=${this._busy || this._rowDrafts.size > 0 || this._data.page <= 1} @click=${() => this._load(this._data.page - 1)}>Trước</uui-button>
@@ -220,6 +231,7 @@ export class AntcQuestionsSection extends UmbLitElement {
         uui-button { flex-shrink:0; }
         uui-button umb-icon { width:16px; height:16px; margin-right:6px; }
         .export-button { margin-right:var(--uui-size-layout-1); }
+        .create-button { margin-right:var(--uui-size-space-3); }
         .filters { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); align-items:end; gap:var(--uui-size-space-5) var(--uui-size-layout-1); padding-bottom:var(--uui-size-layout-1); border-bottom:1px solid var(--uui-color-border); }
         .field { display:flex; flex-direction:column; gap:var(--uui-size-space-3); min-width:0; }
         uui-input, uui-select, uui-textarea { width:100%; min-width:0; }
