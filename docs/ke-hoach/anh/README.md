@@ -1,5 +1,7 @@
 # Ảnh chụp bản dựng
 
+> **Đây là ảnh của bản dựng v1 (cũ).** Giao diện hiện hành nằm ở bản dựng v2; ảnh của nó ở [`../anh-v2/`](../anh-v2/README.md). Thư mục này chỉ còn dùng cho **luồng đăng ký và làm bài của cuộc thi** (`th-01` … `th-11`, `mb-06`, `mb-07`; việc FE-25 đến FE-29), vì bản dựng v2 chưa có các màn đó. Các ảnh còn lại (`gt-`, `up-`, `td-`, `tg-`, `hd-`, `tt-`, `rs-`, `mb-01` … `mb-05`) đã lỗi thời.
+
 Ảnh chụp từng khối giao diện của bản dựng (../../ban-dung/antoantaichinh-ban-dung-thu.html) ở bề rộng 1440px, 1024px và 390px. Mỗi ảnh ghi kèm mã công việc liên quan trong file kế hoạch.
 
 ## Trang Giới thiệu

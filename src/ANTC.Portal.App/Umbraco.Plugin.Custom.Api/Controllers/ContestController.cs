@@ -1,72 +1,136 @@
-using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Umbraco.Plugin.Custom.Api.Models;
-using Umbraco.Plugin.Custom.Api.Validation;
 using Umbraco.Plugin.Custom.Core.Contest;
 
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
-[ApiController]
+/// <summary>
+/// API cuoc thi (sheet "API"). Hien co API-01 den API-05; gioi han tan suat (BE-26) lam sau.
+/// Co y khong dung [ApiController]: thuoc tinh do tu tra 400 ProblemDetails khi JSON sai,
+/// trong khi hop dong yeu cau { error: { code, message, fields } } (QD-004).
+/// </summary>
+// AV0014 (bo phan tich API versioning) chi nhac them [ApiController]; controller nay co y khong dung no (ly do o tren),
+// nen chi tat canh bao cho dung controller nay.
+#pragma warning disable AV0014
 [Route("api/v1/contest")]
 public class ContestController : ControllerBase
+#pragma warning restore AV0014
 {
-    private readonly IContestEntryService _entryService;
+    private readonly IContestEntryService _entries;
+    private readonly IContestAttemptService _attempts;
 
-    public ContestController(IContestEntryService entryService) => _entryService = entryService;
+    public ContestController(IContestEntryService entries, IContestAttemptService attempts)
+    {
+        _entries = entries;
+        _attempts = attempts;
+    }
 
-    /// <summary>API-01: tao mot luot thi co ten hoac an danh.</summary>
+    /// <summary>
+    /// API-01: tao mot luot thi cua mot cuoc thi (contestId bat buoc; co ten hoac an danh). Token chi tra mot lan; khong luu token goc va IP goc.
+    /// </summary>
     [HttpPost("entries")]
-    [ProducesResponseType<CreateContestEntryResponse>(StatusCodes.Status201Created)]
-    [ProducesResponseType<ApiErrorResponse>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ApiErrorResponse>(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType<ApiErrorResponse>(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> CreateEntry(
-        [FromBody] CreateContestEntryRequest? request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateEntry([FromBody] CreateEntryRequest? request, CancellationToken ct)
     {
-        if (!ContestEntryRequestValidator.TryValidate(request, out ContestEntryRegistration? registration, out var fields))
+        Response.Headers.CacheControl = "no-store";
+
+        if (request is null || !ModelState.IsValid)
         {
-            return BadRequest(Error("VALIDATION", "Dữ liệu đăng ký không hợp lệ.", fields));
+            return Error(new ContestError("VALIDATION", "Dữ liệu gửi lên không hợp lệ."));
         }
 
-        try
+        var result = await _entries.CreateAsync(request, HttpContext.Connection.RemoteIpAddress?.ToString(), ct);
+        if (result.Entry is { } e)
         {
-            ContestEntryCreationResult result = await _entryService.CreateAsync(
-                registration!,
-                GetClientIpAddress(),
-                cancellationToken);
+            return StatusCode(StatusCodes.Status201Created, e);
+        }
 
-            var response = new CreateContestEntryResponse(
-                result.Code,
-                result.Token,
-                result.Mode,
-                result.AttemptNo,
-                result.MaxAttempts,
-                result.Status);
-
-            return StatusCode(StatusCodes.Status201Created, response);
-        }
-        catch (ContestClosedException)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden,
-                Error("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
-        }
-        catch (AttemptLimitException)
-        {
-            return Conflict(Error("ATTEMPT_LIMIT", "Số điện thoại đã dùng hết số lượt dự thi."));
-        }
+        return Error(result.Error!);
     }
 
-    private string? GetClientIpAddress()
+    /// <summary>
+    /// API-02: lay lai luot thi theo X-Entry-Token (tien do, dap an da luu). Goi duoc o moi trang thai cuoc thi.
+    /// </summary>
+    [HttpGet("entries/me")]
+    public async Task<IActionResult> GetMe(CancellationToken ct)
     {
-        IPAddress? address = HttpContext.Connection.RemoteIpAddress;
-        return address?.IsIPv4MappedToIPv6 == true ? address.MapToIPv4().ToString() : address?.ToString();
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        return Ok(await _attempts.GetStateAsync(entry, ct));
     }
 
-    private static ApiErrorResponse Error(
-        string code,
-        string message,
-        IReadOnlyDictionary<string, string>? fields = null) =>
-        new(new ApiError(code, message, fields ?? new Dictionary<string, string>()));
+    /// <summary>
+    /// API-03: luu dap an mot cau (lan ghi dau thang). Cau da co dap an tra 200 voi stored=false.
+    /// </summary>
+    [HttpPost("entries/me/answers")]
+    public async Task<IActionResult> SaveAnswer([FromBody] SaveAnswerRequest? request, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        var result = await _attempts.SaveAnswerAsync(entry, request?.Q, request?.A, ct);
+        return result.Answer is { } answer ? Ok(answer) : Error(result.Error!);
+    }
+
+    /// <summary>
+    /// API-04: gan thong tin (ho ten, so dien thoai, don vi, dong y) vao luot an danh de xet giai.
+    /// </summary>
+    [HttpPut("entries/me/contact")]
+    public async Task<IActionResult> AttachContact([FromBody] ContactRequest? request, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        var result = await _attempts.AttachContactAsync(entry, request, ct);
+        return result.Contact is { } contact ? Ok(contact) : Error(result.Error!);
+    }
+
+    /// <summary>
+    /// API-05: nop bai; luot an danh co the kem contact de xet giai. Chi nop khi da tra loi du cau (QD-015),
+    /// con han nop (QD-014). Nop lai tra ket qua da luu.
+    /// </summary>
+    [HttpPost("entries/me/submit")]
+    public async Task<IActionResult> Submit([FromBody] SubmitRequest? request, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        var entry = await _attempts.AuthenticateAsync(Request.Headers["X-Entry-Token"].FirstOrDefault(), ct);
+        if (entry is null)
+        {
+            return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
+        }
+
+        var result = await _attempts.SubmitAsync(entry, request?.Contact, ct);
+        return result.Result is { } submitted ? Ok(submitted) : Error(result.Error!);
+    }
+
+    private IActionResult Error(ContestError error)
+    {
+        int status = error.Code switch
+        {
+            "VALIDATION" => StatusCodes.Status400BadRequest,
+            "UNKNOWN_QUESTION" or "INVALID_OPTION" => StatusCodes.Status400BadRequest,
+            "INVALID_TOKEN" => StatusCodes.Status401Unauthorized,
+            "CONTEST_NOT_FOUND" => StatusCodes.Status404NotFound,
+            "CONTEST_CLOSED" => StatusCodes.Status403Forbidden,
+            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "INCOMPLETE_ANSWERS" or "TOPIC_LOCKED" => StatusCodes.Status409Conflict,
+            _ => StatusCodes.Status500InternalServerError
+        };
+        return StatusCode(status, new { error = new { code = error.Code, message = error.Message, fields = error.Fields ?? new Dictionary<string, string>() } });
+    }
 }

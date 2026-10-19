@@ -7,7 +7,7 @@ using Umbraco.Plugin.Custom.Core.Data;
 namespace Umbraco.Plugin.Custom.Core.Quiz;
 
 // Cau truc JSON tra ve cho trinh duyet giu dung nhu du lieu trong ban dung
-// (docs/ban-dung/antoantaichinh-ban-dung-thu.html) de FE dung lai ma hien thi.
+// (docs/ban-dung/an-toan-tai-chinh-website.html) de FE dung lai ma hien thi.
 
 public record TopicDto(
     [property: JsonPropertyName("cd")] string Cd,
