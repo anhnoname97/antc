@@ -13,9 +13,10 @@ Quyết định đã chốt: QĐ-017 đến QĐ-026 (`docs/quyet-dinh.md`).
 
 ### Việc còn lại
 
-1. **anhnn kiểm bản trên `dev`** (đã push): pull `dev`, `.un-local.ps1 -Reset`, mở http://localhost:11000/cuoc-thi/ (cuộc thi mẫu có sẵn ở Development); quản trị `/umbraco`. Duyệt giao diện bằng mắt: màn kết quả FE-29, hai cuộc, 390px, câu chữ "đồng ý".
+1. **anhnn kiểm bản trên `dev`** (đã push): pull `dev`, `.
+un-local.ps1 -Reset`, mở http://localhost:11000/cuoc-thi/ (cuộc thi mẫu có sẵn ở Development); quản trị `/umbraco`. Duyệt giao diện bằng mắt: màn kết quả FE-29, hai cuộc, 390px, câu chữ "đồng ý".
 2. **Chỉ khi anhnn xác nhận đạt mới đưa `dev` vào `main`** (QĐ-017, QĐ-027). `main` chưa đụng.
-3. Chưa kiểm: giá trị ngoài khoảng qua HTTP (có test đơn vị), đếm lượt giữa hai cuộc qua HTTP, CSDL cũ có dữ liệu, trình duyệt/điện thoại khác.
+3. K2 đạt (CSDL cũ, đếm lượt hai cuộc, 5 môi trường trình duyệt giả lập). **Cần anhnn quyết trước khi lên production:** (a) lượt dở dang của CSDL cũ (chưa thuộc cuộc nào) sau nâng cấp bị `403 CONTEST_CLOSED`, không làm tiếp được: chấp nhận hay gán vào một cuộc? (b) migration `AddEntryContestAndContestSettings` có cảnh báo EF `PRAGMA foreign_keys = 0` trong transaction: **sao lưu `app.sqlite.db` trước khi nâng cấp**. Chưa kiểm: máy thật (điện thoại), Safari chế độ riêng tư, nộp bài trọn vẹn trên từng trình duyệt, giá trị ngoài khoảng qua HTTP.
 4. anhnn tự làm (thư mục bị deny với agent): sửa tên bản dựng `antoantaichinh-ban-dung-thu.html` thành `an-toan-tai-chinh-website.html` trong 3 README `docs/ke-hoach` (`anh/README.md`, `anh-v2/README.md`, `anh-v2/cong-cu/README_dau.md`); dán `docs/ban-giao/CUOC-THI/5-hang-muc-moi-cho-ke-hoach.md` vào sheet "Công việc" của xlsx, thêm hạng mục quay số theo cuộc (QĐ-025).
 5. Dọn nhánh `lane/CUOC-THI-*`, `wip/CUOC-THI-F4b` khi không cần.
 
