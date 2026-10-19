@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -11,13 +10,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "consent_at",
-                table: "question_submission",
-                type: "TEXT",
-                nullable: true,
-                oldClrType: typeof(DateTime),
-                oldType: "TEXT");
+            // Chỉ thêm cột ở bước này. Đổi consent_at sang nullable tại migration
+            // QuestionSubmissionConsentNullable sau khi hai nhánh đã có đủ cột.
+            // SQLite dựng lại bảng khi AlterColumn; chạy bước đó ở đây sẽ làm mất
+            // guidance_* nếu máy đã áp dụng QuestionGuidanceLinks từ main trước.
 
             migrationBuilder.AddColumn<string>(
                 name: "created_by",
@@ -46,15 +42,6 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                 name: "source",
                 table: "question_submission");
 
-            migrationBuilder.AlterColumn<DateTime>(
-                name: "consent_at",
-                table: "question_submission",
-                type: "TEXT",
-                nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                oldClrType: typeof(DateTime),
-                oldType: "TEXT",
-                oldNullable: true);
         }
     }
 }

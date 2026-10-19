@@ -91,6 +91,10 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.IpHash, x.CreatedAt });
             e.Property(x => x.Answer).HasMaxLength(10000);
             e.Property(x => x.PublishedAnswer).HasMaxLength(10000);
+            e.Property(x => x.GuidanceLabel).HasMaxLength(200);
+            e.Property(x => x.GuidanceUrl).HasMaxLength(2048);
+            e.Property(x => x.PublishedGuidanceLabel).HasMaxLength(200);
+            e.Property(x => x.PublishedGuidanceUrl).HasMaxLength(2048);
             e.Property(x => x.ApprovedBy).HasMaxLength(100);
             e.HasIndex(x => new { x.IsPublished, x.ApprovedAt });
         });

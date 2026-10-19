@@ -352,7 +352,7 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("approved_by");
 
-                    b.Property<DateTime?>("ConsentAt")
+                    b.Property<DateTime>("ConsentAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("consent_at");
 

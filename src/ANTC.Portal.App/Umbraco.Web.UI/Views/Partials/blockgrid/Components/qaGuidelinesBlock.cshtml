@@ -1,0 +1,17 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    var id = $"qa-guidelines-{Model.ContentKey:N}";
+}
+<div class="qa-guide-shell">
+<aside class="before" data-qa-guidelines aria-labelledby="@id">
+<h3 id="@id">@T("title")</h3>
+<ul>
+<li><b aria-hidden="true">✕</b><span>@T("warning1")</span></li>
+<li><b aria-hidden="true">✕</b><span>@T("warning2")</span></li>
+<li class="info"><b aria-hidden="true">i</b><span>@T("info")</span></li>
+</ul>
+</aside>
+</div>

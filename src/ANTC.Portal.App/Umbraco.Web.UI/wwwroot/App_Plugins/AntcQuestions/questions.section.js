@@ -121,7 +121,8 @@ export class AntcQuestionsSection extends UmbLitElement {
         this._busy = true; this._error = ''; this._message = '';
         try {
             const updated = await (await this._request('/' + row.id, {
-                method: 'PUT', body: JSON.stringify({ ...draft, answer: row.answer, reviewVersion: row.reviewVersion }),
+                method: 'PUT', body: JSON.stringify({ ...draft, answer: row.answer, reviewVersion: row.reviewVersion,
+                    guidanceLabel: row.guidanceLabel, guidanceUrl: row.guidanceUrl }),
             })).json();
             this._data = { ...this._data, items: this._data.items.map(item => item.id === row.id ? updated : item) };
             this._rowDrafts.delete(row.id);

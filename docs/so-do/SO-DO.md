@@ -60,6 +60,7 @@ graph TD
   contentManagement --> articleManagement
   contentManagement --> articleList
   hoiDapPage -. composition .-> seoBase
+  hoiDapPage -.-> tpl_hoiDapPage{{"hoiDapPage.cshtml"}}
   home --> ungPhoPage
   home --> thuDoanPage
   home --> thamGiaPage
@@ -206,7 +207,7 @@ graph LR
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
 | Contest | 6 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, CurrentContestService, UmbracoContestSettingsProvider |
 | Data | 3 | AppDbContext, AppDbInitializer, Entities |
-| Questions | 4 | QuestionCsv, QuestionModels, QuestionModerationService, QuestionSubmissionService |
+| Questions | 5 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionSubmissionService |
 | Quiz | 3 | QuestionBank, QuizAdminModels, QuizAdminService |
 | Services | 1 | AppInfoService |
 
@@ -223,7 +224,7 @@ graph LR
 
 | Thư mục | Số file | File |
 |---|---|---|
-| (gốc) | 10 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, CurrentContestServiceTests, QuestionBankTests, QuestionsControllerTests, QuizAdminServiceTests, QuizControllerTests, Usings |
+| (gốc) | 11 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, CurrentContestServiceTests, QuestionBankTests, QuestionGuidanceTests, QuestionsControllerTests, QuizAdminServiceTests, QuizControllerTests, Usings |
 
 
 ### API routes

@@ -41,6 +41,7 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
         int count = await db.QuestionSubmissions.Where(x => x.Id == id && x.ReviewVersion == review.ReviewVersion)
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.Status, review.Status)
                 .SetProperty(x => x.AdminNote, Trim(review.AdminNote)).SetProperty(x => x.Answer, Trim(review.Answer))
+                .SetProperty(x => x.GuidanceLabel, Trim(review.GuidanceLabel)).SetProperty(x => x.GuidanceUrl, Trim(review.GuidanceUrl))
                 .SetProperty(x => x.IsPublished, x => review.Status != "bo-qua" && x.IsPublished)
                 .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now)
                 .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1), ct);
@@ -53,6 +54,8 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
         QuestionRow current = await GetAsync(id, ct) ?? throw new QuestionModerationException("NOT_FOUND", "Không tìm thấy câu hỏi.");
         if (!QuestionValues.Types.ContainsKey(current.Type))
             throw new QuestionModerationException("VALIDATION", "Loại nội dung không hợp lệ để công bố.");
+        if (current.Type == "cau-hoi" && Trim(review.GuidanceLabel) is null)
+            throw new QuestionModerationException("VALIDATION", "Cần thêm liên kết nội dung hướng dẫn đã thẩm định trước khi công bố câu hỏi.");
         DateTime now = clock.GetUtcNow().UtcDateTime;
         // Duyệt và chụp bản trả lời trong cùng một UPDATE có kiểm tra phiên bản.
         // Giữ nguyên câu hỏi, nguồn tạo và thông tin tiếp nhận khi duyệt câu trả lời.
@@ -61,6 +64,8 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.Status, "da-xu-ly")
                 .SetProperty(x => x.AdminNote, Trim(review.AdminNote)).SetProperty(x => x.Answer, answer)
                 .SetProperty(x => x.PublishedAnswer, answer).SetProperty(x => x.IsPublished, true)
+                .SetProperty(x => x.GuidanceLabel, Trim(review.GuidanceLabel)).SetProperty(x => x.GuidanceUrl, Trim(review.GuidanceUrl))
+                .SetProperty(x => x.PublishedGuidanceLabel, Trim(review.GuidanceLabel)).SetProperty(x => x.PublishedGuidanceUrl, Trim(review.GuidanceUrl))
                 .SetProperty(x => x.ApprovedBy, actor).SetProperty(x => x.ApprovedAt, now)
                 .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now)
                 .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1), ct);
@@ -95,17 +100,17 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
             ? query.OrderBy(x => x.ApprovedAt).ThenBy(x => x.Id)
             : query.OrderByDescending(x => x.ApprovedAt).ThenByDescending(x => x.Id);
         var rows = await ordered.Skip(skip).Take(options.PageSize)
-            .Select(x => new { x.Id, x.Type, x.Content, x.PublishedAnswer, x.ApprovedAt }).ToListAsync(ct);
+            .Select(x => new { x.Id, x.Type, x.Content, x.PublishedAnswer, x.ApprovedAt, x.PublishedGuidanceLabel, x.PublishedGuidanceUrl }).ToListAsync(ct);
         return new(rows.Select(x => new PublishedQuestion(x.Id, x.Content, x.PublishedAnswer!,
-            QuestionValues.AsUtc(x.ApprovedAt!.Value), x.Type)).ToArray(), total, options.Page, options.PageSize);
+            QuestionValues.AsUtc(x.ApprovedAt!.Value), x.Type, x.PublishedGuidanceLabel, x.PublishedGuidanceUrl)).ToArray(), total, options.Page, options.PageSize);
     }
 
     public async Task<PublishedQuestion?> GetPublishedAsync(long id, CancellationToken ct = default)
     {
         var row = await PublishedQuery().Where(x => x.Id == id)
-            .Select(x => new { x.Id, x.Type, x.Content, x.PublishedAnswer, x.ApprovedAt }).SingleOrDefaultAsync(ct);
+            .Select(x => new { x.Id, x.Type, x.Content, x.PublishedAnswer, x.ApprovedAt, x.PublishedGuidanceLabel, x.PublishedGuidanceUrl }).SingleOrDefaultAsync(ct);
         return row is null ? null : new PublishedQuestion(row.Id, row.Content, row.PublishedAnswer!,
-            QuestionValues.AsUtc(row.ApprovedAt!.Value), row.Type);
+            QuestionValues.AsUtc(row.ApprovedAt!.Value), row.Type, row.PublishedGuidanceLabel, row.PublishedGuidanceUrl);
     }
 
     private IQueryable<QuestionSubmission> PublishedQuery() => db.QuestionSubmissions.AsNoTracking()
@@ -142,6 +147,11 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
             throw new QuestionModerationException("VALIDATION", "Trạng thái không hợp lệ, ghi chú quá 1000 ký tự hoặc câu trả lời quá 10000 ký tự.");
         if (approving && (review.Answer?.Trim().Length ?? 0) < 10)
             throw new QuestionModerationException("VALIDATION", "Cần nhập câu trả lời hoặc phản hồi từ 10 đến 10000 ký tự trước khi duyệt công bố.");
+        string? guidanceLabel = Trim(review.GuidanceLabel), guidanceUrl = Trim(review.GuidanceUrl);
+        if (guidanceLabel?.Length > 200 || guidanceUrl?.Length > 2048
+            || (guidanceLabel is null) != (guidanceUrl is null)
+            || (guidanceUrl is not null && !QuestionGuidanceLink.IsSafe(guidanceUrl)))
+            throw new QuestionModerationException("VALIDATION", "Nhập đủ nhãn hướng dẫn (tối đa 200 ký tự) và URL hợp lệ (tối đa 2048 ký tự). URL phải bắt đầu bằng / hoặc http(s)://.");
         if (string.IsNullOrWhiteSpace(actor) || actor.Length > 100)
             throw new QuestionModerationException("VALIDATION", "Không xác định được người xử lý.");
     }
