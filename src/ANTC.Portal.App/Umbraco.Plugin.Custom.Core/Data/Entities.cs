@@ -108,6 +108,10 @@ public class QuestionSubmission
     public string? Answer { get; set; }
     /// <summary>Bản câu trả lời đã được duyệt; sửa nháp không thay đổi bản đang công khai.</summary>
     public string? PublishedAnswer { get; set; }
+    public string? GuidanceLabel { get; set; }
+    public string? GuidanceUrl { get; set; }
+    public string? PublishedGuidanceLabel { get; set; }
+    public string? PublishedGuidanceUrl { get; set; }
     public bool IsPublished { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public string? ApprovedBy { get; set; }
