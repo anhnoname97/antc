@@ -268,7 +268,9 @@
           "id": { "type": "integer", "format": "int64", "minimum": 1 },
           "question": { "type": "string", "description": "Câu hỏi gốc, hiển thị dạng văn bản có thoát ký tự." },
           "answer": { "type": "string", "description": "Bản câu trả lời đã được duyệt, hiển thị dạng văn bản có thoát ký tự." },
-          "answeredAt": { "type": "string", "format": "date-time", "description": "Thời điểm duyệt/công bố gần nhất, ISO 8601 có múi giờ." }
+          "answeredAt": { "type": "string", "format": "date-time", "description": "Thời điểm duyệt/công bố gần nhất, ISO 8601 có múi giờ." },
+          "guidanceLabel": { "type": "string", "nullable": true, "maxLength": 200, "description": "Nhãn liên kết nội dung hướng dẫn đã được duyệt cùng bản trả lời; bản công bố cũ có thể null." },
+          "guidanceUrl": { "type": "string", "nullable": true, "maxLength": 2048, "description": "Đường dẫn hướng dẫn đã duyệt, bắt đầu bằng / hoặc http(s)://; không trả liên kết nháp." }
         }
       },
       "PublishedQuestionPage": {

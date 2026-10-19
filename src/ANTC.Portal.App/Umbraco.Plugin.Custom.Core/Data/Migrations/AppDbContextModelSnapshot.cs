@@ -474,6 +474,16 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("GuidanceLabel")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guidance_label");
+
+                    b.Property<string>("GuidanceUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guidance_url");
+
                     b.Property<DateTime?>("HandledAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("handled_at");
@@ -496,6 +506,16 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasMaxLength(10000)
                         .HasColumnType("TEXT")
                         .HasColumnName("published_answer");
+
+                    b.Property<string>("PublishedGuidanceLabel")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("published_guidance_label");
+
+                    b.Property<string>("PublishedGuidanceUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("published_guidance_url");
 
                     b.Property<long>("ReviewVersion")
                         .HasColumnType("INTEGER")
