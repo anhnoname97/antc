@@ -107,11 +107,10 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
             if (action !== 'unpublish') this._resetDraft();
             if (action === 'create') this.data.onCreated(row);
             else this.data.onUpdated(row);
-            this._message = action === 'create' ? (row.type === 'gop-y' ? 'Đã tạo góp ý. Nội dung được xử lý nội bộ, không công bố.'
-                : 'Đã tạo bản nháp. Bạn có thể tiếp tục xử lý và duyệt công bố câu hỏi tại đây.')
-                : action === 'approve' ? 'Đã duyệt và công bố câu hỏi cùng câu trả lời.'
+            this._message = action === 'create' ? 'Đã tạo bản nháp. Bạn có thể tiếp tục xử lý và duyệt công bố tại đây.'
+                : action === 'approve' ? (row.type === 'gop-y' ? 'Đã duyệt và công bố góp ý cùng phản hồi.' : 'Đã duyệt và công bố câu hỏi cùng câu trả lời.')
                 : action === 'unpublish' ? 'Đã gỡ công bố. Nội dung không còn hiển thị công khai.'
-                    : 'Đã lưu xử lý. Câu trả lời chỉ hiển thị trên website sau khi được duyệt và công bố.';
+                    : 'Đã lưu xử lý. Nội dung và phản hồi chỉ hiển thị trên portal sau khi được duyệt và công bố.';
         } catch (error) { this._error = error.message; this._fieldErrors = error.fields || {}; }
         finally { this._busy = false; this._action = null; }
     }
@@ -131,13 +130,13 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                     <div class="submission-panel">
                         ${!row ? html`<uui-box headline="Nội dung tạo mới">
                             <p class="muted intro">Nội dung do ban biên tập nhập trực tiếp. Lưu bản nháp trước khi duyệt và công bố.</p>
-                            <umb-property-layout orientation="vertical" label="Loại nội dung" description="Câu hỏi có thể được trả lời và duyệt công bố; góp ý được xử lý nội bộ.">
+                            <umb-property-layout orientation="vertical" label="Loại nội dung" description="Câu hỏi, kiến nghị và góp ý đều có thể nhập phản hồi, duyệt và công bố.">
                                 <uui-select slot="editor" id="create-type" label="Loại nội dung" ?disabled=${this._busy}
                                     .options=${Object.entries(types).map(([value, name]) => ({ value, name, selected: value === this._draft.type }))}
                                     @change=${event => this._edit('type', event.target.value)}></uui-select>
                                 ${this._fieldErrors.type ? html`<span slot="description" class="field-error">${this._fieldErrors.type}</span>` : nothing}
                             </umb-property-layout>
-                            <umb-property-layout orientation="vertical" label="Nội dung" description="Nhập câu hỏi, kiến nghị hoặc góp ý từ 10 đến 2.000 ký tự. Không đưa thông tin liên hệ riêng vào câu hỏi công khai.">
+                            <umb-property-layout orientation="vertical" label="Nội dung" description="Nhập câu hỏi, kiến nghị hoặc góp ý từ 10 đến 2.000 ký tự. Không đưa thông tin liên hệ riêng vào nội dung công khai.">
                                 <uui-textarea slot="editor" id="create-content" label="Nội dung" rows="10" required
                                     .value=${this._draft.content} ?disabled=${this._busy} aria-invalid=${this._fieldErrors.content ? 'true' : 'false'}
                                     @input=${event => this._edit('content', event.target.value)} placeholder="Nhập câu hỏi hoặc góp ý"></uui-textarea>
@@ -161,19 +160,19 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                             <p class="muted">Thông tin liên hệ và ghi chú chỉ hiển thị trong quản trị. Hệ thống không tự gửi email.</p>
                         </uui-box>`}
                     </div>
-                    <uui-box class="editor" headline=${row ? 'Trả lời và kiểm duyệt' : 'Câu trả lời và ghi chú'}>
+                    <uui-box class="editor" headline=${row ? 'Phản hồi và kiểm duyệt' : 'Phản hồi và ghi chú'}>
                         ${row?.wantReply ? html`<div class="private-reply"><umb-icon name="icon-lock"></umb-icon>
-                            <span>Người gửi muốn nhận phản hồi riêng. Kiểm tra thông tin cá nhân trong câu hỏi trước khi công bố.</span></div>` : nothing}
-                        <umb-property-layout orientation="vertical" label="Câu trả lời" description=${(row?.type || this._draft.type) === 'gop-y'
-                            ? 'Phản hồi nội bộ cho góp ý; không đưa lên danh sách Hỏi–Đáp công khai.'
+                            <span>Người gửi muốn nhận phản hồi riêng. Kiểm tra thông tin cá nhân trong nội dung trước khi công bố.</span></div>` : nothing}
+                        <umb-property-layout orientation="vertical" label=${(row?.type || this._draft.type) === 'gop-y' ? 'Phản hồi góp ý' : 'Câu trả lời'} description=${(row?.type || this._draft.type) === 'gop-y'
+                            ? 'Nhập phản hồi cho góp ý. Duyệt và công bố để hiển thị góp ý cùng phản hồi trên portal.'
                             : 'Lưu để tiếp tục xử lý. Duyệt và công bố để hiển thị câu hỏi cùng câu trả lời trên portal.'}>
-                            <uui-textarea slot="editor" id="answer" label="Câu trả lời" rows="10" maxlength="10000"
+                            <uui-textarea slot="editor" id="answer" label=${(row?.type || this._draft.type) === 'gop-y' ? 'Phản hồi góp ý' : 'Câu trả lời'} rows="10" maxlength="10000"
                                 .value=${this._draft.answer} ?disabled=${this._busy}
-                                @input=${event => this._edit('answer', event.target.value)} placeholder="Nhập câu trả lời"></uui-textarea>
+                                @input=${event => this._edit('answer', event.target.value)} placeholder="Nhập câu trả lời hoặc phản hồi"></uui-textarea>
                             <span slot="description" class="counter">${this._draft.answer.length.toLocaleString('vi-VN')} / 10.000 ký tự</span>
                             ${this._fieldErrors.answer ? html`<span slot="description" class="field-error">${this._fieldErrors.answer}</span>` : nothing}
                         </umb-property-layout>
-                        ${row ? html`<umb-property-layout orientation="vertical" label="Trạng thái xử lý" description="Trạng thái xử lý nội bộ không tự công bố câu trả lời.">
+                        ${row ? html`<umb-property-layout orientation="vertical" label="Trạng thái xử lý" description="Trạng thái xử lý nội bộ không tự công bố nội dung.">
                             <uui-select slot="editor" id="review-status" label="Trạng thái xử lý" ?disabled=${this._busy}
                                 .options=${Object.entries(statuses).map(([value, name]) => ({ value, name, selected: value === this._draft.status }))}
                                 @change=${event => this._edit('status', event.target.value)}></uui-select>
@@ -185,7 +184,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                             ${this._fieldErrors.adminNote ? html`<span slot="description" class="field-error">${this._fieldErrors.adminNote}</span>` : nothing}
                         </umb-property-layout>
                         ${row?.isPublished && this._draft.answer !== row.publishedAnswer ? html`<div class="notice">
-                            Portal vẫn hiển thị bản đã duyệt trước đó. Duyệt lại để cập nhật câu trả lời công khai.</div>` : nothing}
+                            Portal vẫn hiển thị bản đã duyệt trước đó. Duyệt lại để cập nhật phản hồi công khai.</div>` : nothing}
                     </uui-box>
                 </div>
                 <span slot="footer-info" class="save-state" role="status">${this._dirty ? 'Có thay đổi chưa lưu' : 'Không có thay đổi chưa lưu'}</span>
@@ -196,7 +195,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                     ?disabled=${this._busy} @click=${() => this._act('save')}>Lưu xử lý</uui-button>` : html`
                     <uui-button slot="actions" label="Tạo bản nháp" look="primary" data-action="create" .state=${this._action === 'create' ? 'waiting' : undefined}
                         ?disabled=${this._busy} @click=${() => this._act('create')}>Tạo bản nháp</uui-button>`}
-                ${row?.type === 'cau-hoi' ? html`<uui-button slot="actions" label="Duyệt và công bố" look="primary" color="positive" data-action="approve"
+                ${row && Object.hasOwn(types, row.type) ? html`<uui-button slot="actions" label="Duyệt và công bố" look="primary" color="positive" data-action="approve"
                     .state=${this._action === 'approve' ? 'waiting' : undefined} ?disabled=${this._busy || this._draft.answer.trim().length < 10}
                     @click=${() => this._act('approve')}>Duyệt và công bố</uui-button>` : nothing}
             </umb-body-layout>

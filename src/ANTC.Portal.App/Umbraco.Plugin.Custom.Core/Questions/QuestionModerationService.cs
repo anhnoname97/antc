@@ -51,8 +51,8 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
     {
         Validate(review, actor, true);
         QuestionRow current = await GetAsync(id, ct) ?? throw new QuestionModerationException("NOT_FOUND", "Không tìm thấy câu hỏi.");
-        if (current.Type != "cau-hoi")
-            throw new QuestionModerationException("VALIDATION", "Góp ý chỉ xử lý nội bộ, không công bố thành câu hỏi.");
+        if (!QuestionValues.Types.ContainsKey(current.Type))
+            throw new QuestionModerationException("VALIDATION", "Loại nội dung không hợp lệ để công bố.");
         DateTime now = clock.GetUtcNow().UtcDateTime;
         // Duyệt và chụp bản trả lời trong cùng một UPDATE có kiểm tra phiên bản.
         // Giữ nguyên câu hỏi, nguồn tạo và thông tin tiếp nhận khi duyệt câu trả lời.
@@ -83,6 +83,7 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
         ArgumentNullException.ThrowIfNull(options);
         if (options.Validate().Count > 0) throw new ArgumentException("Tham số danh sách không hợp lệ.", nameof(options));
         IQueryable<QuestionSubmission> query = PublishedQuery();
+        if (options.TypeFilter is { } type) query = query.Where(x => x.Type == type);
         if (options.SearchTerm is { } search)
         {
             string pattern = SearchPattern(search);
@@ -94,21 +95,21 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
             ? query.OrderBy(x => x.ApprovedAt).ThenBy(x => x.Id)
             : query.OrderByDescending(x => x.ApprovedAt).ThenByDescending(x => x.Id);
         var rows = await ordered.Skip(skip).Take(options.PageSize)
-            .Select(x => new { x.Id, x.Content, x.PublishedAnswer, x.ApprovedAt }).ToListAsync(ct);
+            .Select(x => new { x.Id, x.Type, x.Content, x.PublishedAnswer, x.ApprovedAt }).ToListAsync(ct);
         return new(rows.Select(x => new PublishedQuestion(x.Id, x.Content, x.PublishedAnswer!,
-            QuestionValues.AsUtc(x.ApprovedAt!.Value))).ToArray(), total, options.Page, options.PageSize);
+            QuestionValues.AsUtc(x.ApprovedAt!.Value), x.Type)).ToArray(), total, options.Page, options.PageSize);
     }
 
     public async Task<PublishedQuestion?> GetPublishedAsync(long id, CancellationToken ct = default)
     {
         var row = await PublishedQuery().Where(x => x.Id == id)
-            .Select(x => new { x.Id, x.Content, x.PublishedAnswer, x.ApprovedAt }).SingleOrDefaultAsync(ct);
+            .Select(x => new { x.Id, x.Type, x.Content, x.PublishedAnswer, x.ApprovedAt }).SingleOrDefaultAsync(ct);
         return row is null ? null : new PublishedQuestion(row.Id, row.Content, row.PublishedAnswer!,
-            QuestionValues.AsUtc(row.ApprovedAt!.Value));
+            QuestionValues.AsUtc(row.ApprovedAt!.Value), row.Type);
     }
 
     private IQueryable<QuestionSubmission> PublishedQuery() => db.QuestionSubmissions.AsNoTracking()
-        .Where(x => x.Type == "cau-hoi" && x.IsPublished && x.ApprovedAt != null
+        .Where(x => (x.Type == "cau-hoi" || x.Type == "gop-y") && x.IsPublished && x.ApprovedAt != null
             && x.PublishedAnswer != null && x.PublishedAnswer != "");
 
     private static string SearchPattern(string term)
@@ -140,7 +141,7 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
             || review.AdminNote?.Length > 1000 || review.Answer?.Length > 10000)
             throw new QuestionModerationException("VALIDATION", "Trạng thái không hợp lệ, ghi chú quá 1000 ký tự hoặc câu trả lời quá 10000 ký tự.");
         if (approving && (review.Answer?.Trim().Length ?? 0) < 10)
-            throw new QuestionModerationException("VALIDATION", "Cần nhập câu trả lời từ 10 đến 10000 ký tự trước khi duyệt công bố.");
+            throw new QuestionModerationException("VALIDATION", "Cần nhập câu trả lời hoặc phản hồi từ 10 đến 10000 ký tự trước khi duyệt công bố.");
         if (string.IsNullOrWhiteSpace(actor) || actor.Length > 100)
             throw new QuestionModerationException("VALIDATION", "Không xác định được người xử lý.");
     }

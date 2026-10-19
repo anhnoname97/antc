@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "API Hỏi – Đáp dành cho frontend portal",
-    "version": "1.1.0",
-    "description": "Tiếp nhận câu hỏi/góp ý và đọc câu đã được duyệt, công bố. Không yêu cầu đăng nhập. Frontend tự xây dựng giao diện theo hợp đồng này. Quy tắc độ dài content/contact áp dụng sau khi backend trim khoảng trắng hai đầu; FE nên trim trước khi gửi."
+    "version": "1.2.0",
+    "description": "Tiếp nhận câu hỏi/góp ý và đọc nội dung cùng phản hồi đã được duyệt, công bố. Câu hỏi và góp ý dùng cùng luồng duyệt; mọi nội dung mới vẫn riêng tư cho đến khi được duyệt. GET trả type để phân biệt cau-hoi/gop-y và có bộ lọc type. Không yêu cầu đăng nhập. Frontend tự xây dựng giao diện theo hợp đồng này. Quy tắc độ dài content/contact áp dụng sau khi backend trim khoảng trắng hai đầu; FE nên trim trước khi gửi."
   },
   "servers": [
     { "url": "http://localhost:11000", "description": "Môi trường phát triển; thay base URL theo môi trường tích hợp." }
@@ -44,7 +44,7 @@
                   }
                 },
                 "feedback": {
-                  "summary": "Góp ý xử lý nội bộ",
+                  "summary": "Góp ý chờ phản hồi và duyệt công bố",
                   "value": {
                     "type": "gop-y",
                     "content": "Tôi đề nghị bổ sung phần hướng dẫn tìm kiếm nội dung.",
@@ -108,9 +108,16 @@
       },
       "get": {
         "operationId": "listPublishedQuestions",
-        "summary": "Đọc câu hỏi và câu trả lời đã duyệt, công bố",
-        "description": "Danh sách công khai có tìm kiếm, phân trang, sắp xếp. Chỉ trả cau-hoi đã công bố, có thời điểm duyệt và bản câu trả lời đã duyệt. Không trả liên hệ, IP, ghi chú, người xử lý hoặc bản nháp. Tìm chuỗi trong câu hỏi và câu trả lời đã duyệt, không phân biệt hoa/thường tiếng Việt, giữ dấu; ký tự wildcard được tìm như văn bản. Cùng thời điểm duyệt thì id sắp xếp cùng chiều. Trang vượt số trang trả items rỗng và giữ nguyên page yêu cầu. Frontend hiển thị question/answer dưới dạng văn bản đã thoát ký tự.",
+        "summary": "Đọc câu hỏi, góp ý và phản hồi đã duyệt, công bố",
+        "description": "Danh sách công khai có tìm kiếm, phân trang, sắp xếp. Trả cau-hoi và gop-y đã công bố, có thời điểm duyệt và bản phản hồi đã duyệt. Bỏ lọc type để lấy cả hai loại; type=cau-hoi chỉ lấy câu hỏi, type=gop-y chỉ lấy góp ý. Không trả liên hệ, IP, ghi chú, nguồn tạo, người tạo/người xử lý hoặc bản nháp. Tìm chuỗi trong nội dung gốc và phản hồi đã duyệt, không phân biệt hoa/thường tiếng Việt, giữ dấu; ký tự wildcard được tìm như văn bản. Cùng thời điểm duyệt thì id sắp xếp cùng chiều. Trang vượt số trang trả items rỗng và giữ nguyên page yêu cầu. Frontend hiển thị question/answer dưới dạng văn bản đã thoát ký tự.",
         "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Lọc loại nội dung sau trim; phân biệt hoa thường. Bỏ trường hoặc chuỗi trắng để lấy cả câu hỏi và góp ý đã duyệt.",
+            "schema": { "type": "string", "enum": ["cau-hoi", "gop-y"] }
+          },
           {
             "name": "page",
             "in": "query",
@@ -156,12 +163,20 @@
                   "items": [
                     {
                       "id": 130,
+                      "type": "cau-hoi",
                       "question": "Tôi có thể gửi góp ý về nội dung website ở đâu?",
                       "answer": "Bạn chọn Góp ý trong biểu mẫu Hỏi – Đáp và gửi nội dung cho ban biên tập.",
                       "answeredAt": "2026-10-16T06:00:00+00:00"
+                    },
+                    {
+                      "id": 132,
+                      "type": "gop-y",
+                      "question": "Tôi đề nghị bổ sung phần hướng dẫn tìm kiếm nội dung.",
+                      "answer": "Ban biên tập đã tiếp nhận và sẽ bổ sung hướng dẫn để người dùng dễ tìm thông tin hơn.",
+                      "answeredAt": "2026-10-19T06:00:00+00:00"
                     }
                   ],
-                  "total": 1,
+                  "total": 2,
                   "page": 1,
                   "pageSize": 20,
                   "totalPages": 1
@@ -170,7 +185,7 @@
             }
           },
           "400": {
-            "description": "Query sai kiểu, page nhỏ hơn 1, pageSize ngoài 1–50, search quá 200 ký tự hoặc sort không hợp lệ.",
+            "description": "Query sai kiểu, page nhỏ hơn 1, pageSize ngoài 1–50, search quá 200 ký tự, sort không hợp lệ hoặc type khác cau-hoi/gop-y.",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ApiErrorResponse" },
@@ -184,8 +199,8 @@
     "/api/v1/questions/{id}": {
       "get": {
         "operationId": "getPublishedQuestion",
-        "summary": "Đọc chi tiết câu hỏi đã công bố",
-        "description": "Chỉ trả câu hỏi và bản trả lời đã được duyệt, công bố. Câu riêng, chưa công bố, đã gỡ, góp ý hoặc không tồn tại đều trả cùng 404. Không trả liên hệ, IP, ghi chú, người xử lý hoặc bản nháp.",
+        "summary": "Đọc chi tiết câu hỏi hoặc góp ý đã công bố",
+        "description": "Trả nội dung và phản hồi đã được duyệt, công bố, kèm type=cau-hoi hoặc gop-y. Nội dung riêng, chưa công bố, đã gỡ hoặc không tồn tại đều trả cùng 404. Không trả liên hệ, IP, ghi chú, nguồn tạo, người tạo/người xử lý hoặc bản nháp.",
         "parameters": [
           {
             "name": "id",
@@ -202,7 +217,7 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/PublishedQuestion" },
-                "example": { "id": 130, "question": "Tôi có thể gửi góp ý về nội dung website ở đâu?", "answer": "Bạn chọn Góp ý trong biểu mẫu Hỏi – Đáp và gửi nội dung cho ban biên tập.", "answeredAt": "2026-10-16T06:00:00+00:00" }
+                "example": { "id": 130, "type": "cau-hoi", "question": "Tôi có thể gửi góp ý về nội dung website ở đâu?", "answer": "Bạn chọn Góp ý trong biểu mẫu Hỏi – Đáp và gửi nội dung cho ban biên tập.", "answeredAt": "2026-10-16T06:00:00+00:00" }
               }
             }
           },
@@ -263,11 +278,12 @@
       "PublishedQuestion": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "question", "answer", "answeredAt"],
+        "required": ["id", "type", "question", "answer", "answeredAt"],
         "properties": {
           "id": { "type": "integer", "format": "int64", "minimum": 1 },
-          "question": { "type": "string", "description": "Câu hỏi gốc, hiển thị dạng văn bản có thoát ký tự." },
-          "answer": { "type": "string", "description": "Bản câu trả lời đã được duyệt, hiển thị dạng văn bản có thoát ký tự." },
+          "type": { "type": "string", "enum": ["cau-hoi", "gop-y"], "description": "Loại nội dung: câu hỏi/kiến nghị hoặc góp ý." },
+          "question": { "type": "string", "description": "Nội dung gốc của câu hỏi hoặc góp ý, hiển thị dạng văn bản có thoát ký tự." },
+          "answer": { "type": "string", "description": "Bản câu trả lời hoặc phản hồi đã được duyệt, hiển thị dạng văn bản có thoát ký tự." },
           "answeredAt": { "type": "string", "format": "date-time", "description": "Thời điểm duyệt/công bố gần nhất, ISO 8601 có múi giờ." }
         }
       },

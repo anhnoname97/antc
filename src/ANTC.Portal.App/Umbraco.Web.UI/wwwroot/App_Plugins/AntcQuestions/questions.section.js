@@ -125,7 +125,7 @@ export class AntcQuestionsSection extends UmbLitElement {
             })).json();
             this._data = { ...this._data, items: this._data.items.map(item => item.id === row.id ? updated : item) };
             this._rowDrafts.delete(row.id);
-            this._message = 'Đã lưu trạng thái và ghi chú. Thao tác này không tự công bố câu trả lời.';
+            this._message = 'Đã lưu trạng thái và ghi chú. Thao tác này không tự công bố nội dung.';
         } catch (error) { this._error = error.message; }
         finally { this._busy = false; }
     }
@@ -161,7 +161,7 @@ export class AntcQuestionsSection extends UmbLitElement {
                     <umb-icon name="icon-download"></umb-icon><span>Xuất CSV theo bộ lọc</span>
                 </uui-button>
             <div class="page-shell">
-            <p class="page-description">Tiếp nhận từ portal hoặc tạo trực tiếp câu hỏi, kiến nghị, góp ý. Duyệt câu trả lời trước khi công bố.</p>
+            <p class="page-description">Tiếp nhận từ portal hoặc tạo trực tiếp câu hỏi, kiến nghị, góp ý. Duyệt phản hồi trước khi công bố.</p>
             ${this._error ? html`<div class="notice error" role="alert">${this._error}</div>` : nothing}
             ${this._message ? html`<div class="notice success" role="status">${this._message}</div>` : nothing}
             <uui-box headline="Danh sách nội dung">

@@ -61,12 +61,13 @@ public sealed record QuestionDraft(string? Type, string? Content, string? Answer
 }
 
 public sealed record QuestionReview(long ReviewVersion, string Status, string? AdminNote, string? Answer);
-public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt);
+public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt, string Type);
 public sealed record PublishedQuestionQuery(int Page = 1, int PageSize = PublishedQuestionPage.DefaultPageSize,
-    string? Search = null, string Sort = "newest")
+    string? Search = null, string Sort = "newest", string? Type = null)
 {
     public const int MaxSearchLength = 200;
     public string? SearchTerm => string.IsNullOrWhiteSpace(Search) ? null : Search.Trim();
+    public string? TypeFilter => string.IsNullOrWhiteSpace(Type) ? null : Type.Trim();
 
     public IReadOnlyDictionary<string, string> Validate()
     {
@@ -76,6 +77,8 @@ public sealed record PublishedQuestionQuery(int Page = 1, int PageSize = Publish
             errors["pageSize"] = "Số mục mỗi trang phải từ 1 đến 50.";
         if (SearchTerm?.Length > MaxSearchLength) errors["search"] = "Từ khóa tối đa 200 ký tự.";
         if (Sort is not ("newest" or "oldest")) errors["sort"] = "Chọn newest hoặc oldest.";
+        if (TypeFilter is { } type && !QuestionValues.Types.ContainsKey(type))
+            errors["type"] = "Chọn cau-hoi hoặc gop-y.";
         return errors;
     }
 }
