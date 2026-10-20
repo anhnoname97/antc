@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ANTC Portal — API danh mục và bài viết",
-    "version": "1.0.0",
-    "description": "Hợp đồng dữ liệu BE-07 cho FE, không dựng giao diện portal. CMS là nguồn dữ liệu duy nhất; tạo/sửa/xóa và xuất bản qua Content của Umbraco. API chỉ đọc bản đã xuất bản và không bật xem trước theo cookie, query hoặc header. Không trả bản nháp, nội dung thùng rác, nội dung bị bảo vệ hoặc bài có tổ tiên chưa xuất bản. Save chỉ lưu nháp; Save and publish mới cập nhật API. Không đệm để FE nhận thay đổi ở yêu cầu kế tiếp. Tất cả chuỗi trừ bodyHtml là dữ liệu chữ và phải được FE thoát ký tự."
+    "version": "2.0.0",
+    "description": "Hợp đồng dữ liệu BE-07 cho FE, không dựng giao diện portal. CMS là nguồn dữ liệu duy nhất; tạo/sửa/xóa và xuất bản qua Content của Umbraco. API chỉ đọc bản đã xuất bản và không bật xem trước theo cookie, query hoặc header. Không trả bản nháp, nội dung thùng rác, nội dung bị bảo vệ hoặc bài có tổ tiên chưa xuất bản. Save chỉ lưu nháp; Save and publish mới cập nhật API. Không đệm để FE nhận thay đổi ở yêu cầu kế tiếp. Tất cả chuỗi trừ bodyHtml là dữ liệu chữ và phải được FE thoát ký tự. Phiên bản 2 thay API danh sách /article-categories/{id}/articles?trang=n bằng GET /articles?categoryId=...&page=n&pageSize=12. Bỏ categoryId để lấy bài từ toàn bộ danh mục. Mọi bộ lọc được kết hợp bằng AND trước khi phân trang. API chi tiết và API danh mục giữ nguyên."
   },
   "servers": [
     {
@@ -59,154 +59,6 @@
                     "articleCount": 13
                   }
                 ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/article-categories/{id}/articles": {
-      "get": {
-        "operationId": "listCategoryArticles",
-        "tags": [
-          "Bài viết"
-        ],
-        "summary": "Danh sách bài trong danh mục, 12 bài mỗi trang",
-        "description": "Sắp theo updatedDate giảm dần, sau đó Guid tăng dần để ổn định khi cùng ngày. Không dùng ngày sửa kỹ thuật của CMS. Ngày cập nhật trống xếp cuối. Trang vượt tổng số trang trả items=[] và giữ thông tin tổng. Danh mục rỗng: total=0, totalPages=0. Không có tham số pageSize; cố định 12 theo BE-07.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Khóa Guid ổn định của nút nội dung Umbraco, lấy từ API danh mục hoặc danh sách bài.",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "trang",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "minimum": 1,
-              "maximum": 2147483647,
-              "default": 1
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Trang dữ liệu.",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": "no-store, no-cache"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ArticlePage"
-                },
-                "example": {
-                  "category": {
-                    "id": "cda7084d-12ac-4edf-bbd9-94b53d78cecc",
-                    "title": "Cảnh báo",
-                    "slug": "canh-bao",
-                    "url": "/thu-doan/canh-bao/",
-                    "summary": "Các cảnh báo mới.",
-                    "isField": false,
-                    "fieldIcon": null,
-                    "role": "Cảnh báo",
-                    "articleCount": 13
-                  },
-                  "items": [
-                    {
-                      "id": "5d706044-a2ce-4314-8215-753c24a41322",
-                      "title": "Mời góp vốn qua ứng dụng cam kết lợi nhuận cố định",
-                      "slug": "moi-gop-von-qua-ung-dung-cam-ket-loi-nhuan-co-dinh",
-                      "url": "/thu-doan/canh-bao/moi-gop-von-qua-ung-dung-cam-ket-loi-nhuan-co-dinh/",
-                      "summary": "Thận trọng trước lời mời góp vốn.",
-                      "image": null,
-                      "label": {
-                        "type": "unverified",
-                        "text": "Cần kiểm chứng · Chưa có kết luận"
-                      },
-                      "source": {
-                        "agency": "[Tên cơ quan]",
-                        "documentNumber": null,
-                        "documentDate": null
-                      },
-                      "updatedDate": "2026-08-21",
-                      "isDraft": false,
-                      "review": {
-                        "lastReviewedDate": "2026-01-01",
-                        "maxAgeDays": 90,
-                        "isOverdue": true,
-                        "message": "Nội dung đang chờ rà soát lại. Lần rà soát gần nhất đã quá 90 ngày."
-                      }
-                    }
-                  ],
-                  "total": 13,
-                  "page": 2,
-                  "pageSize": 12,
-                  "totalPages": 2
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "trang không hợp lệ.",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": "no-store, no-cache"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                },
-                "example": {
-                  "error": {
-                    "code": "VALIDATION",
-                    "message": "Tham số danh sách không hợp lệ.",
-                    "fields": {
-                      "trang": "Số trang phải là số nguyên từ 1 trở lên."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Không tồn tại, chưa xuất bản, bị gỡ xuất bản, nằm ngoài kho bài hoặc được bảo vệ bằng quyền thành viên.",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "example": "no-store, no-cache"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                },
-                "example": {
-                  "error": {
-                    "code": "NOT_FOUND",
-                    "message": "Không tìm thấy bài viết."
-                  }
-                }
               }
             }
           }
@@ -315,6 +167,265 @@
                   "error": {
                     "code": "NOT_FOUND",
                     "message": "Không tìm thấy bài viết."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/articles": {
+      "get": {
+        "operationId": "listArticles",
+        "tags": [
+          "Bài viết"
+        ],
+        "summary": "Danh sách bài viết có tìm kiếm, bộ lọc, phân trang và sắp xếp",
+        "description": "Chỉ đọc bài đã xuất bản trong kho CMS. Các bộ lọc kết hợp AND, áp dụng trước khi tính total và phân trang. categoryId trống: tất cả danh mục, category ở gốc bằng null; mỗi phần tử items luôn có category của bài. categoryId có giá trị: chỉ danh mục được chọn, category ở gốc là thông tin danh mục (articleCount là tổng bài đã xuất bản của danh mục trước các bộ lọc khác). Danh mục không tồn tại hoặc không truy cập công khai trả 404. Danh mục rỗng hoặc không có kết quả lọc: total=0, totalPages=0. Trang vượt tổng trả items=[] và giữ page yêu cầu. Ngày cập nhật trống xếp cuối khi sắp ngày. Cùng giá trị sắp xếp: Guid tăng dần. Không hỗ trợ tham số trang và route danh sách cũ; dùng page, pageSize trên route mới.",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": false,
+            "description": "Khóa GUID của danh mục lấy từ GET /article-categories. Bỏ trường hoặc để trống để lấy tất cả; GUID rỗng toàn số 0 không hợp lệ.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Tìm chuỗi nguyên văn trong title hoặc summary; tối đa 200 ký tự sau trim. Không phân biệt hoa/thường tiếng Việt, giữ dấu, chuẩn hóa Unicode NFC; ký tự * và % được tìm nguyên văn. Bỏ trường/chuỗi trắng: không lọc.",
+            "schema": {
+              "type": "string",
+              "x-validation": {
+                "trim": true,
+                "maxLengthAfterTrim": 200
+              }
+            }
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "required": false,
+            "description": "Lọc label.type. Chuỗi trắng: không lọc. Giá trị sau trim phân biệt hoa thường.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "official-warning",
+                "unverified"
+              ]
+            }
+          },
+          {
+            "name": "updatedFrom",
+            "in": "query",
+            "required": false,
+            "description": "Ngày bắt đầu theo updatedDate, dạng YYYY-MM-DD, gồm cả ngày này. Bài không có updatedDate bị loại khi lọc khoảng ngày.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "updatedTo",
+            "in": "query",
+            "required": false,
+            "description": "Ngày kết thúc theo updatedDate, dạng YYYY-MM-DD, gồm cả ngày này. Phải từ updatedFrom trở đi nếu nhập cả hai.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "reviewStatus",
+            "in": "query",
+            "required": false,
+            "description": "overdue: đã vượt ngưỡng rà soát; current: có ngày rà soát và chưa vượt ngưỡng, gồm đúng ngưỡng hoặc ngày tương lai; unreviewed: chưa có ngày rà soát. Bỏ trường/chuỗi trắng: không lọc. Dùng ngày Việt Nam và ngưỡng CMS hiện hành.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "overdue",
+                "current",
+                "unreviewed"
+              ]
+            }
+          },
+          {
+            "name": "isDraft",
+            "in": "query",
+            "required": false,
+            "description": "Lọc cờ nhãn Bản dự thảo của chính sách: true/false. Bỏ trường: cả hai. Không cho phép xem bản nháp chưa xuất bản của CMS.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Số trang tính từ 1.",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 2147483647,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "description": "Số bài mỗi trang, từ 1 đến 50; mặc định 12. Ngoài khoảng trả 400, không tự điều chỉnh.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "updated-desc/updated-asc: ngày cập nhật mới/cũ trước, ngày trống luôn cuối. title-asc/title-desc: tiêu đề theo thứ tự tiếng Việt tăng/giảm, không phân biệt hoa thường. Trống dùng updated-desc; mã sau trim phân biệt hoa thường.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "updated-desc",
+                "updated-asc",
+                "title-asc",
+                "title-desc"
+              ],
+              "default": "updated-desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách bài theo bộ lọc, có thể rỗng; kết quả không bao gồm HTML toàn bài.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticlePage"
+                },
+                "example": {
+                  "category": {
+                    "id": "cda7084d-12ac-4edf-bbd9-94b53d78cecc",
+                    "title": "Cảnh báo",
+                    "slug": "canh-bao",
+                    "url": "/thu-doan/canh-bao/",
+                    "summary": "Các cảnh báo mới.",
+                    "isField": false,
+                    "fieldIcon": null,
+                    "role": "Cảnh báo",
+                    "articleCount": 13
+                  },
+                  "items": [
+                    {
+                      "id": "5d706044-a2ce-4314-8215-753c24a41322",
+                      "title": "Mời góp vốn qua ứng dụng cam kết lợi nhuận cố định",
+                      "slug": "moi-gop-von-qua-ung-dung-cam-ket-loi-nhuan-co-dinh",
+                      "url": "/thu-doan/canh-bao/moi-gop-von-qua-ung-dung-cam-ket-loi-nhuan-co-dinh/",
+                      "summary": "Thận trọng trước lời mời góp vốn.",
+                      "image": null,
+                      "label": {
+                        "type": "unverified",
+                        "text": "Cần kiểm chứng · Chưa có kết luận"
+                      },
+                      "source": {
+                        "agency": "[Tên cơ quan]",
+                        "documentNumber": null,
+                        "documentDate": null
+                      },
+                      "updatedDate": "2026-08-21",
+                      "isDraft": false,
+                      "review": {
+                        "lastReviewedDate": "2026-01-01",
+                        "maxAgeDays": 90,
+                        "isOverdue": true,
+                        "message": "Nội dung đang chờ rà soát lại. Lần rà soát gần nhất đã quá 90 ngày."
+                      },
+                      "category": {
+                        "id": "cda7084d-12ac-4edf-bbd9-94b53d78cecc",
+                        "title": "Cảnh báo",
+                        "slug": "canh-bao",
+                        "url": "/thu-doan/canh-bao/",
+                        "summary": "Các cảnh báo mới.",
+                        "isField": false,
+                        "fieldIcon": null,
+                        "role": "Cảnh báo",
+                        "articleCount": 13
+                      }
+                    }
+                  ],
+                  "total": 13,
+                  "page": 2,
+                  "pageSize": 12,
+                  "totalPages": 2
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tham số sai kiểu; categoryId rỗng toàn số 0; page/pageSize ngoài giới hạn; search quá dài; khoảng ngày ngược; label, reviewStatus hoặc sort không hợp lệ.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "message": "Tham số danh sách không hợp lệ.",
+                    "fields": {
+                      "pageSize": "Số bài mỗi trang phải từ 1 đến 50."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tồn tại, chưa xuất bản, bị gỡ xuất bản, nằm ngoài kho bài hoặc được bảo vệ bằng quyền thành viên.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Không tìm thấy danh mục bài viết."
                   }
                 }
               }
@@ -564,13 +675,14 @@
         ],
         "properties": {
           "category": {
-            "$ref": "#/components/schemas/ArticleCategory"
+            "$ref": "#/components/schemas/NullableArticleCategory"
           },
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ArticleCard"
-            }
+              "$ref": "#/components/schemas/ArticleListItem"
+            },
+            "maxItems": 50
           },
           "total": {
             "type": "integer",
@@ -582,9 +694,8 @@
           },
           "pageSize": {
             "type": "integer",
-            "enum": [
-              12
-            ]
+            "minimum": 1,
+            "maximum": 50
           },
           "totalPages": {
             "type": "integer",
@@ -711,6 +822,117 @@
           }
         },
         "additionalProperties": false
+      },
+      "ArticleListItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "url",
+          "summary",
+          "image",
+          "label",
+          "source",
+          "updatedDate",
+          "isDraft",
+          "review",
+          "category"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "image": {
+            "$ref": "#/components/schemas/ArticleImage"
+          },
+          "label": {
+            "$ref": "#/components/schemas/ArticleLabel"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ArticleSource"
+          },
+          "updatedDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isDraft": {
+            "type": "boolean",
+            "description": "Cờ nhãn “Bản dự thảo” của văn bản chính sách. Khác với bản nháp chưa xuất bản của CMS."
+          },
+          "review": {
+            "$ref": "#/components/schemas/ArticleReview"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ArticleCategory"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NullableArticleCategory": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "url",
+          "summary",
+          "isField",
+          "fieldIcon",
+          "role",
+          "articleCount"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL portal dự kiến, không chứa các nút quản lý CMS."
+          },
+          "summary": {
+            "type": "string"
+          },
+          "isField": {
+            "type": "boolean"
+          },
+          "fieldIcon": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": true
+          },
+          "articleCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "nullable": true,
+        "description": "Danh mục khi lọc categoryId; null khi lấy tất cả danh mục."
       }
     }
   }

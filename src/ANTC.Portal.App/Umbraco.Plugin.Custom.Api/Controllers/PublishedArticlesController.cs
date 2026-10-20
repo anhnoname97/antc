@@ -15,16 +15,19 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
     [ProducesResponseType<IReadOnlyList<ArticleCategory>>(200)]
     public IActionResult Categories() => Ok(articles.Categories());
 
-    [HttpGet("article-categories/{id:guid}/articles")]
+    [HttpGet("articles")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType<ArticlePage>(200)]
     [ProducesResponseType<ApiErrorResponse>(400)]
     [ProducesResponseType<ApiErrorResponse>(404)]
-    public IActionResult List(Guid id, int trang = 1)
+    public IActionResult List(Guid? categoryId = null, string? search = null, string? label = null,
+        DateOnly? updatedFrom = null, DateOnly? updatedTo = null, string? reviewStatus = null, bool? isDraft = null,
+        int page = 1, int pageSize = ArticlePage.DefaultPageSize, string? sort = null)
     {
-        if (trang < 1) return BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Tham số danh sách không hợp lệ.",
-            new Dictionary<string, string> { ["trang"] = "Số trang phải là số nguyên từ 1 trở lên." })));
-        ArticlePage? result = articles.List(id, trang);
+        var query = new ArticleQuery(categoryId, search, label, updatedFrom, updatedTo, reviewStatus, isDraft, page, pageSize, sort);
+        var fields = query.Validate();
+        if (fields.Count > 0) return BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Tham số danh sách không hợp lệ.", fields)));
+        ArticlePage? result = articles.List(query);
         return result is null ? NotFound(new ApiErrorResponse(new ApiError("NOT_FOUND", "Không tìm thấy danh mục bài viết."))) : Ok(result);
     }
 

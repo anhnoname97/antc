@@ -201,7 +201,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Administration | 1 | AdministrationAccess |
-| Articles | 6 | ArticleContentSource, ArticleHtmlSanitizer, ArticleModels, ArticleReviewPolicy, ArticleSchemaMigration, PublishedArticleService |
+| Articles | 7 | ArticleContentSource, ArticleHtmlSanitizer, ArticleModels, ArticleQuery, ArticleReviewPolicy, ArticleSchemaMigration, PublishedArticleService |
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
@@ -234,7 +234,7 @@ graph LR
 | ContestAdminController | GET api/v1/admin/contest/campaigns, GET api/v1/admin/contest/campaigns/question-tree, GET api/v1/admin/contest/campaigns/{id:long}, POST api/v1/admin/contest/campaigns, PUT api/v1/admin/contest/campaigns/{id:long}, DELETE api/v1/admin/contest/campaigns/{id:long}, GET api/v1/admin/contest/entries, GET api/v1/admin/contest/entries/{id:long}, GET api/v1/admin/contest/draws, GET api/v1/admin/contest/draws/{id:long}, POST api/v1/admin/contest/draws, PUT api/v1/admin/contest/draws/{id:long}, DELETE api/v1/admin/contest/draws/{id:long} |
 | ContestController | POST api/v1/contest/entries |
 | LegacyQuestionsAdministrationController | GET //quan-tri/hoi-dap |
-| PublishedArticlesController | GET api/v1/article-categories, GET api/v1/article-categories/{id:guid}/articles, GET api/v1/articles/{id:guid} |
+| PublishedArticlesController | GET api/v1/article-categories, GET api/v1/articles, GET api/v1/articles/{id:guid} |
 | PublishedQuestionsController | GET api/v1/questions, GET api/v1/questions/{id:long} |
 | QuestionManagementController | POST , GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
 | QuestionsController | POST api/v1/questions |

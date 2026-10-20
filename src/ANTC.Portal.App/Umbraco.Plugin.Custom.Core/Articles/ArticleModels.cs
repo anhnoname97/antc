@@ -12,34 +12,39 @@ public sealed record ArticleSeo(string Title, string Description, ArticleImage? 
 public record ArticleCard(Guid Id, string Title, string Slug, string Url, string Summary, ArticleImage? Image,
     ArticleLabel Label, ArticleSource Source, DateOnly? UpdatedDate, bool IsDraft, ArticleReview Review);
 
-public sealed record ArticleDetail : ArticleCard
+public record ArticleListItem : ArticleCard
+{
+    public ArticleListItem(ArticleCard card, ArticleCategory category) : base(card) => Category = category;
+    public ArticleCategory Category { get; }
+}
+
+public sealed record ArticleDetail : ArticleListItem
 {
     public ArticleDetail(ArticleCard card, ArticleCategory category, string bodyHtml, string? safeAction,
-        ArticleSeo seo, IReadOnlyList<ArticleCard> relatedArticles) : base(card)
+        ArticleSeo seo, IReadOnlyList<ArticleCard> relatedArticles) : base(card, category)
     {
-        Category = category;
         BodyHtml = bodyHtml;
         SafeAction = safeAction;
         Seo = seo;
         RelatedArticles = relatedArticles;
     }
 
-    public ArticleCategory Category { get; }
     public string BodyHtml { get; }
     public string? SafeAction { get; }
     public ArticleSeo Seo { get; }
     public IReadOnlyList<ArticleCard> RelatedArticles { get; }
 }
 
-public sealed record ArticlePage(ArticleCategory Category, IReadOnlyList<ArticleCard> Items,
+public sealed record ArticlePage(ArticleCategory? Category, IReadOnlyList<ArticleListItem> Items,
     int Total, int Page, int PageSize, int TotalPages)
 {
-    public const int ItemsPerPage = 12;
+    public const int DefaultPageSize = 12;
+    public const int MaxPageSize = 50;
 }
 
 public interface IPublishedArticleService
 {
     IReadOnlyList<ArticleCategory> Categories();
-    ArticlePage? List(Guid categoryId, int page);
+    ArticlePage? List(ArticleQuery query);
     ArticleDetail? Detail(Guid articleId);
 }

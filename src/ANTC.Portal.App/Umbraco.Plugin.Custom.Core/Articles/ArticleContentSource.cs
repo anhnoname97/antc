@@ -16,7 +16,7 @@ public sealed record ArticleLibrary(int ReviewAfterDays, IReadOnlyList<ArticleCa
 
 public interface IArticleContentSource
 {
-    ArticleLibrary Read();
+    ArticleLibrary Read(Guid? bodyArticleId = null);
 }
 
 /// <summary>Đọc đúng nhánh kho bài viết từ bản đã xuất bản, kể cả khi người gọi đang xem trước trong CMS.</summary>
@@ -24,7 +24,7 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
     IDocumentPublishStatusQueryService publication, IPublishedContentCache cache,
     IDocumentUrlService urls, IPublicAccessService access) : IArticleContentSource
 {
-    public ArticleLibrary Read()
+    public ArticleLibrary Read(Guid? bodyArticleId = null)
     {
         navigation.TryGetRootKeysOfType("antc", out IEnumerable<Guid> roots);
         IPublishedContent? site = roots.Select(Published).FirstOrDefault(x => x is not null);
@@ -38,7 +38,7 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
             .Concat(Children(library, "articleList")
                 .Where(x => AntcPublicPaths.IsPolicyLibrary("articleList", Dropdown(x, "listRole"))))
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Key)
-            .Select(list => MapCategory(list, days)).OfType<ArticleCategoryContent>().ToArray();
+            .Select(list => MapCategory(list, days, bodyArticleId)).OfType<ArticleCategoryContent>().ToArray();
         return new(days, categories);
     }
 
@@ -58,20 +58,20 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
 
     private string Segment(IPublishedContent content) => urls.GetUrlSegment(content.Key, string.Empty, false) ?? string.Empty;
 
-    private ArticleCategoryContent? MapCategory(IPublishedContent list, int days)
+    private ArticleCategoryContent? MapCategory(IPublishedContent list, int days, Guid? bodyArticleId)
     {
         string slug = Segment(list);
         string? role = Dropdown(list, "listRole");
         string? url = AntcPublicPaths.GetPath("articleList", slug, listRole: role);
         if (url is null) return null;
-        ArticleContent[] articles = Children(list, "article").Select(x => MapArticle(x, url, days))
+        ArticleContent[] articles = Children(list, "article").Select(x => MapArticle(x, url, days, bodyArticleId))
             .OfType<ArticleContent>().ToArray();
         var category = new ArticleCategory(list.Key, list.Name, slug, url, list.Value<string>("summary") ?? string.Empty,
             list.Value<bool>("isField"), Dropdown(list, "fieldIcon"), role == "Không có" ? null : role, articles.Length);
         return new(category, articles);
     }
 
-    private ArticleContent? MapArticle(IPublishedContent item, string categoryUrl, int days)
+    private ArticleContent? MapArticle(IPublishedContent item, string categoryUrl, int days, Guid? bodyArticleId)
     {
         string slug = Segment(item);
         string? url = AntcPublicPaths.GetPath("article", slug, categoryUrl);
@@ -86,7 +86,7 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
         var seo = new ArticleSeo(Text(item, "seoTitle") ?? item.Name,
             Text(item, "seoDescription") ?? summary, Image(item, "ogImage") ?? card.Image,
             item.Value<bool>("hideFromSearch"));
-        string html = item.Value<IHtmlEncodedString>("body")?.ToHtmlString() ?? string.Empty;
+        string html = item.Key == bodyArticleId ? item.Value<IHtmlEncodedString>("body")?.ToHtmlString() ?? string.Empty : string.Empty;
         return new(card, html, Text(item, "safeAction"), seo);
     }
 
