@@ -7,6 +7,8 @@
 node_modules/
 *.binlog
 TestResults/
+artifacts/
+ops/*.environment.json
 
 # Cau hinh va du lieu rieng tung may (tu tao khi chay run-local)
 src/ANTC.Portal.App/Umbraco.Web.UI/appsettings.Local.json

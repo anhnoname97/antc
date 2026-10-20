@@ -13,6 +13,10 @@ namespace Umbraco.Plugin.Custom.Core.Data;
 /// </summary>
 public class AppDbContext : DbContext
 {
+    [DbFunction("antc_casefold", IsBuiltIn = true)]
+    public static string FoldText(string value) => throw new NotSupportedException("SQL only");
+    public DbSet<ContestAccessAudit> ContestAccessAudits => Set<ContestAccessAudit>();
+    public DbSet<ContestPublishedResult> ContestPublishedResults => Set<ContestPublishedResult>();
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
@@ -31,6 +35,20 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        b.Entity<ContestPublishedResult>(e =>
+        {
+            e.ToTable("contest_published_result");
+            e.HasKey(x => x.ContestId);
+            e.Property(x => x.Revision).IsConcurrencyToken();
+            e.HasOne(x => x.Contest).WithOne().HasForeignKey<ContestPublishedResult>(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<ContestAccessAudit>(e =>
+        {
+            e.ToTable("contest_access_audit");
+            e.Property(x => x.Action).HasMaxLength(40);
+            e.Property(x => x.EntryCode).HasMaxLength(9);
+            e.HasIndex(x => x.OccurredAt);
+        });
         b.Entity<Entry>(e =>
         {
             e.ToTable("entry");
@@ -45,6 +63,7 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.Code).IsUnique();
             e.HasIndex(x => x.TokenHash).IsUnique();
             e.HasIndex(x => x.Phone);
+            e.HasIndex(x => x.CreatedAt);
             e.HasIndex(x => new { x.ContestId, x.Phone });
             e.HasIndex(x => new { x.Status, x.Score });
             e.HasOne(x => x.Contest).WithMany(x => x.Entries).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);

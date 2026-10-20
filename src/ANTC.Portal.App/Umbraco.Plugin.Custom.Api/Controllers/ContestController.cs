@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
+using Umbraco.Plugin.Custom.Api.Infrastructure;
 
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
@@ -43,6 +44,7 @@ public class ContestController : ControllerBase
         var result = await _entries.CreateAsync(request, HttpContext.Connection.RemoteIpAddress?.ToString(), ct);
         if (result.Entry is { } e)
         {
+            HttpContext.Items[ApiProtection.EntryCodeItem] = e.Code;
             return StatusCode(StatusCodes.Status201Created, e);
         }
 
@@ -63,6 +65,7 @@ public class ContestController : ControllerBase
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
 
+        HttpContext.Items[ApiProtection.EntryCodeItem] = entry.Code;
         return Ok(await _attempts.GetStateAsync(entry, ct));
     }
 
@@ -80,6 +83,7 @@ public class ContestController : ControllerBase
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
 
+        HttpContext.Items[ApiProtection.EntryCodeItem] = entry.Code;
         var result = await _attempts.SaveAnswerAsync(entry, request?.Q, request?.A, ct);
         return result.Answer is { } answer ? Ok(answer) : Error(result.Error!);
     }
@@ -98,6 +102,7 @@ public class ContestController : ControllerBase
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
 
+        HttpContext.Items[ApiProtection.EntryCodeItem] = entry.Code;
         var result = await _attempts.AttachContactAsync(entry, request, ct);
         return result.Contact is { } contact ? Ok(contact) : Error(result.Error!);
     }
@@ -117,6 +122,7 @@ public class ContestController : ControllerBase
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
 
+        HttpContext.Items[ApiProtection.EntryCodeItem] = entry.Code;
         if (!ModelState.IsValid && entry.Status != EntryStatuses.Submitted)
             return Error(new ContestError("VALIDATION", "Dữ liệu gửi lên không hợp lệ."));
 

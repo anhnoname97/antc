@@ -1,0 +1,2 @@
+@model ContestReportFilter
+@foreach(var item in Model.RouteValues()){<input type="hidden" name="@item.Key" value="@item.Value" />}

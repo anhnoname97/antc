@@ -1,0 +1,14 @@
+@page "/quan-tri/luot-thi/{id:long}"
+@model DetailPage
+@{ ViewData["Title"] = "Chi tiết lượt thi"; }
+<p><a href="/quan-tri/luot-thi">← Danh sách lượt thi</a></p>
+@if(Model.Data is not {} d){<p>Không tìm thấy lượt thi.</p>}else{
+var e = d.Entry;
+<section class="panel"><h2>@e.Code</h2><dl class="entry-info"><dt>Họ tên</dt><dd>@(e.FullName??"—")</dd><dt>Số điện thoại</dt><dd>@(e.Phone??"—")</dd><dt>Đơn vị</dt><dd>@(e.Org??"—")</dd><dt>Chế độ / lượt thứ</dt><dd>@ReportPage.Mode(e.Mode) / @e.AttemptNo</dd><dt>Trạng thái</dt><dd>@ReportPage.Status(e.Status)</dd><dt>Đã làm / tổng câu</dt><dd>@e.Answered / @d.Questions.Count</dd><dt>Đúng / điểm</dt><dd>@e.Correct</dd><dt>Tạo lúc</dt><dd>@ReportPage.Time(e.CreatedAt)</dd><dt>Nộp lúc</dt><dd>@ReportPage.Time(e.SubmittedAt)</dd><dt>Mã cuộc thi</dt><dd>@e.ContestId</dd></dl></section>
+@if(!d.HasSnapshot){<p class="warning">Lượt cũ không có bộ đề đóng băng. Đúng/sai lấy từ bài làm đã lưu; không suy đoán đáp án đúng từ ngân hàng hiện tại.</p>}
+@foreach(var topic in d.Topics){
+<details class="panel" open><summary><strong>@topic.Title</strong> — đúng @topic.Correct / @topic.Total; đã làm @topic.Answered</summary>
+<div class="table-scroll"><table><thead><tr><th>Mã câu</th><th>Nội dung</th><th>Đã chọn</th><th>Đáp án đúng</th><th>Kết quả</th><th>Trả lời lúc</th></tr></thead><tbody>
+@foreach(var q in d.Questions.Where(q=>q.TopicId==topic.TopicId)){<tr data-question-code="@q.Code"><td>@q.Code</td><td class="question-text">@q.Text</td><td>@(q.Chosen??"—")</td><td>@(q.CorrectAnswer??"Không có snapshot")</td><td class="@(q.Correct == true ? "correct" : "")">@(q.Correct is null ? "Chưa trả lời" : q.Correct.Value ? "Đúng" : "Sai")</td><td class="nowrap">@ReportPage.Time(q.AnsweredAt)</td></tr>}
+</tbody></table></div></details>
+}}

@@ -1,0 +1,15 @@
+@model ReportPage
+<div class="filters">
+<label>Cuộc thi<select name="Filter.ContestId"><option value="">Tất cả cuộc thi</option>@foreach(var c in Model.Contests){<option value="@c.Id" selected="@(Model.Filter.ContestId == c.Id)">@c.Name</option>}</select></label>
+<label>Chế độ<select name="Filter.Mode"><option value="">Tất cả</option><option value="named" selected="@(Model.Filter.Mode == "named")">Có tên</option><option value="anon" selected="@(Model.Filter.Mode == "anon")">Ẩn danh</option></select></label>
+<label>Trạng thái<select name="Filter.Status"><option value="">Tất cả</option><option value="submitted" selected="@(Model.Filter.Status == "submitted")">Đã nộp</option><option value="in_progress" selected="@(Model.Filter.Status == "in_progress")">Đang thi</option></select></label>
+<label>Số điện thoại<select name="Filter.HasPhone"><option value="">Tất cả</option><option value="true" selected="@(Model.Filter.HasPhone == true)">Có số điện thoại</option><option value="false" selected="@(Model.Filter.HasPhone == false)">Không có số điện thoại</option></select></label>
+<label>Điểm từ<input name="Filter.ScoreFrom" type="number" min="0" value="@Model.Filter.ScoreFrom" /></label>
+<label>Điểm đến<input name="Filter.ScoreTo" type="number" min="0" value="@Model.Filter.ScoreTo" /></label>
+<label>Tạo từ ngày<input name="Filter.From" type="date" value="@(Model.Filter.From?.ToString("yyyy-MM-dd"))" /></label>
+<label>Tạo đến ngày<input name="Filter.To" type="date" value="@(Model.Filter.To?.ToString("yyyy-MM-dd"))" /></label>
+<label class="wide">Mã dự thi / số điện thoại / họ tên<input name="Filter.Search" maxlength="150" value="@Model.Filter.Search" /></label>
+<label>Sắp xếp<select name="Filter.Sort">
+@foreach(var s in new[]{("created_desc","Tạo mới nhất"),("created_asc","Tạo cũ nhất"),("score_desc","Điểm giảm dần"),("score_asc","Điểm tăng dần"),("submitted_desc","Nộp mới nhất")}){<option value="@s.Item1" selected="@(Model.Filter.Sort == s.Item1)">@s.Item2</option>}
+</select></label>
+</div>

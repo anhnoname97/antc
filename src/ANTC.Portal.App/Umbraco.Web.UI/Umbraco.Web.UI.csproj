@@ -11,6 +11,7 @@
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" />
     <!-- Dong bo cau truc va noi dung qua thu muc uSync/ (commit vao git) -->
     <PackageReference Include="uSync" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
     <!-- Code cua du an -->
     <ProjectReference Include="..\Umbraco.Plugin.Custom.Core\Umbraco.Plugin.Custom.Core.csproj" />
     <ProjectReference Include="..\Umbraco.Plugin.Custom.Api\Umbraco.Plugin.Custom.Api.csproj" />
@@ -31,13 +32,17 @@
   <PropertyGroup>
     <!-- File Razor can co trong ban publish de backoffice hoat dong -->
     <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
-    <!-- Bo hai dong duoi neu KHONG dung ModelsMode InMemoryAuto -->
-    <RazorCompileOnBuild>false</RazorCompileOnBuild>
-    <RazorCompileOnPublish>false</RazorCompileOnPublish>
+    <!-- Compile admin Pages so routes exist in Release; Umbraco Views stay runtime compiled for InMemoryAuto models. -->
+    <RazorCompileOnBuild>true</RazorCompileOnBuild>
+    <RazorCompileOnPublish>true</RazorCompileOnPublish>
+    <EnableDefaultRazorGenerateItems>false</EnableDefaultRazorGenerateItems>
   </PropertyGroup>
 
   <ItemGroup>
+    <RazorGenerate Include="Pages\**\*.cshtml" />
     <!-- Cau hinh rieng tung may, khong dua vao ban publish -->
     <Content Update="appsettings.Local.json" CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.Local.template.json;App_Data\**;umbraco\Data\**;umbraco\Logs\**;umbraco\models\**;wwwroot\media\**" CopyToPublishDirectory="Never" />
+    <None Update="App_Data\**;umbraco\Data\**;umbraco\Logs\**;wwwroot\media\**;**\*.db;**\*.db-wal;**\*.db-shm" CopyToPublishDirectory="Never" />
   </ItemGroup>
 </Project>

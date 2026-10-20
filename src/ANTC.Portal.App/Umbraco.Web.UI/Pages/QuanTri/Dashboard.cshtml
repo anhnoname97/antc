@@ -1,0 +1,18 @@
+@page "/quan-tri/cuoc-thi"
+@model DashboardPage
+@{ ViewData["Title"] = "Tổng quan cuộc thi"; }
+<form method="get"><partial name="_ContestFilters" model="Model" /><div class="actions"><button>Lọc dữ liệu</button><a href="/quan-tri/cuoc-thi">Đặt lại</a></div></form>
+@if(Model.Data is {} d){
+<section class="metrics" aria-label="Số liệu tổng quan">
+@foreach(var metric in new[]{("Lượt đã tạo",d.Created),("Đã nộp",d.Submitted),("Có tên",d.Named),("Ẩn danh",d.Anonymous),("Số điện thoại khác nhau",d.DistinctPhones)}){<article><span>@metric.Item1</span><strong>@metric.Item2.ToString("N0")</strong></article>}
+</section>
+<section class="panel"><h2>Phân bố điểm — lượt đã nộp</h2>
+@if(d.Scores.Count == 0){<p>Chưa có lượt đã nộp trong bộ lọc.</p>}else{
+var max = d.Scores.Max(x=>x.Count);
+<div class="chart" role="img" aria-label="Biểu đồ số lượt theo điểm; số liệu chi tiết ở bảng bên dưới">
+@foreach(var s in d.Scores){var height=(int)Math.Round(150d*s.Count/max);<div class="bar-column"><span>@s.Count</span><svg width="32" height="160" aria-hidden="true"><rect x="0" y="@(160-height)" width="32" height="@height" /></svg><span>@s.Score</span></div>}
+</div><details><summary>Bảng số liệu phân bố điểm</summary><table><thead><tr><th>Điểm</th><th>Số lượt</th></tr></thead><tbody>@foreach(var s in d.Scores){<tr><td>@s.Score</td><td>@s.Count</td></tr>}</tbody></table></details>
+}</section>
+<section class="panel"><h2>Số lượt theo ngày tạo</h2><table><thead><tr><th>Ngày (VN)</th><th>Số lượt</th></tr></thead><tbody>@foreach(var day in d.Days){<tr><td>@day.Day.ToString("dd/MM/yyyy")</td><td>@day.Count</td></tr>}</tbody></table>@if(d.Days.Count == 0){<p>Không có dữ liệu.</p>}</section>
+<a href="@Model.UrlFor("/quan-tri/luot-thi")">Xem danh sách theo bộ lọc này →</a>
+}

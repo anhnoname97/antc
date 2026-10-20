@@ -30,10 +30,27 @@ public sealed class AdministrationComposer : IComposer
         builder.Services.Configure<AuthorizationOptions>(options => options.AddPolicy(AdministrationAccess.QuestionsPolicy,
             policy => policy.RequireAuthenticatedUser().AddRequirements(new QuestionsSectionRequirement())));
         builder.Services.AddSingleton<IAuthorizationHandler, QuestionsSectionAuthorizationHandler>();
+        builder.Services.Configure<AuthorizationOptions>(options => options.AddPolicy(AdministrationAccess.Policy,
+            policy => policy.AddAuthenticationSchemes(Constants.Security.BackOfficeAuthenticationType)
+                .RequireAuthenticatedUser().AddRequirements(new ContestAdministrationRequirement())));
+        builder.Services.AddSingleton<IAuthorizationHandler, ContestAdministrationAuthorizationHandler>();
     }
 }
 
 public sealed class QuestionsSectionRequirement : IAuthorizationRequirement;
+
+public sealed class ContestAdministrationRequirement : IAuthorizationRequirement;
+public sealed class ContestAdministrationAuthorizationHandler(IAuthorizationHelper authorization)
+    : AuthorizationHandler<ContestAdministrationRequirement>
+{
+    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ContestAdministrationRequirement requirement)
+    {
+        if (authorization.TryGetUmbracoUser(context.User, out IUser? user)
+            && user.IsApproved && !user.IsLockedOut
+            && user.Groups.Any(g => g.Alias == AdministrationAccess.GroupAlias)) context.Succeed(requirement);
+        return Task.CompletedTask;
+    }
+}
 
 public sealed class QuestionsSectionAuthorizationHandler(IAuthorizationHelper authorization)
     : AuthorizationHandler<QuestionsSectionRequirement>
@@ -51,6 +68,17 @@ public sealed class AdministrationGroupInitializer(IUserGroupService groups, ISh
 {
     public async Task HandleAsync(UmbracoApplicationStartedNotification notification, CancellationToken cancellationToken)
     {
+        if (await groups.GetAsync(AdministrationAccess.GroupAlias) is null)
+        {
+            var contestGroup = new UserGroup(strings)
+            {
+                Key = new Guid("78255f31-fac3-4fd8-a762-aeb717a31c70"),
+                Alias = AdministrationAccess.GroupAlias, Name = "Quản trị cuộc thi", Icon = "icon-trophy",
+                Description = "Xem báo cáo và xuất dữ liệu cuộc thi tại /quan-tri. Quản trị viên gán thành viên."
+            };
+            var result = await groups.CreateAsync(contestGroup, Constants.Security.SuperUserKey);
+            if (!result.Success) throw new InvalidOperationException("Không tạo được nhóm Quản trị cuộc thi: " + result.Status);
+        }
         IUserGroup? group = await groups.GetAsync(AdministrationAccess.QuestionsGroupAlias);
         if (group is null)
         {
@@ -65,7 +93,7 @@ public sealed class AdministrationGroupInitializer(IUserGroupService groups, ISh
             if (!created.Success) throw new InvalidOperationException("Không tạo được nhóm Hỏi – Đáp: " + created.Status);
         }
         // Giữ quyền nhóm đã dùng ở phiên bản trước; không thêm thành viên vào nhóm.
-        foreach (string alias in new[] { AdministrationAccess.QuestionsGroupAlias, Constants.Security.AdminGroupAlias, AdministrationAccess.GroupAlias })
+        foreach (string alias in new[] { AdministrationAccess.QuestionsGroupAlias, Constants.Security.AdminGroupAlias })
         {
             IUserGroup? existing = await groups.GetAsync(alias);
             if (existing is null || existing.AllowedSections.Contains(AdministrationAccess.QuestionsSectionAlias)) continue;

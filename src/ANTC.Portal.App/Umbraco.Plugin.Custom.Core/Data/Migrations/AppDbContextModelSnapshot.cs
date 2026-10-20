@@ -17,6 +17,44 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestAccessAudit", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("action");
+
+                    b.Property<Guid>("ActorUserKey")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("actor_user_key");
+
+                    b.Property<string>("EntryCode")
+                        .HasMaxLength(9)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("entry_code");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("ProtectedFilters")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("protected_filters");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.ToTable("contest_access_audit", (string)null);
+                });
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", b =>
                 {
                     b.Property<long>("Id")
@@ -87,6 +125,39 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.HasIndex("IsActive", "StartAt", "EndAt");
 
                     b.ToTable("contest", (string)null);
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPublishedResult", b =>
+                {
+                    b.Property<long>("ContestId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("contest_id");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_published");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("published_at");
+
+                    b.Property<Guid?>("PublishedByKey")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("published_by_key");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("revision");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("snapshot_json");
+
+                    b.HasKey("ContestId");
+
+                    b.ToTable("contest_published_result", (string)null);
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestQuestion", b =>
@@ -380,6 +451,8 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.HasIndex("Code")
                         .IsUnique();
+
+                    b.HasIndex("CreatedAt");
 
                     b.HasIndex("Phone");
 
@@ -712,6 +785,17 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("quiz_topic", (string)null);
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPublishedResult", b =>
+                {
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", "Contest")
+                        .WithOne()
+                        .HasForeignKey("Umbraco.Plugin.Custom.Core.Data.ContestPublishedResult", "ContestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Contest");
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestQuestion", b =>
