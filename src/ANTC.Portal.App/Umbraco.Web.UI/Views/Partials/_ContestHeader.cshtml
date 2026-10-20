@@ -9,7 +9,7 @@
     var logo = site.Value<IPublishedContent>("logoHeaderImage");
     var menu = site.Value<BlockListModel>("menu");
     var cta = site.Value<BlockListModel>("headerCta");
-    var path = Context.Request.Path.Value ?? "/";
+    var path = Model.ContentType.Alias == "thiThangPage" ? "/cuoc-thi/" : Context.Request.Path.Value ?? "/";
     var contest = Model.ContentType.Alias == "thiPage" ? await CurrentContests.GetAsync(Context.RequestAborted) : null;
     var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
     var contestMonth = contest is null ? string.Empty : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), vietnam).ToString("MM/yyyy");

@@ -44,6 +44,7 @@ graph TD
   seoBase["SEO dùng chung<br/><i>seoBase</i>"]
   thamGiaPage["Trang Tham gia<br/><i>thamGiaPage</i>"]
   thiPage["Trang Cuộc thi<br/><i>thiPage</i>"]
+  thiThangPage["Trang Cuộc thi tháng<br/><i>thiThangPage</i>"]
   thiThuPage["Trang Thử sức<br/><i>thiThuPage</i>"]
   thuDoanPage["Trang Thủ đoạn<br/><i>thuDoanPage</i>"]
   ungPhoPage["Trang Ứng phó khẩn cấp<br/><i>ungPhoPage</i>"]
@@ -60,6 +61,7 @@ graph TD
   contentManagement --> articleManagement
   contentManagement --> articleList
   hoiDapPage -. composition .-> seoBase
+  hoiDapPage -.-> tpl_hoiDapPage{{"hoiDapPage.cshtml"}}
   home --> ungPhoPage
   home --> thuDoanPage
   home --> thamGiaPage
@@ -68,6 +70,7 @@ graph TD
   home --> hoiDapPage
   home --> chinhSachPage
   home --> searchPage
+  home --> thiThangPage
   home -. composition .-> seoBase
   home -.-> tpl_home{{"home.cshtml"}}
   pageManagement --> home
@@ -78,6 +81,8 @@ graph TD
   thamGiaPage -.-> tpl_thamGiaPage{{"thamGiaPage.cshtml"}}
   thiPage -. composition .-> seoBase
   thiPage -.-> tpl_thiPage{{"thiPage.cshtml"}}
+  thiThangPage -. composition .-> seoBase
+  thiThangPage -.-> tpl_thiThangPage{{"thiThangPage.cshtml"}}
   thiThuPage -. composition .-> seoBase
   thiThuPage -.-> tpl_thiThuPage{{"thiThuPage.cshtml"}}
   thuDoanPage -. composition .-> seoBase
@@ -116,7 +121,7 @@ Tổng 61 element type.
 | story | 1 | storyChapterBlock |
 | two | 1 | twoColumnLayoutBlock |
 
-## 4. Cây nội dung mẫu (36 node)
+## 4. Cây nội dung mẫu (37 node)
 
 ```mermaid
 graph LR
@@ -139,6 +144,8 @@ graph LR
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> n56fa7c6b_f4e1_44be_8200_ec8be7404349
   ndc0bff3b_10be_53d5_87dc_d23ea675fd94["Chính sách<br/><i>chinhSachPage</i>"]
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> ndc0bff3b_10be_53d5_87dc_d23ea675fd94
+  n3ef975f7_186f_5a25_9e0a_dfe100d471d8["Cuộc thi tháng<br/><i>thiThangPage</i>"]
+  nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> n3ef975f7_186f_5a25_9e0a_dfe100d471d8
   n437e3947_4f08_52e1_baee_75907a540fac --> nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd
   n068471f0_605e_57ee_b164_547aee46bc79 --> n437e3947_4f08_52e1_baee_75907a540fac
   n5a1e0af5_bbf2_54ed_a359_bc4716736ea5["Quản lý nội dung<br/><i>contentManagement</i>"]
@@ -203,9 +210,9 @@ graph LR
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
-| Contest | 5 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, UmbracoContestSettingsProvider |
+| Contest | 7 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, ContestScheduleService, CurrentContestService, UmbracoContestSettingsProvider |
 | Data | 3 | AppDbContext, AppDbInitializer, Entities |
-| Questions | 4 | QuestionCsv, QuestionModels, QuestionModerationService, QuestionSubmissionService |
+| Questions | 5 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionSubmissionService |
 | Quiz | 3 | QuestionBank, QuizAdminModels, QuizAdminService |
 | Services | 1 | AppInfoService |
 
@@ -222,7 +229,7 @@ graph LR
 
 | Thư mục | Số file | File |
 |---|---|---|
-| (gốc) | 8 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, QuestionBankTests, QuizAdminServiceTests, QuizControllerTests, Usings |
+| (gốc) | 12 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, ContestScheduleServiceTests, CurrentContestServiceTests, QuestionBankTests, QuestionGuidanceTests, QuestionsControllerTests, QuizAdminServiceTests, QuizControllerTests, Usings |
 
 
 ### API routes
