@@ -60,6 +60,7 @@ graph TD
   contentManagement --> articleManagement
   contentManagement --> articleList
   hoiDapPage -. composition .-> seoBase
+  hoiDapPage -.-> tpl_hoiDapPage{{"hoiDapPage.cshtml"}}
   home --> ungPhoPage
   home --> thuDoanPage
   home --> thamGiaPage
@@ -200,12 +201,13 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Administration | 1 | AdministrationAccess |
+| Articles | 7 | ArticleContentSource, ArticleHtmlSanitizer, ArticleModels, ArticleQuery, ArticleReviewPolicy, ArticleSchemaMigration, PublishedArticleService |
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
-| Contest | 5 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, UmbracoContestSettingsProvider |
+| Contest | 6 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, CurrentContestService, UmbracoContestSettingsProvider |
 | Data | 3 | AppDbContext, AppDbInitializer, Entities |
-| Questions | 4 | QuestionCsv, QuestionModels, QuestionModerationService, QuestionSubmissionService |
+| Questions | 5 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionSubmissionService |
 | Quiz | 3 | QuestionBank, QuizAdminModels, QuizAdminService |
 | Services | 1 | AppInfoService |
 
@@ -214,7 +216,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Composers | 1 | CustomApiComposer |
-| Controllers | 9 | ContestAdminController, ContestController, LegacyQuestionsAdministrationController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
+| Controllers | 10 | ContestAdminController, ContestController, LegacyQuestionsAdministrationController, PublishedArticlesController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
 | Models | 2 | ContestEntryModels, QuestionModels |
 | Validation | 2 | ContestEntryRequestValidator, QuestionRequestValidator |
 
@@ -222,7 +224,7 @@ graph LR
 
 | Thư mục | Số file | File |
 |---|---|---|
-| (gốc) | 8 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, QuestionBankTests, QuizAdminServiceTests, QuizControllerTests, Usings |
+| (gốc) | 11 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, CurrentContestServiceTests, QuestionBankTests, QuestionGuidanceTests, QuestionsControllerTests, QuizAdminServiceTests, QuizControllerTests, Usings |
 
 
 ### API routes
@@ -232,8 +234,9 @@ graph LR
 | ContestAdminController | GET api/v1/admin/contest/campaigns, GET api/v1/admin/contest/campaigns/question-tree, GET api/v1/admin/contest/campaigns/{id:long}, POST api/v1/admin/contest/campaigns, PUT api/v1/admin/contest/campaigns/{id:long}, DELETE api/v1/admin/contest/campaigns/{id:long}, GET api/v1/admin/contest/entries, GET api/v1/admin/contest/entries/{id:long}, GET api/v1/admin/contest/draws, GET api/v1/admin/contest/draws/{id:long}, POST api/v1/admin/contest/draws, PUT api/v1/admin/contest/draws/{id:long}, DELETE api/v1/admin/contest/draws/{id:long} |
 | ContestController | POST api/v1/contest/entries |
 | LegacyQuestionsAdministrationController | GET //quan-tri/hoi-dap |
+| PublishedArticlesController | GET api/v1/article-categories, GET api/v1/articles, GET api/v1/articles/{id:guid} |
 | PublishedQuestionsController | GET api/v1/questions, GET api/v1/questions/{id:long} |
-| QuestionManagementController | GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
+| QuestionManagementController | POST , GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
 | QuestionsController | POST api/v1/questions |
 | QuizAdminController | GET api/v1/admin/quiz/topics, GET api/v1/admin/quiz/topics/{id:int}, POST api/v1/admin/quiz/topics, PUT api/v1/admin/quiz/topics/{id:int}, DELETE api/v1/admin/quiz/topics/{id:int}, GET api/v1/admin/quiz/questions, GET api/v1/admin/quiz/questions/{code}, POST api/v1/admin/quiz/questions, PUT api/v1/admin/quiz/questions/{code}, DELETE api/v1/admin/quiz/questions/{code} |
 | QuizController | GET api/v1/quiz/topics, GET api/v1/quiz/topics/{topic:int}/questions, GET api/v1/quiz/sample |

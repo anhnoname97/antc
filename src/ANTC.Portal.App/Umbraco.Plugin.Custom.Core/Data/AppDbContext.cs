@@ -81,6 +81,8 @@ public class AppDbContext : DbContext
             e.Property(x => x.Type).HasMaxLength(8);
             e.Property(x => x.Content).HasMaxLength(2000);
             e.Property(x => x.Contact).HasMaxLength(200);
+            e.Property(x => x.Source).HasMaxLength(16).HasDefaultValue("portal");
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
             e.Property(x => x.Status).HasMaxLength(10);
             e.Property(x => x.AdminNote).HasMaxLength(1000);
             e.Property(x => x.HandledBy).HasMaxLength(100);
