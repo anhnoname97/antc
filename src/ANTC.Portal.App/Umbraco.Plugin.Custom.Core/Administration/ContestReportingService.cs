@@ -64,7 +64,8 @@ public sealed class ContestReportingService
     private IQueryable<ReportEntry> Rows(IQueryable<Entry> q) => q.Select(e => new ReportEntry(
         e.Id,e.ContestId,e.Code,e.FullName,e.Phone,e.Org,e.Mode,e.AttemptNo,e.Status,
         e.Status == EntryStatuses.Submitted ? e.Answered : db.EntryAnswers.Count(a => a.EntryId == e.Id),
-        e.Score ?? db.EntryAnswers.Count(a => a.EntryId == e.Id && a.IsCorrect),e.CreatedAt,e.SubmittedAt));
+        e.Score ?? db.EntryAnswers.Count(a => a.EntryId == e.Id && a.IsCorrect),DateTime.SpecifyKind(e.CreatedAt,DateTimeKind.Utc),
+        e.SubmittedAt.HasValue?DateTime.SpecifyKind(e.SubmittedAt.Value,DateTimeKind.Utc):null));
 
     public async Task<EntryReportPage> EntriesAsync(ContestReportFilter f, CancellationToken ct)
     {
@@ -120,7 +121,7 @@ public sealed class ContestReportingService
         questions.AddRange(answers.Values.Where(a=>!known.Contains(a.QuestionCode)).Select(a=>
             new DetailQuestion(a.QuestionCode,a.Topic,$"Chuyên đề {a.Topic}","Không còn nội dung trong bộ đề.",null,null,null,null)));
         questions = questions.Select(q=>answers.TryGetValue(q.Code,out var a)
-            ? q with {Chosen=a.Chosen,Correct=a.IsCorrect,AnsweredAt=a.AnsweredAt} : q).ToList();
+            ? q with {Chosen=a.Chosen,Correct=a.IsCorrect,AnsweredAt=DateTime.SpecifyKind(a.AnsweredAt,DateTimeKind.Utc)} : q).ToList();
         var byTopic = questions.GroupBy(q=>new {q.TopicId,q.TopicTitle}).Select(g=>new DetailTopic(
             g.Key.TopicId,g.Key.TopicTitle,g.Count(q=>q.Correct==true),g.Count(q=>q.Chosen!=null),g.Count())).ToList();
         return new(entry,questions,byTopic,snapshot);

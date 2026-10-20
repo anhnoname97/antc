@@ -3,6 +3,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text.Json;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Data.Sqlite;
 using Umbraco.Plugin.Custom.Core.Administration;
 
@@ -12,10 +15,12 @@ namespace Umbraco.Plugin.Custom.Tests;
 public sealed class ContestAdministrationFullHostTests
 {
     [Fact]
-    public async Task RealUmbracoLogin_GroupCreation_MembershipAndSubmittedEntry_AreUsableInRazorPages()
+    public async Task RealUmbracoLogin_ReportsAndPublication_WorkInsideBackoffice_WithoutRazorPages()
     {
         string root=Directory.CreateDirectory(Path.Combine(Path.GetTempPath(),"antc-admin-full-"+Guid.NewGuid().ToString("N"))).FullName;
         string appDb=Path.Combine(root,"app.db"),cmsDb=Path.Combine(root,"cms.db");
+        ProjectFiles.CopyDirectory(Path.Combine(ProjectFiles.WebRoot,"App_Plugins"),Path.Combine(root,"App_Plugins"));
+        ProjectFiles.CopyDirectory(Path.Combine(ProjectFiles.WebRoot,"wwwroot","App_Plugins"),Path.Combine(root,"wwwroot","App_Plugins"));
         string password="Aa1!"+Guid.NewGuid().ToString("N");
         var listener=new TcpListener(IPAddress.Loopback,0);listener.Start();int port=((IPEndPoint)listener.LocalEndpoint).Port;listener.Stop();
         using var client=new HttpClient(new HttpClientHandler{AllowAutoRedirect=false}){BaseAddress=new Uri($"http://127.0.0.1:{port}"),Timeout=TimeSpan.FromSeconds(10)};
@@ -33,7 +38,7 @@ public sealed class ContestAdministrationFullHostTests
                             foreach(var asset in assets.EnumerateObject())names.Add(Path.GetFileName(asset.Name));
             foreach(string name in names)
                 if(File.Exists(Path.Combine(AppContext.BaseDirectory,name)))File.Copy(Path.Combine(AppContext.BaseDirectory,name),Path.Combine(bin,name));
-            foreach(string name in new[]{"Umbraco.Web.UI.deps.json","Umbraco.Web.UI.runtimeconfig.json","Umbraco.Web.UI.runtimeconfig.dev.json"})
+            foreach(string name in new[]{"Umbraco.Web.UI.deps.json","Umbraco.Web.UI.runtimeconfig.json","Umbraco.Web.UI.runtimeconfig.dev.json","Umbraco.Web.UI.staticwebassets.runtime.json"})
                 if(File.Exists(Path.Combine(AppContext.BaseDirectory,name)))File.Copy(Path.Combine(AppContext.BaseDirectory,name),Path.Combine(bin,name));
         }
         var start=new ProcessStartInfo("dotnet"){WorkingDirectory=root,UseShellExecute=false,CreateNoWindow=true,RedirectStandardError=true,RedirectStandardOutput=true};
@@ -72,16 +77,33 @@ public sealed class ContestAdministrationFullHostTests
         void Stop(){if(process is not null){if(!process.HasExited){process.Kill(entireProcessTree:true);process.WaitForExit(10000);}process.Dispose();process=null;}}
         async Task LoginAsync()
         {
+            client.DefaultRequestHeaders.Remove("Authorization");
             var result=await client.PostAsJsonAsync("/umbraco/management/api/v1/security/back-office/login",new{username="admin-test@example.invalid",password});
             Assert.Equal(HttpStatusCode.OK,result.StatusCode);
+            string verifier=WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(48));
+            string callback=client.BaseAddress+"umbraco/oauth_complete";
+            string query=QueryHelpers.AddQueryString("/umbraco/management/api/v1/security/back-office/authorize",new Dictionary<string,string?>{
+                ["client_id"]="umbraco-back-office",["response_type"]="code",["scope"]="offline_access",["redirect_uri"]=callback,
+                ["code_challenge"]=WebEncoders.Base64UrlEncode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier))),["code_challenge_method"]="S256"});
+            var authorize=await client.GetAsync(query);
+            Assert.True(authorize.StatusCode==HttpStatusCode.Redirect,$"PKCE authorize failed: {(int)authorize.StatusCode}");
+            string code=QueryHelpers.ParseQuery(authorize.Headers.Location!.Query)["code"].ToString();
+            Assert.NotEmpty(code);
+            var token=await client.PostAsync("/umbraco/management/api/v1/security/back-office/token",new FormUrlEncodedContent(new Dictionary<string,string>{
+                ["client_id"]="umbraco-back-office",["redirect_uri"]=callback,["grant_type"]="authorization_code",["code"]=code,["code_verifier"]=verifier}));
+            Assert.True(token.StatusCode==HttpStatusCode.OK,$"PKCE token failed: {(int)token.StatusCode}");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization","Bearer [redacted]");
         }
         try
         {
             await StartAsync();
-            Assert.Equal(HttpStatusCode.Unauthorized,(await client.GetAsync("/quan-tri/cuoc-thi")).StatusCode);
+            var legacy=await client.GetAsync("/quan-tri/cuoc-thi");
+            Assert.Equal(HttpStatusCode.Redirect,legacy.StatusCode);
+            Assert.Equal("/umbraco/section/contest-management/dashboard",legacy.Headers.Location?.ToString());
+            Assert.Equal(HttpStatusCode.Unauthorized,(await client.GetAsync("/umbraco/management/api/v1/antc/contest-reports/dashboard")).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized,(await client.GetAsync("/api/v1/admin/contest/campaigns/1/results/publication")).StatusCode);
             await LoginAsync();
-            Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync("/quan-tri/cuoc-thi")).StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync("/umbraco/management/api/v1/antc/contest-reports/dashboard")).StatusCode);
             Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync("/api/v1/admin/contest/campaigns/1/results/publication")).StatusCode);
             Stop();
             // Membership fixture is changed ONLY in the freshly installed CMS database above, while its host is stopped.
@@ -102,7 +124,11 @@ public sealed class ContestAdministrationFullHostTests
                 await cmd.ExecuteNonQueryAsync();
             }
             await StartAsync();await LoginAsync();
-            foreach(string path in new[]{"/quan-tri/cuoc-thi","/quan-tri/luot-thi","/quan-tri/thong-ke-cau-hoi"})
+            const string reporting="/umbraco/management/api/v1/antc/contest-reports";
+            client.DefaultRequestHeaders.Remove("Authorization");
+            Assert.Equal(HttpStatusCode.Unauthorized,(await client.GetAsync(reporting+"/dashboard")).StatusCode);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization","Bearer [redacted]");
+            foreach(string path in new[]{reporting+"/dashboard",reporting+"/entries",reporting+"/questions",reporting+"/options"})
             {
                 var response=await client.GetAsync(path);
                 Assert.True(response.StatusCode==HttpStatusCode.OK,$"Real host {path}: {(int)response.StatusCode}");
@@ -123,14 +149,14 @@ public sealed class ContestAdministrationFullHostTests
             Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync("/api/v1/contest/entries/me/answers",new{q=code,a=answer})).StatusCode);
             var submit=await client.PostAsJsonAsync("/api/v1/contest/entries/me/submit",new{contact=new {fullName="Nguyễn Văn Kiểm Thử",phone="0912345678",consent=true}});
             Assert.Equal(HttpStatusCode.OK,submit.StatusCode);
-            string list=await client.GetStringAsync("/quan-tri/luot-thi?Filter.Status=submitted&Filter.ScoreFrom=1");
+            string list=await client.GetStringAsync(reporting+"/entries?status=submitted&scoreFrom=1");
             Assert.Contains(entryCode,list);
             await using(var db=new SqliteConnection($"Data Source={appDb};Pooling=False"))
             {
                 await db.OpenAsync();await using var cmd=db.CreateCommand();cmd.CommandText="SELECT id FROM entry WHERE code=$code";
                 cmd.Parameters.AddWithValue("$code",entryCode);long entryId=(long)(await cmd.ExecuteScalarAsync())!;
-                string detail=await client.GetStringAsync($"/quan-tri/luot-thi/{entryId}");
-                Assert.Equal(200,System.Text.RegularExpressions.Regex.Matches(detail,"data-question-code=").Count);
+                string detail=await client.GetStringAsync($"{reporting}/entries/{entryId}");
+                Assert.Equal(200,JsonDocument.Parse(detail).RootElement.GetProperty("questions").GetArrayLength());
                 Assert.Contains(entryCode,detail);
                 cmd.CommandText="SELECT COUNT(*) FROM contest_access_audit WHERE action='view.detail' AND entry_code=$code";
                 Assert.Equal(1L,await cmd.ExecuteScalarAsync());
@@ -152,11 +178,7 @@ public sealed class ContestAdministrationFullHostTests
             using var anonymous=new HttpClient{BaseAddress=client.BaseAddress};
             string publicPath=$"/api/v1/contests/{contestId}/results";
             Assert.Equal("pending",(await anonymous.GetFromJsonAsync<JsonElement>(publicPath)).GetProperty("status").GetString());
-            string publication=$"/api/v1/admin/contest/campaigns/{contestId}/results/publication";
-            Assert.Equal(HttpStatusCode.BadRequest,(await client.PutAsJsonAsync(publication,new{isPublished=true,drawIds=new[]{drawId},expectedRevision=0})).StatusCode);
-            string page=await client.GetStringAsync("/quan-tri/luot-thi");
-            string csrf=WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Match(page,"name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);
-            Assert.NotEmpty(csrf);client.DefaultRequestHeaders.Add("RequestVerificationToken",csrf);
+            string publication=$"{reporting}/contests/{contestId}/publication";
             var publicationResult=await client.PutAsJsonAsync(publication,new{isPublished=true,drawIds=new[]{drawId},expectedRevision=0});
             Assert.True(publicationResult.StatusCode==HttpStatusCode.OK,$"Publication: {(int)publicationResult.StatusCode}: {await publicationResult.Content.ReadAsStringAsync()}");
             var published=await anonymous.GetFromJsonAsync<JsonElement>(publicPath);
@@ -166,8 +188,25 @@ public sealed class ContestAdministrationFullHostTests
             Assert.DoesNotContain("0912345678",published.GetRawText());
             Assert.Equal(HttpStatusCode.OK,(await client.PutAsJsonAsync(publication,new{isPublished=false,expectedRevision=1})).StatusCode);
             Assert.Equal("pending",(await anonymous.GetFromJsonAsync<JsonElement>(publicPath)).GetProperty("status").GetString());
-            Console.WriteLine("Real Umbraco: anonymous401 / logged-in nonmember403 / assigned group200 / new submitted entry visible.");
-            Console.WriteLine("Real results API: public pending / authorized CSRF-protected publish / masked leaderboard and winner / immediate unpublish.");
+            var csv=await client.GetAsync(reporting+"/export/entries?status=submitted&hasPhone=true&scoreFrom=1");
+            Assert.Equal(HttpStatusCode.OK,csv.StatusCode);
+            Assert.Equal(new byte[]{239,187,191},(await csv.Content.ReadAsByteArrayAsync())[..3]);
+            Assert.Contains(entryCode,await csv.Content.ReadAsStringAsync());
+            if(Environment.GetEnvironmentVariable("ANTC_RUN_BROWSER")=="1")
+            {
+                var browserStart=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
+                browserStart.ArgumentList.Add(Path.Combine(ProjectFiles.WebRoot,"..","Umbraco.Plugin.Custom.Tests","Browser","contest-reports.smoke.cjs"));
+                browserStart.Environment["ANTC_TEST_URL"]=client.BaseAddress.ToString();
+                browserStart.Environment["ANTC_TEST_PASSWORD"]=password;
+                browserStart.Environment["ANTC_TEST_CONTEST_ID"]=contestId.ToString();
+                browserStart.Environment["ANTC_TEST_ENTRY_CODE"]=entryCode;
+                using var browser=Process.Start(browserStart)!;
+                var browserOut=browser.StandardOutput.ReadToEndAsync();var browserError=browser.StandardError.ReadToEndAsync();
+                await browser.WaitForExitAsync();
+                Assert.True(browser.ExitCode==0,await browserOut+await browserError);
+                Console.WriteLine(await browserOut);
+            }
+            Console.WriteLine("Real Umbraco PKCE: reporting401 / nonmember403 / member200 / detail200questions / CSV BOM / publication / public results / old URLs redirect.");
         }
         finally
         {

@@ -32,14 +32,12 @@
   <PropertyGroup>
     <!-- File Razor can co trong ban publish de backoffice hoat dong -->
     <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
-    <!-- Compile admin Pages so routes exist in Release; Umbraco Views stay runtime compiled for InMemoryAuto models. -->
-    <RazorCompileOnBuild>true</RazorCompileOnBuild>
-    <RazorCompileOnPublish>true</RazorCompileOnPublish>
-    <EnableDefaultRazorGenerateItems>false</EnableDefaultRazorGenerateItems>
+    <!-- Umbraco Views remain runtime compiled for InMemoryAuto models. Administration uses Lit backoffice extensions. -->
+    <RazorCompileOnBuild>false</RazorCompileOnBuild>
+    <RazorCompileOnPublish>false</RazorCompileOnPublish>
   </PropertyGroup>
 
   <ItemGroup>
-    <RazorGenerate Include="Pages\**\*.cshtml" />
     <!-- Cau hinh rieng tung may, khong dua vao ban publish -->
     <Content Update="appsettings.Local.json" CopyToPublishDirectory="Never" />
     <Content Update="appsettings.Local.template.json;App_Data\**;umbraco\Data\**;umbraco\Logs\**;umbraco\models\**;wwwroot\media\**" CopyToPublishDirectory="Never" />

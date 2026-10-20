@@ -84,7 +84,22 @@ Mọi thời gian UTC ISO-8601 có hậu tố `Z`. `Cache-Control: no-store` gi�
 
 ## 2. Quản trị công bố/gỡ công bố
 
-Hai endpoint sau sử dụng **phiên cookie backoffice Umbraco** và nhóm **Quản trị cuộc thi**, giống các trang `/quan-tri`. Tài khoản Administrators không thuộc nhóm này vẫn nhận 403; chưa đăng nhập nhận 401. Không dùng token thí sinh thay thế phiên quản trị.
+### Giao diện backoffice hiện tại
+
+Vào **Quản lý cuộc thi → Công bố kết quả**. Lit Element sử dụng API native Umbraco:
+
+```http
+GET /umbraco/management/api/v1/antc/contest-reports/contests/{contestId}/publication
+PUT /umbraco/management/api/v1/antc/contest-reports/contests/{contestId}/publication
+```
+
+Body PUT vẫn là `{ "isPublished": true, "drawIds": [7, 8], "expectedRevision": 0 }`. Yêu cầu phiên xác thực backoffice từ `UMB_AUTH_CONTEXT` và nhóm **Quản trị cuộc thi**. Không cần và không còn dùng form Razor `/quan-tri` để lấy anti-forgery token. Xem [hướng dẫn backoffice](../ban-giao/Trang-quan-tri-cuoc-thi.md).
+
+### API cookie cũ giữ tương thích
+
+Các endpoint bên dưới vẫn giữ cho client cũ; giao diện mới không gọi chúng.
+
+Hai endpoint tương thích sau sử dụng **phiên cookie backoffice Umbraco** và nhóm **Quản trị cuộc thi**. Giao diện backoffice hiện tại sử dụng API native phía trên, không còn trang Razor `/quan-tri`. Tài khoản Administrators không thuộc nhóm này vẫn nhận 403; chưa đăng nhập nhận 401. Không dùng token thí sinh thay thế phiên quản trị.
 
 ```http
 GET /api/v1/admin/contest/campaigns/{contestId}/results/publication
@@ -106,16 +121,15 @@ RequestVerificationToken: <anti-forgery request token của phiên hiện tại>
 
 `expectedRevision` phải lấy từ GET trạng thái mới nhất. `drawIds` không bắt buộc; tối đa 100 ID khác nhau, phải thuộc cuộc thi. Danh sách rỗng cho phép công bố bảng xếp hạng trước khi có kết quả quay, `draws=[]`. PUT yêu cầu anti-forgery token và cookie tương ứng; thiếu token nhận 400, không thay đổi dữ liệu.
 
-Để lấy token khi tích hợp màn hình quản trị: dùng token từ một form POST Razor Pages của phiên hiện tại (ví dụ trang `/quan-tri/luot-thi`), gửi giá trị input `__RequestVerificationToken` qua header `RequestVerificationToken`. Đây là endpoint dành cho client quản trị cùng origin, không phải endpoint dùng từ frontend công khai hoặc script không có phiên.
+Để lấy token cho client cookie cũ, gọi GET `/api/v1/admin/contest/campaigns/{contestId}/results/publication/antiforgery` bằng phiên quản trị hiện tại. Gửi `requestToken` trả về qua header `RequestVerificationToken`, giữ cookie cùng origin. Không còn dùng form Razor Pages vì chúng đã được gỡ. Client mới nên sử dụng API native phía trên.
 
 Ví dụ gọi từ màn hình quản trị đã đăng nhập:
 
 ```javascript
 const contestId = 12;
-const csrfPage = await fetch('/quan-tri/luot-thi', { credentials: 'same-origin' });
-if (!csrfPage.ok) throw new Error('Không có phiên hoặc quyền quản trị');
-const doc = new DOMParser().parseFromString(await csrfPage.text(), 'text/html');
-const token = doc.querySelector('input[name="__RequestVerificationToken"]')?.value;
+const csrfResponse = await fetch(`/api/v1/admin/contest/campaigns/${contestId}/results/publication/antiforgery`, { credentials: 'same-origin' });
+if (!csrfResponse.ok) throw new Error('Không có phiên hoặc quyền quản trị');
+const token = (await csrfResponse.json()).requestToken;
 if (!token) throw new Error('Không lấy được anti-forgery token');
 const stateResponse = await fetch(`/api/v1/admin/contest/campaigns/${contestId}/results/publication`);
 if (!stateResponse.ok) throw new Error('Không đọc được trạng thái công bố');
@@ -160,6 +174,6 @@ Migration `20261020025539_PublishContestResults` bổ sung bảng `contest_publi
 
 Kiểm thử dùng CSDL tạm: bảng xếp hạng tốt nhất theo số điện thoại; thứ tự khi bằng điểm; phân trang; snapshot không đổi theo nguồn; che tên hai từ; đúng thời điểm hết gia hạn; gỡ công bố; sai revision; hai yêu cầu đồng thời chỉ một lần ghi/nhật ký; không lẫn cuộc thi; không công bố người ẩn danh. Kiểm thử HTTP bằng Umbraco thật bao gồm 401/403, anti-forgery, công bố cả hai danh sách và gỡ có hiệu lực ngay.
 
-Chưa thay đổi phần hiển thị frontend hoặc thêm nút công bố trong backoffice; task này cung cấp API và luồng quản trị để tích hợp giao diện tiếp theo.
+Chưa thay đổi phần hiển thị kết quả trên cổng thông tin. Đã có màn hình **Công bố kết quả** trong section Quản lý cuộc thi của backoffice; các Razor Pages quản trị cũ đã được gỡ.
 
 Kết quả kiểm tra ngày 20/10/2026: toàn bộ **181/181 kiểm thử đạt**, bao gồm luồng HTTP Umbraco thật và kiểm thử hai yêu cầu công bố đồng thời. Không sửa hoặc công bố dữ liệu trên hai CSDL của dự án trong quá trình kiểm thử.

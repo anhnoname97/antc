@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace Umbraco.Plugin.Custom.Core.Administration;
 
 public sealed class ContestReportFilter
@@ -31,15 +29,6 @@ public sealed class ContestReportFilter
         return errors;
     }
 
-    public Dictionary<string,string?> RouteValues(int? page = null) => new()
-    {
-        ["Filter.ContestId"] = ContestId?.ToString(), ["Filter.Mode"] = Mode, ["Filter.Status"] = Status,
-        ["Filter.HasPhone"] = HasPhone?.ToString().ToLowerInvariant(),
-        ["Filter.ScoreFrom"] = ScoreFrom?.ToString(), ["Filter.ScoreTo"] = ScoreTo?.ToString(),
-        ["Filter.From"] = From?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-        ["Filter.To"] = To?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-        ["Filter.Search"] = Search, ["Filter.Sort"] = Sort, ["Filter.Page"] = (page ?? Page).ToString(),
-    };
 }
 
 public record ContestChoice(long Id, string Name);

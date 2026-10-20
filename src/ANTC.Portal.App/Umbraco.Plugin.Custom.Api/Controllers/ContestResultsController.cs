@@ -30,6 +30,14 @@ public sealed class ContestResultsController(ContestResultsService service) : Co
 [Authorize(Policy=AdministrationAccess.Policy)]
 public sealed class ContestResultsPublicationController(ContestResultsService service,IAuthorizationHelper authorization) : ControllerBase
 {
+    // Compatibility for existing cookie-based clients after the old Razor forms were removed.
+    [HttpGet("antiforgery")]
+    public IActionResult Antiforgery([FromServices] Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery)
+    {
+        Response.Headers.CacheControl="no-store";
+        var tokens=antiforgery.GetAndStoreTokens(HttpContext);
+        return Ok(new {tokens.RequestToken,tokens.HeaderName});
+    }
     [HttpGet]
     public async Task<IActionResult> Get(long contestId,CancellationToken ct)
     {

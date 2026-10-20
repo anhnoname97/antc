@@ -17,6 +17,7 @@ public static class AdministrationAccess
 {
     public const string Policy = "AntcAdministration";
     public const string GroupAlias = "quanTriCuocThi";
+    public const string BackofficePolicy = "AntcContestReports";
     public const string QuestionsPolicy = "AntcQuestionsSection";
     public const string QuestionsSectionAlias = "Antc.Section.Questions";
     public const string QuestionsGroupAlias = "quanTriHoiDap";
@@ -34,6 +35,8 @@ public sealed class AdministrationComposer : IComposer
             policy => policy.AddAuthenticationSchemes(Constants.Security.BackOfficeAuthenticationType)
                 .RequireAuthenticatedUser().AddRequirements(new ContestAdministrationRequirement())));
         builder.Services.AddSingleton<IAuthorizationHandler, ContestAdministrationAuthorizationHandler>();
+        builder.Services.Configure<AuthorizationOptions>(options => options.AddPolicy(AdministrationAccess.BackofficePolicy,
+            policy => policy.RequireAuthenticatedUser().AddRequirements(new ContestAdministrationRequirement())));
     }
 }
 
@@ -74,10 +77,21 @@ public sealed class AdministrationGroupInitializer(IUserGroupService groups, ISh
             {
                 Key = new Guid("78255f31-fac3-4fd8-a762-aeb717a31c70"),
                 Alias = AdministrationAccess.GroupAlias, Name = "Quản trị cuộc thi", Icon = "icon-trophy",
-                Description = "Xem báo cáo và xuất dữ liệu cuộc thi tại /quan-tri. Quản trị viên gán thành viên."
+                Description = "Báo cáo, xuất dữ liệu và công bố kết quả trong section Quản lý cuộc thi. Quản trị viên gán thành viên."
             };
             var result = await groups.CreateAsync(contestGroup, Constants.Security.SuperUserKey);
             if (!result.Success) throw new InvalidOperationException("Không tạo được nhóm Quản trị cuộc thi: " + result.Status);
+        }
+        var reportingGroup = await groups.GetAsync(AdministrationAccess.GroupAlias);
+        if (reportingGroup is not null && (!reportingGroup.AllowedSections.Contains(Backoffice.ContestManagementSectionAccessHandler.SectionAlias)
+            || reportingGroup.Description == "Xem báo cáo và xuất dữ liệu cuộc thi tại /quan-tri. Quản trị viên gán thành viên."))
+        {
+            if (!reportingGroup.AllowedSections.Contains(Backoffice.ContestManagementSectionAccessHandler.SectionAlias))
+                reportingGroup.AddAllowedSection(Backoffice.ContestManagementSectionAccessHandler.SectionAlias);
+            if (reportingGroup.Description == "Xem báo cáo và xuất dữ liệu cuộc thi tại /quan-tri. Quản trị viên gán thành viên.")
+                reportingGroup.Description = "Báo cáo, xuất dữ liệu và công bố kết quả trong section Quản lý cuộc thi. Quản trị viên gán thành viên.";
+            var updated = await groups.UpdateAsync(reportingGroup, Constants.Security.SuperUserKey);
+            if (!updated.Success) throw new InvalidOperationException("Không cấp được section Quản lý cuộc thi cho nhóm báo cáo.");
         }
         IUserGroup? group = await groups.GetAsync(AdministrationAccess.QuestionsGroupAlias);
         if (group is null)

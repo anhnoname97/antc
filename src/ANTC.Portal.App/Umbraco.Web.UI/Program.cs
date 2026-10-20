@@ -32,8 +32,6 @@ builder.Configuration.AddEnvironmentVariables().AddCommandLine(args);
 builder.Services.AddWindowsService();
 builder.Services.AddAntcApiProtection(builder.Configuration);
 builder.Services.AddAdministrationIpAllowlist(builder.Configuration, builder.Environment);
-builder.Services.AddRazorPages(options => options.Conventions.AuthorizeFolder("/QuanTri",
-    Umbraco.Plugin.Custom.Core.Administration.AdministrationAccess.Policy));
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationMiddlewareResultHandler,
     ContestAdministrationAuthorizationResult>();
 if (builder.Configuration["Deployment:DataProtectionKeysPath"] is { Length: > 0 } keys)
@@ -79,7 +77,6 @@ app.UseUmbraco()
     .WithEndpoints(u =>
     {
         u.UseBackOfficeEndpoints();
-        u.EndpointRouteBuilder.MapRazorPages();
         u.UseWebsiteEndpoints();
     });
 

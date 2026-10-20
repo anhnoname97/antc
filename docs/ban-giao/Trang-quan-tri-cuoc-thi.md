@@ -1,61 +1,74 @@
-# Trang quản trị cuộc thi
+# Quản trị cuộc thi trong backoffice
 
-## Truy cập và cấp quyền
+## Vị trí và quyền truy cập
 
-Khởi động lại bản ứng dụng mới. Migration `20261020022728_ContestAdministrationAudit` tự bổ sung bảng nhật ký và chỉ mục thời điểm tạo; không sửa điểm, đáp án, token hoặc dữ liệu cá nhân đã có.
+Từ ngày 20/10/2026, các trang quản trị cuộc thi được chuyển hoàn toàn sang **Lit Element** trong section **Quản lý cuộc thi** của Umbraco. Không nhúng iframe và không dùng Razor Pages để hiển thị báo cáo.
 
-Khi Umbraco khởi động thành công, ứng dụng tự tạo nhóm **Quản trị cuộc thi** (`quanTriCuocThi`) nếu chưa có. Trong backoffice, vào **Users → User groups**, mở nhóm và gán tài khoản được phép sử dụng. Không tự thêm tài khoản nào, không mặc định miễn kiểm tra cho Administrators/Super User. Nhóm này không được tự cấp quyền vào section Hỏi – Đáp.
-
-Đăng nhập backoffice bằng trình duyệt, sau đó mở các URL trên cùng tên miền:
-
-| Đường dẫn | Nội dung |
+| Menu trái | Đường dẫn |
 | --- | --- |
-| `/quan-tri` | Chuyển đến tổng quan |
-| `/quan-tri/cuoc-thi` | Số lượt, số điện thoại khác nhau, biểu đồ điểm, lượt theo ngày |
-| `/quan-tri/luot-thi` | Danh sách, bộ lọc, phân trang 50 dòng, xuất lượt và đáp án |
-| `/quan-tri/luot-thi/{id}` | Chi tiết bài làm, đáp án đúng, cả câu chưa làm, tổng theo chuyên đề |
-| `/quan-tri/thong-ke-cau-hoi` | Thống kê từng câu, A/B/C/D, lọc chuyên đề, xuất thống kê |
+| Tổng quan | `/umbraco/section/contest-management/dashboard` |
+| Lượt thi | `/umbraco/section/contest-management/entries-report` |
+| Thống kê câu hỏi | `/umbraco/section/contest-management/question-report` |
+| Công bố kết quả | `/umbraco/section/contest-management/publication` |
 
-Đây là Razor Pages độc lập, **không thêm section/menu mới trong backoffice**. Phiên cookie backoffice Umbraco được xác thực bằng scheme `UmbracoBackOffice`; không dùng token của thí sinh hoặc phiên member. Chưa đăng nhập nhận 401; đăng nhập nhưng không thuộc nhóm nhận **403**, kể cả tài khoản Administrators. Người bị khóa hoặc không được duyệt cũng không được truy cập. Quy tắc `Administration:AllowedNetworks` áp dụng cho cả `/quan-tri`; IP được xử lý sau forwarded headers tin cậy như backoffice.
+Các mục Câu hỏi, Chuyên đề, Cuộc thi và chức năng tạo/quay thưởng hiện có được giữ lại. Tab “Lượt dự thi” trong màn hình Cuộc thi chuyển sang bảng báo cáo mới.
 
-## Quy ước số liệu
+Khởi động lại ứng dụng, tải lại backoffice (Ctrl+F5). Ứng dụng tự tạo/giữ nhóm **Quản trị cuộc thi** (`quanTriCuocThi`) và cấp nhóm quyền vào section `Antc.Section.ContestManagement`. Trong **Users → User groups**, quản trị viên tự gán tài khoản vào nhóm; không tự thêm thành viên hoặc mặc định miễn quyền cho Administrators/Super User. Không tự cấp nhóm quyền Hỏi – Đáp.
 
-- Có bộ lọc cuộc thi để xem riêng hoặc tổng hợp. Thống kê câu hỏi vẫn tách từng cuộc thi vì cùng mã câu có thể có nội dung/đáp án khác ở hai cuộc thi.
-- Khoảng ngày áp dụng **ngày tạo lượt, theo giờ Việt Nam UTC+7**, bao gồm toàn bộ ngày cuối. Tìm tên không phân biệt hoa/thường tiếng Việt; tìm mã/điện thoại theo chuỗi con. Số điện thoại dùng dạng chuẩn hóa đã lưu.
-- Có thể kết hợp `Đã nộp` + `Có số điện thoại` + `Điểm từ 180`. Điểm lọc/sắp xếp là điểm đã chốt trong `entry.score`; lượt chưa nộp không có điểm chốt nên không lọt bộ lọc điểm. Cột số đúng của lượt đang thi được đếm trực tiếp từ đáp án đã lưu.
-- Biểu đồ điểm chỉ gồm lượt đã nộp. Số điện thoại khác nhau loại null/rỗng, đếm số đã chuẩn hóa.
-- Chi tiết lấy bộ đề đóng băng của cuộc thi, không lấy đáp án hiện tại của ngân hàng luyện tập. Bộ đề chuẩn hiển thị 200 câu; cuộc thi chọn ít câu hơn hiển thị đúng số đã chọn. Câu bỏ trống ghi “Chưa trả lời”, không tạo đáp án giả.
-- Lượt lịch sử không có snapshot: hiển thị rõ cảnh báo; đúng/sai lấy từ bản ghi đáp án, không suy đoán đáp án đúng lịch sử bằng ngân hàng mới.
-- Tỷ lệ đúng = số dòng `is_correct=1` / số lượt **đã trả lời câu đó**, không lấy tổng người tham gia làm mẫu số. Sắp tăng dần, câu chưa ai trả lời nằm cuối. A/B/C/D được đếm từ đáp án đã lưu, áp dụng cùng bộ lọc lượt thi.
-- Lượt/câu được đọc bằng truy vấn chỉ đọc `AsNoTracking`; không thay đổi giao dịch làm bài, cơ chế lần ghi đầu thắng hoặc kết quả nộp bài.
+Những tài khoản có quyền mở section để sửa câu hỏi nhưng không thuộc nhóm báo cáo vẫn nhận **403** khi gọi API báo cáo/xuất/công bố. Chưa đăng nhập nhận 401; người bị khóa/không được duyệt không có quyền. IP được kiểm tra theo allowlist backoffice sau forwarded headers tin cậy.
 
-## Xuất dữ liệu và an toàn
+## Chức năng được giữ khi di chuyển
 
-Nút xuất sử dụng POST có anti-forgery token. Xuất **toàn bộ** kết quả bộ lọc, không chỉ trang 50 dòng đang hiển thị. Danh sách lượt và đáp án được đọc/ghi theo luồng, không nạp cả bảng vào bộ nhớ.
+- Tổng quan số lượt tạo/nộp/có tên/ẩn danh, số điện thoại khác nhau, biểu đồ điểm của lượt nộp và số lượt theo ngày.
+- Danh sách đầy đủ các cột, lọc cuộc thi/chế độ/trạng thái/có số điện thoại/điểm/ngày tạo, tìm mã-tên-điện thoại, sắp xếp, 50 dòng mỗi trang.
+- Chi tiết mở trong dialog Lit: toàn bộ câu của snapshot, gồm cả câu chưa làm, đáp án chọn/đúng, kết quả/thời gian, tổng theo chuyên đề. Đóng bằng nút Đóng, nút góc trên hoặc Escape; chuyên đề thu gọn/mở rộng được.
+- Thống kê mỗi câu, đúng/sai, lượt A/B/C/D, tỷ lệ đúng tăng dần, lọc chuyên đề; không trộn các phiên bản câu giữa nhiều cuộc thi.
+- CSV UTF-8 BOM cho toàn bộ lượt theo bộ lọc, đáp án dạng dài và thống kê câu; chống công thức Excel. Không giới hạn vào trang đang hiển thị. Để giữ số 0 đầu điện thoại khi nhập Excel, đặt cột này thành Text.
+- Nhật ký xem chi tiết và xuất ghi trong `contest_access_audit`, có GUID người dùng/thời gian/bộ lọc được Data Protection bảo vệ. Ghi audit thất bại thì không cung cấp dữ liệu. File log vận hành không chứa tên/điện thoại/từ khóa tìm kiếm.
+- Chọn cuộc thi và các lần quay để công bố/gỡ kết quả ngay trong backoffice, có xác nhận. Giữ snapshot, revision và quy tắc hết thời gian gia hạn như API kết quả.
 
-CSV dùng UTF-8 BOM, dấu phẩy, CRLF và escape dấu nháy/ký tự xuống dòng. Ô có nguy cơ công thức Excel được thêm dấu nháy đơn để chống CSV injection. Tiếng Việt được giữ nguyên. Khi cần giữ số 0 đầu số điện thoại trong Excel, nhập CSV bằng **Data → From Text/CSV**, đặt cột số điện thoại thành Text (Excel có thể tự chuyển chuỗi số thành số khi mở trực tiếp).
+Giờ hiển thị theo Việt Nam (UTC+7); khoảng ngày lọc theo **ngày tạo lượt**, gồm cả ngày cuối. Lượt đã nộp dùng điểm đã chốt; lượt đang làm đếm đáp án hiện có. Chi tiết lấy bộ đề đóng băng, không lấy đáp án mới từ ngân hàng. Bộ chuẩn 200 câu hiển thị đủ 200; bộ chọn ít hơn hiển thị đúng số câu đã chọn. Lượt cũ thiếu snapshot có cảnh báo rõ ràng.
 
-Các phản hồi quản trị có `Cache-Control: no-store`, `Referrer-Policy: no-referrer` và chống nhúng frame. Không ghi tên/điện thoại/từ khóa lọc vào file log vận hành. Nếu bật access log tại reverse proxy/IIS, không ghi query string/body của `/quan-tri` và các API có dữ liệu cá nhân.
+## API quản trị mới
 
-Mỗi lần xem chi tiết hoặc xuất dữ liệu ghi vào `contest_access_audit`: khóa GUID tài khoản Umbraco, hành động, thời gian UTC, mã dự thi nếu có, bộ lọc chính xác được bảo vệ bằng ASP.NET Core Data Protection. Ghi nhật ký thất bại thì không cung cấp chi tiết/file xuất. Không lưu tên tài khoản hay thông tin thí sinh dạng rõ trong nhật ký. Đối chiếu `actor_user_key` với tài khoản Umbraco khi kiểm toán. Phải bảo vệ/sao lưu kho khóa Data Protection cùng dữ liệu; mất khóa sẽ không giải mã được bộ lọc cũ. Nhật ký này nằm trong CSDL ứng dụng, không bị chính sách xoay log file 30 ngày xóa đi.
+Base: `/umbraco/management/api/v1/antc/contest-reports`.
 
-Razor Pages được biên dịch sẵn để tồn tại trong bản Release; các Umbraco Views vẫn biên dịch động để giữ tương thích ModelsBuilder InMemoryAuto.
+| Phương thức/đường dẫn | Chức năng |
+| --- | --- |
+| GET `/options?contestId=...` | Danh sách cuộc thi/chuyên đề |
+| GET `/dashboard` | Tổng quan |
+| GET `/entries` | Danh sách lượt, 50 dòng/trang |
+| GET `/entries/{id}` | Chi tiết và audit |
+| GET `/questions?topicId=...` | Thống kê câu hỏi |
+| GET `/export/entries` | CSV lượt và audit |
+| GET `/export/answers` | CSV đáp án và audit |
+| GET `/export/questions` | CSV thống kê và audit |
+| GET `/contests/{id}/draws` | Các lần quay để chọn công bố, không trả thông tin cá nhân |
+| GET `/contests/{id}/publication` | Trạng thái/revision công bố |
+| PUT `/contests/{id}/publication` | Công bố/gỡ bằng `{isPublished, drawIds, expectedRevision}` |
 
-## Kiểm chứng tự động
+Bộ lọc dùng tên **không có tiền tố `Filter.`**: `contestId`, `mode`, `status`, `hasPhone`, `scoreFrom`, `scoreTo`, `from`, `to`, `search`, `sort`, `page`. Sort: `created_desc`, `created_asc`, `score_desc`, `score_asc`, `submitted_desc`. Thống kê câu luôn sắp theo tỷ lệ đúng, không dùng sort lượt.
+
+Các endpoint kế thừa `ManagementApiControllerBase`, dùng xác thực backoffice OpenIddict/PKCE chuẩn và kiểm tra nhóm tại máy chủ. Lit lấy `getLatestToken()` từ `UMB_AUTH_CONTEXT`, gửi Authorization và cookie cùng origin, thử làm mới phiên khi 401. Với bản Umbraco cookie-token, phải giữ cả header `Bearer [redacted]` do auth context cung cấp; không chỉ gửi cookie đăng nhập. Không yêu cầu lấy token anti-forgery từ Razor Pages cũ.
+
+API công khai **`GET /api/v1/contests/{contestId}/results` giữ nguyên**, không yêu cầu đăng nhập, không bị chuyển thành API quản trị. Xem [hợp đồng kết quả](../api/Ket-qua-cuoc-thi.md).
+
+## Phần Razor cũ đã gỡ
+
+Đã gỡ các file `Pages/QuanTri/*`, layout/filter partials trong `Pages/Shared`, `_ViewImports`/`_ViewStart` của Pages, CSS `contest-admin.css`, đăng ký và map Razor Pages. Các Views Razor của cổng thông tin/Umbraco vẫn giữ nguyên và tiếp tục biên dịch động cho ModelsBuilder InMemoryAuto.
+
+Các URL cũ `/quan-tri`, `/quan-tri/cuoc-thi`, `/quan-tri/luot-thi`, `/quan-tri/luot-thi/{id}`, `/quan-tri/thong-ke-cau-hoi` chỉ chuyển hướng vào màn hình backoffice tương ứng; không hiển thị bảng/form hoặc dữ liệu cá nhân tại URL cũ. Section Hỏi – Đáp và đường dẫn tương thích của section đó không bị xóa.
+
+Không xóa/sửa dữ liệu cuộc thi, lượt thi, đáp án hoặc các migration đã có để thực hiện lần di chuyển giao diện này. Giữ và sao lưu kho khóa Data Protection để đọc nhật ký cũ.
+
+## Kiểm thử
 
 ```powershell
 dotnet test .\ANTC.Portal.App\Umbraco.Plugin.Custom.Tests -p:OutDir="$env:TEMP\antc-admin-tests\"
 ```
 
-Các kiểm thử bổ sung dùng SQLite thật, bao gồm:
+Kiểm thử HTTP thật chạy Umbraco bằng hai CSDL tạm, đăng nhập + đổi mã PKCE như backoffice: 401/403/200, bộ lọc, chi tiết đủ 200 câu, CSV BOM/audit, công bố/gỡ, API công khai và URL cũ chuyển hướng. Các kiểm thử số liệu, tranh chấp lần ghi, nộp bài và công bố đồng thời tiếp tục được giữ.
 
-- So dashboard/thống kê A/B/C/D trên 3 lượt biết trước; kiểm tra câu bỏ trống và snapshot không đổi theo ngân hàng.
-- So bộ lọc `submitted + phone + score >= 180` với SQL trực tiếp; kiểm tra tên Unicode, biên ngày UTC+7 và phân trang không trùng dòng.
-- 5.000 dòng CSV từ SQLite, BOM/tiếng Việt/chống công thức, ngưỡng dưới 5 giây; đo cục bộ khoảng 45–59 ms cho khâu truy vấn + ghi CSV vào stream (không bao gồm đường truyền của máy chủ thực).
-- HTTP Razor Pages: 401/403/200, xuất bị chặn nếu thiếu anti-forgery, giữ bộ lọc khi xuất, tạo audit.
-- Khởi động **ứng dụng Umbraco thật** bằng hai CSDL tạm mới: tự tạo nhóm, đăng nhập thật, từ chối non-member, cho phép sau khi gán nhóm trong fixture; tạo/trả lời/nộp qua API và thấy lượt trong danh sách, mở chi tiết đủ 200 câu, ghi audit.
-- File log không chứa tên/điện thoại/từ khóa cá nhân khi xử lý yêu cầu quản trị.
+Có thêm kiểm thử trình duyệt tùy chọn: cài Playwright ở thư mục công cụ riêng, đặt `ANTC_RUN_BROWSER=1`, `ANTC_PLAYWRIGHT_MODULE` trỏ tới package Playwright, tùy chọn `ANTC_BROWSER_EXECUTABLE` trỏ Chromium có sẵn, rồi chạy `ContestAdministrationFullHostTests`. Kiểm tra đăng nhập backoffice, bốn route Lit, bảng, dialog 200 câu, Đóng/Escape, tải CSV và form công bố. Không cài package trình duyệt vào mã ứng dụng.
 
-Các CSDL của dự án không được dùng hoặc sửa trong các kiểm thử trên. Đo lại CSV qua HTTPS trên máy kiểm thử khi máy chủ đã sẵn sàng; số đo cục bộ không thay thế nghiệm thu đường truyền/máy chủ thật.
-
-Kết quả ngày 20/10/2026: **167/167 kiểm thử đạt**, không bỏ qua kiểm thử nào. Publish Release `win-x64 --self-contained true` thành công; có CSS quản trị và Views động, không có file `.db` trong gói. Các cảnh báo NuGet về bảo mật dependency hiện có (NU1902/NU1903) vẫn còn; không nâng phiên bản Umbraco/dependency ngoài phạm vi task này.
+Kết quả xác nhận ngày 20/10/2026: **181/181 kiểm thử đạt**, gồm lần chạy trình duyệt thật. Publish Release tự chứa `win-x64` thành công: có manifest và `contest-reports.js`, giữ Views động của cổng thông tin, không còn Razor Pages quản trị cũ và không đóng gói file `.db`.
