@@ -1,5 +1,9 @@
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
-@{ var c = Model.Content; var id = "fraud-search-" + Model.ContentKey; }
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@{
+    var c = Model.Content;
+    var id = "fraud-search-" + Model.ContentKey;
+    var searchUrl = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("searchPage").FirstOrDefault()?.Url() ?? "/tim-kiem/";
+}
 <div class="ph" data-header-hero="true">
     <div class="ph-sky"></div>
     <div class="ph-drum" aria-hidden="true"><img src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt=""></div>
@@ -10,13 +14,14 @@
         <h1><span class="line"><span data-line>@c.Value("title")</span></span><span class="line"><span data-line><em>@c.Value("highlightTitle")</em></span></span></h1>
         <p class="lead">@c.Value("description")</p>
         <div class="search" data-intro>
-            <form role="search" data-fraud-search action="#linh-vuc">
-                <label for="@id" class="fraud-sr-only">Tìm lĩnh vực thủ đoạn</label>
-                <input id="@id" type="search" placeholder="@c.Value("searchPlaceholder")" autocomplete="off" maxlength="150" aria-describedby="@(id)-privacy">
+            <form role="search" data-fraud-search action="@searchUrl" method="get">
+                <input type="hidden" name="scope" value="thu-doan">
+                <label for="@id" class="fraud-sr-only">Tìm bài viết về thủ đoạn</label>
+                <input id="@id" name="q" type="search" placeholder="@c.Value("searchPlaceholder")" autocomplete="off" maxlength="150" aria-describedby="@(id)-privacy @(id)-feedback">
                 <button type="submit">@c.Value("searchButtonLabel")</button>
             </form>
             <small id="@(id)-privacy"><b aria-hidden="true">⚠</b>@c.Value("privacyNote")</small>
-            <noscript><small>Chọn trực tiếp trong danh sách lĩnh vực phía dưới.</small></noscript>
+            <small id="@(id)-feedback" data-fraud-search-feedback role="status" hidden></small>
         </div>
     </div>
 </div>

@@ -1,9 +1,81 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Globalization
+@using System.Text
+@using Microsoft.AspNetCore.WebUtilities
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    const int pageSize = 10;
+    var query = Context.Request.Query["q"].ToString().Trim();
+    if (query.Length > 150) { query = query[..150]; }
+    var words = Normalize(query).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var all = Model.Children().Where(x => x.ContentType.Alias == "article").ToList();
+    var matches = all.Where(x => words.All(word => Normalize(x.Name + " " + x.Value<string>("summary")).Contains(word, StringComparison.Ordinal)))
+        .OrderByDescending(x => x.Value<DateTime>("updatedDate") == default ? x.UpdateDate : x.Value<DateTime>("updatedDate")).ThenBy(x => x.SortOrder).ThenBy(x => x.Key).ToList();
+    var totalPages = Math.Max(1, (int)Math.Ceiling(matches.Count / (double)pageSize));
+    var pageNumber = int.TryParse(Context.Request.Query["page"], out var requested) ? Math.Clamp(requested, 1, totalPages) : 1;
+    var articles = matches.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+    var titleBreak = Model.Value<bool>("isField") ? Model.Name.LastIndexOf(',') : -1;
+    string PageUrl(int number) => QueryHelpers.AddQueryString(Model.Url(), new Dictionary<string, string?> { ["q"] = string.IsNullOrEmpty(query) ? null : query, ["page"] = number.ToString(CultureInfo.InvariantCulture) });
 }
-<section class="page-hero">
-    <div class="container">
-        <h1>@Model.Name</h1>
-    </div>
-</section>
+@functions {
+    private static string Normalize(string value)
+    {
+        var result = new StringBuilder();
+        foreach (var c in value.ToLowerInvariant().Normalize(NormalizationForm.FormD))
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark) { result.Append(c == 'đ' ? 'd' : c); }
+        }
+        return result.ToString().Normalize(NormalizationForm.FormC);
+    }
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/articles.css" asp-append-version="true">
+}
+<div class="article-portal article-portal--list">
+    <header class="article-hero article-hero--category"><div class="article-wrap">
+        @await Html.PartialAsync("~/Views/Partials/articles/_Breadcrumbs.cshtml", Model)
+        <div class="article-hero__grid"><div class="article-hero__copy">
+        <p class="article-eyebrow">@(Model.Value<bool>("isField") ? "Thủ đoạn theo lĩnh vực" : "Danh sách bài viết")</p>
+        <h1>@if (titleBreak > 0) { <span>@Model.Name[..(titleBreak + 1)]</span> <em>@Model.Name[(titleBreak + 1)..].Trim()</em> } else { @Model.Name }</h1>
+        @if (!string.IsNullOrWhiteSpace(Model.Value<string>("summary"))) { <p class="article-lead">@Model.Value("summary")</p> }
+        else { <p class="article-lead">Hiểu cách họ tiếp cận.<br>Nhận ra dấu hiệu trước khi quyết định.</p> }
+        <p class="article-count"><span class="article-count__dot"></span>@all.Count bài viết <span class="article-count__divider">/</span> Nhận diện &amp; tự bảo vệ</p>
+        </div>@await Html.PartialAsync("~/Views/Partials/articles/_FieldVisual.cshtml", Model)</div>
+    </div></header>
+    <div class="article-wrap article-list-layout">
+        @await Html.PartialAsync("~/Views/Partials/articles/_Explore.cshtml", Model)
+    <section class="article-list-section" aria-label="Danh sách bài viết">
+        <div class="article-list-toolbar"><div><p class="article-side-label">Đọc để nhận diện</p><h2>Bài viết trong lĩnh vực</h2></div>
+        <form class="article-filter" method="get" action="@Model.Url()" role="search">
+            <label for="article-keyword" class="article-sr-only">Tìm bài trong danh mục</label>
+            <div><input id="article-keyword" name="q" type="search" value="@query" maxlength="150" placeholder="Tìm trong lĩnh vực…"><button type="submit" aria-label="Tìm bài"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button></div>
+        </form>
+        </div>
+        @if (!string.IsNullOrEmpty(query))
+        {
+            <p class="article-filter-result">@matches.Count kết quả cho “@query”. <a href="@Model.Url()">Xem tất cả bài viết</a></p>
+        }
+        <div class="article-cards">
+            @foreach (var article in articles)
+            {
+                @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", article)
+            }
+        </div>
+        @if (matches.Count == 0)
+        {
+            <div class="article-empty"><h2>@(string.IsNullOrEmpty(query) ? "Chưa có bài viết" : "Chưa tìm thấy bài phù hợp")</h2><p>@(string.IsNullOrEmpty(query) ? "Nội dung của danh mục đang được cập nhật." : "Bạn thử từ khóa khác hoặc xem tất cả bài viết trong danh mục này.")</p></div>
+        }
+        @if (totalPages > 1)
+        {
+            <nav class="article-pagination" aria-label="Phân trang bài viết">
+                @if (pageNumber > 1) { <a href="@PageUrl(pageNumber - 1)" rel="prev">← Trang trước</a> }
+                @for (var number = Math.Max(1, pageNumber - 2); number <= Math.Min(totalPages, pageNumber + 2); number++)
+                {
+                    @if (number == pageNumber) { <span aria-current="page">@number</span> }
+                    else { <a href="@PageUrl(number)" aria-label="Trang @number">@number</a> }
+                }
+                @if (pageNumber < totalPages) { <a href="@PageUrl(pageNumber + 1)" rel="next">Trang sau →</a> }
+            </nav>
+        }
+    </section>
+</div></div>

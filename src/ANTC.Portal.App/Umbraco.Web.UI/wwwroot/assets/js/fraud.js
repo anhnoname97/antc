@@ -1,32 +1,20 @@
 const page = document.getElementById('nj-thu-doan');
-const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-const normalize = value => value.toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/\s+/g, ' ').trim();
-
-// The query stays in this page; personal identifiers are never submitted or stored.
 const form = page?.querySelector('[data-fraud-search]');
-const categories = page?.querySelector('[data-fraud-categories]');
-const status = page?.querySelector('[data-fraud-results]');
-function filter() {
-  if (!form || !categories || !status) return;
-  const value = normalize(form.querySelector('input').value);
-  const privateNumber = /\d[\d\s.()+-]{3,}\d/.test(value) || /\d{4,}/.test(value);
-  let count = 0;
-  categories.querySelectorAll('.area').forEach(area => {
-    const match = privateNumber || !value || value.split(' ').every(word => normalize(`${area.textContent} ${area.dataset.k}`).includes(word));
-    area.hidden = !match;
-    if (match) count++;
-  });
-  status.textContent = privateNumber ? categories.dataset.privacyMessage : count ? '' : categories.dataset.emptyText;
-  status.style.display = status.textContent ? 'block' : 'none';
-  window.ScrollTrigger?.refresh();
-}
-form?.querySelector('input').addEventListener('input', filter);
+const searchInput = form?.querySelector('input[type="search"]');
+const searchFeedback = page?.querySelector('[data-fraud-search-feedback]');
+// Valid queries use the native GET form, including when JavaScript is disabled.
+searchInput?.addEventListener('input', () => { if (searchFeedback) searchFeedback.hidden = true; });
 form?.addEventListener('submit', event => {
-  event.preventDefault();
-  filter();
-  categories?.closest('.home-section')?.scrollIntoView({ behavior: reduced.matches ? 'instant' : 'smooth', block: 'start' });
+  const value = searchInput.value.trim();
+  if (/\d[\d\s.()+-]{3,}\d/.test(value) || /\d{4,}/.test(value)) {
+    event.preventDefault();
+    searchFeedback.textContent = 'Hãy nhập tên thủ đoạn hoặc lĩnh vực, không nhập số điện thoại hay số tài khoản.';
+    searchFeedback.hidden = false;
+    searchInput.focus();
+  } else {
+    searchInput.value = value;
+  }
 });
-filter();
 
 function setupMotion() {
   const { gsap, ScrollTrigger } = window;

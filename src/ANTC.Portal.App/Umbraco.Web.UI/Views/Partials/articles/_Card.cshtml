@@ -1,0 +1,25 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models
+@{
+    var image = Model.Value<MediaWithCrops>("image");
+    var date = Model.Value<DateTime>("updatedDate");
+    if (date == default) { date = Model.UpdateDate; }
+    var category = Model.Parent<IPublishedContent>();
+}
+<article class="article-card">
+    <div class="article-card__art" aria-hidden="true">
+        @if (image is not null) { <img class="article-card__image" src="@image.Url()" alt="" loading="lazy" width="400" height="300"> }
+        else
+        {
+            <span class="article-card__orbit"></span><span class="article-card__field-icon">@await Html.PartialAsync("~/Views/Partials/articles/_FieldIcon.cshtml", category?.Name ?? "")</span><span class="article-card__art-label">NHẬN DIỆN THỦ ĐOẠN</span>
+        }
+    </div>
+    <div class="article-card__copy">
+        @if (ViewData["ShowCategory"] is true && category is not null) { <p class="article-card__category">@category.Name</p> }
+        <div class="article-labels">@await Html.PartialAsync("~/Views/Partials/articles/_Status.cshtml", Model)</div>
+        <p class="article-meta">Cập nhật <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p>
+        <h2><a href="@Model.Url()">@Model.Name</a></h2>
+        @if (!string.IsNullOrWhiteSpace(Model.Value<string>("summary"))) { <p class="article-card__summary">@Model.Value("summary")</p> }
+        <span class="article-card__read" aria-hidden="true">Đọc bài viết <span>↗</span></span>
+    </div>
+</article>
