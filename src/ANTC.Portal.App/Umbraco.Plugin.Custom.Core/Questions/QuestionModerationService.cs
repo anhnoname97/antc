@@ -4,7 +4,8 @@ using Umbraco.Plugin.Custom.Core.Data;
 
 namespace Umbraco.Plugin.Custom.Core.Questions;
 
-public sealed class QuestionModerationService(AppDbContext db, TimeProvider clock)
+public sealed class QuestionModerationService(AppDbContext db, TimeProvider clock,
+    IEnumerable<IQuestionPublicationObserver>? publicationObservers = null)
     : IQuestionModerationService, IPublishedQuestionService
 {
     public async Task<QuestionRow> CreateAsync(QuestionDraft draft, string actor, CancellationToken ct = default)
@@ -45,7 +46,9 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
                 .SetProperty(x => x.IsPublished, x => review.Status != "bo-qua" && x.IsPublished)
                 .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now)
                 .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1), ct);
-        return await ResultAsync(id, count, ct);
+        var row = await ResultAsync(id, count, ct);
+        if (review.Status == "bo-qua") await PublicationChangedAsync(id);
+        return row;
     }
 
     public async Task<QuestionRow> ApproveAsync(long id, QuestionReview review, string actor, CancellationToken ct = default)
@@ -69,7 +72,9 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
                 .SetProperty(x => x.ApprovedBy, actor).SetProperty(x => x.ApprovedAt, now)
                 .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now)
                 .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1), ct);
-        return await ResultAsync(id, count, ct);
+        var row = await ResultAsync(id, count, ct);
+        await PublicationChangedAsync(id);
+        return row;
     }
 
     public async Task<QuestionRow> UnpublishAsync(long id, long reviewVersion, string actor, CancellationToken ct = default)
@@ -80,7 +85,9 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.IsPublished, false)
                 .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now)
                 .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1), ct);
-        return await ResultAsync(id, count, ct);
+        var row = await ResultAsync(id, count, ct);
+        await PublicationChangedAsync(id);
+        return row;
     }
 
     public async Task<PublishedQuestionPage> ListAsync(PublishedQuestionQuery options, CancellationToken ct = default)
@@ -137,6 +144,13 @@ public sealed class QuestionModerationService(AppDbContext db, TimeProvider cloc
         if (row is null) throw new QuestionModerationException("NOT_FOUND", "Không tìm thấy câu hỏi.");
         if (count == 0) throw new QuestionModerationException("CONFLICT", "Câu hỏi đã được người khác xử lý. Tải lại trước khi lưu hoặc duyệt.");
         return row;
+    }
+
+    private async Task PublicationChangedAsync(long id)
+    {
+        // The database update is committed. Finish notifying even if the browser disconnects.
+        foreach (var observer in publicationObservers ?? [])
+            await observer.ChangedAsync(id, CancellationToken.None);
     }
 
     private static string? Trim(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

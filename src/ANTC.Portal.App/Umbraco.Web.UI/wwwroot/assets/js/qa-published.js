@@ -71,3 +71,18 @@ export function initQaLoadMore(page) {
     });
   }
 }
+
+export function initQaAnchor(page) {
+  const reveal = () => {
+    const anchor = window.location.hash.slice(1);
+    if (!/^cau-hoi-[1-9][0-9]*$/.test(anchor)) return;
+    const item = document.getElementById(anchor);
+    if (!item || !page.contains(item) || !item.matches('details[data-question-id]')) return;
+    item.open = true;
+    window.gsap?.set(item, { autoAlpha: 1, y: 0, scale: 1 });
+    item.querySelector('summary')?.focus({ preventScroll: true });
+    item.scrollIntoView({ block: 'center' });
+  };
+  reveal();
+  window.addEventListener('hashchange', reveal);
+}

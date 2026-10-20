@@ -13,7 +13,7 @@ using Umbraco.Plugin.Custom.Core.Data;
 namespace Umbraco.Plugin.Custom.Core.Questions;
 
 public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestSecurityOptions> security,
-    TimeProvider timeProvider) : IQuestionSubmissionService
+    TimeProvider timeProvider, IEnumerable<IQuestionPublicationObserver>? publicationObservers = null) : IQuestionSubmissionService
 {
     public async Task SubmitAsync(QuestionRegistration registration, IPAddress? ip, CancellationToken ct = default)
     {
@@ -81,6 +81,9 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
             .SetProperty(x => x.IsPublished, x => status != "bo-qua" && x.IsPublished)
             .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1)
             .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now), ct);
+        if (updated == 1 && status == "bo-qua")
+            foreach (var observer in publicationObservers ?? [])
+                await observer.ChangedAsync(id, CancellationToken.None);
         return updated == 1;
     }
 

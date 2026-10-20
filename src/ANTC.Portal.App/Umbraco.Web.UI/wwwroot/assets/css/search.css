@@ -1,0 +1,28 @@
+.search-hero { background:var(--c-brand); color:var(--c-bg); padding:3.5rem 0; }
+.search-hero nav { color:var(--c-on-brand-muted); margin-bottom:1.5rem; font-size:var(--fs-small); }
+.search-hero nav a { color:inherit; }
+.search-hero h1 { margin:0 0 1rem; font-size:var(--fs-hero); line-height:1.2; }
+.search-hero > .container > p { color:var(--c-on-brand); max-width:45rem; }
+.search-form { max-width:48rem; margin-top:2rem; }
+.search-label { display:block; margin-bottom:.5rem; font-weight:600; }
+.search-controls { display:flex; gap:.75rem; }
+.search-controls input { flex:1; min-width:0; border:1px solid var(--c-border-input); border-radius:var(--radius-sm); background:var(--c-bg); color:var(--c-text); padding:.875rem 1rem; font:inherit; }
+.search-controls button { flex-shrink:0; }
+.search-form > p { margin:.75rem 0 0; color:var(--c-on-brand-muted); font-size:var(--fs-small); }
+.search-results { min-height:20rem; padding-top:2.5rem; padding-bottom:4rem; }
+.search-summary { margin:0 0 1.5rem; color:var(--c-text-3); overflow-wrap:anywhere; }
+.search-list { padding:0; margin:0; list-style:none; max-width:55rem; }
+.search-item { padding:1.75rem 0; border-bottom:1px solid var(--c-border); }
+.search-type { display:inline-block; padding:.2rem .6rem; border-radius:var(--radius-sm); color:var(--c-brand); background:var(--c-tint); font-size:var(--fs-small); }
+.search-item h2 { margin:.75rem 0; font-size:var(--fs-h3); line-height:1.5; overflow-wrap:anywhere; }
+.search-item h2 a { color:var(--c-brand); text-decoration:none; }
+.search-item h2 a:hover { text-decoration:underline; }
+.search-snippet { margin:0 0 .75rem; color:var(--c-text-2); overflow-wrap:anywhere; }
+.search-snippet mark { background:var(--c-tint); color:var(--c-text); font-weight:700; padding:0 .05em; }
+.search-path { color:var(--c-text-3); font-size:var(--fs-small); overflow-wrap:anywhere; }
+.search-empty { padding:2rem; border:1px solid var(--c-border); border-radius:var(--radius); background:var(--c-bg-soft); max-width:55rem; }
+.search-empty h2 { font-size:var(--fs-h3); margin:0 0 .75rem; }
+.search-pagination { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:2rem; }
+.search-pagination a { padding:.55rem .9rem; border:1px solid var(--c-border); border-radius:var(--radius-sm); text-decoration:none; color:var(--c-text); }
+.search-pagination a[aria-current="page"] { color:var(--c-bg); background:var(--c-brand); border-color:var(--c-brand); }
+@media(max-width:640px) { .search-hero { padding:2.5rem 0; }.search-controls { flex-direction:column; }.search-empty { padding:1.25rem; } }

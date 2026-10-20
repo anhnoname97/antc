@@ -207,8 +207,9 @@ graph LR
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
 | Contest | 6 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, CurrentContestService, UmbracoContestSettingsProvider |
 | Data | 3 | AppDbContext, AppDbInitializer, Entities |
-| Questions | 5 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionSubmissionService |
+| Questions | 6 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionPublicNavigation, QuestionSubmissionService |
 | Quiz | 3 | QuestionBank, QuizAdminModels, QuizAdminService |
+| Search | 5 | QuestionSearchIndex, SearchIndexing, SearchModels, SearchText, SiteSearchService |
 | Services | 1 | AppInfoService |
 
 ### Umbraco.Plugin.Custom.Api

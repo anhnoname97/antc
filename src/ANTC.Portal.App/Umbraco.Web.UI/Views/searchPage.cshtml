@@ -1,9 +1,70 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Plugin.Custom.Core.Search
+@inject ISiteSearchService SiteSearch
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    int page = int.TryParse(Context.Request.Query["trang"], out int requested) && requested > 0 ? requested : 1;
+    var result = await SiteSearch.SearchAsync(Context.Request.Query["q"].ToString(), page, Context.RequestAborted);
+    string PageUrl(int number) => "/tim-kiem?q=" + Uri.EscapeDataString(result.Query) + "&trang=" + number;
 }
-<section class="page-hero">
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/search.css" asp-append-version="true">
+}
+<section class="page-hero search-hero">
     <div class="container">
-        <h1>@Model.Name</h1>
+        <nav aria-label="Vị trí"><a href="/">Trang chủ</a><span aria-hidden="true"> / </span>Tìm kiếm</nav>
+        <h1>Tìm kiếm thông tin</h1>
+        <p>Tìm bài viết, hướng dẫn và câu hỏi đã được trả lời công khai.</p>
+        <form class="search-form" action="/tim-kiem" method="get" role="search">
+            <label class="search-label" for="site-search">Từ khóa tìm kiếm</label>
+            <div class="search-controls">
+                <input id="site-search" name="q" type="search" value="@result.Query" maxlength="100" minlength="2"
+                       placeholder="Ví dụ: việc làm online, đặt cọc…" aria-describedby="search-help" required>
+                <button class="btn btn--danger" type="submit">Tìm kiếm</button>
+            </div>
+            <p id="search-help">Nhập từ 2 đến 100 ký tự, có dấu hoặc không dấu. Không nhập số điện thoại, số tài khoản hay thông tin riêng.</p>
+        </form>
     </div>
+</section>
+<section class="container search-results" aria-label="Kết quả tìm kiếm">
+@if (result.Guidance is not null)
+{
+    <p class="search-empty" role="status">@result.Guidance</p>
+}
+else
+{
+    <p class="search-summary">Tìm thấy <strong>@result.Total kết quả</strong> cho <strong>“@result.Query”</strong>.</p>
+    @if (result.Items.Count == 0)
+    {
+        <div class="search-empty">
+            <h2>@(result.Total == 0 ? "Chưa tìm thấy nội dung phù hợp" : "Trang này không có kết quả")</h2>
+            <p>@(result.Total == 0 ? "Hãy thử từ khóa ngắn hơn hoặc một cách diễn đạt khác." : "Chọn một trang trong danh sách bên dưới để xem kết quả.")</p>
+        </div>
+    }
+    else
+    {
+        <ol class="search-list" start="@(((long)result.Page - 1) * SiteSearchResult.PageSize + 1)">
+        @foreach (var item in result.Items)
+        {
+            <li class="search-item">
+                <span class="search-type">@item.Type</span>
+                <h2><a href="@item.Url">@item.Title</a></h2>
+                <p class="search-snippet">@foreach (var part in item.Snippet) { if (part.Highlight) { <mark>@part.Text</mark> } else { @part.Text } }</p>
+                <a class="search-path" href="@item.Url">@item.Url</a>
+            </li>
+        }
+        </ol>
+    }
+    @if (result.TotalPages > 1)
+    {
+        <nav class="search-pagination" aria-label="Phân trang kết quả tìm kiếm">
+            @if (result.Page > 1) { <a href="@PageUrl(Math.Min(result.Page - 1, result.TotalPages))" rel="prev">← Trước</a> }
+            @for (int number = Math.Max(1, Math.Min(result.Page, result.TotalPages) - 2); number <= Math.Min(result.TotalPages, Math.Max(result.Page, 3) + 2); number++)
+            {
+                <a href="@PageUrl(number)" aria-current="@(number == result.Page ? "page" : null)">@number</a>
+            }
+            @if (result.Page < result.TotalPages) { <a href="@PageUrl(result.Page + 1)" rel="next">Sau →</a> }
+        </nav>
+    }
+}
 </section>

@@ -107,6 +107,11 @@ public interface IPublishedQuestionService
     Task<PublishedQuestion?> GetPublishedAsync(long id, CancellationToken ct = default);
 }
 
+public interface IQuestionPublicationObserver
+{
+    Task ChangedAsync(long id, CancellationToken ct = default);
+}
+
 public sealed class QuestionModerationException(string code, string message,
     IReadOnlyDictionary<string, string>? fields = null) : Exception(message)
 {
