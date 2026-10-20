@@ -1,0 +1,179 @@
+#nj-cuoc-thi-thang{
+--navy:#14233B;--navy2:#0E1A2E;--ink:#1B1F27;--ink2:#4A4F5A;--paper:#F6F2EA;--white:#FFFFFF;--line:#DDD5C6;
+--red:#B3261E;--red-soft:#FCEBE9;--amber:#A85F00;--amber-soft:#FFF3DF;--green:#14853B;--green-dark:#0F5F2B;--green-soft:#E7F6EC;
+--gold:#B08A4A;--gold-l:#E3C88F;--heading:'Roboto',Arial,Helvetica,sans-serif;--font:'Roboto',Arial,Helvetica,sans-serif}
+#nj-cuoc-thi-thang *{box-sizing:border-box}
+#nj-cuoc-thi-thang{-webkit-text-size-adjust:100%}
+#nj-cuoc-thi-thang{overflow-x:clip;margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:17.5px;line-height:1.7;-webkit-font-smoothing:antialiased}
+#nj-cuoc-thi-thang a{color:inherit;text-decoration:none}
+#nj-cuoc-thi-thang button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+#nj-cuoc-thi-thang :focus-visible{outline:3px solid #2F6FD6;outline-offset:3px;border-radius:4px}
+#nj-cuoc-thi-thang .wrap{width:min(1240px,90%);margin-inline:auto}
+#nj-cuoc-thi-thang .eyebrow{display:flex;align-items:center;gap:14px;color:var(--gold);font-size:12px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;margin:0 0 14px}
+#nj-cuoc-thi-thang .eyebrow:before{content:"";width:40px;height:2px;background:currentColor}
+#nj-cuoc-thi-thang h1,#nj-cuoc-thi-thang h2,#nj-cuoc-thi-thang h3{font-family:var(--heading);font-weight:700;letter-spacing:-.015em;margin:0;color:var(--navy)}
+#nj-cuoc-thi-thang h1 em,#nj-cuoc-thi-thang h2 em,#nj-cuoc-thi-thang h3 em,#nj-cuoc-thi-thang a.big em,#nj-cuoc-thi-thang .tl-t em{font-style:normal}
+#nj-cuoc-thi-thang .skip{position:absolute;left:-999px;top:8px;z-index:100;background:#fff;color:var(--navy);padding:10px 14px;border-radius:6px}
+#nj-cuoc-thi-thang .skip:focus{left:12px}
+#nj-cuoc-thi-thang .btn{display:inline-flex;align-items:center;gap:12px;border-radius:40px;padding:14px 24px;font-size:16px;font-weight:600;min-height:48px;transition:background .3s,color .3s,border-color .3s}
+#nj-cuoc-thi-thang .btn-red{background:var(--red);color:#fff}
+#nj-cuoc-thi-thang .btn-red:hover{background:#8E1D16}
+#nj-cuoc-thi-thang .btn-line{border:1.5px solid currentColor}
+#nj-cuoc-thi-thang .btn-line:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+#nj-cuoc-thi-thang .btn-light{border:1.5px solid #ffffffb3;color:#fff}
+#nj-cuoc-thi-thang .btn-light:hover{background:#fff;color:var(--navy)}
+#nj-cuoc-thi-thang .ic{width:20px;height:20px;flex-shrink:0}
+#nj-cuoc-thi-thang .ph{position:relative;min-height:76svh;overflow:hidden;background:var(--navy2);color:#fff;isolation:isolate;display:flex;align-items:flex-end}
+#nj-cuoc-thi-thang .ph-sky{position:absolute;inset:0;background:radial-gradient(1000px 640px at 78% 30%,#24406A 0%,#14233B 48%,#0B1424 100%)}
+#nj-cuoc-thi-thang .ph-drum{position:absolute;width:64vmax;height:64vmax;right:-20vmax;top:-14vmax;opacity:.14;pointer-events:none}
+#nj-cuoc-thi-thang .ph-num{position:absolute;right:5vw;bottom:-4vw;font-family:var(--heading);font-size:clamp(180px,26vw,420px);line-height:1;color:transparent;-webkit-text-stroke:1.5px #E3C88F55;pointer-events:none;z-index:1}
+#nj-cuoc-thi-thang .ph-shade{position:absolute;inset:0;z-index:2;background:linear-gradient(0deg,#0B1424 0%,#0B142480 30%,transparent 70%)}
+#nj-cuoc-thi-thang .ph-copy{position:relative;z-index:3;width:min(1320px,88%);margin:0 auto;padding:160px 0 10vh}
+#nj-cuoc-thi-thang .crumb{display:flex;gap:10px;font-size:14px;color:#AFBACB;margin-bottom:26px}
+#nj-cuoc-thi-thang .crumb a{color:#fff;border-bottom:1px solid #ffffff55}
+#nj-cuoc-thi-thang .ph .eyebrow{color:var(--gold-l)}
+#nj-cuoc-thi-thang .ph h1{color:#fff;font-size:clamp(40px,5vw,80px);line-height:1.1;max-width:16ch;margin-bottom:22px}
+#nj-cuoc-thi-thang .ph h1 em{font-style:normal;color:var(--gold-l)}
+#nj-cuoc-thi-thang .ph .lead{max-width:56ch;color:#D7DEEA;font-size:19px;margin:0 0 28px}
+#nj-cuoc-thi-thang .ph-links{display:flex;gap:14px;flex-wrap:wrap}
+@media(max-width:1023px){#nj-cuoc-thi-thang .ph-copy{padding-top:200px}}
+#nj-cuoc-thi-thang .line{display:block;overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
+#nj-cuoc-thi-thang .line>span{display:block}
+
+#nj-cuoc-thi-thang [hidden] { display: none !important; }
+#nj-cuoc-thi-thang .umb-block-grid__layout-container { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+#nj-cuoc-thi-thang .umb-block-grid__layout-item { grid-column: span 12; min-width: 0; }
+@media (max-width: 600px) {
+  #nj-cuoc-thi-thang .ph { min-height: auto; }
+  #nj-cuoc-thi-thang .ph-copy { padding: 116px 0 48px; }
+}
+@media (max-width: 479px) {
+  #nj-cuoc-thi-thang .ph-links { gap: 8px; }
+  #nj-cuoc-thi-thang .ph-links .btn { padding: 10px 12px; min-height: 44px; font-size: .8125rem; gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #nj-cuoc-thi-thang *, #nj-cuoc-thi-thang *::before, #nj-cuoc-thi-thang *::after { animation: none !important; transition: none !important; }
+}
+
+
+#nj-cuoc-thi-thang .ph-num.month{font-size:clamp(160px,22vw,360px)}
+#nj-cuoc-thi-thang .ph-meta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 28px}
+#nj-cuoc-thi-thang .ph-meta>span{display:inline-flex;align-items:center;gap:8px;background:#ffffff14;border:1px solid #ffffff2e;border-radius:40px;padding:8px 16px;font-size:15px;color:#E6ECF5}
+#nj-cuoc-thi-thang .ph-meta b{color:#fff}
+@media(max-width:600px){#nj-cuoc-thi-thang .ph-meta{gap:8px}#nj-cuoc-thi-thang .ph-meta>span{font-size:13px;padding:6px 10px}}
+
+/* Authenticity strip from the monthly competition reference. */
+#nj-cuoc-thi-thang .safe{background:var(--green-soft);border-top:1px solid #BFE3CB;border-bottom:1px solid #BFE3CB;padding:30px 0}
+#nj-cuoc-thi-thang .safe-in{display:grid;grid-template-columns:auto 1fr;gap:20px 28px;align-items:center}
+#nj-cuoc-thi-thang .safe-ic{width:64px;height:64px;border-radius:18px;background:var(--green);color:#fff;display:grid;place-items:center}
+#nj-cuoc-thi-thang .safe h2{font-family:var(--font);font-weight:700;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--green-dark);margin:0 0 10px}
+#nj-cuoc-thi-thang .safe ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px 28px}
+#nj-cuoc-thi-thang .safe li{display:flex;gap:8px;align-items:center;font-weight:600;color:#0B3F1D;font-size:16.5px}
+#nj-cuoc-thi-thang .safe li:before{content:"✓";width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+@media(max-width:700px){#nj-cuoc-thi-thang .safe-in{grid-template-columns:1fr}#nj-cuoc-thi-thang .safe ul{flex-direction:column}#nj-cuoc-thi-thang .safe li{align-items:flex-start}}
+
+/* Four participation steps. */
+#nj-cuoc-thi-thang .sec{padding:110px 0;position:relative}
+#nj-cuoc-thi-thang .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px 40px;flex-wrap:wrap;margin-bottom:48px}
+#nj-cuoc-thi-thang .sec-head h2,#nj-cuoc-thi-thang .h2{font-size:clamp(30px,3.3vw,54px);line-height:1.12}
+#nj-cuoc-thi-thang .sec-head h2 em,#nj-cuoc-thi-thang .h2 em{font-style:normal;color:var(--gold)}
+#nj-cuoc-thi-thang .sec-head p{max-width:44ch;color:var(--ink2);margin:0}
+#nj-cuoc-thi-thang .how{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;counter-reset:h}
+#nj-cuoc-thi-thang .hw{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:10px;position:relative}
+#nj-cuoc-thi-thang .hw:before{counter-increment:h;content:"0" counter(h);font-family:var(--heading);font-size:54px;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--gold)}
+#nj-cuoc-thi-thang .participation-actions{margin-top:30px;display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+#nj-cuoc-thi-thang .participation-actions .note{font-size:14px;color:var(--ink2)}
+@media(max-width:1000px){#nj-cuoc-thi-thang .how{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){#nj-cuoc-thi-thang .how{grid-template-columns:1fr}#nj-cuoc-thi-thang .sec{padding:64px 0}}
+#nj-cuoc-thi-thang .hw h3{font-size:22px}
+#nj-cuoc-thi-thang .hw p{margin:0;color:var(--ink2);font-size:16px}
+
+/* Monthly prizes and nested prize items. */
+#nj-cuoc-thi-thang .prize-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:5vw;align-items:start}
+#nj-cuoc-thi-thang .prizes{display:grid;gap:14px}
+#nj-cuoc-thi-thang .pz{display:grid;grid-template-columns:72px 1fr auto;gap:18px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+#nj-cuoc-thi-thang .pz .medal{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-family:var(--heading);font-weight:600;font-size:26px;color:var(--navy);background:radial-gradient(circle at 35% 30%,#F6E6C2,#D9B877);box-shadow:inset 0 0 0 3px #fff8}
+#nj-cuoc-thi-thang .pz.p2 .medal{background:radial-gradient(circle at 35% 30%,#F2F4F7,#BAC2CE)}#nj-cuoc-thi-thang .pz.p3 .medal{background:radial-gradient(circle at 35% 30%,#F3DCC7,#C79A72)}
+#nj-cuoc-thi-thang .pz b{display:block;font-family:var(--heading);font-weight:500;font-size:22px;color:var(--navy)}
+#nj-cuoc-thi-thang .pz span{color:var(--ink2);font-size:15px}
+#nj-cuoc-thi-thang .pz em{font-style:normal;font-weight:600;color:var(--navy);font-size:15px}
+#nj-cuoc-thi-thang .claim{background:var(--navy);color:#fff;border-radius:18px;padding:28px}
+#nj-cuoc-thi-thang .claim h3{color:#fff;font-size:24px;margin-bottom:14px}
+#nj-cuoc-thi-thang .claim ol{margin:0;padding-left:20px;display:grid;gap:10px;color:#D7DEEA}
+#nj-cuoc-thi-thang .claim .warnx{margin-top:18px;background:#B3261E;border-radius:12px;padding:14px 16px;font-size:15.5px;display:flex;gap:10px;align-items:flex-start}
+#nj-cuoc-thi-thang .prize-section{background:#fff;border-block:1px solid var(--line)}
+#nj-cuoc-thi-thang .prize-section .sec-head{margin-bottom:28px}
+#nj-cuoc-thi-thang .prizes .umb-block-grid__layout-container{display:grid;grid-template-columns:1fr;gap:14px}
+#nj-cuoc-thi-thang .prizes .umb-block-grid__layout-item{grid-column:1 / -1}
+#nj-cuoc-thi-thang .medal.encouragement{font-size:16px}
+#nj-cuoc-thi-thang .claim .warnx{margin-bottom:0}
+@media(max-width:900px){#nj-cuoc-thi-thang .prize-grid{grid-template-columns:1fr}#nj-cuoc-thi-thang .pz{grid-template-columns:56px minmax(0,1fr)}#nj-cuoc-thi-thang .pz .medal{width:56px;height:56px;font-size:20px}#nj-cuoc-thi-thang .pz .medal.encouragement{font-size:16px}#nj-cuoc-thi-thang .pz em{grid-column:2}}
+#nj-cuoc-thi-thang .claim li{overflow-wrap:anywhere}
+
+/* Contest schedule. */
+#nj-cuoc-thi-thang .sched{position:relative}
+#nj-cuoc-thi-thang .sched-track{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:12px;position:relative}
+#nj-cuoc-thi-thang .sched-line{position:absolute;left:0;right:0;top:20px;height:2px;background:var(--line)}
+#nj-cuoc-thi-thang .sched-fill{position:absolute;left:0;top:20px;height:2px;width:0;background:var(--navy)}
+#nj-cuoc-thi-thang .mo{position:relative;display:flex;flex-direction:column;gap:8px;padding-top:0}
+#nj-cuoc-thi-thang .mo .d{width:42px;height:42px;border-radius:50%;background:var(--paper);border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:700;color:#8A8F99;position:relative;z-index:1}
+#nj-cuoc-thi-thang .mo .m{font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--ink2);text-transform:uppercase;margin-top:8px}
+#nj-cuoc-thi-thang .mo b{font-family:var(--heading);font-weight:500;font-size:18px;line-height:1.3;color:var(--navy)}
+#nj-cuoc-thi-thang .mo .st{font-size:13px;color:var(--ink2)}
+#nj-cuoc-thi-thang .mo.past .d{background:var(--navy);border-color:var(--navy);color:#fff}
+#nj-cuoc-thi-thang .mo.now .d{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 0 0 6px var(--red-soft)}
+#nj-cuoc-thi-thang .mo.now b{color:var(--red)}#nj-cuoc-thi-thang .mo.now .st{color:var(--red);font-weight:600}
+#nj-cuoc-thi-thang .mo.past .st a{color:var(--navy);font-weight:600;border-bottom:1.5px solid var(--navy)}
+#nj-cuoc-thi-thang .sched-track{list-style:none;margin:0;padding:0;grid-template-columns:repeat(var(--schedule-count,8),minmax(0,1fr))}
+#nj-cuoc-thi-thang .schedule-note{margin:28px 0 0;font-size:14px;color:var(--ink2)}
+#nj-cuoc-thi-thang .sched-fill{width:var(--schedule-progress,0%)}
+@media(max-width:1000px){#nj-cuoc-thi-thang .sched-track{grid-template-columns:1fr;gap:0}#nj-cuoc-thi-thang .sched-line,#nj-cuoc-thi-thang .sched-fill{display:none}#nj-cuoc-thi-thang .mo{display:grid;grid-template-columns:42px minmax(0,1fr);gap:4px 16px;padding:14px 0;border-bottom:1px solid var(--line)}#nj-cuoc-thi-thang .mo .d{grid-row:span 3}#nj-cuoc-thi-thang .mo .m{margin:0}}
+
+/* Provisional results; CMS sample content until the public results API is available. */
+#nj-cuoc-thi-thang .res{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:5vw;align-items:start}
+#nj-cuoc-thi-thang .board{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+#nj-cuoc-thi-thang .board-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:18px 22px;background:var(--paper);border-bottom:1px solid var(--line);font-weight:600;color:var(--navy)}
+#nj-cuoc-thi-thang .board table{width:100%;border-collapse:collapse;font-size:16px}
+#nj-cuoc-thi-thang .board th{text-align:left;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);font-weight:600;padding:12px 22px;border-bottom:1px solid var(--line)}
+#nj-cuoc-thi-thang .board td{padding:14px 22px;border-bottom:1px solid #EEE8DC}
+#nj-cuoc-thi-thang .board tr:last-child td{border-bottom:0}
+#nj-cuoc-thi-thang .board td.r{font-family:var(--heading);font-weight:600;color:var(--gold);width:56px}
+#nj-cuoc-thi-thang .res-side .stat2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+#nj-cuoc-thi-thang .stat2 div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+#nj-cuoc-thi-thang .stat2 b{display:block;font-family:var(--heading);font-weight:600;font-size:34px;color:var(--navy);line-height:1.1}
+#nj-cuoc-thi-thang .stat2 span{font-size:14.5px;color:var(--ink2)}
+#nj-cuoc-thi-thang .results-section{background:#fff;border-block:1px solid var(--line)}
+#nj-cuoc-thi-thang .results-description{color:var(--ink2);margin:16px 0 0}
+#nj-cuoc-thi-thang .results-sample-tag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:40px;background:#ECF0F6;font-size:12px;font-weight:600;letter-spacing:.05em;white-space:nowrap}
+#nj-cuoc-thi-thang .board table{table-layout:fixed}
+#nj-cuoc-thi-thang .board th:first-child{width:74px}
+#nj-cuoc-thi-thang .board td{overflow-wrap:anywhere}
+@media(max-width:900px){#nj-cuoc-thi-thang .res{grid-template-columns:1fr}#nj-cuoc-thi-thang .board th,#nj-cuoc-thi-thang .board td{padding:12px 14px}}
+@media(max-width:400px){#nj-cuoc-thi-thang .board table{font-size:14px}#nj-cuoc-thi-thang .board-h{padding:16px 14px}#nj-cuoc-thi-thang .board th:first-child{width:56px}}
+
+/* Monthly frequently asked questions. */
+#nj-cuoc-thi-thang .faq{display:grid;gap:12px;max-width:900px}
+#nj-cuoc-thi-thang .faq details{background:#fff;border:1px solid var(--line);border-radius:14px}
+#nj-cuoc-thi-thang .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 24px;font-weight:600;font-size:17.5px;color:var(--navy)}
+#nj-cuoc-thi-thang .faq summary::-webkit-details-marker{display:none}
+#nj-cuoc-thi-thang .faq summary:after{content:"+";font-size:24px;font-weight:400;transition:transform .3s}
+#nj-cuoc-thi-thang .faq details[open] summary:after{transform:rotate(45deg)}
+#nj-cuoc-thi-thang .faq p{margin:0;padding:0 24px 22px;color:var(--ink2)}
+#nj-cuoc-thi-thang .faq .umb-block-grid__layout-container{display:grid;grid-template-columns:1fr;gap:12px}
+#nj-cuoc-thi-thang .faq .umb-block-grid__layout-item{grid-column:1 / -1}
+#nj-cuoc-thi-thang .faq summary:after{flex-shrink:0}
+#nj-cuoc-thi-thang .faq p{white-space:pre-line}
+@media(max-width:560px){#nj-cuoc-thi-thang .faq summary{padding:18px;font-size:16px}#nj-cuoc-thi-thang .faq p{padding:0 18px 18px}}
+
+/* Shared nextSectionBlock, scoped to the monthly page. */
+#nj-cuoc-thi-thang .next{position:relative;background:var(--navy);color:#fff;padding:96px 0;overflow:hidden}
+#nj-cuoc-thi-thang .next-drum{position:absolute;left:-30vmax;top:50%;width:80vmax;height:80vmax;transform:translateY(-50%);opacity:.08;pointer-events:none}
+#nj-cuoc-thi-thang .next-in{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap}
+#nj-cuoc-thi-thang .next .eyebrow{color:var(--gold-l)}
+#nj-cuoc-thi-thang .next a.big{display:block;font-family:var(--heading);font-size:clamp(32px,4vw,64px);line-height:1.1;color:#fff;max-width:18ch}
+#nj-cuoc-thi-thang .next a.big span{display:inline-block;transition:transform .3s}#nj-cuoc-thi-thang .next a.big:hover span{transform:translateX(10px)}
+#nj-cuoc-thi-thang .next p{color:#C9D2E0;max-width:44ch;margin:14px 0 0}
+#nj-cuoc-thi-thang .next-cta{display:flex;gap:12px;flex-wrap:wrap}
+#nj-cuoc-thi-thang .next a.big .monthly-next-topic{display:block}
+@media(max-width:600px){#nj-cuoc-thi-thang .next{padding:56px 0}}
+#nj-cuoc-thi-thang .next a.big:hover .monthly-next-topic{transform:none}

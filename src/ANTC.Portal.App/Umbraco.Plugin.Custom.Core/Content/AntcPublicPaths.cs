@@ -9,6 +9,7 @@ public static class AntcPublicPaths
     {
         ["home"] = "/", ["ungPhoPage"] = "/ung-pho/", ["thuDoanPage"] = "/thu-doan/",
         ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi/",
+        ["thiThangPage"] = "/cuoc-thi-thang/",
         ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/"
     };
 

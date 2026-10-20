@@ -1,4 +1,6 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Plugin.Custom.Core.Contest
+@inject ICurrentContestService CurrentContests
 @using Umbraco.Cms.Core.Models
 @{
     var content = Model.Content;
@@ -6,6 +8,13 @@
     var next = content.Value<Link>("nextLink");
     var urgent = content.Value<Link>("urgentLink");
     var isContest = next is not null || urgent is not null;
+    var monthly = Umbraco.AssignedContentItem?.ContentType.Alias == "thiThangPage";
+    var contest = monthly ? await CurrentContests.GetAsync(Context.RequestAborted) : null;
+    var topic = contest?.Name ?? string.Empty;
+    if (topic.StartsWith("Chuyên đề:", StringComparison.OrdinalIgnoreCase))
+    {
+        topic = topic["Chuyên đề:".Length..].Trim();
+    }
     bool Safe(Link? link) => !string.IsNullOrWhiteSpace(link?.Url)
         && ((link.Url.StartsWith('/') && !link.Url.StartsWith("//")) || link.Url.StartsWith('#')
             || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" or "tel"));
@@ -24,7 +33,16 @@
         <div class="wrap next-in"><div><p class="eyebrow">@content.Value("eyebrow")</p>
             @if (Safe(next))
             {
-                <a class="big" href="@next!.Url" target="@next.Target" rel="@(next.Target == "_blank" ? "noopener noreferrer" : null)">@(next.Name?.TrimEnd().TrimEnd('⟶').TrimEnd()) <span aria-hidden="true">⟶</span></a>
+                <a class="big" href="@next!.Url" target="@next.Target" rel="@(next.Target == "_blank" ? "noopener noreferrer" : null)">
+                    @if (monthly && !string.IsNullOrWhiteSpace(topic))
+                    {
+                        <text>Thủ đoạn:</text><span class="monthly-next-topic">@topic <span aria-hidden="true">⟶</span></span>
+                    }
+                    else
+                    {
+                        @(next.Name?.TrimEnd().TrimEnd('⟶').TrimEnd()) <span aria-hidden="true">⟶</span>
+                    }
+                </a>
             }
             <p>@content.Value("description")</p></div><div class="next-cta">
             @if (Safe(urgent))

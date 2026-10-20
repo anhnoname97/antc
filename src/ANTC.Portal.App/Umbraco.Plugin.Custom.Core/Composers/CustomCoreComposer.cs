@@ -60,6 +60,7 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddScoped<IQuestionModerationService>(services => services.GetRequiredService<QuestionModerationService>());
         builder.Services.AddScoped<IPublishedQuestionService>(services => services.GetRequiredService<QuestionModerationService>());
         builder.Services.AddScoped<ICurrentContestService, CurrentContestService>();
+        builder.Services.AddScoped<ContestScheduleService>();
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();
