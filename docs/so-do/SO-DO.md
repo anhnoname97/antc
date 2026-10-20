@@ -235,7 +235,7 @@ graph LR
 | ContestAdminController | GET api/v1/admin/contest/campaigns, GET api/v1/admin/contest/campaigns/question-tree, GET api/v1/admin/contest/campaigns/{id:long}, POST api/v1/admin/contest/campaigns, PUT api/v1/admin/contest/campaigns/{id:long}, DELETE api/v1/admin/contest/campaigns/{id:long}, GET api/v1/admin/contest/entries, GET api/v1/admin/contest/entries/{id:long}, GET api/v1/admin/contest/draws, GET api/v1/admin/contest/draws/{id:long}, POST api/v1/admin/contest/draws, PUT api/v1/admin/contest/draws/{id:long}, DELETE api/v1/admin/contest/draws/{id:long} |
 | ContestController | POST api/v1/contest/entries |
 | LegacyQuestionsAdministrationController | GET //quan-tri/hoi-dap |
-| PublishedArticlesController | GET api/v1/article-categories, GET api/v1/articles, GET api/v1/articles/{id:guid}, GET api/v1/articles/by-path |
+| PublishedArticlesController | GET api/v1/article-categories, GET api/v1/article-categories/{id:guid}, GET api/v1/article-categories/by-path, GET api/v1/articles, GET api/v1/articles/{id:guid}, GET api/v1/articles/by-path |
 | PublishedQuestionsController | GET api/v1/questions, GET api/v1/questions/{id:long} |
 | QuestionManagementController | POST , GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
 | QuestionsController | POST api/v1/questions |

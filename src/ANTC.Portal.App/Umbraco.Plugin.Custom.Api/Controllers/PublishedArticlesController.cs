@@ -24,6 +24,28 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
             : Ok(articles.Categories(query));
     }
 
+    [HttpGet("article-categories/{id:guid}")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    [ProducesResponseType<ArticleCategory>(200)]
+    [ProducesResponseType<ApiErrorResponse>(404)]
+    public IActionResult Category(Guid id)
+    {
+        var category = articles.Category(id);
+        return category is null ? NotFound(new ApiErrorResponse(new ApiError("NOT_FOUND", "Không tìm thấy danh mục bài viết."))) : Ok(category);
+    }
+
+    [HttpGet("article-categories/by-path")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    [ProducesResponseType<ArticleCategory>(200)]
+    [ProducesResponseType<ApiErrorResponse>(400)]
+    [ProducesResponseType<ApiErrorResponse>(404)]
+    public IActionResult CategoryByPath(string? path = null)
+    {
+        if (ArticlePathQuery.Normalize(path) is not { } normalized) return InvalidPath();
+        var category = articles.CategoryByPath(normalized);
+        return category is null ? NotFound(new ApiErrorResponse(new ApiError("NOT_FOUND", "Không tìm thấy danh mục bài viết."))) : Ok(category);
+    }
+
     [HttpGet("articles")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType<ArticlePage>(200)]
@@ -61,9 +83,11 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
     public IActionResult DetailByPath(string? path = null)
     {
         if (ArticlePathQuery.Normalize(path) is not { } normalized)
-            return BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Đường dẫn không hợp lệ.",
-                new Dictionary<string, string> { ["path"] = "Nhập đường dẫn nội bộ từ trường url, tối đa 2048 ký tự, không gồm query hoặc fragment." })));
+            return InvalidPath();
         var article = articles.DetailByPath(normalized);
         return article is null ? NotFound(new ApiErrorResponse(new ApiError("NOT_FOUND", "Không tìm thấy bài viết."))) : Ok(article);
     }
+
+    private IActionResult InvalidPath() => BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Đường dẫn không hợp lệ.",
+        new Dictionary<string, string> { ["path"] = "Nhập đường dẫn nội bộ từ trường url, tối đa 2048 ký tự, không gồm query hoặc fragment." })));
 }

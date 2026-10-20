@@ -1,7 +1,10 @@
 namespace Umbraco.Plugin.Custom.Core.Articles;
 
 public sealed record ArticleCategory(Guid Id, string Title, string Slug, string Url, string Summary,
-    bool IsField, string? FieldIcon, string? Role, int ArticleCount);
+    bool IsField, string? FieldIcon, string? Role, int ArticleCount)
+{
+    public ArticleSeo Seo { get; init; } = new(Title, Summary, null, false);
+}
 
 public sealed record ArticleImage(string Url, string Alt);
 public sealed record ArticleLabel(string Type, string? Text);
@@ -48,6 +51,8 @@ public sealed record ArticlePage(ArticleCategory? Category, IReadOnlyList<Articl
 public interface IPublishedArticleService
 {
     IReadOnlyList<ArticleCategory> Categories(ArticleCategoryQuery? query = null);
+    ArticleCategory? Category(Guid categoryId);
+    ArticleCategory? CategoryByPath(string path);
     ArticlePage? List(ArticleQuery query);
     ArticleDetail? Detail(Guid articleId);
     ArticleDetail? DetailByPath(string path);

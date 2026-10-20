@@ -31,6 +31,7 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
         if (site is null) return new(ArticleReviewPolicy.DefaultMaxAgeDays, []);
 
         int days = ArticleReviewPolicy.MaxAgeDays(site.Value<int?>("articleReviewAfterDays"));
+        ArticleImage? defaultShareImage = Image(site, "heroImage1");
         IPublishedContent? library = Children(site, "contentManagement").FirstOrDefault();
         IPublishedContent? fraud = Children(library, "articleManagement").FirstOrDefault();
         var categories = Children(fraud, "articleList")
@@ -38,7 +39,7 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
             .Concat(Children(library, "articleList")
                 .Where(x => AntcPublicPaths.IsPolicyLibrary("articleList", Dropdown(x, "listRole"))))
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Key)
-            .Select(list => MapCategory(list, days, bodyArticleId)).OfType<ArticleCategoryContent>().ToArray();
+            .Select(list => MapCategory(list, days, bodyArticleId, defaultShareImage)).OfType<ArticleCategoryContent>().ToArray();
         return new(days, categories);
     }
 
@@ -58,20 +59,24 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
 
     private string Segment(IPublishedContent content) => urls.GetUrlSegment(content.Key, string.Empty, false) ?? string.Empty;
 
-    private ArticleCategoryContent? MapCategory(IPublishedContent list, int days, Guid? bodyArticleId)
+    private ArticleCategoryContent? MapCategory(IPublishedContent list, int days, Guid? bodyArticleId, ArticleImage? defaultShareImage)
     {
         string slug = Segment(list);
         string? role = Dropdown(list, "listRole");
         string? url = AntcPublicPaths.GetPath("articleList", slug, listRole: role);
         if (url is null) return null;
-        ArticleContent[] articles = Children(list, "article").Select(x => MapArticle(x, url, days, bodyArticleId))
+        ArticleContent[] articles = Children(list, "article").Select(x => MapArticle(x, url, days, bodyArticleId, defaultShareImage))
             .OfType<ArticleContent>().ToArray();
-        var category = new ArticleCategory(list.Key, list.Name, slug, url, list.Value<string>("summary") ?? string.Empty,
-            list.Value<bool>("isField"), Dropdown(list, "fieldIcon"), role == "Không có" ? null : role, articles.Length);
+        string summary = list.Value<string>("summary") ?? string.Empty;
+        var category = new ArticleCategory(list.Key, list.Name, slug, url, summary,
+            list.Value<bool>("isField"), Dropdown(list, "fieldIcon"), role == "Không có" ? null : role, articles.Length)
+        {
+            Seo = Seo(list, summary, defaultShareImage)
+        };
         return new(category, articles);
     }
 
-    private ArticleContent? MapArticle(IPublishedContent item, string categoryUrl, int days, Guid? bodyArticleId)
+    private ArticleContent? MapArticle(IPublishedContent item, string categoryUrl, int days, Guid? bodyArticleId, ArticleImage? defaultShareImage)
     {
         string slug = Segment(item);
         string? url = AntcPublicPaths.GetPath("article", slug, categoryUrl);
@@ -86,12 +91,14 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
         {
             ShowOnHome = item.Value<bool>("showOnHome")
         };
-        var seo = new ArticleSeo(Text(item, "seoTitle") ?? item.Name,
-            Text(item, "seoDescription") ?? summary, Image(item, "ogImage") ?? card.Image,
-            item.Value<bool>("hideFromSearch"));
+        var seo = Seo(item, summary, card.Image ?? defaultShareImage);
         string html = item.Key == bodyArticleId ? item.Value<IHtmlEncodedString>("body")?.ToHtmlString() ?? string.Empty : string.Empty;
         return new(card, html, Text(item, "safeAction"), seo);
     }
+
+    private static ArticleSeo Seo(IPublishedContent content, string summary, ArticleImage? fallbackImage) =>
+        new(Text(content, "seoTitle") ?? content.Name, Text(content, "seoDescription") ?? summary,
+            Image(content, "ogImage") ?? fallbackImage, content.Value<bool>("hideFromSearch"));
 
     private static string? Text(IPublishedContent item, string alias) =>
         item.Value<string>(alias) is { } text && !string.IsNullOrWhiteSpace(text) ? text.Trim() : null;

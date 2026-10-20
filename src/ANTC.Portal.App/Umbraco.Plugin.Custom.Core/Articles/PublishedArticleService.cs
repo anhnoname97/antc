@@ -15,6 +15,17 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
         return source.Read().Categories.Select(x => x.Category).Where(query.Matches).ToArray();
     }
 
+    public ArticleCategory? Category(Guid categoryId) =>
+        source.Read().Categories.Select(x => x.Category).FirstOrDefault(x => x.Id == categoryId);
+
+    public ArticleCategory? CategoryByPath(string path)
+    {
+        string normalized = ArticlePathQuery.Normalize(path)
+            ?? throw new ArgumentException("Đường dẫn danh mục không hợp lệ.", nameof(path));
+        return source.Read().Categories.Select(x => x.Category)
+            .FirstOrDefault(x => string.Equals(ArticlePathQuery.Normalize(x.Url), normalized, StringComparison.OrdinalIgnoreCase));
+    }
+
     public ArticlePage? List(ArticleQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
