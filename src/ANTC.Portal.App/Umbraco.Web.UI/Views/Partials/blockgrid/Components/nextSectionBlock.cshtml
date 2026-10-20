@@ -13,7 +13,14 @@
 @if (isContest)
 {
     <section class="next" aria-label="Phần tiếp theo">
-        <svg class="next-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
+        @if (Umbraco.AssignedContentItem.ContentType.Alias == "thuDoanPage")
+        {
+            <div class="next-drum" aria-hidden="true"><img src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" loading="lazy"></div>
+        }
+        else
+        {
+            <svg class="next-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
+        }
         <div class="wrap next-in"><div><p class="eyebrow">@content.Value("eyebrow")</p>
             @if (Safe(next))
             {

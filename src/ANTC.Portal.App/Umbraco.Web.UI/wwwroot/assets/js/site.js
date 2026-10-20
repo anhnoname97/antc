@@ -28,6 +28,7 @@ updateFontButton();
 const header = document.querySelector('[data-site-header]');
 if (header) {
   const hero = document.querySelector('#noi-dung > .home-content > .umb-block-grid > .umb-block-grid__layout-container > .umb-block-grid__layout-item:first-child > [data-header-hero="true"]')
+    ?? document.querySelector('#nj-thu-doan [data-header-hero="true"]')
     ?? document.querySelector('#noi-dung > :first-child');
   const hasHero = hero?.matches('.page-hero, .ov, .ph, [data-header-hero="true"]') ?? false;
   document.body.classList.toggle('has-header-hero', hasHero);
