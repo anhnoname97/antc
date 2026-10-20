@@ -12,7 +12,8 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
     {
         query ??= new();
         if (query.Validate().Count > 0) throw new ArgumentException("Tham số danh mục không hợp lệ.", nameof(query));
-        return source.Read().Categories.Select(x => x.Category).Where(query.Matches).ToArray();
+        return source.Read().Categories.Select(x => x.Category).Where(query.Matches)
+            .Take(query.Limit ?? int.MaxValue).ToArray();
     }
 
     public ArticleCategory? Category(Guid categoryId) =>

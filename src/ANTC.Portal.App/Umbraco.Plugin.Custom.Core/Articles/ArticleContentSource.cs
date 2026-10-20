@@ -71,7 +71,8 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
         var category = new ArticleCategory(list.Key, list.Name, slug, url, summary,
             list.Value<bool>("isField"), Dropdown(list, "fieldIcon"), role == "Không có" ? null : role, articles.Length)
         {
-            Seo = Seo(list, summary, defaultShareImage)
+            Seo = Seo(list, summary, defaultShareImage),
+            ShowOnHome = list.Value<bool>("showOnHome")
         };
         return new(category, articles);
     }

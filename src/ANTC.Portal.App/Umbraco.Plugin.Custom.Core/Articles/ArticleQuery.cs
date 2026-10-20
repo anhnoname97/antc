@@ -1,8 +1,9 @@
 namespace Umbraco.Plugin.Custom.Core.Articles;
 
 public sealed record ArticleCategoryQuery(string? Section = null, string? CategoryRole = null,
-    bool? IsField = null, bool? HasArticles = null)
+    bool? IsField = null, bool? HasArticles = null, bool? ShowOnHome = null, int? Limit = null)
 {
+    public const int MaxLimit = 50;
     public string? SectionFilter => string.IsNullOrWhiteSpace(Section) ? null : Section.Trim();
     public string? CategoryRoleFilter => string.IsNullOrWhiteSpace(CategoryRole) ? null : CategoryRole.Trim();
 
@@ -13,6 +14,8 @@ public sealed record ArticleCategoryQuery(string? Section = null, string? Catego
             fields["section"] = "Chọn fraud (Thủ đoạn) hoặc policy (Chính sách).";
         if (CategoryRoleFilter is { } role && role is not ("none" or "warning" or "topic" or "series" or "policy"))
             fields["categoryRole"] = "Chọn none, warning, topic, series hoặc policy.";
+        if (Limit is < 1 or > MaxLimit)
+            fields["limit"] = "Số danh mục tối đa phải từ 1 đến 50.";
         return fields;
     }
 
@@ -20,7 +23,8 @@ public sealed record ArticleCategoryQuery(string? Section = null, string? Catego
         (SectionFilter is not { } section || (Role(category.Role) == "policy") == (section == "policy")) &&
         (CategoryRoleFilter is not { } role || Role(category.Role) == role) &&
         (IsField is not { } field || category.IsField == field) &&
-        (HasArticles is not { } hasArticles || (category.ArticleCount > 0) == hasArticles);
+        (HasArticles is not { } hasArticles || (category.ArticleCount > 0) == hasArticles) &&
+        (ShowOnHome is not { } home || category.ShowOnHome == home);
 
     internal static string? Role(string? role) => role switch
     {

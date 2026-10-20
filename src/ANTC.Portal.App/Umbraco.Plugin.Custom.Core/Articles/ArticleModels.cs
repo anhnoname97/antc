@@ -4,6 +4,7 @@ public sealed record ArticleCategory(Guid Id, string Title, string Slug, string 
     bool IsField, string? FieldIcon, string? Role, int ArticleCount)
 {
     public ArticleSeo Seo { get; init; } = new(Title, Summary, null, false);
+    public bool ShowOnHome { get; init; }
 }
 
 public sealed record ArticleImage(string Url, string Alt);
