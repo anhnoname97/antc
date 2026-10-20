@@ -5,6 +5,8 @@ public sealed record ArticleCategory(Guid Id, string Title, string Slug, string 
 {
     public ArticleSeo Seo { get; init; } = new(Title, Summary, null, false);
     public bool ShowOnHome { get; init; }
+    public string SearchKeywords { get; init; } = string.Empty;
+    public bool IsInPreparation => ArticleCount == 0;
 }
 
 public sealed record ArticleImage(string Url, string Alt);
@@ -57,4 +59,6 @@ public interface IPublishedArticleService
     ArticlePage? List(ArticleQuery query);
     ArticleDetail? Detail(Guid articleId);
     ArticleDetail? DetailByPath(string path);
+    FraudPageContent? FraudContent();
+    PolicyPageContent? PolicyContent();
 }

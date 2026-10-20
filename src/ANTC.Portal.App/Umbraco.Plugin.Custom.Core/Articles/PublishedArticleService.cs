@@ -1,5 +1,5 @@
 using System.Globalization;
-using System.Text;
+using Umbraco.Plugin.Custom.Core.Search;
 
 namespace Umbraco.Plugin.Custom.Core.Articles;
 
@@ -31,7 +31,7 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
     {
         ArgumentNullException.ThrowIfNull(query);
         if (query.Validate().Count > 0) throw new ArgumentException("Tham số danh sách bài viết không hợp lệ.", nameof(query));
-        ArticleLibrary library = source.Read();
+        ArticleLibrary library = source.Read(includeBodies: query.SearchTerm is not null);
         ArticleCategoryContent? selected = query.CategoryId is { } id
             ? library.Categories.FirstOrDefault(x => x.Category.Id == id) : null;
         if (query.CategoryId is not null && selected is null) return null;
@@ -39,6 +39,13 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
         var categoryQuery = new ArticleCategoryQuery(query.Section, query.CategoryRole, query.IsField);
         IEnumerable<ArticleCategoryContent> categories = (selected is null ? library.Categories : [selected])
             .Where(x => categoryQuery.Matches(x.Category));
+        if (query.SearchTerm is { } term)
+            categories = categories.Select(category => category with
+            {
+                Articles = category.Articles.Where(article => ArticleSearchText.Contains(article.Card.Title, term)
+                    || ArticleSearchText.Contains(article.Card.Summary, term)
+                    || ArticleSearchText.Contains(SearchText.PlainHtml(article.BodyHtml), term)).ToArray()
+            });
         IEnumerable<ArticleListItem> articles = categories.SelectMany(category => category.Articles
             .Select(article => new ArticleListItem(Card(article, library.ReviewAfterDays, today), category.Category)));
         if (query.ShowOnHome is { } home) articles = articles.Where(x => x.ShowOnHome == home);
@@ -49,11 +56,6 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
         {
             var excluded = ids.ToHashSet();
             articles = articles.Where(x => !excluded.Contains(x.Id));
-        }
-        if (query.SearchTerm is { } term)
-        {
-            string normalized = term.Normalize(NormalizationForm.FormC);
-            articles = articles.Where(x => Contains(x.Title, normalized) || Contains(x.Summary, normalized));
         }
         if (query.LabelFilter is { } label) articles = articles.Where(x => x.Label.Type == label);
         if (query.UpdatedFrom is { } from) articles = articles.Where(x => x.UpdatedDate >= from);
@@ -99,6 +101,9 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
         return card is null ? null : Detail(card.Id);
     }
 
+    public FraudPageContent? FraudContent() => source.Read().FraudContent;
+    public PolicyPageContent? PolicyContent() => source.Read().PolicyContent;
+
     private static IOrderedEnumerable<ArticleContent> Order(IEnumerable<ArticleContent> articles) =>
         articles.OrderByDescending(x => x.Card.UpdatedDate).ThenBy(x => x.Card.Id);
 
@@ -111,7 +116,7 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
     };
 
     private static bool Contains(string value, string term) =>
-        value.Normalize(NormalizationForm.FormC).Contains(term.Normalize(NormalizationForm.FormC), StringComparison.OrdinalIgnoreCase);
+        ArticleSearchText.Contains(value, term);
 
     private static ArticleCard Card(ArticleContent article, int days, DateOnly today) =>
         article.Card with { Review = ArticleReviewPolicy.Evaluate(article.Card.Review.LastReviewedDate, days, today) };

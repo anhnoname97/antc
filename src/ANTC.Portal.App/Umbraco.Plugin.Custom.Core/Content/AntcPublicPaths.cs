@@ -13,7 +13,8 @@ public static class AntcPublicPaths
     };
 
     public static bool IsManagement(string alias) =>
-        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement" or "qaItem";
+        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement" or "qaItem"
+            or "fraudContent" or "policyContent";
 
     public static string? FixedAlias(string path) => FixedPaths
         .FirstOrDefault(x => string.Equals(x.Value.Trim('/'), path.Trim('/'), StringComparison.OrdinalIgnoreCase)).Key;

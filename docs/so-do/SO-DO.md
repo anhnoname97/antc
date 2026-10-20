@@ -36,9 +36,11 @@ graph TD
   articleManagement["Kho Thủ đoạn<br/><i>articleManagement</i>"]
   chinhSachPage["Trang Chính sách<br/><i>chinhSachPage</i>"]
   contentManagement["Quản lý nội dung<br/><i>contentManagement</i>"]
+  fraudContent["Nội dung giới thiệu Thủ đoạn<br/><i>fraudContent</i>"]
   hoiDapPage["Trang Hỏi – Đáp<br/><i>hoiDapPage</i>"]
   home["Trang chủ (Giới thiệu)<br/><i>home</i>"]
   pageManagement["Quản lý trang<br/><i>pageManagement</i>"]
+  policyContent["Nội dung giới thiệu Chính sách<br/><i>policyContent</i>"]
   qaItem["Câu trả lời công khai<br/><i>qaItem</i>"]
   searchPage["Trang Tìm kiếm<br/><i>searchPage</i>"]
   seoBase["SEO dùng chung<br/><i>seoBase</i>"]
@@ -55,10 +57,12 @@ graph TD
   articleList -. composition .-> seoBase
   articleList -.-> tpl_articleList{{"articleList.cshtml"}}
   articleManagement --> articleList
+  articleManagement --> fraudContent
   chinhSachPage -. composition .-> seoBase
   chinhSachPage -.-> tpl_chinhSachPage{{"chinhSachPage.cshtml"}}
   contentManagement --> articleManagement
   contentManagement --> articleList
+  contentManagement --> policyContent
   hoiDapPage -. composition .-> seoBase
   hoiDapPage -.-> tpl_hoiDapPage{{"hoiDapPage.cshtml"}}
   home --> ungPhoPage
@@ -89,7 +93,7 @@ graph TD
 
 ## 3. Element type (block dùng trong trang)
 
-Tổng 61 element type.
+Tổng 62 element type.
 
 | Nhóm | Số | Element type |
 |---|---|---|
@@ -103,6 +107,7 @@ Tổng 61 element type.
 | faq | 2 | faqBlock, faqItemBlock |
 | intro | 2 | introHeroBlock, introStoryBlock |
 | warning | 2 | warningSignItemBlock, warningSignsBlock |
+| article | 1 | articleInformationItem |
 | information | 1 | informationItemBlock |
 | monthly | 1 | monthlyCompetitionHeroBlock |
 | navigation | 1 | navigationItemBlock |
@@ -117,7 +122,7 @@ Tổng 61 element type.
 | story | 1 | storyChapterBlock |
 | two | 1 | twoColumnLayoutBlock |
 
-## 4. Cây nội dung mẫu (36 node)
+## 4. Cây nội dung mẫu (38 node)
 
 ```mermaid
 graph LR
@@ -178,6 +183,8 @@ graph LR
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> ne2aa83a7_8e13_436b_9569_8de11c44ce4d
   n3ca68856_dc5b_4335_af7d_42addb4e4db6["Lừa đảo: Từ cổ chí kim<br/><i>articleList</i>"]
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n3ca68856_dc5b_4335_af7d_42addb4e4db6
+  nb514b99f_0e40_570d_bf72_f5b9c98f3b20["Nội dung giới thiệu<br/><i>fraudContent</i>"]
+  n33df5aae_5658_5ea1_8b01_500630acfd60 --> nb514b99f_0e40_570d_bf72_f5b9c98f3b20
   n5a1e0af5_bbf2_54ed_a359_bc4716736ea5 --> n33df5aae_5658_5ea1_8b01_500630acfd60
   n2de3a8b9_e4b6_4348_9321_9b979aa1f398["Chính sách<br/><i>articleList</i>"]
   n0193cd20_026f_4a33_8f04_b5bf5fc3c0fc["Tuyên bố miễn trừ trách nhiệm<br/><i>article</i>"]
@@ -191,6 +198,8 @@ graph LR
   n7a2fe7ec_f999_46e2_9029_db9943057404["Cách báo lỗi và cải chính<br/><i>article</i>"]
   n2de3a8b9_e4b6_4348_9321_9b979aa1f398 --> n7a2fe7ec_f999_46e2_9029_db9943057404
   n5a1e0af5_bbf2_54ed_a359_bc4716736ea5 --> n2de3a8b9_e4b6_4348_9321_9b979aa1f398
+  n2c005e78_f6d3_5403_9cdf_0ac15562d9c0["Nội dung giới thiệu Chính sách<br/><i>policyContent</i>"]
+  n5a1e0af5_bbf2_54ed_a359_bc4716736ea5 --> n2c005e78_f6d3_5403_9cdf_0ac15562d9c0
   n068471f0_605e_57ee_b164_547aee46bc79 --> n5a1e0af5_bbf2_54ed_a359_bc4716736ea5
 ```
 
@@ -201,7 +210,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Administration | 1 | AdministrationAccess |
-| Articles | 7 | ArticleContentSource, ArticleHtmlSanitizer, ArticleModels, ArticleQuery, ArticleReviewPolicy, ArticleSchemaMigration, PublishedArticleService |
+| Articles | 10 | ArticleContentSource, ArticleHtmlSanitizer, ArticleModels, ArticlePageContent, ArticlePageContentSource, ArticleQuery, ArticleReviewPolicy, ArticleSchemaMigration, ArticleSearchText, PublishedArticleService |
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
@@ -217,7 +226,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Composers | 1 | CustomApiComposer |
-| Controllers | 10 | ContestAdminController, ContestController, LegacyQuestionsAdministrationController, PublishedArticlesController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
+| Controllers | 11 | ContestAdminController, ContestController, LegacyQuestionsAdministrationController, PublishedArticleContentController, PublishedArticlesController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
 | Models | 2 | ContestEntryModels, QuestionModels |
 | Validation | 2 | ContestEntryRequestValidator, QuestionRequestValidator |
 
@@ -235,6 +244,7 @@ graph LR
 | ContestAdminController | GET api/v1/admin/contest/campaigns, GET api/v1/admin/contest/campaigns/question-tree, GET api/v1/admin/contest/campaigns/{id:long}, POST api/v1/admin/contest/campaigns, PUT api/v1/admin/contest/campaigns/{id:long}, DELETE api/v1/admin/contest/campaigns/{id:long}, GET api/v1/admin/contest/entries, GET api/v1/admin/contest/entries/{id:long}, GET api/v1/admin/contest/draws, GET api/v1/admin/contest/draws/{id:long}, POST api/v1/admin/contest/draws, PUT api/v1/admin/contest/draws/{id:long}, DELETE api/v1/admin/contest/draws/{id:long} |
 | ContestController | POST api/v1/contest/entries |
 | LegacyQuestionsAdministrationController | GET //quan-tri/hoi-dap |
+| PublishedArticleContentController | GET api/v1/article-content/fraud, GET api/v1/article-content/policy |
 | PublishedArticlesController | GET api/v1/article-categories, GET api/v1/article-categories/{id:guid}, GET api/v1/article-categories/by-path, GET api/v1/articles, GET api/v1/articles/{id:guid}, GET api/v1/articles/by-path |
 | PublishedQuestionsController | GET api/v1/questions, GET api/v1/questions/{id:long} |
 | QuestionManagementController | POST , GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |

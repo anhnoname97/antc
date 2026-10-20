@@ -15,9 +15,9 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
     [ProducesResponseType<IReadOnlyList<ArticleCategory>>(200)]
     [ProducesResponseType<ApiErrorResponse>(400)]
     public IActionResult Categories(string? section = null, string? categoryRole = null,
-        bool? isField = null, bool? hasArticles = null, bool? showOnHome = null, int? limit = null)
+        bool? isField = null, bool? hasArticles = null, bool? showOnHome = null, int? limit = null, string? search = null)
     {
-        var query = new ArticleCategoryQuery(section, categoryRole, isField, hasArticles, showOnHome, limit);
+        var query = new ArticleCategoryQuery(section, categoryRole, isField, hasArticles, showOnHome, limit, search);
         var fields = query.Validate();
         return fields.Count > 0
             ? BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Tham số danh mục không hợp lệ.", fields)))

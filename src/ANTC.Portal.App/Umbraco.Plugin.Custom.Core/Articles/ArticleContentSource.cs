@@ -12,19 +12,23 @@ namespace Umbraco.Plugin.Custom.Core.Articles;
 
 public sealed record ArticleContent(ArticleCard Card, string BodyHtml, string? SafeAction, ArticleSeo Seo);
 public sealed record ArticleCategoryContent(ArticleCategory Category, IReadOnlyList<ArticleContent> Articles);
-public sealed record ArticleLibrary(int ReviewAfterDays, IReadOnlyList<ArticleCategoryContent> Categories);
+public sealed record ArticleLibrary(int ReviewAfterDays, IReadOnlyList<ArticleCategoryContent> Categories)
+{
+    public FraudPageContent? FraudContent { get; init; }
+    public PolicyPageContent? PolicyContent { get; init; }
+}
 
 public interface IArticleContentSource
 {
-    ArticleLibrary Read(Guid? bodyArticleId = null);
+    ArticleLibrary Read(Guid? bodyArticleId = null, bool includeBodies = false);
 }
 
 /// <summary>Đọc đúng nhánh kho bài viết từ bản đã xuất bản, kể cả khi người gọi đang xem trước trong CMS.</summary>
-public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService navigation,
+public sealed partial class UmbracoArticleContentSource(IDocumentNavigationQueryService navigation,
     IDocumentPublishStatusQueryService publication, IPublishedContentCache cache,
     IDocumentUrlService urls, IPublicAccessService access) : IArticleContentSource
 {
-    public ArticleLibrary Read(Guid? bodyArticleId = null)
+    public ArticleLibrary Read(Guid? bodyArticleId = null, bool includeBodies = false)
     {
         navigation.TryGetRootKeysOfType("antc", out IEnumerable<Guid> roots);
         IPublishedContent? site = roots.Select(Published).FirstOrDefault(x => x is not null);
@@ -39,8 +43,12 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
             .Concat(Children(library, "articleList")
                 .Where(x => AntcPublicPaths.IsPolicyLibrary("articleList", Dropdown(x, "listRole"))))
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Key)
-            .Select(list => MapCategory(list, days, bodyArticleId, defaultShareImage)).OfType<ArticleCategoryContent>().ToArray();
-        return new(days, categories);
+            .Select(list => MapCategory(list, days, bodyArticleId, defaultShareImage, includeBodies)).OfType<ArticleCategoryContent>().ToArray();
+        return new(days, categories)
+        {
+            FraudContent = MapFraudContent(site, fraud),
+            PolicyContent = MapPolicyContent(site, library, categories)
+        };
     }
 
     private IPublishedContent? Published(Guid key)
@@ -59,25 +67,26 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
 
     private string Segment(IPublishedContent content) => urls.GetUrlSegment(content.Key, string.Empty, false) ?? string.Empty;
 
-    private ArticleCategoryContent? MapCategory(IPublishedContent list, int days, Guid? bodyArticleId, ArticleImage? defaultShareImage)
+    private ArticleCategoryContent? MapCategory(IPublishedContent list, int days, Guid? bodyArticleId, ArticleImage? defaultShareImage, bool includeBodies)
     {
         string slug = Segment(list);
         string? role = Dropdown(list, "listRole");
         string? url = AntcPublicPaths.GetPath("articleList", slug, listRole: role);
         if (url is null) return null;
-        ArticleContent[] articles = Children(list, "article").Select(x => MapArticle(x, url, days, bodyArticleId, defaultShareImage))
+        ArticleContent[] articles = Children(list, "article").Select(x => MapArticle(x, url, days, bodyArticleId, defaultShareImage, includeBodies))
             .OfType<ArticleContent>().ToArray();
         string summary = list.Value<string>("summary") ?? string.Empty;
         var category = new ArticleCategory(list.Key, list.Name, slug, url, summary,
             list.Value<bool>("isField"), Dropdown(list, "fieldIcon"), role == "Không có" ? null : role, articles.Length)
         {
             Seo = Seo(list, summary, defaultShareImage),
-            ShowOnHome = list.Value<bool>("showOnHome")
+            ShowOnHome = list.Value<bool>("showOnHome"),
+            SearchKeywords = Text(list, "searchKeywords") ?? string.Empty
         };
         return new(category, articles);
     }
 
-    private ArticleContent? MapArticle(IPublishedContent item, string categoryUrl, int days, Guid? bodyArticleId, ArticleImage? defaultShareImage)
+    private ArticleContent? MapArticle(IPublishedContent item, string categoryUrl, int days, Guid? bodyArticleId, ArticleImage? defaultShareImage, bool includeBodies)
     {
         string slug = Segment(item);
         string? url = AntcPublicPaths.GetPath("article", slug, categoryUrl);
@@ -93,7 +102,7 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
             ShowOnHome = item.Value<bool>("showOnHome")
         };
         var seo = Seo(item, summary, card.Image ?? defaultShareImage);
-        string html = item.Key == bodyArticleId ? item.Value<IHtmlEncodedString>("body")?.ToHtmlString() ?? string.Empty : string.Empty;
+        string html = includeBodies || item.Key == bodyArticleId ? item.Value<IHtmlEncodedString>("body")?.ToHtmlString() ?? string.Empty : string.Empty;
         return new(card, html, Text(item, "safeAction"), seo);
     }
 
@@ -121,7 +130,7 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
         _ => new("none", null)
     };
 
-    private static string? Dropdown(IPublishedContent content, string alias)
+    private static string? Dropdown(IPublishedElement content, string alias)
     {
         // Dropdown đơn của Umbraco có thể được chuyển đổi thành mảng chuỗi hoặc JSON array.
         object? value = content.Value(alias);

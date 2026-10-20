@@ -1,11 +1,12 @@
 namespace Umbraco.Plugin.Custom.Core.Articles;
 
 public sealed record ArticleCategoryQuery(string? Section = null, string? CategoryRole = null,
-    bool? IsField = null, bool? HasArticles = null, bool? ShowOnHome = null, int? Limit = null)
+    bool? IsField = null, bool? HasArticles = null, bool? ShowOnHome = null, int? Limit = null, string? Search = null)
 {
     public const int MaxLimit = 50;
     public string? SectionFilter => string.IsNullOrWhiteSpace(Section) ? null : Section.Trim();
     public string? CategoryRoleFilter => string.IsNullOrWhiteSpace(CategoryRole) ? null : CategoryRole.Trim();
+    public string? SearchTerm => string.IsNullOrWhiteSpace(Search) ? null : Search.Trim();
 
     public IReadOnlyDictionary<string, string> Validate()
     {
@@ -16,6 +17,8 @@ public sealed record ArticleCategoryQuery(string? Section = null, string? Catego
             fields["categoryRole"] = "Chọn none, warning, topic, series hoặc policy.";
         if (Limit is < 1 or > MaxLimit)
             fields["limit"] = "Số danh mục tối đa phải từ 1 đến 50.";
+        if (SearchTerm?.Length > ArticleQuery.MaxSearchLength)
+            fields["search"] = "Từ khóa tối đa 200 ký tự.";
         return fields;
     }
 
@@ -24,7 +27,9 @@ public sealed record ArticleCategoryQuery(string? Section = null, string? Catego
         (CategoryRoleFilter is not { } role || Role(category.Role) == role) &&
         (IsField is not { } field || category.IsField == field) &&
         (HasArticles is not { } hasArticles || (category.ArticleCount > 0) == hasArticles) &&
-        (ShowOnHome is not { } home || category.ShowOnHome == home);
+        (ShowOnHome is not { } home || category.ShowOnHome == home) &&
+        (SearchTerm is not { } term || ArticleSearchText.Contains(category.Title, term)
+            || ArticleSearchText.Contains(category.Summary, term) || ArticleSearchText.Contains(category.SearchKeywords, term));
 
     internal static string? Role(string? role) => role switch
     {
