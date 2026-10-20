@@ -1,0 +1,5 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.PublishedContent.IPublishedElement>
+<div class="sec-head" data-rv>
+    <div><p class="eyebrow">@Model.Value("eyebrow")</p><h2>@Model.Value("title")@if (!string.IsNullOrWhiteSpace(Model.Value<string>("highlightTitle"))) { <br><em>@Model.Value("highlightTitle")</em> }</h2></div>
+    @if (!string.IsNullOrWhiteSpace(Model.Value<string>("description"))) { <p>@Model.Value("description")</p> }
+</div>

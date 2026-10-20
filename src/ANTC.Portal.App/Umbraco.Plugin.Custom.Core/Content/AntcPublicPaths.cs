@@ -14,7 +14,7 @@ public static class AntcPublicPaths
     };
 
     public static bool IsManagement(string alias) =>
-        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement";
+        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement" or "qaItem";
 
     public static string? FixedAlias(string path) => FixedPaths
         .FirstOrDefault(x => string.Equals(x.Value.Trim('/'), path.Trim('/'), StringComparison.OrdinalIgnoreCase)).Key;
@@ -40,7 +40,6 @@ public static class AntcPublicPaths
         {
             "articleList" => $"/thu-doan/{segment}/",
             "article" when parentPath is not null => $"{parentPath.TrimEnd('/')}/{segment}/",
-            "qaItem" => $"/hoi-dap/{segment}/",
             _ => null
         };
     }

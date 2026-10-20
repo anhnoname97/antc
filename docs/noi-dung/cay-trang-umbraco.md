@@ -232,7 +232,7 @@ Collection: **Nội dung · Danh sách**.
 | Nguồn và rà soát | Ngày văn bản | `sourceDocDate` | Date Picker | Không | Ngày văn bản. |
 | Nguồn và rà soát | Ngày cập nhật | `updatedDate` | Date Picker | Có | Ngày cập nhật hiển thị; dùng để sắp xếp. |
 | Nguồn và rà soát | Ngày rà soát gần nhất | `lastReviewedDate` | Date Picker | Không | Ngày rà soát gần nhất; quá 90 ngày thì hiện cảnh báo. |
-| Nguồn và rà soát | Bản dự thảo | `isDraft` | True/false | Không | Hiện nhãn “Bản dự thảo” (dùng cho chính sách). |
+| Nguồn và rà soát | Bản dự thảo | `policyDraft` | True/false | Không | Hiện nhãn “Bản dự thảo” (dùng cho chính sách). |
 
 ### Kiểu câu trả lời cũ (`qaItem`, chỉ giữ để tương thích)
 

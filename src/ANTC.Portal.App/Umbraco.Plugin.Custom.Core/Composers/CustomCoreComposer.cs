@@ -7,10 +7,10 @@ using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Plugin.Custom.Core.Backoffice;
+using Umbraco.Plugin.Custom.Core.Articles;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
-using Umbraco.Plugin.Custom.Core.Questions;
 using Umbraco.Plugin.Custom.Core.Questions;
 using Umbraco.Plugin.Custom.Core.Services;
 
@@ -47,6 +47,10 @@ public class CustomCoreComposer : IComposer
                 "Contest:IpHashSalt phai duoc cau hinh de bam dia chi IP.")
             .ValidateOnStart();
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<ArticleHtmlSanitizer>();
+        builder.Services.AddScoped<IArticleContentSource, UmbracoArticleContentSource>();
+        builder.Services.AddScoped<IPublishedArticleService, PublishedArticleService>();
+        builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ArticleSchemaMigration>();
         builder.Services.AddScoped<IContestSettingsProvider, UmbracoContestSettingsProvider>();
         builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
         builder.Services.AddScoped<QuestionSubmissionService>();

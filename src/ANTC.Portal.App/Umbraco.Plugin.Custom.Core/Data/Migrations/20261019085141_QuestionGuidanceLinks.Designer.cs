@@ -371,6 +371,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_by");
+
                     b.Property<string>("GuidanceLabel")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT")
@@ -417,6 +422,14 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Property<long>("ReviewVersion")
                         .HasColumnType("INTEGER")
                         .HasColumnName("review_version");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("portal")
+                        .HasColumnName("source");
 
                     b.Property<string>("Status")
                         .IsRequired()
