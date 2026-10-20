@@ -1,0 +1,12 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{ string T(string alias) => Model.Content.Value<string>(alias) ?? string.Empty; }
+<section class="page-hero page-hero--contest" aria-labelledby="h-page">
+    <div class="container">
+        <nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a> / <a href="/cuoc-thi/">Cuộc thi</a> / <a href="/cuoc-thi-thang/">Cuộc thi tháng</a> / Làm bài</nav>
+        <p class="eyebrow eyebrow--on-brand">@T("eyebrow")</p>
+        <h1 id="h-page">@T("title")</h1>
+        <p>@T("description")</p>
+    </div>
+</section>
+

@@ -16,6 +16,7 @@ graph LR
   Umbraco_Plugin_Custom_Tests["Umbraco.Plugin.Custom.Tests"]
   Umbraco_Plugin_Custom_Tests --> Umbraco_Plugin_Custom_Api
   Umbraco_Plugin_Custom_Tests --> Umbraco_Plugin_Custom_Core
+  Umbraco_Plugin_Custom_Tests --> Umbraco_Web_UI
   Umbraco_Plugin_Custom_Tests -.-> pkg_xunit(["xunit"])
   Umbraco_Web_UI["Umbraco.Web.UI"]
   Umbraco_Web_UI --> Umbraco_Plugin_Custom_Core
@@ -36,6 +37,7 @@ graph TD
   articleManagement["Kho Thủ đoạn<br/><i>articleManagement</i>"]
   chinhSachPage["Trang Chính sách<br/><i>chinhSachPage</i>"]
   contentManagement["Quản lý nội dung<br/><i>contentManagement</i>"]
+  cuocThiLamBaiPage["Trang Làm bài cuộc thi<br/><i>cuocThiLamBaiPage</i>"]
   hoiDapPage["Trang Hỏi – Đáp<br/><i>hoiDapPage</i>"]
   home["Trang chủ (Giới thiệu)<br/><i>home</i>"]
   pageManagement["Quản lý trang<br/><i>pageManagement</i>"]
@@ -44,6 +46,7 @@ graph TD
   seoBase["SEO dùng chung<br/><i>seoBase</i>"]
   thamGiaPage["Trang Tham gia<br/><i>thamGiaPage</i>"]
   thiPage["Trang Cuộc thi<br/><i>thiPage</i>"]
+  thiThangPage["Trang Cuộc thi tháng<br/><i>thiThangPage</i>"]
   thiThuPage["Trang Thử sức<br/><i>thiThuPage</i>"]
   thuDoanPage["Trang Thủ đoạn<br/><i>thuDoanPage</i>"]
   ungPhoPage["Trang Ứng phó khẩn cấp<br/><i>ungPhoPage</i>"]
@@ -59,7 +62,10 @@ graph TD
   chinhSachPage -.-> tpl_chinhSachPage{{"chinhSachPage.cshtml"}}
   contentManagement --> articleManagement
   contentManagement --> articleList
+  cuocThiLamBaiPage -. composition .-> seoBase
+  cuocThiLamBaiPage -.-> tpl_cuocThiLamBaiPage{{"cuocThiLamBaiPage.cshtml"}}
   hoiDapPage -. composition .-> seoBase
+  hoiDapPage -.-> tpl_hoiDapPage{{"hoiDapPage.cshtml"}}
   home --> ungPhoPage
   home --> thuDoanPage
   home --> thamGiaPage
@@ -68,6 +74,7 @@ graph TD
   home --> hoiDapPage
   home --> chinhSachPage
   home --> searchPage
+  home --> thiThangPage
   home -. composition .-> seoBase
   home -.-> tpl_home{{"home.cshtml"}}
   pageManagement --> home
@@ -76,8 +83,11 @@ graph TD
   searchPage -.-> tpl_searchPage{{"searchPage.cshtml"}}
   thamGiaPage -. composition .-> seoBase
   thamGiaPage -.-> tpl_thamGiaPage{{"thamGiaPage.cshtml"}}
+  thiPage --> cuocThiLamBaiPage
   thiPage -. composition .-> seoBase
   thiPage -.-> tpl_thiPage{{"thiPage.cshtml"}}
+  thiThangPage -. composition .-> seoBase
+  thiThangPage -.-> tpl_thiThangPage{{"thiThangPage.cshtml"}}
   thiThuPage -. composition .-> seoBase
   thiThuPage -.-> tpl_thiThuPage{{"thiThuPage.cshtml"}}
   thuDoanPage -. composition .-> seoBase
@@ -88,11 +98,12 @@ graph TD
 
 ## 3. Element type (block dùng trong trang)
 
-Tổng 61 element type.
+Tổng 71 element type.
 
 | Nhóm | Số | Element type |
 |---|---|---|
 | competition | 11 | competitionAuthenticityBlock, competitionFeedbackBlock, competitionHeroBlock, competitionOverviewBlock, competitionParticipationBlock, competitionPrizeItemBlock, competitionPrizesBlock, competitionPromoBlock, competitionReminderBlock, competitionResultsBlock, competitionScheduleBlock |
+| contest | 10 | contestEntryResultBlock, contestExamFlowBlock, contestExamHeroBlock, contestQuestionBlock, contestRegistrationBlock, contestSidebarBlock, contestSubmissionBlock, contestTopicIntroBlock, contestTopicResultBlock, contestTopicsBlock |
 | emergency | 10 | emergencyAnswerBlock, emergencyContactItemBlock, emergencyContactsBlock, emergencyHeroBlock, emergencyNumberItem, emergencyQuestionBlock, emergencyQuestionnaireBlock, emergencyScenarioBlock, emergencySituationGroupBlock, emergencySituationSelectorBlock |
 | fraud | 6 | fraudAlertsBlock, fraudCategoriesBlock, fraudHeroBlock, fraudMethodItemBlock, fraudMethodsBlock, fraudObjectivesBlock |
 | qa | 5 | qaGuidelinesBlock, qaHeroBlock, qaProcessBlock, qaPublishedAnswersBlock, qaSubmissionBlock |
@@ -116,7 +127,7 @@ Tổng 61 element type.
 | story | 1 | storyChapterBlock |
 | two | 1 | twoColumnLayoutBlock |
 
-## 4. Cây nội dung mẫu (36 node)
+## 4. Cây nội dung mẫu (38 node)
 
 ```mermaid
 graph LR
@@ -132,6 +143,8 @@ graph LR
   n6661be33_d417_4400_8828_952da9908c86["Thử sức: 8 câu<br/><i>thiThuPage</i>"]
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> n6661be33_d417_4400_8828_952da9908c86
   n88abf9ef_fb93_45c5_9cff_4aa76ca6f250["Cuộc thi trực tuyến<br/><i>thiPage</i>"]
+  n2418b19a_2e02_4083_aaea_2bc477167ff4["Làm bài<br/><i>cuocThiLamBaiPage</i>"]
+  n88abf9ef_fb93_45c5_9cff_4aa76ca6f250 --> n2418b19a_2e02_4083_aaea_2bc477167ff4
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> n88abf9ef_fb93_45c5_9cff_4aa76ca6f250
   nb3ce7bf1_aa24_4acf_9bfd_8cd02d8f784e["Hỏi – Đáp<br/><i>hoiDapPage</i>"]
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> nb3ce7bf1_aa24_4acf_9bfd_8cd02d8f784e
@@ -139,6 +152,8 @@ graph LR
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> n56fa7c6b_f4e1_44be_8200_ec8be7404349
   ndc0bff3b_10be_53d5_87dc_d23ea675fd94["Chính sách<br/><i>chinhSachPage</i>"]
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> ndc0bff3b_10be_53d5_87dc_d23ea675fd94
+  n3ef975f7_186f_5a25_9e0a_dfe100d471d8["Cuộc thi tháng<br/><i>thiThangPage</i>"]
+  nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> n3ef975f7_186f_5a25_9e0a_dfe100d471d8
   n437e3947_4f08_52e1_baee_75907a540fac --> nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd
   n068471f0_605e_57ee_b164_547aee46bc79 --> n437e3947_4f08_52e1_baee_75907a540fac
   n5a1e0af5_bbf2_54ed_a359_bc4716736ea5["Quản lý nội dung<br/><i>contentManagement</i>"]
@@ -199,13 +214,13 @@ graph LR
 
 | Thư mục | Số file | File |
 |---|---|---|
-| Administration | 1 | AdministrationAccess |
+| Administration | 6 | AdministrationAccess, ContestAuditService, ContestCsv, ContestReportCsvRows, ContestReportModels, ContestReportingService |
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
-| Contest | 5 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, UmbracoContestSettingsProvider |
-| Data | 3 | AppDbContext, AppDbInitializer, Entities |
-| Questions | 4 | QuestionCsv, QuestionModels, QuestionModerationService, QuestionSubmissionService |
+| Contest | 11 | ContestAdminModels, ContestAdminService, ContestAttemptService, ContestCatalog, ContestConfigCheck, ContestEntryService, ContestModels, ContestResultsModels, ContestResultsService, ContestScheduleService, CurrentContestService |
+| Data | 6 | AppDbContext, AppDbInitializer, ContestAccessAudit, ContestPublishedResult, Entities, SqliteDeploymentBackup |
+| Questions | 5 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionSubmissionService |
 | Quiz | 3 | QuestionBank, QuizAdminModels, QuizAdminService |
 | Services | 1 | AppInfoService |
 
@@ -214,15 +229,16 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Composers | 1 | CustomApiComposer |
-| Controllers | 9 | ContestAdminController, ContestController, LegacyQuestionsAdministrationController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
-| Models | 2 | ContestEntryModels, QuestionModels |
-| Validation | 2 | ContestEntryRequestValidator, QuestionRequestValidator |
+| Controllers | 13 | ContestAdminController, ContestController, ContestReportingController, ContestResultsController, ContestsController, LegacyContestReportingController, LegacyQuestionsAdministrationController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
+| Infrastructure | 7 | AdministrationIpAllowlistMiddleware, ApiBoundaryMiddleware, ApiPrivacyLogFilter, ApiProtection, ContestAdministrationAuthorizationResult, DatabaseReadiness, DeploymentTrafficGateMiddleware |
+| Models | 3 | ApiErrorModels, ContestScheduleModels, QuestionModels |
+| Validation | 1 | QuestionRequestValidator |
 
 ### Umbraco.Plugin.Custom.Tests
 
 | Thư mục | Số file | File |
 |---|---|---|
-| (gốc) | 8 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, QuestionBankTests, QuizAdminServiceTests, QuizControllerTests, Usings |
+| (gốc) | 24 | AntcPublicPathsTests, ApiProtectionTests, ContestAdministrationFullHostTests, ContestAdministrationPrivacyTests, ContestAttemptServiceTests, ContestBackofficeAssetsTests, ContestCampaignAdminServiceTests, ContestCatalogTests, ContestDrawAdminServiceTests, ContestEntryServiceTests, ContestReportingTests, ContestResultsTests, ContestScheduleServiceTests, ContestsControllerTests, CurrentContestServiceTests, DatabaseReadinessTests, DeploymentSafetyTests, QuestionBankTests, QuestionGuidanceTests, QuestionsControllerTests, QuizAdminServiceTests, QuizControllerTests, SubmissionResultMigrationTests, Usings |
 
 
 ### API routes
@@ -230,7 +246,11 @@ graph LR
 | Controller | Route |
 |---|---|
 | ContestAdminController | GET api/v1/admin/contest/campaigns, GET api/v1/admin/contest/campaigns/question-tree, GET api/v1/admin/contest/campaigns/{id:long}, POST api/v1/admin/contest/campaigns, PUT api/v1/admin/contest/campaigns/{id:long}, DELETE api/v1/admin/contest/campaigns/{id:long}, GET api/v1/admin/contest/entries, GET api/v1/admin/contest/entries/{id:long}, GET api/v1/admin/contest/draws, GET api/v1/admin/contest/draws/{id:long}, POST api/v1/admin/contest/draws, PUT api/v1/admin/contest/draws/{id:long}, DELETE api/v1/admin/contest/draws/{id:long} |
-| ContestController | POST api/v1/contest/entries |
+| ContestController | POST api/v1/contest/entries, GET api/v1/contest/entries/me, POST api/v1/contest/entries/me/answers, PUT api/v1/contest/entries/me/contact, POST api/v1/contest/entries/me/submit |
+| ContestReportingController | GET /options, GET /dashboard, GET /entries, GET /entries/{id:long}, GET /questions, GET /export/{kind}, GET /contests/{id:long}/publication, PUT /contests/{id:long}/publication, GET /contests/{id:long}/draws |
+| ContestResultsController | GET api/v1/contests/{contestId:long}/results, GET api/v1/contests/{contestId:long}/results/antiforgery, GET api/v1/contests/{contestId:long}/results, PUT api/v1/contests/{contestId:long}/results |
+| ContestsController | GET api/v1/contests |
+| LegacyContestReportingController | GET //quan-tri, GET //quan-tri/cuoc-thi, GET //quan-tri/luot-thi, GET //quan-tri/luot-thi/{id:long}, GET //quan-tri/thong-ke-cau-hoi |
 | LegacyQuestionsAdministrationController | GET //quan-tri/hoi-dap |
 | PublishedQuestionsController | GET api/v1/questions, GET api/v1/questions/{id:long} |
 | QuestionManagementController | GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |

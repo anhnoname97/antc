@@ -1,3 +1,4 @@
+import { blockCopy } from './block-copy.js';
 // Man Dang ky du thi (FE-25): chon cuoc thi (API-07, ?c=<id>), doi che do, kiem tra phia trinh duyet, goi API-01, xu ly loi.
 import { checkContact } from './phone.js';
 import { createEntry, saveEntry, getSchedule } from './contest-api.js';
@@ -73,8 +74,8 @@ function setBusy(on) {
   busy = on;
   modesBox.disabled = on;
   submitBtn.disabled = anonBtn.disabled = on;
-  submitBtn.textContent = on ? 'Đang đăng ký…' : 'Đăng ký và bắt đầu làm bài ›';
-  anonBtn.textContent = on ? 'Đang đăng ký…' : 'Bắt đầu thi ẩn danh ›';
+  submitBtn.textContent = on ? 'Đang đăng ký…' : blockCopy('registration', 'submitLabel', 'Đăng ký và bắt đầu làm bài ›');
+  anonBtn.textContent = on ? 'Đang đăng ký…' : blockCopy('registration', 'anonymousSubmitLabel', 'Bắt đầu thi ẩn danh ›');
 }
 
 // Cuoc dang chon khong dang ky duoc nua (het han, bi tat...): chi con loi vao luyen tap
@@ -214,7 +215,7 @@ function showPick(html) {
   pickBox.innerHTML = html;
 }
 
-function selectContest(c, hasOthers) {
+function selectContest(c) {
   contest = c;
   main.dataset.contestStatus = 'open';
   pickBox.hidden = true;
@@ -224,9 +225,6 @@ function selectContest(c, hasOthers) {
   const desc = document.getElementById('cdesc');
   desc.textContent = c.description || '';
   desc.hidden = !c.description;
-  const other = document.getElementById('cother');
-  other.hidden = !hasOthers;
-  other.href = contestHref(null);
   document.getElementById('ctime').textContent = period(c);
   const max = String(c.maxAttempts).padStart(2, '0');
   document.querySelectorAll('[data-max]').forEach((el) => { el.textContent = max; });
@@ -252,10 +250,16 @@ function renderSchedule(d) {
   const ended = Array.isArray(d.ended) ? d.ended : [];
   const want = requestedContestId();
 
+  // API moi chi cho phep mot cuoc dang dien ra; khong tu chon khi du lieu bat nhat.
+  if (ongoing.length > 1) {
+    showScheduleError();
+    return;
+  }
+
   if (want !== null) {
     const hit = ongoing.find((c) => c.id === want);
     if (hit) {
-      selectContest(hit, ongoing.length > 1);
+      selectContest(hit);
       return;
     }
     // ?c= khong phai cuoc dang dien ra: noi ro ly do, roi goi y cac cuoc dang dien ra
@@ -266,7 +270,7 @@ function renderSchedule(d) {
     else if (gone) note = `Cuộc thi “${gone.name}” đã kết thúc ngày ${fmtDate(gone.endAt)}.`;
     if (ongoing.length) {
       main.dataset.contestStatus = 'open';
-      showPick(`<div class="notebox"><b>${esc(note)}</b></div>` + listHtml('Các cuộc thi đang diễn ra', '', ongoing));
+      showPick(`<div class="notebox"><b>${esc(note)}</b></div>` + listHtml('Cuộc thi đang diễn ra', '', ongoing));
     } else {
       showNone(note, upcoming);
     }
@@ -274,10 +278,7 @@ function renderSchedule(d) {
   }
 
   if (ongoing.length === 1) {
-    selectContest(ongoing[0], false);
-  } else if (ongoing.length > 1) {
-    main.dataset.contestStatus = 'open';
-    showPick(listHtml('Chọn cuộc thi bạn muốn dự thi', 'Mỗi cuộc thi có bộ đề, thời gian và số lượt riêng.', ongoing));
+    selectContest(ongoing[0]);
   } else {
     showNone('Hiện chưa có cuộc thi đang diễn ra.', upcoming);
   }
