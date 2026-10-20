@@ -1,0 +1,10 @@
+{
+  "Contest__IpHashSalt": "__REPLACE_WITH_RANDOM_32_BYTE_OR_LONGER_SECRET__",
+  "Administration__AllowedNetworks__0": "127.0.0.1/32",
+  "Administration__AllowedNetworks__1": "__REPLACE_WITH_ADMIN_IP_OR_CIDR__",
+  "ReverseProxy__ForwardLimit": "1",
+  "Umbraco__CMS__WebRouting__UmbracoApplicationUrl": "https://__REPLACE_WITH_INTERNAL_DNS_NAME__",
+  "Umbraco__CMS__Unattended__UnattendedUserName": "Quản trị kiểm thử",
+  "Umbraco__CMS__Unattended__UnattendedUserEmail": "__REPLACE_ON_FIRST_INSTALL_ONLY__",
+  "Umbraco__CMS__Unattended__UnattendedUserPassword": "__REPLACE_ON_FIRST_INSTALL_ONLY__"
+}

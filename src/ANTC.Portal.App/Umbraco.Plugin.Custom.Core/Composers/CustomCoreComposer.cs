@@ -41,16 +41,29 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddHostedService<AppDbInitializer>();
 
         builder.Services.AddOptions<ContestSecurityOptions>()
-            .Bind(builder.Config.GetSection(ContestSecurityOptions.SectionName));
+            .Bind(builder.Config.GetSection(ContestSecurityOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.IpHashSalt),
+                "Contest:IpHashSalt phai duoc cau hinh de bam dia chi IP.")
+            .ValidateOnStart();
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddScoped<IContestEntryService>(services => new ContestEntryService(
+            services.GetRequiredService<AppDbContext>(),
+            services.GetRequiredService<IContestCatalog>(),
+            services.GetRequiredService<TimeProvider>(),
+            services.GetRequiredService<IConfiguration>()));
+        builder.Services.AddScoped<IContestAttemptService, ContestAttemptService>();
+        builder.Services.AddScoped<IContestCatalog, ContestCatalog>();
         builder.Services.AddScoped<QuestionSubmissionService>();
         builder.Services.AddScoped<IContestAdminService, ContestAdminService>();
+        builder.Services.AddScoped<ContestResultsService>();
+        builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestReportingService>();
+        builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestAuditService>();
         builder.Services.AddScoped<IQuestionSubmissionService, QuestionSubmissionService>();
         builder.Services.AddScoped<QuestionModerationService>();
         builder.Services.AddScoped<IQuestionModerationService>(services => services.GetRequiredService<QuestionModerationService>());
         builder.Services.AddScoped<IPublishedQuestionService>(services => services.GetRequiredService<QuestionModerationService>());
-        builder.Services.AddScoped<IContestCatalog, ContestCatalog>();
-        builder.Services.AddScoped<ICurrentContestService, CurrentContestService>();
+        builder.Services.AddScoped<ICurrentContestService>(services => new CurrentContestService(
+            services.GetRequiredService<IContestCatalog>()));
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();
@@ -60,10 +73,6 @@ public class CustomCoreComposer : IComposer
         builder.AddNotificationAsyncHandler<
             UmbracoApplicationStartedNotification,
             ContestManagementSectionAccessHandler>();
-
-        builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
-        builder.Services.AddScoped<IContestAttemptService, ContestAttemptService>();
-        builder.Services.AddHostedService<ContestConfigCheck>();
 
         builder.Services.AddSingleton<IAppInfoService, AppInfoService>();
     }

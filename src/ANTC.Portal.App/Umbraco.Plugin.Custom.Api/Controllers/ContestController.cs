@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Umbraco.Plugin.Custom.Core.Contest;
+using Umbraco.Plugin.Custom.Core.Data;
+using Umbraco.Plugin.Custom.Api.Infrastructure;
 
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
@@ -41,6 +44,7 @@ public class ContestController : ControllerBase
         var result = await _entries.CreateAsync(request, HttpContext.Connection.RemoteIpAddress?.ToString(), ct);
         if (result.Entry is { } e)
         {
+            HttpContext.Items[ApiProtection.EntryCodeItem] = e.Code;
             return StatusCode(StatusCodes.Status201Created, e);
         }
 
@@ -61,6 +65,7 @@ public class ContestController : ControllerBase
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
 
+        HttpContext.Items[ApiProtection.EntryCodeItem] = entry.Code;
         return Ok(await _attempts.GetStateAsync(entry, ct));
     }
 
@@ -78,6 +83,7 @@ public class ContestController : ControllerBase
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
 
+        HttpContext.Items[ApiProtection.EntryCodeItem] = entry.Code;
         var result = await _attempts.SaveAnswerAsync(entry, request?.Q, request?.A, ct);
         return result.Answer is { } answer ? Ok(answer) : Error(result.Error!);
     }
@@ -96,16 +102,17 @@ public class ContestController : ControllerBase
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
 
+        HttpContext.Items[ApiProtection.EntryCodeItem] = entry.Code;
         var result = await _attempts.AttachContactAsync(entry, request, ct);
         return result.Contact is { } contact ? Ok(contact) : Error(result.Error!);
     }
 
     /// <summary>
-    /// API-05: nop bai; luot an danh co the kem contact de xet giai. Chi nop khi da tra loi du cau (QD-015),
-    /// con han nop (QD-014). Nop lai tra ket qua da luu.
+    /// API-05: nộp khi có ít nhất một đáp án và còn hạn; contact cho lượt ẩn danh được gắn cùng transaction.
+    /// Nộp lại trả nguyên kết quả đã chốt.
     /// </summary>
     [HttpPost("entries/me/submit")]
-    public async Task<IActionResult> Submit([FromBody] SubmitRequest? request, CancellationToken ct)
+    public async Task<IActionResult> Submit([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] SubmitRequest? request, CancellationToken ct)
     {
         Response.Headers.CacheControl = "no-store";
 
@@ -114,6 +121,10 @@ public class ContestController : ControllerBase
         {
             return Error(new ContestError("INVALID_TOKEN", "Phiên làm bài không hợp lệ hoặc đã hết hạn."));
         }
+
+        HttpContext.Items[ApiProtection.EntryCodeItem] = entry.Code;
+        if (!ModelState.IsValid && entry.Status != EntryStatuses.Submitted)
+            return Error(new ContestError("VALIDATION", "Dữ liệu gửi lên không hợp lệ."));
 
         var result = await _attempts.SubmitAsync(entry, request?.Contact, ct);
         return result.Result is { } submitted ? Ok(submitted) : Error(result.Error!);
@@ -128,7 +139,7 @@ public class ContestController : ControllerBase
             "INVALID_TOKEN" => StatusCodes.Status401Unauthorized,
             "CONTEST_NOT_FOUND" => StatusCodes.Status404NotFound,
             "CONTEST_CLOSED" => StatusCodes.Status403Forbidden,
-            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "INCOMPLETE_ANSWERS" or "TOPIC_LOCKED" => StatusCodes.Status409Conflict,
+            "ATTEMPT_LIMIT" or "ALREADY_SUBMITTED" or "ALREADY_NAMED" or "NOTHING_TO_SUBMIT" => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
         return StatusCode(status, new { error = new { code = error.Code, message = error.Message, fields = error.Fields ?? new Dictionary<string, string>() } });

@@ -6,10 +6,6 @@ using Umbraco.Plugin.Custom.Core.Quiz;
 
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
-/// <summary>
-/// Ba API chi doc ngan hang cau hoi (QUIZ-01..03 trong sheet "API" cua file ke hoach).
-/// Du lieu lay tu bo nho cua IQuestionBank, khong truy van CSDL o moi yeu cau.
-/// </summary>
 [ApiController]
 [Route("api/v1/quiz")]
 public class QuizController : ControllerBase
@@ -25,149 +21,110 @@ public class QuizController : ControllerBase
         _clock = clock;
     }
 
-    /// <summary>
-    /// QUIZ-01: danh sach chuyen de dang dung. Co ?contest=: chi chuyen de cua de cuoc thi,
-    /// count = so cau cua de trong chuyen de, theo thu tu de.
-    /// </summary>
     [HttpGet("topics")]
-    [ProducesResponseType<IReadOnlyList<TopicDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status304NotModified)]
-    [ProducesResponseType<ApiErrorResponse>(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType<ApiErrorResponse>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Topics([FromQuery] long? contest, CancellationToken cancellationToken = default)
     {
-        QuestionBankSnapshot snapshot = _bank.Current;
+        QuestionBankSnapshot root = _bank.Current;
+        if (contest is null) return Cached(root.Topics, CacheKey(root));
+
+        (ContestInfo? info, IActionResult? error) = await ResolveContestAsync(contest.Value, cancellationToken);
+        if (error is not null) return error;
+
+        QuestionBankSnapshot? snapshot = ContestSnapshot(root, contest.Value);
+        if (snapshot is not null) return Cached(snapshot.Topics, CacheKey(snapshot));
+
+        HashSet<int> selected = info!.Topics.Select(x => x.TopicId).ToHashSet();
+        List<TopicDto> topics = root.Topics.Where(x => int.TryParse(x.Cd, out int id) && selected.Contains(id))
+            .Select(x => x with { Count = info.Topics.First(t => t.TopicId.ToString() == x.Cd).Count })
+            .ToList();
+        return Cached(topics, ContestCacheKey(root.Version, info));
+    }
+
+    [HttpGet("topics/{topic:int}/questions")]
+    public async Task<IActionResult> Questions(
+        int topic, [FromQuery] long? contest, CancellationToken cancellationToken = default)
+    {
+        QuestionBankSnapshot root = _bank.Current;
         if (contest is null)
         {
-            return Cached(snapshot.Topics, ETagOf(snapshot.Version));
+            if (!root.QuestionsByTopic.TryGetValue(topic, out IReadOnlyList<QuestionDto>? all))
+                return UnknownTopic();
+            return Cached(all, CacheKey(root));
         }
 
         (ContestInfo? info, IActionResult? error) = await ResolveContestAsync(contest.Value, cancellationToken);
-        if (error is not null)
+        if (error is not null) return error;
+
+        QuestionBankSnapshot? snapshot = ContestSnapshot(root, contest.Value);
+        if (snapshot is not null)
         {
-            return error;
+            if (!snapshot.QuestionsByTopic.TryGetValue(topic, out IReadOnlyList<QuestionDto>? snapQuestions))
+                return UnknownTopic();
+            return Cached(snapQuestions, CacheKey(snapshot));
         }
 
-        var topics = new List<TopicDto>();
-        foreach (ContestExamTopic examTopic in info!.Topics)
-        {
-            TopicDto? topic = snapshot.Topics.FirstOrDefault(t => t.Cd == examTopic.Cd);
-            if (topic is not null)
-            {
-                topics.Add(topic with { Count = examTopic.Count });
-            }
-        }
+        if (!root.QuestionsByTopic.TryGetValue(topic, out IReadOnlyList<QuestionDto>? questions) ||
+            info!.Topics.All(x => x.TopicId != topic))
+            return UnknownTopic();
 
-        return Cached(topics, ContestETag(snapshot.Version, info));
+        var order = info.QuestionCodes.Select((code, index) => new { code, index })
+            .ToDictionary(x => x.code, x => x.index, StringComparer.Ordinal);
+        List<QuestionDto> filtered = questions.Where(x => order.ContainsKey(x.Code))
+            .OrderBy(x => order[x.Code]).ToList();
+        return Cached(filtered, ContestCacheKey(root.Version, info));
     }
 
-    /// <summary>
-    /// QUIZ-02: cau hoi dang dung cua mot chuyen de. Co ?contest=: chi cau cua de trong chuyen de,
-    /// theo thu tu de (van tra ans, exp theo QD-016).
-    /// </summary>
-    [HttpGet("topics/{topic:int}/questions")]
-    [ProducesResponseType<IReadOnlyList<QuestionDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status304NotModified)]
-    [ProducesResponseType<ApiErrorResponse>(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType<ApiErrorResponse>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Questions(int topic, [FromQuery] long? contest, CancellationToken cancellationToken = default)
-    {
-        QuestionBankSnapshot snapshot = _bank.Current;
-        ContestInfo? info = null;
-        if (contest is not null)
-        {
-            (info, IActionResult? error) = await ResolveContestAsync(contest.Value, cancellationToken);
-            if (error is not null)
-            {
-                return error;
-            }
-        }
-
-        if (!snapshot.QuestionsByTopic.TryGetValue(topic, out var questions) ||
-            (info is not null && info.Topics.All(t => t.TopicId != topic)))
-        {
-            return NotFound(Error("UNKNOWN_TOPIC", "Chuyên đề không tồn tại hoặc không còn dùng."));
-        }
-
-        if (info is null)
-        {
-            return Cached(questions, ETagOf(snapshot.Version));
-        }
-
-        var order = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (string code in info.QuestionCodes)
-        {
-            order[code] = order.Count;
-        }
-
-        List<QuestionDto> examQuestions = questions.Where(q => order.ContainsKey(q.Code))
-            .OrderBy(q => order[q.Code]).ToList();
-        return Cached(examQuestions, ContestETag(snapshot.Version, info));
-    }
-
-    /// <summary>QUIZ-03: cac cau cua trang Thu suc, theo thu tu.</summary>
     [HttpGet("sample")]
-    [ProducesResponseType<IReadOnlyList<SampleQuestionDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status304NotModified)]
     public IActionResult Sample()
     {
         QuestionBankSnapshot snapshot = _bank.Current;
-        return Cached(snapshot.Sample, ETagOf(snapshot.Version));
+        return Cached(snapshot.Sample, CacheKey(snapshot));
     }
 
-    private static string ETagOf(long version) => $"\"quiz-v{version}\"";
+    private async Task<(ContestInfo? Info, IActionResult? Error)> ResolveContestAsync(long id, CancellationToken ct)
+    {
+        ContestInfo? info = await _catalog.GetAsync(id, ct);
+        if (info is null)
+            return (null, NotFound(Error("CONTEST_NOT_FOUND", "Không tìm thấy cuộc thi.")));
+        if (info.StatusAt(_clock.GetUtcNow().UtcDateTime) != ContestState.Ongoing)
+            return (null, StatusCode(StatusCodes.Status403Forbidden,
+                Error("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc.")));
+        return (info, null);
+    }
 
-    private static string ContestETag(long version, ContestInfo info) =>
-        $"\"quiz-v{version}-c{info.Id}-{info.UpdatedAt.Ticks}\"";
+    private static QuestionBankSnapshot? ContestSnapshot(QuestionBankSnapshot root, long contestId) =>
+        root.Contests.FirstOrDefault(x => x.ContestId == contestId)?.Bank;
+
+    private IActionResult Cached(object payload, string cacheKey)
+    {
+        string etag = $"\"{cacheKey}\"";
+        Response.Headers.ETag = etag;
+        Response.Headers.CacheControl = "public, max-age=300";
+        return MatchesIfNoneMatch(etag) ? StatusCode(StatusCodes.Status304NotModified) : Ok(payload);
+    }
+
+    private static string CacheKey(QuestionBankSnapshot snapshot) =>
+        string.IsNullOrWhiteSpace(snapshot.CacheKey) ? $"quiz-v{snapshot.Version}" : snapshot.CacheKey;
+
+    private static string ContestCacheKey(long version, ContestInfo info) =>
+        $"quiz-v{version}-c{info.Id}-{info.UpdatedAt.Ticks}";
+
+    private IActionResult UnknownTopic() =>
+        NotFound(Error("UNKNOWN_TOPIC", "Chuyên đề không tồn tại hoặc không còn dùng."));
 
     private static ApiErrorResponse Error(string code, string message) =>
         new(new ApiError(code, message, new Dictionary<string, string>()));
 
-    /// <summary>Cuoc khong co hoac khong is_active: 404; cuoc upcoming: 403 (khong lo de truoc gio mo).</summary>
-    private async Task<(ContestInfo? Info, IActionResult? Error)> ResolveContestAsync(long id, CancellationToken cancellationToken)
-    {
-        ContestInfo? info = id > 0 ? await _catalog.GetAsync(id, cancellationToken) : null;
-        if (info is null)
-        {
-            return (null, NotFound(Error("CONTEST_NOT_FOUND", "Không tìm thấy cuộc thi.")));
-        }
-
-        if (info.StatusAt(_clock.GetUtcNow().UtcDateTime) == ContestState.Upcoming)
-        {
-            return (null, StatusCode(StatusCodes.Status403Forbidden,
-                Error("CONTEST_CLOSED", "Cuộc thi chưa mở.")));
-        }
-
-        return (info, null);
-    }
-
-    private IActionResult Cached(object payload, string etag)
-    {
-        Response.Headers.ETag = etag;
-        Response.Headers.CacheControl = "public, max-age=300";
-        if (MatchesIfNoneMatch(etag))
-        {
-            return StatusCode(StatusCodes.Status304NotModified);
-        }
-
-        return Ok(payload);
-    }
-
     private bool MatchesIfNoneMatch(string etag)
     {
         foreach (string? value in Request.Headers.IfNoneMatch)
+        foreach (string candidateValue in (value ?? "").Split(','))
         {
-            foreach (string candidateValue in (value ?? "").Split(','))
-            {
-                string candidate = candidateValue.Trim();
-                if (candidate == "*" || candidate == etag ||
-                    (candidate.StartsWith("W/", StringComparison.OrdinalIgnoreCase) && candidate[2..] == etag))
-                {
-                    return true;
-                }
-            }
+            string candidate = candidateValue.Trim();
+            if (candidate == "*" || candidate == etag ||
+                (candidate.StartsWith("W/", StringComparison.OrdinalIgnoreCase) && candidate[2..] == etag))
+                return true;
         }
-
         return false;
     }
 }

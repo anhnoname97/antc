@@ -52,13 +52,15 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
         super.disconnectedCallback();
     }
     _resetDraft() {
-        this._draft = { status: this._row.status, answer: this._row.answer || '', adminNote: this._row.adminNote || '' };
+        this._draft = { status: this._row.status, answer: this._row.answer || '', adminNote: this._row.adminNote || '',
+            guidanceLabel: this._row.guidanceLabel || '', guidanceUrl: this._row.guidanceUrl || '' };
         this._dirty = false;
     }
     _edit(key, value) {
         this._draft = { ...this._draft, [key]: value };
         this._dirty = this._draft.status !== this._row.status || this._draft.answer !== (this._row.answer || '')
-            || this._draft.adminNote !== (this._row.adminNote || '');
+            || this._draft.adminNote !== (this._row.adminNote || '')
+            || this._draft.guidanceLabel !== (this._row.guidanceLabel || '') || this._draft.guidanceUrl !== (this._row.guidanceUrl || '');
         this._message = '';
     }
     async _canClose() {
@@ -134,6 +136,15 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                                 @input=${event => this._edit('answer', event.target.value)} placeholder="Nhập câu trả lời cho người dùng"></uui-textarea>
                             <span slot="description" class="counter">${this._draft.answer.length.toLocaleString('vi-VN')} / 10.000 ký tự</span>
                         </umb-property-layout>
+                        ${row.type === 'cau-hoi' ? html`
+                        <umb-property-layout orientation="vertical" label="Nhãn liên kết hướng dẫn" description="Bắt buộc khi duyệt công bố. Ví dụ: Xem việc cần làm khi có tiền lạ chuyển vào.">
+                            <uui-input slot="editor" label="Nhãn liên kết hướng dẫn" maxlength="200" .value=${this._draft.guidanceLabel}
+                                ?disabled=${this._busy} @input=${event => this._edit('guidanceLabel', event.target.value)}></uui-input>
+                        </umb-property-layout>
+                        <umb-property-layout orientation="vertical" label="Đường dẫn nội dung đã thẩm định" description="Dùng đường dẫn bắt đầu bằng / hoặc địa chỉ http(s)://. Liên kết chỉ thay đổi công khai sau khi duyệt lại.">
+                            <uui-input slot="editor" label="Đường dẫn hướng dẫn" maxlength="2048" .value=${this._draft.guidanceUrl}
+                                ?disabled=${this._busy} @input=${event => this._edit('guidanceUrl', event.target.value)}></uui-input>
+                        </umb-property-layout>` : nothing}
                         <umb-property-layout orientation="vertical" label="Trạng thái xử lý" description="Trạng thái xử lý nội bộ không tự công bố câu trả lời.">
                             <uui-select slot="editor" id="review-status" label="Trạng thái xử lý" ?disabled=${this._busy}
                                 .options=${Object.entries(statuses).map(([value, name]) => ({ value, name, selected: value === this._draft.status }))}
@@ -144,7 +155,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                                 .value=${this._draft.adminNote} ?disabled=${this._busy}
                                 @input=${event => this._edit('adminNote', event.target.value)}></uui-textarea>
                         </umb-property-layout>
-                        ${row.isPublished && this._draft.answer !== row.publishedAnswer ? html`<div class="notice">
+                        ${row.isPublished && (this._draft.answer !== row.publishedAnswer || this._draft.guidanceLabel !== (row.publishedGuidanceLabel || '') || this._draft.guidanceUrl !== (row.publishedGuidanceUrl || '')) ? html`<div class="notice">
                             Portal vẫn hiển thị bản đã duyệt trước đó. Duyệt lại để cập nhật câu trả lời công khai.</div>` : nothing}
                     </uui-box>
                 </div>
@@ -155,7 +166,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                 <uui-button slot="actions" label="Lưu xử lý" look="outline" data-action="save" .state=${this._action === 'save' ? 'waiting' : undefined}
                     ?disabled=${this._busy} @click=${() => this._act('save')}>Lưu xử lý</uui-button>
                 ${row.type === 'cau-hoi' ? html`<uui-button slot="actions" label="Duyệt và công bố" look="primary" color="positive" data-action="approve"
-                    .state=${this._action === 'approve' ? 'waiting' : undefined} ?disabled=${this._busy || this._draft.answer.trim().length < 10}
+                    .state=${this._action === 'approve' ? 'waiting' : undefined} ?disabled=${this._busy || this._draft.answer.trim().length < 10 || !this._draft.guidanceLabel.trim() || !this._draft.guidanceUrl.trim()}
                     @click=${() => this._act('approve')}>Duyệt và công bố</uui-button>` : nothing}
             </umb-body-layout>
         `;
@@ -177,7 +188,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
         .submission-panel uui-box > .muted:last-child { margin-bottom:0; }
         umb-property-layout { padding:var(--uui-size-space-5) 0; }
         umb-property-layout:first-of-type { padding-top:0; }
-        uui-textarea, uui-select { width:100%; }
+        uui-textarea, uui-select, uui-input { width:100%; }
         #answer { --uui-textarea-min-height:240px; }
         #admin-note { --uui-textarea-min-height:96px; }
         .counter { display:block; margin-top:var(--uui-size-space-2); }

@@ -22,7 +22,7 @@
             <p>@content.Value("description")</p></div><div class="next-cta">
             @if (Safe(urgent))
             {
-                <a class="btn btn-light" href="@urgent!.Url" target="@urgent.Target" rel="@(urgent.Target == "_blank" ? "noopener noreferrer" : null)">@urgent.Name</a>
+                <a class="btn @(urgent!.Url.StartsWith("tel:", StringComparison.OrdinalIgnoreCase) ? "btn-red" : "btn-light")" href="@urgent.Url" target="@urgent.Target" rel="@(urgent.Target == "_blank" ? "noopener noreferrer" : null)">@urgent.Name</a>
             }
         </div></div>
     </section>

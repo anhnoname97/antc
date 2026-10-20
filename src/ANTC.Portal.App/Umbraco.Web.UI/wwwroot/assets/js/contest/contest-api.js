@@ -464,6 +464,9 @@ async function mockMe(path, payload, mode, token) {
   if (mode === 'rate') return fail('RATE_LIMITED', 'Thao tác quá nhanh.');
   const rec = token && db.entries[token];
   if (mode === 'token' || !rec) return fail('INVALID_TOKEN', 'Lượt thi không hợp lệ hoặc đã hết hạn.');
+  if (path === '/submit' && rec.status === 'submitted' && rec.submissionResult) {
+    return { ok: true, data: rec.submissionResult };
+  }
   // Luot cu khong co contestId: ca ngan hang, khong co thong tin cuoc
   const cs = rec.contestId != null ? await mockContests() : null;
   if (cs && !cs.ok) return cs;
@@ -543,10 +546,8 @@ async function mockMe(path, payload, mode, token) {
   if (path === '/submit') {
     if (rec.status === 'submitted') return { ok: true, data: resultView() };
     if (phase === 'closed') return fail('CONTEST_CLOSED', MSG_CLOSED);
-    // Phai tra loi du moi cau dang dung (QD-015); cau da ngung dung khong tinh
-    const answered = rec.answers.filter((x) => bank.map.has(x.q)).length;
-    if (mode === 'incomplete' || answered < bank.total) {
-      return fail('INCOMPLETE_ANSWERS', `Bạn mới trả lời ${answered}/${bank.total} câu. Hãy trả lời hết các câu rồi nộp bài.`);
+    if (mode === 'incomplete' || rec.answers.length === 0) {
+      return fail('NOTHING_TO_SUBMIT', 'Bạn cần trả lời ít nhất một câu trước khi nộp bài.');
     }
     if (payload && payload.contact && rec.mode === 'anon') {
       const bad = takeContact(payload.contact);
@@ -555,8 +556,9 @@ async function mockMe(path, payload, mode, token) {
     rec.status = 'submitted';
     rec.score = rec.answers.filter((x) => x.correct).length;
     rec.submittedAt = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    rec.submissionResult = resultView();
     mockSave(db);
-    return { ok: true, data: resultView() };
+    return { ok: true, data: rec.submissionResult };
   }
   return fail('UNKNOWN', '');
 }

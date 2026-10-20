@@ -16,5 +16,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Umbraco.Plugin.Custom.Api\Umbraco.Plugin.Custom.Api.csproj" />
     <ProjectReference Include="..\Umbraco.Plugin.Custom.Core\Umbraco.Plugin.Custom.Core.csproj" />
+    <ProjectReference Include="..\Umbraco.Web.UI\Umbraco.Web.UI.csproj" />
   </ItemGroup>
 </Project>

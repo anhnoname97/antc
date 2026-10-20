@@ -748,7 +748,7 @@ setupSubmit({
     offline = !!r.offline;
     refresh();
   },
-  // INCOMPLETE_ANSWERS: lay lai tien do (API-02), hien thong bao cua may chu o danh sach chuyen de
+  // NOTHING_TO_SUBMIT: lay lai tien do (API-02), hien thong bao cua may chu o danh sach chuyen de
   onIncomplete: async (message) => {
     resetLoaded();
     setNotice(message);

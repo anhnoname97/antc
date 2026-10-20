@@ -62,12 +62,11 @@ public sealed class ContestCatalog(AppDbContext db, IQuestionBank questionBank, 
     public async Task<ContestInfo?> GetAsync(long id, CancellationToken cancellationToken = default)
     {
         ContestCampaign? campaign = await Query().FirstOrDefaultAsync(x => x.Id == id && x.IsActive, cancellationToken);
-        return campaign is null ? null : ToInfo(campaign, questionBank.Current);
+        return campaign is null ? null : ToInfo(campaign, BankFor(campaign.Id));
     }
 
     public async Task<ContestSchedule> GetScheduleAsync(DateTime now, CancellationToken cancellationToken = default)
     {
-        QuestionBankSnapshot bank = questionBank.Current;
         List<ContestCampaign> ongoing = await Query()
             .Where(x => x.IsActive && x.StartAt <= now && now < x.EndAt)
             .OrderByDescending(x => x.StartAt).ThenByDescending(x => x.Id)
@@ -82,9 +81,9 @@ public sealed class ContestCatalog(AppDbContext db, IQuestionBank questionBank, 
             .Take(MaxEnded)
             .ToListAsync(cancellationToken);
         return new ContestSchedule(now,
-            ongoing.Select(x => ToInfo(x, bank)).ToList(),
-            upcoming.Select(x => ToInfo(x, bank)).ToList(),
-            ended.Select(x => ToInfo(x, bank)).ToList());
+            ongoing.Select(x => ToInfo(x, BankFor(x.Id))).ToList(),
+            upcoming.Select(x => ToInfo(x, BankFor(x.Id))).ToList(),
+            ended.Select(x => ToInfo(x, BankFor(x.Id))).ToList());
     }
 
     public async Task<ContestInfo?> GetCurrentAsync(CancellationToken cancellationToken = default)
@@ -94,7 +93,13 @@ public sealed class ContestCatalog(AppDbContext db, IQuestionBank questionBank, 
             .Where(x => x.IsActive && x.StartAt <= now && now < x.EndAt)
             .OrderByDescending(x => x.StartAt).ThenByDescending(x => x.Id)
             .FirstOrDefaultAsync(cancellationToken);
-        return campaign is null ? null : ToInfo(campaign, questionBank.Current);
+        return campaign is null ? null : ToInfo(campaign, BankFor(campaign.Id));
+    }
+
+    private QuestionBankSnapshot BankFor(long contestId)
+    {
+        QuestionBankSnapshot root = questionBank.Current;
+        return root.Contests.FirstOrDefault(x => x.ContestId == contestId)?.Bank ?? root;
     }
 
     private IQueryable<ContestCampaign> Query() => db.ContestCampaigns.AsNoTracking()
