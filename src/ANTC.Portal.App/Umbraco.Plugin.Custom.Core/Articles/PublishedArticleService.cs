@@ -22,6 +22,19 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
         IEnumerable<ArticleCategoryContent> categories = selected is null ? library.Categories : [selected];
         IEnumerable<ArticleListItem> articles = categories.SelectMany(category => category.Articles
             .Select(article => new ArticleListItem(Card(article, library.ReviewAfterDays, today), category.Category)));
+        if (query.ShowOnHome is { } home) articles = articles.Where(x => x.ShowOnHome == home);
+        if (query.SectionFilter is { } section)
+            articles = articles.Where(x => (CategoryRole(x.Category.Role) == "policy") == (section == "policy"));
+        if (query.CategoryRoleFilter is { } role) articles = articles.Where(x => CategoryRole(x.Category.Role) == role);
+        if (query.IsField is { } field) articles = articles.Where(x => x.Category.IsField == field);
+        if (query.HasImage is { } image) articles = articles.Where(x => (x.Image is not null) == image);
+        if (query.SourceAgencyFilter is { } agency)
+            articles = articles.Where(x => x.Source.Agency is { } sourceAgency && Contains(sourceAgency, agency));
+        if (query.ExcludeIds is { Count: > 0 } ids)
+        {
+            var excluded = ids.ToHashSet();
+            articles = articles.Where(x => !excluded.Contains(x.Id));
+        }
         if (query.SearchTerm is { } term)
         {
             string normalized = term.Normalize(NormalizationForm.FormC);
@@ -74,7 +87,17 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
     };
 
     private static bool Contains(string value, string term) =>
-        value.Normalize(NormalizationForm.FormC).Contains(term, StringComparison.OrdinalIgnoreCase);
+        value.Normalize(NormalizationForm.FormC).Contains(term.Normalize(NormalizationForm.FormC), StringComparison.OrdinalIgnoreCase);
+
+    private static string? CategoryRole(string? role) => role switch
+    {
+        null or "" or "Không có" => "none",
+        "Cảnh báo" => "warning",
+        "Bài đọc theo chuyên đề" => "topic",
+        "Chuỗi bài" => "series",
+        "Chính sách" => "policy",
+        _ => null
+    };
 
     private static ArticleCard Card(ArticleContent article, int days, DateOnly today) =>
         article.Card with { Review = ArticleReviewPolicy.Evaluate(article.Card.Review.LastReviewedDate, days, today) };

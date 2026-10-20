@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ANTC Portal — API danh mục và bài viết",
-    "version": "2.0.0",
-    "description": "Hợp đồng dữ liệu BE-07 cho FE, không dựng giao diện portal. CMS là nguồn dữ liệu duy nhất; tạo/sửa/xóa và xuất bản qua Content của Umbraco. API chỉ đọc bản đã xuất bản và không bật xem trước theo cookie, query hoặc header. Không trả bản nháp, nội dung thùng rác, nội dung bị bảo vệ hoặc bài có tổ tiên chưa xuất bản. Save chỉ lưu nháp; Save and publish mới cập nhật API. Không đệm để FE nhận thay đổi ở yêu cầu kế tiếp. Tất cả chuỗi trừ bodyHtml là dữ liệu chữ và phải được FE thoát ký tự. Phiên bản 2 thay API danh sách /article-categories/{id}/articles?trang=n bằng GET /articles?categoryId=...&page=n&pageSize=12. Bỏ categoryId để lấy bài từ toàn bộ danh mục. Mọi bộ lọc được kết hợp bằng AND trước khi phân trang. API chi tiết và API danh mục giữ nguyên."
+    "version": "2.1.0",
+    "description": "Hợp đồng dữ liệu BE-07 cho FE, không dựng giao diện portal. CMS là nguồn dữ liệu duy nhất; tạo/sửa/xóa và xuất bản qua Content của Umbraco. API chỉ đọc bản đã xuất bản và không bật xem trước theo cookie, query hoặc header. Không trả bản nháp, nội dung thùng rác, nội dung bị bảo vệ hoặc bài có tổ tiên chưa xuất bản. Save chỉ lưu nháp; Save and publish mới cập nhật API. Không đệm để FE nhận thay đổi ở yêu cầu kế tiếp. Tất cả chuỗi trừ bodyHtml là dữ liệu chữ và phải được FE thoát ký tự. Phiên bản 2 thay API danh sách /article-categories/{id}/articles?trang=n bằng GET /articles?categoryId=...&page=n&pageSize=12. Bỏ categoryId để lấy bài từ toàn bộ danh mục. Mọi bộ lọc được kết hợp bằng AND trước khi phân trang. API chi tiết và API danh mục giữ nguyên. Phiên bản 2.1 thêm bộ lọc showOnHome, section, categoryRole, isField, hasImage, sourceAgency và excludeIds. Chính sách và Thủ đoạn dùng chung document type articleList/article; phân biệt bằng vai trò danh mục. Không thay đổi API hoặc giao diện portal khác."
   },
   "servers": [
     {
@@ -143,7 +143,8 @@
                     "image": null,
                     "hideFromSearch": false
                   },
-                  "relatedArticles": []
+                  "relatedArticles": [],
+                  "showOnHome": false
                 }
               }
             }
@@ -182,7 +183,7 @@
           "Bài viết"
         ],
         "summary": "Danh sách bài viết có tìm kiếm, bộ lọc, phân trang và sắp xếp",
-        "description": "Chỉ đọc bài đã xuất bản trong kho CMS. Các bộ lọc kết hợp AND, áp dụng trước khi tính total và phân trang. categoryId trống: tất cả danh mục, category ở gốc bằng null; mỗi phần tử items luôn có category của bài. categoryId có giá trị: chỉ danh mục được chọn, category ở gốc là thông tin danh mục (articleCount là tổng bài đã xuất bản của danh mục trước các bộ lọc khác). Danh mục không tồn tại hoặc không truy cập công khai trả 404. Danh mục rỗng hoặc không có kết quả lọc: total=0, totalPages=0. Trang vượt tổng trả items=[] và giữ page yêu cầu. Ngày cập nhật trống xếp cuối khi sắp ngày. Cùng giá trị sắp xếp: Guid tăng dần. Không hỗ trợ tham số trang và route danh sách cũ; dùng page, pageSize trên route mới.",
+        "description": "Chỉ đọc bài đã xuất bản trong kho CMS. Các bộ lọc kết hợp AND, áp dụng trước khi tính total và phân trang. categoryId trống: tất cả danh mục, category ở gốc bằng null; mỗi phần tử items luôn có category của bài. categoryId có giá trị: chỉ danh mục được chọn, category ở gốc là thông tin danh mục (articleCount là tổng bài đã xuất bản của danh mục trước các bộ lọc khác). Danh mục không tồn tại hoặc không truy cập công khai trả 404. Danh mục rỗng hoặc không có kết quả lọc: total=0, totalPages=0. Trang vượt tổng trả items=[] và giữ page yêu cầu. Ngày cập nhật trống xếp cuối khi sắp ngày. Cùng giá trị sắp xếp: Guid tăng dần. Không hỗ trợ tham số trang và route danh sách cũ; dùng page, pageSize trên route mới. showOnHome đọc cờ “Hiển thị ra trang chủ” từ bản đã xuất bản; bỏ tham số để lấy cả hai trạng thái. section=policy chỉ lấy kho Chính sách, section=fraud chỉ lấy kho Thủ đoạn. categoryRole: none=(không có), warning=Cảnh báo, topic=Bài đọc theo chuyên đề, series=Chuỗi bài, policy=Chính sách. isField lọc cờ lĩnh vực của danh mục; hasImage lọc ảnh đại diện có thể lấy được. sourceAgency tìm chuỗi con trong tên cơ quan nguồn, không phân biệt hoa/thường, chuẩn hóa Unicode tiếng Việt. excludeIds lặp tham số cho từng ID, tối đa 50; dùng để tránh trùng bài giữa các khối. ID không tồn tại không làm lỗi. Các bộ lọc có thể kết hợp với nhau và với categoryId/search/label/ngày cập nhật/rà soát/isDraft; điều kiện mâu thuẫn trả danh sách rỗng. Không lọc các bài chưa xuất bản bằng bất kỳ tham số nào.",
         "parameters": [
           {
             "name": "categoryId",
@@ -304,6 +305,92 @@
               ],
               "default": "updated-desc"
             }
+          },
+          {
+            "name": "showOnHome",
+            "in": "query",
+            "required": false,
+            "description": "true: chỉ bài bật “Hiển thị ra trang chủ”; false: chỉ bài tắt; bỏ qua: cả hai. Bật/tắt phải được xuất bản trong CMS mới có hiệu lực.",
+            "schema": {
+              "type": "boolean"
+            },
+            "example": true
+          },
+          {
+            "name": "section",
+            "in": "query",
+            "required": false,
+            "description": "Nhóm kho nội dung. Dùng policy để lấy Chính sách và fraud để lấy Thủ đoạn, không phải nhớ ID danh mục.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fraud",
+                "policy"
+              ]
+            },
+            "example": "fraud"
+          },
+          {
+            "name": "categoryRole",
+            "in": "query",
+            "required": false,
+            "description": "Vai trò danh mục: none (không có), warning (Cảnh báo), topic (Bài đọc theo chuyên đề), series (Chuỗi bài), policy (Chính sách).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "warning",
+                "topic",
+                "series",
+                "policy"
+              ]
+            },
+            "example": "warning"
+          },
+          {
+            "name": "isField",
+            "in": "query",
+            "required": false,
+            "description": "true: bài trong danh mục được đánh dấu lĩnh vực; false: bài trong danh mục không phải lĩnh vực; bỏ qua: cả hai.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasImage",
+            "in": "query",
+            "required": false,
+            "description": "true: bài có ảnh đại diện lấy được; false: bài chưa có ảnh đại diện; bỏ qua: cả hai.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sourceAgency",
+            "in": "query",
+            "required": false,
+            "description": "Tìm chuỗi con trong tên cơ quan nguồn, cắt khoảng trắng; không phân biệt hoa/thường. Trống hoặc chỉ khoảng trắng: không lọc.",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "example": "Ngân hàng"
+          },
+          {
+            "name": "excludeIds",
+            "in": "query",
+            "required": false,
+            "description": "Các ID bài cần loại trừ trước khi tính total và phân trang. Lặp excludeIds cho từng ID; tối đa 50, không dùng Guid rỗng. ID không tồn tại được bỏ qua.",
+            "schema": {
+              "type": "array",
+              "maxItems": 50,
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "style": "form",
+            "explode": true
           }
         ],
         "responses": {
@@ -369,7 +456,8 @@
                         "fieldIcon": null,
                         "role": "Cảnh báo",
                         "articleCount": 13
-                      }
+                      },
+                      "showOnHome": false
                     }
                   ],
                   "total": 13,
@@ -620,7 +708,8 @@
           "source",
           "updatedDate",
           "isDraft",
-          "review"
+          "review",
+          "showOnHome"
         ],
         "properties": {
           "id": {
@@ -659,6 +748,10 @@
           },
           "review": {
             "$ref": "#/components/schemas/ArticleReview"
+          },
+          "showOnHome": {
+            "type": "boolean",
+            "description": "Cờ “Hiển thị ra trang chủ” của bản đã xuất bản. Bài cũ chưa được đánh dấu mặc định false."
           }
         },
         "additionalProperties": false
@@ -757,7 +850,8 @@
           "bodyHtml",
           "safeAction",
           "seo",
-          "relatedArticles"
+          "relatedArticles",
+          "showOnHome"
         ],
         "properties": {
           "id": {
@@ -819,6 +913,10 @@
               "$ref": "#/components/schemas/ArticleCard"
             },
             "description": "Tối đa 3 bài mới nhất cùng danh mục, đã xuất bản; không gồm bài đang xem."
+          },
+          "showOnHome": {
+            "type": "boolean",
+            "description": "Cờ “Hiển thị ra trang chủ” của bản đã xuất bản. Bài cũ chưa được đánh dấu mặc định false."
           }
         },
         "additionalProperties": false
@@ -837,7 +935,8 @@
           "updatedDate",
           "isDraft",
           "review",
-          "category"
+          "category",
+          "showOnHome"
         ],
         "properties": {
           "id": {
@@ -879,6 +978,10 @@
           },
           "category": {
             "$ref": "#/components/schemas/ArticleCategory"
+          },
+          "showOnHome": {
+            "type": "boolean",
+            "description": "Cờ “Hiển thị ra trang chủ” của bản đã xuất bản. Bài cũ chưa được đánh dấu mặc định false."
           }
         },
         "additionalProperties": false

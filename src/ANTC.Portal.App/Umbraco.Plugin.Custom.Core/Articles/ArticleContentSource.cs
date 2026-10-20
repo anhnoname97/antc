@@ -82,7 +82,10 @@ public sealed class UmbracoArticleContentSource(IDocumentNavigationQueryService 
             Label(Dropdown(item, "labelType"), agency),
             new ArticleSource(agency, Text(item, "sourceDocNo"), Date(item, "sourceDocDate")),
             Date(item, "updatedDate"), item.Value<bool>("policyDraft"),
-            new ArticleReview(Date(item, "lastReviewedDate"), days, false, null));
+            new ArticleReview(Date(item, "lastReviewedDate"), days, false, null))
+        {
+            ShowOnHome = item.Value<bool>("showOnHome")
+        };
         var seo = new ArticleSeo(Text(item, "seoTitle") ?? item.Name,
             Text(item, "seoDescription") ?? summary, Image(item, "ogImage") ?? card.Image,
             item.Value<bool>("hideFromSearch"));

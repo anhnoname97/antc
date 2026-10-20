@@ -10,7 +10,10 @@ public sealed record ArticleReview(DateOnly? LastReviewedDate, int MaxAgeDays, b
 public sealed record ArticleSeo(string Title, string Description, ArticleImage? Image, bool HideFromSearch);
 
 public record ArticleCard(Guid Id, string Title, string Slug, string Url, string Summary, ArticleImage? Image,
-    ArticleLabel Label, ArticleSource Source, DateOnly? UpdatedDate, bool IsDraft, ArticleReview Review);
+    ArticleLabel Label, ArticleSource Source, DateOnly? UpdatedDate, bool IsDraft, ArticleReview Review)
+{
+    public bool ShowOnHome { get; init; }
+}
 
 public record ArticleListItem : ArticleCard
 {
