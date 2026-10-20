@@ -6,6 +6,150 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public class ContestCampaignAdminServiceTests
 {
+    [Theory]
+    [InlineData(12, 18, false)] // overlaps the end
+    [InlineData(8, 16, false)] // contains the existing contest
+    [InlineData(11, 14, false)] // contained by the existing contest
+    [InlineData(8, 12, false)] // overlaps the start
+    [InlineData(10, 15, false)] // identical
+    [InlineData(15, 20, false)] // touches the closing instant
+    [InlineData(8, 10, false)] // touches the opening instant
+    [InlineData(16, 20, true)]
+    [InlineData(5, 9, true)]
+    public async Task CreateCampaign_RejectsEveryOverlapButAllowsDisjointDates(int startDay, int endDay, bool allowed)
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        await test.Service.CreateCampaignAsync(Schedule(10, 15), default);
+        if (allowed)
+        {
+            await test.Service.CreateCampaignAsync(Schedule(startDay, endDay), default);
+            Assert.Equal(2, await test.Db.ContestCampaigns.CountAsync());
+        }
+        else
+        {
+            var error = await Assert.ThrowsAsync<ContestAdminConflictException>(
+                () => test.Service.CreateCampaignAsync(Schedule(startDay, endDay), default));
+            Assert.Equal("CONTEST_TIME_OVERLAP", error.Code);
+            Assert.Single(await test.Db.ContestCampaigns.ToListAsync());
+            Assert.Single(await test.Db.ContestQuestions.ToListAsync());
+        }
+    }
+
+    [Fact]
+    public async Task InactiveContestsReserveDates_ButSubmissionGraceDoesNot()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        await test.Service.CreateCampaignAsync(Schedule(10, 15) with { IsActive = false, SubmitGraceHours = 168 }, default);
+        var error = await Assert.ThrowsAsync<ContestAdminConflictException>(
+            () => test.Service.CreateCampaignAsync(Schedule(12, 18) with { IsActive = false }, default));
+        Assert.Equal("CONTEST_TIME_OVERLAP", error.Code);
+        await test.Service.CreateCampaignAsync(Schedule(16, 20), default);
+        Assert.Equal(2, await test.Db.ContestCampaigns.CountAsync());
+    }
+
+    [Fact]
+    public async Task UpdateCampaign_ExcludesItself_AndConflictLeavesDatesRevisionAndSnapshotUntouched()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        await test.Service.CreateCampaignAsync(Schedule(10, 15), default);
+        var second = await test.Service.CreateCampaignAsync(Schedule(16, 20), default);
+        var request = Schedule(16, 20) with { ExpectedRevision = second.Revision, Name = "Tên mới" };
+        var unchangedDates = (await test.Service.UpdateCampaignAsync(second.Id, request, default))!;
+        Assert.Equal(second.Revision + 1, unchangedDates.Revision);
+        var error = await Assert.ThrowsAsync<ContestAdminConflictException>(() => test.Service.UpdateCampaignAsync(second.Id,
+            Schedule(12, 18) with { ExpectedRevision = unchangedDates.Revision, Topics = [new SaveContestTopicRequest(2, ["Q-002"])] }, default));
+        Assert.Equal("CONTEST_TIME_OVERLAP", error.Code);
+        test.Db.ChangeTracker.Clear();
+        var saved = (await test.Service.GetCampaignAsync(second.Id, default))!;
+        Assert.Equal(unchangedDates.StartAt, saved.StartAt);
+        Assert.Equal(unchangedDates.EndAt, saved.EndAt);
+        Assert.Equal(unchangedDates.Revision, saved.Revision);
+        Assert.Equal("Tên mới", saved.Name);
+        Assert.Equal("Q-001", (await test.Db.ContestQuestions.SingleAsync(x => x.ContestId == second.Id)).QuestionCode);
+        var moved = await test.Service.UpdateCampaignAsync(second.Id, Schedule(21, 25) with { ExpectedRevision = saved.Revision }, default);
+        Assert.Equal(Schedule(21, 25).StartAt, moved!.StartAt);
+    }
+
+    [Fact]
+    public async Task ScheduleUsesUtcInstants_NotDisplayedOffsets()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        var first = Schedule(10, 15);
+        await test.Service.CreateCampaignAsync(first, default);
+        var withOffset = first with
+        {
+            StartAt = DateTimeOffset.Parse("2030-09-10T07:00:00+07:00").UtcDateTime,
+            EndAt = DateTimeOffset.Parse("2030-09-15T07:00:00+07:00").UtcDateTime,
+        };
+        Assert.Equal("CONTEST_TIME_OVERLAP", (await Assert.ThrowsAsync<ContestAdminConflictException>(
+            () => test.Service.CreateCampaignAsync(withOffset, default))).Code);
+        await test.Service.CreateCampaignAsync(first with { StartAt = first.EndAt.AddTicks(1), EndAt = first.EndAt.AddDays(1) }, default);
+    }
+
+    [Fact]
+    public async Task OverlappingCreatesAndUpdates_ReturnStandard409FromController()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        await test.Service.CreateCampaignAsync(Schedule(10, 15), default);
+        var second = await test.Service.CreateCampaignAsync(Schedule(16, 20), default);
+        var controller = new Umbraco.Plugin.Custom.Api.Controllers.ContestAdminController(test.Service);
+        var created = await controller.CreateCampaign(Schedule(12, 18), default);
+        var updated = await controller.UpdateCampaign(second.Id, Schedule(12, 18), default);
+        foreach (var result in new[] { created.Result, updated.Result })
+        {
+            var conflict = Assert.IsType<Microsoft.AspNetCore.Mvc.ConflictObjectResult>(result);
+            Assert.Equal(409, conflict.StatusCode);
+            string json = System.Text.Json.JsonSerializer.Serialize(conflict.Value, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+            using var parsed = System.Text.Json.JsonDocument.Parse(json);
+            Assert.Equal("CONTEST_TIME_OVERLAP", parsed.RootElement.GetProperty("error").GetProperty("code").GetString());
+            Assert.False(string.IsNullOrWhiteSpace(parsed.RootElement.GetProperty("error").GetProperty("message").GetString()));
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ConcurrentCreatesOrUpdates_ForSameWindow_OnlyOneCanWin(bool update)
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        var ids = new List<long>();
+        if (update)
+        {
+            ids.Add((await test.Service.CreateCampaignAsync(Schedule(1, 3), default)).Id);
+            ids.Add((await test.Service.CreateCampaignAsync(Schedule(5, 7), default)).Id);
+        }
+        var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task<bool>[] requests = Enumerable.Range(0, update ? 2 : 5).Select(index => Task.Run(async () =>
+        {
+            await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+                .UseSqlite(test.Db.Database.GetConnectionString()).Options);
+            var service = new ContestAdminService(db, TimeProvider.System);
+            await start.Task;
+            try
+            {
+                if (update) await service.UpdateCampaignAsync(ids[index], Schedule(10, 15) with { ExpectedRevision = 1 }, default);
+                else await service.CreateCampaignAsync(Schedule(10, 15), default);
+                return true;
+            }
+            catch (ContestAdminConflictException ex)
+            {
+                Assert.Equal("CONTEST_TIME_OVERLAP", ex.Code); return false;
+            }
+        })).ToArray();
+        start.SetResult();
+        bool[] outcomes = await Task.WhenAll(requests);
+        Assert.Single(outcomes.Where(x => x));
+        test.Db.ChangeTracker.Clear();
+        Assert.Equal(1, await test.Db.ContestCampaigns.CountAsync(x => x.StartAt == Schedule(10, 15).StartAt));
+        Assert.Equal(update ? 2 : 1, await test.Db.ContestCampaigns.CountAsync());
+    }
+
+    private static SaveContestCampaignRequest Schedule(int startDay, int endDay) => Request(1, "Q-001") with
+    {
+        StartAt = new DateTime(2030, 9, startDay, 0, 0, 0, DateTimeKind.Utc),
+        EndAt = new DateTime(2030, 9, endDay, 0, 0, 0, DateTimeKind.Utc),
+    };
+
     [Fact]
     public async Task CreateCampaign_PersistsSelectedTopicAndQuestions()
     {

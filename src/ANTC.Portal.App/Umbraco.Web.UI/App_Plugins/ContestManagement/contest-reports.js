@@ -1,6 +1,7 @@
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { contestStyles } from './contest-theme.js';
+import { paginate } from './contest-pagination.js';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
@@ -16,11 +17,12 @@ export class ContestReportsView extends UmbLitElement {
     static properties = {
         _data: { state: true }, _options: { state: true }, _busy: { state: true }, _error: { state: true },
         _detail: { state: true }, _state: { state: true }, _draws: { state: true }, _selected: { state: true }, _message: { state: true },
+        _pagination: { state: true },
     };
     constructor(view = 'dashboard') {
         super(); this.view = view; this.filters = { sort: 'created_desc', page: '1' };
         this._options = { contests: [], topics: [] }; this._busy = true; this._error = ''; this._message = '';
-        this._data = null; this._detail = null; this._state = null; this._draws = []; this._selected = []; this._sequence = 0;
+        this._data = null; this._detail = null; this._state = null; this._draws = []; this._selected = []; this._sequence = 0; this._pagination = {};
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._load(); } });
     }
     disconnectedCallback() { this._sequence++; super.disconnectedCallback(); }
@@ -45,6 +47,7 @@ export class ContestReportsView extends UmbLitElement {
         return '?' + query;
     }
     async _load() {
+        this._pagination = {};
         const sequence = ++this._sequence; this._busy = true; this._error = ''; this._message = ''; this._data = null;
         try {
             const options = await (await this._request('/options' + (this.filters.contestId ? '?contestId=' + encodeURIComponent(this.filters.contestId) : ''))).json();
@@ -71,6 +74,16 @@ export class ContestReportsView extends UmbLitElement {
         this.filters = { ...values, page: '1' }; this._load();
     }
     _page(delta) { this.filters.page = String(Number(this.filters.page || 1) + delta); this._load(); }
+    _slice(items, key, defaultSize = 50) { return paginate(items, this._pagination[key], defaultSize); }
+    _localPage(key, page, size) { this._pagination = { ...this._pagination, [key]: { page, size } }; }
+    _pager(key, p, label) {
+        return html`<nav class="local-pager" aria-label=${`Phân trang ${label}`} data-pagination=${key}>
+            <span class="page-range">${p.start}–${p.end} / ${p.total} dòng</span>
+            <label>Số dòng<select aria-label=${`Số dòng ${label}`} ?disabled=${this._busy} @change=${e => this._localPage(key, 1, Number(e.target.value))}>${[10, 20, 50, 100].map(n => html`<option value=${n} .selected=${p.size === n}>${n}</option>`)}</select></label>
+            <div class="page-buttons"><button aria-label=${`Trang đầu ${label}`} ?disabled=${this._busy || p.page <= 1} @click=${() => this._localPage(key, 1, p.size)}>«</button><button ?disabled=${this._busy || p.page <= 1} @click=${() => this._localPage(key, p.page - 1, p.size)}>← Trước</button>
+            <span aria-live="polite">Trang ${p.page} / ${p.pages}</span><button ?disabled=${this._busy || p.page >= p.pages} @click=${() => this._localPage(key, p.page + 1, p.size)}>Sau →</button><button aria-label=${`Trang cuối ${label}`} ?disabled=${this._busy || p.page >= p.pages} @click=${() => this._localPage(key, p.pages, p.size)}>»</button></div>
+        </nav>`;
+    }
     async _export(kind) {
         this._busy = true; this._error = '';
         try {
@@ -80,6 +93,7 @@ export class ContestReportsView extends UmbLitElement {
         } catch (error) { this._error = error.message; } finally { this._busy = false; }
     }
     async _open(id, trigger) {
+        this._pagination = {};
         this._busy = true; this._error = '';
         try {
             this._detail = await (await this._request('/entries/' + id)).json(); this._trigger = trigger;
@@ -130,9 +144,10 @@ export class ContestReportsView extends UmbLitElement {
     }
     _dashboard() {
         const d = this._data, max = Math.max(1, ...d.scores.map(s => s.count));
+        const days = this._slice(d.days, 'days', 10);
         return html`<div class="metrics">${[['Lượt đã tạo', d.created], ['Đã nộp', d.submitted], ['Có tên', d.named], ['Ẩn danh', d.anonymous], ['Điện thoại khác nhau', d.distinctPhones]].map(([label, count]) => html`<article>${label}<strong>${count.toLocaleString('vi-VN')}</strong></article>`)}</div>
             <div class="dashboard-panels"><section><h2>Phân bố điểm</h2><p class="muted panel-note">Số lượt đã nộp theo từng mức điểm</p><div class="chart">${d.scores.map(s => html`<div><span>${s.count}</span><svg width="32" height="160" role="img" aria-label=${`${s.score} điểm: ${s.count} lượt`}><rect x="0" y=${160 - Math.round(150 * s.count / max)} width="32" height=${Math.round(150 * s.count / max)}></rect></svg><span>${s.score}</span></div>`)}</div>${!d.scores.length ? html`<p class="empty-state">Chưa có lượt đã nộp.</p>` : nothing}</section>
-            <section><h2>Lượt thi theo ngày</h2><p class="muted panel-note">Tính theo ngày tạo · Giờ Việt Nam</p><div class="scroll"><table><thead><tr><th>Ngày</th><th>Số lượt</th></tr></thead><tbody>${d.days.map(day => html`<tr><td>${day.day.slice(0, 10).split('-').reverse().join('/')}</td><td><strong>${day.count}</strong></td></tr>`)}</tbody></table></div>${!d.days.length ? html`<p class="empty-state">Chưa có lượt thi.</p>` : nothing}</section></div>`;
+            <section><h2>Lượt thi theo ngày</h2><p class="muted panel-note">Tính theo ngày tạo · Giờ Việt Nam</p><div class="scroll"><table><thead><tr><th>Ngày</th><th>Số lượt</th></tr></thead><tbody>${days.items.map(day => html`<tr><td>${day.day.slice(0, 10).split('-').reverse().join('/')}</td><td><strong>${day.count}</strong></td></tr>`)}</tbody></table></div>${this._pager('days', days, 'lượt thi theo ngày')}${!d.days.length ? html`<p class="empty-state">Chưa có lượt thi.</p>` : nothing}</section></div>`;
     }
     _entries() {
         const d = this._data;
@@ -143,17 +158,20 @@ export class ContestReportsView extends UmbLitElement {
             <div class="actions pager"><button ?disabled=${this._busy || d.page <= 1} @click=${() => this._page(-1)}>← Trước</button><span>Trang ${d.page} / ${Math.max(1, d.pages)}</span><button ?disabled=${this._busy || d.page >= d.pages} @click=${() => this._page(1)}>Sau →</button></div>`;
     }
     _questions() {
+        const questions = this._slice(this._data, 'questions');
         return html`<p>Tỷ lệ đúng = số đúng / lượt trả lời. Xếp tăng dần, câu chưa ai trả lời nằm cuối. Số liệu tách riêng từng cuộc thi.</p>
             <div class="actions"><button ?disabled=${this._busy} @click=${() => this._export('questions')}>Xuất thống kê CSV</button><span>${this._data.length} câu / phiên bản</span></div>
             <div class="scroll"><table><thead><tr><th>Cuộc thi</th><th>Chuyên đề</th><th>Mã câu</th><th>Nội dung</th><th>Trả lời</th><th>Đúng</th><th>Tỷ lệ đúng</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead><tbody>
-                ${this._data.map(q => html`<tr><td>${q.contestName}</td><td>${q.topicId}</td><td>${q.code}</td><td class="question">${q.text}</td><td>${q.answered}</td><td>${q.correct}</td><td>${q.correctRate == null ? 'Chưa có' : (q.correctRate * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + '%'}</td><td>${q.a}</td><td>${q.b}</td><td>${q.c}</td><td>${q.d}</td></tr>`)}
-            </tbody></table></div>`;
+                ${questions.items.map(q => html`<tr><td>${q.contestName}</td><td>${q.topicId}</td><td>${q.code}</td><td class="question">${q.text}</td><td>${q.answered}</td><td>${q.correct}</td><td>${q.correctRate == null ? 'Chưa có' : (q.correctRate * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + '%'}</td><td>${q.a}</td><td>${q.b}</td><td>${q.c}</td><td>${q.d}</td></tr>`)}
+            </tbody></table></div>${this._pager('questions', questions, 'thống kê câu hỏi')}${!questions.total ? html`<p class="empty-state">Không có câu hỏi phù hợp.</p>` : nothing}`;
     }
     _publication() {
         if (!this._state) return html`<section class="empty-state"><h2>Chọn cuộc thi để bắt đầu</h2><p>Xem trạng thái, chọn lần quay và kiểm tra kết quả trước khi công bố.</p></section>`;
+        const draws = this._slice(this._draws, 'draws', 10);
         return html`<section><div class="publication-state"><h2>Kết quả cuộc thi</h2><span class=${`badge ${this._state.isPublished ? 'on' : 'off'}`}>${this._state.isPublished ? 'Đã công bố' : 'Chưa công bố'}</span></div><p class="muted">Phiên bản ${this._state.revision} · Công bố gần nhất: ${date(this._state.publishedAt)}</p>
             <p class="publication-explanation">Bảng xếp hạng lấy lượt tốt nhất của mỗi số điện thoại đã nộp. Chỉ được công bố khi hết thời gian gia hạn. Các lần quay không được chọn sẽ không công khai.</p><h3>Lần quay được công bố</h3>
-            ${this._draws.map(draw => html`<label class="check publication-draw"><input type="checkbox" ?checked=${this._selected.includes(draw.id)} ?disabled=${this._busy || this._state.isPublished} @change=${e => { this._selected = e.target.checked ? [...this._selected, draw.id] : this._selected.filter(id => id !== draw.id); }}><span><strong>Lần quay #${draw.id}</strong><small class="block">${date(draw.createdAt)} · ${draw.winnerCount} người trúng</small></span></label>`)}
+            ${draws.items.map(draw => html`<label class="check publication-draw"><input type="checkbox" .checked=${this._selected.includes(draw.id)} ?disabled=${this._busy || this._state.isPublished} @change=${e => { this._selected = e.target.checked ? [...this._selected, draw.id] : this._selected.filter(id => id !== draw.id); }}><span><strong>Lần quay #${draw.id}</strong><small class="block">${date(draw.createdAt)} · ${draw.winnerCount} người trúng</small></span></label>`)}
+            ${this._pager('draws', draws, 'lần quay công bố')}
             ${!this._draws.length ? html`<p>Chưa có lần quay. Có thể công bố riêng bảng xếp hạng.</p>` : nothing}
             <div class="actions publication-actions"><button class=${this._state.isPublished ? 'danger' : 'primary'} ?disabled=${this._busy} @click=${() => this._publish(!this._state.isPublished)}>${this._state.isPublished ? 'Gỡ công bố' : 'Công bố kết quả'}</button></div></section>`;
     }
@@ -162,9 +180,9 @@ export class ContestReportsView extends UmbLitElement {
         return html`<dialog class="entry-dialog" aria-label=${`Chi tiết ${e.code}`} @cancel=${() => { this._detail = null; this._trigger?.focus(); }} @close=${() => { this._detail = null; }}><div class="dialog-header"><div><div class="eyebrow">Bài làm của thí sinh</div><h2>Chi tiết ${e.code}</h2></div><button aria-label="Đóng" @click=${this._close}>× Đóng</button></div>
             <div class="entry-summary">${[['Họ và tên', e.fullName || 'Ẩn danh'], ['Số điện thoại', e.phone || 'Không có điện thoại'], ['Đơn vị', e.org || 'Không có đơn vị'], ['Chế độ / lượt thứ', `${mode(e.mode)} · ${e.attemptNo ?? '—'}`], ['Trạng thái', status(e.status)], ['Bài làm', `Đã làm ${e.answered}/${d.questions.length} · Đúng ${e.correct}`], ['Thời điểm tạo', date(e.createdAt)], ['Thời điểm nộp', date(e.submittedAt)]].map(([label, value]) => html`<dl><dt>${label}</dt><dd>${value}</dd></dl>`)}</div><div class="entry-content">
             ${!d.hasSnapshot ? html`<p class="error">Lượt cũ không có snapshot. Không suy đoán đáp án đúng từ ngân hàng hiện tại.</p>` : nothing}
-            ${d.topics.map(t => html`<details open><summary><strong>${t.title}</strong><span class="tree-count">Đúng ${t.correct}/${t.total} · Đã làm ${t.answered}</span></summary><div class="scroll"><table><thead><tr><th>Mã câu</th><th>Nội dung</th><th>Đã chọn</th><th>Đáp án đúng</th><th>Kết quả</th><th>Trả lời lúc</th></tr></thead><tbody>
-                ${d.questions.filter(q => q.topicId === t.topicId).map(q => html`<tr data-question-code=${q.code}><td class="mono">${q.code}</td><td class="question">${q.text}</td><td>${q.chosen ? html`<span class="answer">${q.chosen}</span>` : '—'}</td><td>${q.correctAnswer || 'Không có snapshot'}</td><td class=${q.correct == null ? 'result-unanswered' : q.correct ? 'result-correct' : 'result-incorrect'}>${q.correct == null ? 'Chưa trả lời' : q.correct ? 'Đúng' : 'Sai'}</td><td class="nowrap">${date(q.answeredAt)}</td></tr>`)}
-            </tbody></table></div></details>`)}</div><footer class="dialog-footer"><button @click=${this._close}>Đóng</button></footer></dialog>`;
+            ${d.topics.map(t => { const key = `topic-${t.topicId}`; const questions = this._slice(d.questions.filter(q => q.topicId === t.topicId), key); return html`<details open><summary><strong>${t.title}</strong><span class="tree-count">Đúng ${t.correct}/${t.total} · Đã làm ${t.answered}</span></summary><div class="scroll"><table><thead><tr><th>Mã câu</th><th>Nội dung</th><th>Đã chọn</th><th>Đáp án đúng</th><th>Kết quả</th><th>Trả lời lúc</th></tr></thead><tbody>
+                ${questions.items.map(q => html`<tr data-question-code=${q.code}><td class="mono">${q.code}</td><td class="question">${q.text}</td><td>${q.chosen ? html`<span class="answer">${q.chosen}</span>` : '—'}</td><td>${q.correctAnswer || 'Không có snapshot'}</td><td class=${q.correct == null ? 'result-unanswered' : q.correct ? 'result-correct' : 'result-incorrect'}>${q.correct == null ? 'Chưa trả lời' : q.correct ? 'Đúng' : 'Sai'}</td><td class="nowrap">${date(q.answeredAt)}</td></tr>`)}
+            </tbody></table></div>${this._pager(key, questions, t.title)}</details>`; })}</div><footer class="dialog-footer"><button @click=${this._close}>Đóng</button></footer></dialog>`;
     }
     render() {
         return html`<umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>${titles[this.view]}</h1><p class="page-description">${descriptions[this.view]}</p></div><span class="page-context">Giờ Việt Nam · UTC+7</span></header>

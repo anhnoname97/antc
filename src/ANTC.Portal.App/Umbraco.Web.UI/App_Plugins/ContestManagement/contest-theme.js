@@ -96,6 +96,8 @@ dialog td.question{max-width:620px}
 .answer{display:inline-grid;place-items:center;width:28px;height:28px;background:var(--cm-accent-soft);color:var(--cm-accent-text);border:1px solid #d9e2fc;border-radius:7px;font-weight:650;font-size:12px}
 .empty,.empty-state{text-align:center;padding:44px 20px;color:var(--cm-muted)}
 .pager{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:18px 0 0;color:var(--cm-muted);font-size:12px;font-variant-numeric:tabular-nums}
+.local-pager{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:16px 0 0;font-size:12px;color:var(--cm-muted);font-variant-numeric:tabular-nums}
+.local-pager label,.page-buttons{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.local-pager label{font-size:12px;white-space:nowrap}.local-pager select{width:72px;min-height:32px;padding:5px 8px}.local-pager button{min-height:32px;padding:6px 9px}.page-buttons>span{white-space:nowrap}.entry-content .local-pager{padding:0 16px 16px}.page-range{white-space:nowrap}
 .tabs{display:inline-flex;gap:4px;padding:4px;border-radius:9px;background:var(--cm-hover);flex-wrap:wrap}
 .tabs button{border-color:transparent;background:transparent;box-shadow:none;color:var(--cm-muted);min-height:32px;padding:7px 12px}
 .tabs button.primary{color:var(--cm-text);background:var(--cm-surface);border-color:var(--cm-border);box-shadow:0 1px 3px #1920330a}

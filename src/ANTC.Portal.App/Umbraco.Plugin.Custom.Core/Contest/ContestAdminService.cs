@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
@@ -68,19 +69,25 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
 
     public async Task<ContestCampaignAdminDto> CreateCampaignAsync(SaveContestCampaignRequest request, CancellationToken ct)
     {
+        // Microsoft.Data.Sqlite starts a non-deferred write transaction at Serializable isolation.
+        // Acquire it BEFORE reading the schedule, so concurrent requests cannot both pass the check.
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         ValidatedCampaign validated = await ValidateCampaignAsync(request, ct);
+        await EnsureScheduleAvailableAsync(validated, null, ct);
         DateTime now = UtcNow();
         var campaign = new ContestCampaign { CreatedAt = now, Revision = 1,
             BankVersion = await CurrentBankVersionAsync(ct) };
         ApplyCampaign(campaign, request, validated, now);
         db.ContestCampaigns.Add(campaign);
         await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
         bank?.Reload();
         return (await GetCampaignAsync(campaign.Id, ct))!;
     }
 
     public async Task<ContestCampaignAdminDto?> UpdateCampaignAsync(long id, SaveContestCampaignRequest request, CancellationToken ct)
     {
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         ContestCampaign? campaign = await db.ContestCampaigns.Include(x => x.Topics).Include(x => x.Questions)
             .AsSplitQuery()
             .SingleOrDefaultAsync(x => x.Id == id, ct);
@@ -94,12 +101,14 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
             campaign.UpdatedAt = UtcNow();
             campaign.Revision++;
             await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
             bank?.Reload();
             return (await GetCampaignAsync(id, ct))!;
         }
         if (started)
             throw new ContestAdminConflictException("CONTEST_LOCKED", "Cuộc thi đã bắt đầu hoặc đã có lượt dự thi; chỉ được thay đổi trạng thái sử dụng.");
         ValidatedCampaign validated = await ValidateCampaignAsync(request, ct);
+        await EnsureScheduleAvailableAsync(validated, id, ct);
         if (DeckChanged(campaign, validated))
         {
             int entryCount = await db.Entries.CountAsync(x => x.ContestId == id, ct);
@@ -109,6 +118,7 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         campaign.Revision++;
         ApplyCampaign(campaign, request, validated, UtcNow());
         await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
         bank?.Reload();
         return (await GetCampaignAsync(id, ct))!;
     }
@@ -253,6 +263,21 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         if (request.WinnersRequested is < 1 or > 1000) fields["winnersRequested"] = "Số người trúng phải từ 1 đến 1.000.";
         if (request.Note?.Trim().Length > 200) fields["note"] = "Ghi chú tối đa 200 ký tự.";
         if (fields.Count > 0) throw new ContestAdminValidationException(fields);
+    }
+
+    private async Task EnsureScheduleAvailableAsync(ValidatedCampaign proposed, long? excludedId, CancellationToken ct)
+    {
+        // Inclusive endpoints match the participation window. Inactive contests still reserve their dates;
+        // submit grace is deliberately excluded. Never compare an edited contest with itself.
+        IQueryable<ContestCampaign> query = db.ContestCampaigns.AsNoTracking();
+        if (excludedId is { } id) query = query.Where(x => x.Id != id);
+        var conflict = await query
+            .Where(x => x.StartAt <= proposed.EndAt && x.EndAt >= proposed.StartAt)
+            .OrderBy(x => x.StartAt).ThenBy(x => x.Id)
+            .Select(x => new { x.Id, x.Name }).FirstOrDefaultAsync(ct);
+        if (conflict is not null)
+            throw new ContestAdminConflictException("CONTEST_TIME_OVERLAP",
+                $"Thời gian diễn ra trùng với cuộc thi #{conflict.Id} “{conflict.Name}”. Vui lòng chọn khoảng thời gian khác; thời điểm bắt đầu phải sau thời điểm kết thúc cuộc thi trước.");
     }
 
     private async Task<ValidatedCampaign> ValidateCampaignAsync(SaveContestCampaignRequest request, CancellationToken ct)
