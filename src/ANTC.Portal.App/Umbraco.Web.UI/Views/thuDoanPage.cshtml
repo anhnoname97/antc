@@ -1,17 +1,9 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using Umbraco.Cms.Core.Models.Blocks
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
 }
-@section Head {
-    <link rel="stylesheet" href="~/assets/css/home.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/assets/css/fraud.css" asp-append-version="true">
-}
-<div id="nj-thu-doan" class="home-content fraud-content">
-    @await Html.GetBlockGridHtmlAsync(Model.Value<BlockGridModel>("layout"))
-</div>
-@section Scripts {
-    <script defer src="~/assets/js/vendor/gsap.min.js" asp-append-version="true"></script>
-    <script defer src="~/assets/js/vendor/ScrollTrigger.min.js" asp-append-version="true"></script>
-    <script type="module" src="~/assets/js/fraud.js" asp-append-version="true"></script>
-}
+<section class="page-hero">
+    <div class="container">
+        <h1>@Model.Name</h1>
+    </div>
+</section>

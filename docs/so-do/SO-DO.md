@@ -44,7 +44,6 @@ graph TD
   seoBase["SEO dùng chung<br/><i>seoBase</i>"]
   thamGiaPage["Trang Tham gia<br/><i>thamGiaPage</i>"]
   thiPage["Trang Cuộc thi<br/><i>thiPage</i>"]
-  thiThangPage["Trang Cuộc thi tháng<br/><i>thiThangPage</i>"]
   thiThuPage["Trang Thử sức<br/><i>thiThuPage</i>"]
   thuDoanPage["Trang Thủ đoạn<br/><i>thuDoanPage</i>"]
   ungPhoPage["Trang Ứng phó khẩn cấp<br/><i>ungPhoPage</i>"]
@@ -61,7 +60,6 @@ graph TD
   contentManagement --> articleManagement
   contentManagement --> articleList
   hoiDapPage -. composition .-> seoBase
-  hoiDapPage -.-> tpl_hoiDapPage{{"hoiDapPage.cshtml"}}
   home --> ungPhoPage
   home --> thuDoanPage
   home --> thamGiaPage
@@ -70,7 +68,6 @@ graph TD
   home --> hoiDapPage
   home --> chinhSachPage
   home --> searchPage
-  home --> thiThangPage
   home -. composition .-> seoBase
   home -.-> tpl_home{{"home.cshtml"}}
   pageManagement --> home
@@ -81,8 +78,6 @@ graph TD
   thamGiaPage -.-> tpl_thamGiaPage{{"thamGiaPage.cshtml"}}
   thiPage -. composition .-> seoBase
   thiPage -.-> tpl_thiPage{{"thiPage.cshtml"}}
-  thiThangPage -. composition .-> seoBase
-  thiThangPage -.-> tpl_thiThangPage{{"thiThangPage.cshtml"}}
   thiThuPage -. composition .-> seoBase
   thiThuPage -.-> tpl_thiThuPage{{"thiThuPage.cshtml"}}
   thuDoanPage -. composition .-> seoBase
@@ -121,7 +116,7 @@ Tổng 61 element type.
 | story | 1 | storyChapterBlock |
 | two | 1 | twoColumnLayoutBlock |
 
-## 4. Cây nội dung mẫu (37 node)
+## 4. Cây nội dung mẫu (36 node)
 
 ```mermaid
 graph LR
@@ -144,8 +139,6 @@ graph LR
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> n56fa7c6b_f4e1_44be_8200_ec8be7404349
   ndc0bff3b_10be_53d5_87dc_d23ea675fd94["Chính sách<br/><i>chinhSachPage</i>"]
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> ndc0bff3b_10be_53d5_87dc_d23ea675fd94
-  n3ef975f7_186f_5a25_9e0a_dfe100d471d8["Cuộc thi tháng<br/><i>thiThangPage</i>"]
-  nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd --> n3ef975f7_186f_5a25_9e0a_dfe100d471d8
   n437e3947_4f08_52e1_baee_75907a540fac --> nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd
   n068471f0_605e_57ee_b164_547aee46bc79 --> n437e3947_4f08_52e1_baee_75907a540fac
   n5a1e0af5_bbf2_54ed_a359_bc4716736ea5["Quản lý nội dung<br/><i>contentManagement</i>"]
@@ -207,13 +200,12 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Administration | 1 | AdministrationAccess |
-| Articles | 7 | ArticleContentSource, ArticleHtmlSanitizer, ArticleModels, ArticleQuery, ArticleReviewPolicy, ArticleSchemaMigration, PublishedArticleService |
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
-| Contest | 7 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, ContestScheduleService, CurrentContestService, UmbracoContestSettingsProvider |
+| Contest | 5 | ContestAdminModels, ContestAdminService, ContestEntryService, ContestModels, UmbracoContestSettingsProvider |
 | Data | 3 | AppDbContext, AppDbInitializer, Entities |
-| Questions | 5 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionSubmissionService |
+| Questions | 4 | QuestionCsv, QuestionModels, QuestionModerationService, QuestionSubmissionService |
 | Quiz | 3 | QuestionBank, QuizAdminModels, QuizAdminService |
 | Services | 1 | AppInfoService |
 
@@ -222,7 +214,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Composers | 1 | CustomApiComposer |
-| Controllers | 10 | ContestAdminController, ContestController, LegacyQuestionsAdministrationController, PublishedArticlesController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
+| Controllers | 9 | ContestAdminController, ContestController, LegacyQuestionsAdministrationController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
 | Models | 2 | ContestEntryModels, QuestionModels |
 | Validation | 2 | ContestEntryRequestValidator, QuestionRequestValidator |
 
@@ -230,7 +222,7 @@ graph LR
 
 | Thư mục | Số file | File |
 |---|---|---|
-| (gốc) | 12 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, ContestScheduleServiceTests, CurrentContestServiceTests, QuestionBankTests, QuestionGuidanceTests, QuestionsControllerTests, QuizAdminServiceTests, QuizControllerTests, Usings |
+| (gốc) | 8 | AntcPublicPathsTests, ContestCampaignAdminServiceTests, ContestEntryRequestValidatorTests, ContestEntryServiceTests, QuestionBankTests, QuizAdminServiceTests, QuizControllerTests, Usings |
 
 
 ### API routes
@@ -240,9 +232,8 @@ graph LR
 | ContestAdminController | GET api/v1/admin/contest/campaigns, GET api/v1/admin/contest/campaigns/question-tree, GET api/v1/admin/contest/campaigns/{id:long}, POST api/v1/admin/contest/campaigns, PUT api/v1/admin/contest/campaigns/{id:long}, DELETE api/v1/admin/contest/campaigns/{id:long}, GET api/v1/admin/contest/entries, GET api/v1/admin/contest/entries/{id:long}, GET api/v1/admin/contest/draws, GET api/v1/admin/contest/draws/{id:long}, POST api/v1/admin/contest/draws, PUT api/v1/admin/contest/draws/{id:long}, DELETE api/v1/admin/contest/draws/{id:long} |
 | ContestController | POST api/v1/contest/entries |
 | LegacyQuestionsAdministrationController | GET //quan-tri/hoi-dap |
-| PublishedArticlesController | GET api/v1/article-categories, GET api/v1/articles, GET api/v1/articles/{id:guid} |
 | PublishedQuestionsController | GET api/v1/questions, GET api/v1/questions/{id:long} |
-| QuestionManagementController | POST , GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
+| QuestionManagementController | GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
 | QuestionsController | POST api/v1/questions |
 | QuizAdminController | GET api/v1/admin/quiz/topics, GET api/v1/admin/quiz/topics/{id:int}, POST api/v1/admin/quiz/topics, PUT api/v1/admin/quiz/topics/{id:int}, DELETE api/v1/admin/quiz/topics/{id:int}, GET api/v1/admin/quiz/questions, GET api/v1/admin/quiz/questions/{code}, POST api/v1/admin/quiz/questions, PUT api/v1/admin/quiz/questions/{code}, DELETE api/v1/admin/quiz/questions/{code} |
 | QuizController | GET api/v1/quiz/topics, GET api/v1/quiz/topics/{topic:int}/questions, GET api/v1/quiz/sample |

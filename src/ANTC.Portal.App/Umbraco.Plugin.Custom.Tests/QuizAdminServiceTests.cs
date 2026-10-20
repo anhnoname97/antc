@@ -58,6 +58,23 @@ public class QuizAdminServiceTests
         Assert.False((await test.Db.QuizQuestions.SingleAsync()).IsActive);
     }
 
+    [Fact]
+    public async Task DeleteQuestion_DeactivatesWhenCampaignReferencesIt()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        await test.Service.CreateQuestionAsync(ValidQuestion(), "admin", default);
+        var campaign = new ContestCampaign { Name = "Test", StartAt = DateTime.UtcNow.AddDays(1), EndAt = DateTime.UtcNow.AddDays(2), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        campaign.Topics.Add(new ContestTopic { TopicId = 1, Title = "Chuyên đề 1", Intro = "[]" });
+        campaign.Questions.Add(new ContestQuestion { QuestionCode = "Q-001", TopicId = 1, Kind = "Trắc nghiệm", QuestionText = "Snapshot", Options = "[]", Answer = "B", Explanations = "{}" });
+        test.Db.ContestCampaigns.Add(campaign);
+        await test.Db.SaveChangesAsync();
+
+        DeleteQuizQuestionResult result = (await test.Service.DeleteQuestionAsync("Q-001", "admin", default))!;
+
+        Assert.True(result.Deactivated);
+        Assert.False((await test.Db.QuizQuestions.SingleAsync()).IsActive);
+    }
+
     private static SaveQuizQuestionRequest ValidQuestion() => new(
         "Q-001", 1, "Trắc nghiệm", "", "Đâu là đáp án đúng?",
         [

@@ -8,11 +8,11 @@
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
     var id = $"qa-published-{Model.ContentKey:N}";
     var currentPage = int.TryParse(Context.Request.Query["qaPage"], out var requestedPage) && requestedPage > 0 ? requestedPage : 1;
-    var result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6, Type: "cau-hoi"), Context.RequestAborted);
+    var result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6), Context.RequestAborted);
     if (currentPage > result.TotalPages)
     {
         currentPage = result.TotalPages;
-        result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6, Type: "cau-hoi"), Context.RequestAborted);
+        result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6), Context.RequestAborted);
     }
     string PageUrl(int number)
     {

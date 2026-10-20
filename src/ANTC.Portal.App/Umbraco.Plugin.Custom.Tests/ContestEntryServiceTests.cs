@@ -8,11 +8,21 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class ContestEntryServiceTests
 {
     [Fact]
-    public void ContestWithoutBothTimeBoundaries_IsClosed()
+    public async Task NoActiveCampaign_ReturnsContestClosed()
     {
-        var settings = new ContestSettings(null, null, 2);
-
-        Assert.False(settings.IsOpenAt(DateTimeOffset.UtcNow));
+        string databasePath = Path.Combine(Path.GetTempPath(), $"antc-contest-{Guid.NewGuid():N}.db");
+        try
+        {
+            await using AppDbContext db = CreateDb(databasePath);
+            await db.Database.EnsureCreatedAsync();
+            await Assert.ThrowsAsync<ContestClosedException>(() => CreateService(db).CreateAsync(
+                new ContestEntryRegistration(EntryModes.Anon, null, null, null, false), "127.0.0.1"));
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
     }
 
     [Fact]
@@ -24,6 +34,8 @@ public class ContestEntryServiceTests
             await using (AppDbContext setup = CreateDb(databasePath))
             {
                 await setup.Database.EnsureCreatedAsync();
+                setup.ContestCampaigns.Add(ActiveContest());
+                await setup.SaveChangesAsync();
             }
 
             var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -68,6 +80,8 @@ public class ContestEntryServiceTests
         {
             await using AppDbContext db = CreateDb(databasePath);
             await db.Database.EnsureCreatedAsync();
+            db.ContestCampaigns.Add(ActiveContest());
+            await db.SaveChangesAsync();
             IContestEntryService service = CreateService(db);
 
             ContestEntryCreationResult result = await service.CreateAsync(
@@ -91,6 +105,38 @@ public class ContestEntryServiceTests
         }
     }
 
+    [Fact]
+    public async Task AttemptLimit_IsCountedPerContest()
+    {
+        string databasePath = Path.Combine(Path.GetTempPath(), $"antc-contest-{Guid.NewGuid():N}.db");
+        try
+        {
+            await using AppDbContext db = CreateDb(databasePath);
+            await db.Database.EnsureCreatedAsync();
+            ContestCampaign oldContest = ActiveContest();
+            oldContest.Name = "Cuộc thi cũ";
+            oldContest.IsActive = false;
+            ContestCampaign currentContest = ActiveContest();
+            db.ContestCampaigns.AddRange(oldContest, currentContest);
+            await db.SaveChangesAsync();
+            db.Entries.AddRange(
+                new Entry { ContestId = oldContest.Id, Code = "AD-OLD001", TokenHash = new string('a', 64), Mode = EntryModes.Named, Phone = "0912345678", CreatedAt = DateTime.UtcNow },
+                new Entry { ContestId = oldContest.Id, Code = "AD-OLD002", TokenHash = new string('b', 64), Mode = EntryModes.Named, Phone = "0912345678", CreatedAt = DateTime.UtcNow });
+            await db.SaveChangesAsync();
+
+            ContestEntryCreationResult result = await CreateService(db).CreateAsync(
+                new ContestEntryRegistration(EntryModes.Named, "Nguyễn Văn An", "0912345678", null, true), "127.0.0.1");
+
+            Assert.Equal(1, result.AttemptNo);
+            Assert.Equal(currentContest.Id, (await db.Entries.SingleAsync(x => x.Code == result.Code)).ContestId);
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
+    }
+
     private static AppDbContext CreateDb(string path)
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -102,13 +148,17 @@ public class ContestEntryServiceTests
     private static ContestEntryService CreateService(AppDbContext db) =>
         new(
             db,
-            new FixedSettingsProvider(),
             Options.Create(new ContestSecurityOptions { IpHashSalt = "test-salt" }),
             TimeProvider.System);
 
-    private sealed class FixedSettingsProvider : IContestSettingsProvider
+    private static ContestCampaign ActiveContest() => new()
     {
-        public ContestSettings GetCurrent() =>
-            new(DateTimeOffset.UtcNow.AddHours(-1), DateTimeOffset.UtcNow.AddHours(1), 2);
-    }
+        Name = "Cuộc thi đang diễn ra",
+        StartAt = DateTime.UtcNow.AddHours(-1),
+        EndAt = DateTime.UtcNow.AddHours(1),
+        MaxAttempts = 2,
+        IsActive = true,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow,
+    };
 }
