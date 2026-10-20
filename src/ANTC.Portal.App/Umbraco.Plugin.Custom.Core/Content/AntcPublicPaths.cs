@@ -8,7 +8,8 @@ public static class AntcPublicPaths
     private static readonly IReadOnlyDictionary<string, string> FixedPaths = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["home"] = "/", ["ungPhoPage"] = "/ung-pho/", ["thuDoanPage"] = "/thu-doan/",
-        ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi/", ["cuocThiLamBaiPage"] = "/cuoc-thi/lam-bai/",
+        ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi/",
+        ["thiThangPage"] = "/cuoc-thi-thang/", ["cuocThiLamBaiPage"] = "/cuoc-thi/lam-bai/",
         ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/"
     };
 

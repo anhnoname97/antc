@@ -1,0 +1,17 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+<section class="contest" aria-label="Cuộc thi">
+    <div class="container contest__row">
+        <div id="cmain" class="contest__main" data-contest-status="loading">
+            @foreach (var area in Model.Areas.Where(x => x.Alias == "main"))
+            {
+                @await Html.GetBlockGridItemAreaHtmlAsync(area)
+            }
+            <div id="examview" hidden></div>
+        </div>
+        @foreach (var area in Model.Areas.Where(x => x.Alias == "sidebar"))
+        {
+            @await Html.GetBlockGridItemAreaHtmlAsync(area)
+        }
+    </div>
+</section>

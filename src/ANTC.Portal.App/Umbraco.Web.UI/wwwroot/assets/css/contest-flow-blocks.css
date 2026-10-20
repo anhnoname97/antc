@@ -1,0 +1,46 @@
+/* FE-25–29: v2 visual language; state, scores and timing remain owned by the API. */
+.contest-flow-page{
+ --c-brand:#14233B;--c-brand-600:#243C60;--c-brand-900:#0E1A2E;--c-accent:#14233B;
+ --c-on-brand:#fff;--c-on-brand-accent:#E3C88F;--c-on-brand-muted:#D7DEEA;--c-on-brand-soft:#D7DEEA;
+ --c-text:#1B1F27;--c-text-2:#4A4F5A;--c-text-3:#4A4F5A;--c-text-4:#6B7280;
+ --c-border:#DDD5C6;--c-border-input:#C9C0AE;--c-bg:#fff;--c-bg-soft:#F6F2EA;--c-bg-soft-2:#EEF1F6;
+ --c-ok:#14853B;--c-ok-bg:#E7F6EC;--c-track:#DDD5C6;--c-lock-bg:#F6F2EA;--c-lock-text:#6B7280;
+ --c-tint:#FCEBE9;--c-tint-border:#F3C5C0;--radius:18px;--radius-sm:8px;
+ --amber:#A85F00;--amber-soft:#FFF3DF;
+ font-family:'Roboto',Arial,Helvetica,sans-serif;background:#F6F2EA;color:var(--c-text);
+}
+.contest-flow-page .umb-block-grid__layout-container,
+.contest-flow-page .umb-block-grid__layout-item,
+.contest-flow-page .umb-block-grid__area-container,
+.contest-flow-page .umb-block-grid__area{display:contents}
+.contest-flow-page .page-hero--contest{background:radial-gradient(ellipse at 80% 20%,#24406A,#0E1A2E 75%);color:#fff}
+.contest-flow-page .page-hero--contest h1{color:#fff}
+.contest-flow-page .eyebrow,.contest-flow-page .qeyebrow{color:#89662F;letter-spacing:.16em}
+.contest-flow-page .page-hero .eyebrow{color:#E3C88F}
+.contest-flow-page .qeyebrow__sq{background:currentColor}
+.contest-flow-page .contest__h2,.contest-flow-page .sidecard__code{color:var(--c-brand)}
+.contest-flow-page .btn,.contest-flow-page .qnav{border-radius:40px}
+.contest-flow-page .mode:has(input:checked){border-color:#14233B;background:#EEF1F6}
+.contest-flow-page .pinkbox{background:var(--amber-soft);border-color:#E7C794;color:var(--c-text)}
+.contest-flow-page .qopt{border-radius:8px}
+.contest-flow-page .qopt.wrong{border-color:var(--amber);background:var(--amber-soft)}
+.contest-flow-page .qopt.wrong .ql{background:var(--amber)}
+.contest-flow-page .qmark--no,.contest-flow-page .qno{color:var(--amber)}
+.contest-flow-page .qopt:hover:not(:disabled) .ql{background:#EEF1F6}
+.contest-flow-page .qdot.no:after{background:var(--amber)}
+.contest-flow-page .qnav:focus-visible,.contest-flow-page summary:focus-visible,.contest-flow-page input:focus-visible{outline:3px solid #2F6FD6;outline-offset:3px}
+.contest-flow-page .sdlg{max-height:90svh;overflow-y:auto}
+.contest-flow-page [hidden]{display:none!important}
+@media(max-width:900px){.contest-flow-page .contest__main,.contest-flow-page .contest__side{flex-basis:100%}.contest-flow-page .contest__side{position:static}}
+@media(max-width:640px){.contest-flow-page .contest__main{padding:24px}.contest-flow-page .sdlg__actions{display:flex;flex-direction:column}.contest-flow-page .sdlg__actions button{width:100%}}
+@media(prefers-reduced-motion:reduce){.contest-flow-page *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.contest-flow-page .eyebrow::before{width:32px;height:2px;background:currentColor}
+
+/* Form dang ky: hai truong chinh cung hang, don vi co du khong gian cho nhan. */
+.contest-flow-page #rgform .fieldgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 16px}
+.contest-flow-page #rgform .registration-organization{grid-column:1/-1}
+.contest-flow-page #rgform .field{font-weight:400;font-size:1rem}
+.contest-flow-page #rgform .field::placeholder{color:var(--c-text-4);opacity:1}
+.contest-flow-page .mode>span{min-width:0}
+.contest-flow-page .mode span span{display:block;margin-top:6px;line-height:1.6}
+@media(max-width:560px){.contest-flow-page #rgform .fieldgrid{grid-template-columns:minmax(0,1fr)}}

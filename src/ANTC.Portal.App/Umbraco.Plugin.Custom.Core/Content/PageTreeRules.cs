@@ -6,7 +6,7 @@ public static class PageTreeRules
     private static readonly HashSet<string> FixedPages = new(StringComparer.Ordinal)
     {
         "ungPhoPage", "thuDoanPage", "thamGiaPage", "thiThuPage",
-        "thiPage", "cuocThiLamBaiPage", "hoiDapPage", "chinhSachPage", "searchPage"
+        "thiPage", "thiThangPage", "cuocThiLamBaiPage", "hoiDapPage", "chinhSachPage", "searchPage"
     };
 
     public static bool IsSingleton(string alias) =>

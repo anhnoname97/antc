@@ -1,6 +1,7 @@
+import { blockCopy } from './block-copy.js';
 // Nop bai, gan thong tin du thuong cho luot an danh, man ket qua luot thi (FE-29).
 // exam.js goi: panelHtml (thanh nop bai o danh sach / man Xong chuyen de), attachButtonHtml (cot ben), resultHtml (man ket qua),
-// wire (mo hop thoai khi bam nut). Trang thai lay tu contest-store.js; hop thoai la <dialog id="sdlg"> trong _LuongThi.cshtml.
+// wire (mo hop thoai khi bam nut). Trang thai lay tu contest-store.js; hop thoai la <dialog id="sdlg"> trong contestSubmissionBlock.cshtml.
 import { state, submit, attachContact, topicProgress } from './contest-store.js';
 import { checkContact } from './phone.js';
 import { esc, eyebrowHtml } from '../quiz/quiz-ui.js';
@@ -115,16 +116,16 @@ export function resultHtml(topics, r, canRetry) {
   const total = r ? r.total : state.total;
   const when = fmtTime(r ? r.submittedAt : state.submittedAt);
   const sub = [state.contest ? `Cuộc thi “${esc(state.contest.name)}”` : '', e ? `Mã dự thi ${esc(e.code)}` : '', when ? `Nộp lúc ${esc(when)}` : ''].filter(Boolean).join(' · ');
-  let o = `<div class="qin exam__result">${eyebrowHtml('Đã nộp bài')}<h2 id="eh" tabindex="-1" class="contest__h2">`
-    + (score != null && total != null ? `Bạn trả lời đúng ${esc(score)} trên ${esc(total)} câu` : 'Bài của bạn đã được nộp')
+  let o = `<div class="qin exam__result">${eyebrowHtml(blockCopy('entry-result', 'eyebrow', 'Đã nộp bài'))}<h2 id="eh" tabindex="-1" class="contest__h2">`
+    + (score != null && total != null ? esc(blockCopy('entry-result', 'title', 'Bạn trả lời đúng {correct} trên {total} câu', { correct: score, total })) : 'Bài của bạn đã được nộp')
     + `</h2>${sub ? `<p class="exam__sub">${sub}</p>` : ''}`;
   if (!r) {
     o += box('warn', '<b>Chưa tải được chi tiết kết quả.</b> Kiểm tra mạng rồi bấm thử lại.')
       + '<div class="exam__actions"><button type="button" class="qnav f" data-result-retry>Thử lại</button></div>';
   } else {
     o += r.eligibleForPrize
-      ? box('ok', '<b>Bài của bạn được đưa vào danh sách xét giải.</b>')
-      : box('soft', '<b>Bài ẩn danh, không xét giải.</b>');
+      ? box('ok', `<b>${esc(blockCopy('entry-result', 'eligibleMessage', 'Bài của bạn được đưa vào danh sách xét giải.'))}</b>`)
+      : box('soft', `<b>${esc(blockCopy('entry-result', 'anonymousMessage', 'Bài ẩn danh, không xét giải.'))}</b>`);
     const by = Array.isArray(r.byTopic) ? r.byTopic : [];
     if (by.length) {
       const title = (cd) => {
@@ -137,7 +138,7 @@ export function resultHtml(topics, r, canRetry) {
         + '</tbody></table>';
     }
   }
-  o += '<div class="exam__actions"><button type="button" class="qnav f" data-review-bank>Xem lại ngân hàng câu hỏi</button>';
+  o += `<div class="exam__actions"><button type="button" class="qnav f" data-review-bank>${esc(blockCopy('entry-result', 'reviewLabel', 'Xem lại ngân hàng câu hỏi'))}</button>`;
   if (canRetry) o += `<a class="qnav o" href="#dang-ky">Thi lượt thứ ${esc(Number(e.attemptNo) + 1)}</a>`;
   return `${o}</div></div>`;
 }
@@ -188,17 +189,17 @@ function openDialog(k, trigger, topics) {
   }
   wantEl.checked = false;
   if (kind === 'attach') {
-    titleEl.textContent = 'Dự thi có tên để xét giải';
+    titleEl.textContent = blockCopy('submission', 'attachTitle', 'Dự thi có tên để xét giải');
     sumEl.textContent = `Mã dự thi ${state.entry.code} và các câu bạn đã làm được giữ nguyên.`;
     tickRow.hidden = true;
   } else {
     const { total, answered } = counts(topics);
-    titleEl.textContent = 'Nộp bài dự thi';
+    titleEl.textContent = blockCopy('submission', 'title', 'Nộp bài dự thi');
     sumEl.textContent = `Bạn đã làm ${answered} / ${total} câu, đúng ${correctCount()} câu. Nộp rồi thì không làm tiếp được trong lượt này.`;
     tickRow.hidden = state.entry.mode !== 'anon';
   }
   sumEl.hidden = false;
-  cancelBtn.textContent = kind === 'attach' ? 'Đóng' : 'Làm tiếp';
+  cancelBtn.textContent = kind === 'attach' ? 'Đóng' : blockCopy('submission', 'cancelLabel', 'Làm tiếp');
   setBusy(false);
   syncFields();
   dlg.showModal();

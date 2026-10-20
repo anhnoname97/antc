@@ -1,0 +1,18 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var titleId = $"faq-{Model.ContentKey:N}";
+}
+<section class="sec faq-section" aria-labelledby="@titleId">
+    <div class="wrap">
+        <div class="sec-head" data-faq-reveal>
+            <div><p class="eyebrow">@Model.Content.Value("eyebrow")</p><h2 id="@titleId">@Model.Content.Value("title")</h2></div>
+        </div>
+        <div class="faq">
+            @foreach (var area in Model.Areas)
+            {
+                @await Html.GetBlockGridItemAreaHtmlAsync(area)
+            }
+        </div>
+    </div>
+</section>
