@@ -10,6 +10,7 @@ Không yêu cầu đăng nhập hoặc `X-Entry-Token`. Dùng ID cuộc thi, kh�
 
 Ví dụ phản hồi đã công bố:
 
+
 ```json
 {
   "contest": {
