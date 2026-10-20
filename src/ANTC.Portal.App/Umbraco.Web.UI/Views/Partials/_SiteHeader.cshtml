@@ -8,6 +8,10 @@
     var home = site.DescendantsOrSelfOfType("home").FirstOrDefault();
     var homeUrl = home?.Url() ?? "/";
     var path = Context.Request.Path.Value ?? "/";
+    if (Model.ContentType.Alias == "searchPage" && Context.Request.Query["scope"] == "thu-doan")
+    {
+        path = site.DescendantsOrSelfOfType("thuDoanPage").FirstOrDefault()?.Url() ?? "/thu-doan/";
+    }
     var logo = site.Value<IPublishedContent>("logoHeaderImage");
     var logoAlt = site.Value<string>("headerLogoAlt");
     var menu = site.Value<BlockListModel>("menu");
@@ -45,10 +49,6 @@
             }
             <span class="site-brand__text">
                 <b>@siteName</b>
-                @if (site.Value<bool>("showPreviewBanner"))
-                {
-                    <small>BẢN DỰNG THỬ</small>
-                }
             </span>
         </a>
         <nav class="site-header__nav" aria-label="Điều hướng chính">

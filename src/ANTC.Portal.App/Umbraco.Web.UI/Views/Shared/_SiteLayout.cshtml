@@ -4,12 +4,18 @@
     var contestStyle = Model.ContentType.Alias is "thiPage" or "hoiDapPage" or "thiThangPage" or "cuocThiLamBaiPage";
     var site = Model.Root();
     var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
+    var description = Model.Value<string>("seoDescription");
+    if (string.IsNullOrWhiteSpace(description) && (Model.ContentType.Alias is "article" or "articleList"))
+    {
+        description = Model.Value<string>("summary");
+    }
 }
 <!doctype html>
 <html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if (!string.IsNullOrWhiteSpace(description)) { <meta name="description" content="@description"> }
     <title>@(Model.Value<string>("seoTitle") is { Length: > 0 } t ? t : Model.Name) — @siteName</title>
     <script>try { document.documentElement.dataset.fontScale = localStorage.getItem('at_font_scale') || '0' } catch (e) { }</script>
     <link rel="icon" href="/favicon.ico">
