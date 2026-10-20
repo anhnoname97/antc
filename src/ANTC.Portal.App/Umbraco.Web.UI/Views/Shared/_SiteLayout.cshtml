@@ -1,7 +1,7 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @{
     Layout = null;
-    var contestStyle = Model.ContentType.Alias is "thiPage" or "hoiDapPage";
+    var contestStyle = Model.ContentType.Alias is "thiPage" or "hoiDapPage" or "thiThangPage" or "cuocThiLamBaiPage";
     var site = Model.Root();
     var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
     var description = Model.Value<string>("seoDescription");

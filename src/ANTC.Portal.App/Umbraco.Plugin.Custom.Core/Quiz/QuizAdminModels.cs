@@ -10,7 +10,8 @@ public sealed record QuizTopicAdminDto(
     bool IsActive,
     int QuestionCount,
     int ActiveQuestionCount,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    long Revision = 1);
 
 public sealed record QuizTermAdminDto(string Term, string Definition);
 
@@ -19,7 +20,8 @@ public sealed record SaveQuizTopicRequest(
     string? Title,
     IReadOnlyList<string>? Intro,
     IReadOnlyList<QuizTermAdminDto>? Terms,
-    bool IsActive = true);
+    bool IsActive = true,
+    long? ExpectedRevision = null);
 
 public sealed record QuizAnswerAdminDto(string Key, string Text, string Explanation, bool IsCorrect);
 
@@ -38,7 +40,8 @@ public sealed record QuizQuestionAdminDto(
     string? SampleLabel,
     int SortOrder,
     bool IsActive,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    long Revision = 1);
 
 public sealed record SaveQuizQuestionRequest(
     string? Code,
@@ -52,7 +55,8 @@ public sealed record SaveQuizQuestionRequest(
     int? SampleOrder,
     string? SampleLabel,
     int SortOrder,
-    bool IsActive = true);
+    bool IsActive = true,
+    long? ExpectedRevision = null);
 
 public sealed record DeleteQuizQuestionResult(bool Deleted, bool Deactivated);
 

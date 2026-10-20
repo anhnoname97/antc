@@ -72,6 +72,9 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         ValidateTopic(request with { Id = id });
         QuizTopic? topic = await db.QuizTopics.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (topic is null) return null;
+        if (request.ExpectedRevision is not null && request.ExpectedRevision != topic.Revision)
+            throw new QuizAdminConflictException("TOPIC_CHANGED", "Chuyên đề đã được người khác cập nhật. Hãy tải lại dữ liệu.");
+        topic.Revision++;
         Apply(topic, request with { Id = id });
         await SaveAndReloadAsync("update-topic", id.ToString(), actor, ct);
         return (await GetTopicAsync(id, ct))!;
@@ -83,6 +86,8 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         if (topic is null) return false;
         if (await db.QuizQuestions.AnyAsync(x => x.TopicId == id, ct))
             throw new QuizAdminConflictException("TOPIC_HAS_QUESTIONS", "Không thể xóa chuyên đề đang có câu hỏi; hãy chuyển sang trạng thái ngừng dùng.");
+        if (await db.ContestTopics.AnyAsync(x => x.TopicId == id, ct))
+            throw new QuizAdminConflictException("TOPIC_IN_CONTEST", "Không thể xóa chuyên đề đã được dùng trong cuộc thi; hãy chuyển sang trạng thái ngừng dùng.");
         db.QuizTopics.Remove(topic);
         await SaveAndReloadAsync("delete-topic", id.ToString(), actor, ct);
         return true;
@@ -127,7 +132,10 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         string normalizedCode = NormalizeCode(code);
         QuizQuestion? question = await db.QuizQuestions.SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
         if (question is null) return null;
+        if (request.ExpectedRevision is not null && request.ExpectedRevision != question.Revision)
+            throw new QuizAdminConflictException("QUESTION_CHANGED", "Câu hỏi đã được người khác cập nhật. Hãy tải lại dữ liệu.");
         NormalizedQuestion normalized = await ValidateQuestionAsync(request with { Code = normalizedCode }, normalizedCode, ct);
+        question.Revision++;
         Apply(question, request, normalized);
         await SaveAndReloadAsync("update-question", question.Code, actor, ct);
         return (await GetQuestionAsync(question.Code, ct))!;
@@ -138,7 +146,8 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         string normalizedCode = NormalizeCode(code);
         QuizQuestion? question = await db.QuizQuestions.SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
         if (question is null) return null;
-        bool used = await db.EntryAnswers.AnyAsync(x => x.QuestionCode == normalizedCode, ct);
+        bool used = await db.EntryAnswers.AnyAsync(x => x.QuestionCode == normalizedCode, ct) ||
+                    await db.ContestQuestions.AnyAsync(x => x.QuestionCode == normalizedCode, ct);
         if (used)
         {
             question.IsActive = false;
@@ -154,7 +163,7 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         var errors = new Dictionary<string, string>();
         string code = NormalizeCode(request.Code);
         if (code.Length is < 1 or > 16 || !CodePattern().IsMatch(code)) errors["code"] = "Mã gồm 1–16 chữ, số, dấu chấm, gạch ngang hoặc gạch dưới.";
-        if (!await db.QuizTopics.AnyAsync(x => x.Id == request.TopicId, ct)) errors["topicId"] = "Chuyên đề không tồn tại.";
+        if (!await db.QuizTopics.AnyAsync(x => x.Id == request.TopicId && x.IsActive, ct)) errors["topicId"] = "Chuyên đề không tồn tại hoặc đang ngừng dùng.";
         if (string.IsNullOrWhiteSpace(request.Kind) || request.Kind.Trim().Length > 40) errors["kind"] = "Loại câu hỏi bắt buộc, tối đa 40 ký tự.";
         if (string.IsNullOrWhiteSpace(request.Question) || request.Question.Trim().Length is < 5 or > 2000) errors["question"] = "Nội dung câu hỏi phải có 5–2000 ký tự.";
         if (request.Situation?.Trim().Length > 2000) errors["situation"] = "Tình huống tối đa 2000 ký tự.";
@@ -221,13 +230,15 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
 
     private async Task SaveAndReloadAsync(string action, string key, string actor, CancellationToken ct)
     {
-        db.QuizImports.Add(new QuizImport { CreatedAt = UtcNow(), CreatedBy = string.IsNullOrWhiteSpace(actor) ? "backoffice" : actor[..Math.Min(actor.Length, 100)], FileName = $"backoffice:{action}:{key}", DuringContest = false });
+        DateTime now = UtcNow();
+        bool duringContest = await db.ContestCampaigns.AnyAsync(x => x.IsActive && x.StartAt <= now && x.EndAt >= now, ct);
+        db.QuizImports.Add(new QuizImport { CreatedAt = now, CreatedBy = string.IsNullOrWhiteSpace(actor) ? "backoffice" : actor[..Math.Min(actor.Length, 100)], FileName = $"backoffice:{action}:{key}", DuringContest = duringContest });
         await db.SaveChangesAsync(ct);
         bank.Reload();
     }
 
     private static QuizTopicAdminDto MapTopic(QuizTopic x, int total, int active) => new(
-        x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt);
+        x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt, x.Revision);
 
     private static QuizQuestionAdminDto MapQuestion(QuizQuestion x)
     {
@@ -236,7 +247,7 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         return new(x.Code, x.TopicId, x.Topic?.Title ?? "", x.Kind, x.Situation ?? "", x.Question,
             options.Select(o => new QuizAnswerAdminDto(o.ElementAtOrDefault(0) ?? "", o.ElementAtOrDefault(1) ?? "",
                 explanations.GetValueOrDefault(o.ElementAtOrDefault(0) ?? "") ?? "", o.ElementAtOrDefault(0) == x.Answer)).ToList(),
-            x.Answer, x.SafeAction ?? "", x.ReadSeconds, x.SampleOrder, x.SampleLabel, x.SortOrder, x.IsActive, x.UpdatedAt);
+            x.Answer, x.SafeAction ?? "", x.ReadSeconds, x.SampleOrder, x.SampleLabel, x.SortOrder, x.IsActive, x.UpdatedAt, x.Revision);
     }
 
     private static IReadOnlyList<string> ParseStringArray(string json) => JsonSerializer.Deserialize<List<string>>(json, JsonOptions) ?? [];

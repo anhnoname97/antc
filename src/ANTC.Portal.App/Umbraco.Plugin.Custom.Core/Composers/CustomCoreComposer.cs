@@ -11,7 +11,6 @@ using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Quiz;
 using Umbraco.Plugin.Custom.Core.Questions;
-using Umbraco.Plugin.Custom.Core.Questions;
 using Umbraco.Plugin.Custom.Core.Services;
 
 namespace Umbraco.Plugin.Custom.Core.Composers;
@@ -47,15 +46,25 @@ public class CustomCoreComposer : IComposer
                 "Contest:IpHashSalt phai duoc cau hinh de bam dia chi IP.")
             .ValidateOnStart();
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddScoped<IContestSettingsProvider, UmbracoContestSettingsProvider>();
-        builder.Services.AddScoped<IContestEntryService, ContestEntryService>();
+        builder.Services.AddScoped<IContestEntryService>(services => new ContestEntryService(
+            services.GetRequiredService<AppDbContext>(),
+            services.GetRequiredService<IContestCatalog>(),
+            services.GetRequiredService<TimeProvider>(),
+            services.GetRequiredService<IConfiguration>()));
+        builder.Services.AddScoped<IContestAttemptService, ContestAttemptService>();
+        builder.Services.AddScoped<IContestCatalog, ContestCatalog>();
         builder.Services.AddScoped<QuestionSubmissionService>();
         builder.Services.AddScoped<IContestAdminService, ContestAdminService>();
+        builder.Services.AddScoped<ContestResultsService>();
+        builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestReportingService>();
+        builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestAuditService>();
         builder.Services.AddScoped<IQuestionSubmissionService, QuestionSubmissionService>();
         builder.Services.AddScoped<QuestionModerationService>();
         builder.Services.AddScoped<IQuestionModerationService>(services => services.GetRequiredService<QuestionModerationService>());
         builder.Services.AddScoped<IPublishedQuestionService>(services => services.GetRequiredService<QuestionModerationService>());
-        builder.Services.AddScoped<ICurrentContestService, CurrentContestService>();
+        builder.Services.AddScoped<ContestScheduleService>();
+        builder.Services.AddScoped<ICurrentContestService>(services => new CurrentContestService(
+            services.GetRequiredService<IContestCatalog>()));
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();

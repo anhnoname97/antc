@@ -9,7 +9,7 @@
     Link? L(string alias) => c.Value<Link>(alias);
     var contest = await CurrentContests.GetAsync(Context.RequestAborted);
     var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
-    var contestMonth = contest is null ? string.Empty : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), vietnam).ToString("MM/yyyy");
+    string DateLabel(DateTime value) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value, DateTimeKind.Utc), vietnam).ToString("dd/MM/yyyy");
     var id = $"contest-{Model.ContentKey:N}";
 }
 <section class="sec" id="cuoc-thi" data-contest-overview aria-labelledby="@id">
@@ -35,7 +35,7 @@ else
 <div class="ticket"><svg class="tdrum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
 @if (contest is not null)
 {
-<span class="k">@T("ticketLabel") · Tháng @contestMonth</span>
+<span class="k">@T("ticketLabel") · @DateLabel(contest.StartAt) – @DateLabel(contest.EndAt)</span>
 <h3>@contest.Name</h3>
 <div class="ticket-details">
 @if (!string.IsNullOrWhiteSpace(contest.Description)) { <p>@contest.Description</p> }
@@ -43,7 +43,7 @@ else
 <ul>
 @foreach (var promise in T("promises").Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)) { <li>@promise</li> }
 </ul>
-@if (L("entryLink") is { } entry) { <a class="btn btn-red" href="@entry.Url">Xem cuộc thi tháng @contestMonth →</a> }
+<a class="btn btn-red" href="/cuoc-thi/lam-bai/?c=@contest.Id">Tham gia cuộc thi →</a>
 }
 else
 {

@@ -8,6 +8,8 @@ namespace Umbraco.Plugin.Custom.Core.Data;
 public class Entry
 {
     public long Id { get; set; }
+    /// <summary>Cuộc thi của lượt này; null chỉ dành cho dữ liệu cũ trước migration nhiều cuộc thi.</summary>
+    public long? ContestId { get; set; }
     /// <summary>Ma du thi hien thi cho thi sinh, dang AD-XXXXXX.</summary>
     public string Code { get; set; } = "";
     /// <summary>SHA-256 cua token; token goc khong luu.</summary>
@@ -28,8 +30,11 @@ public class Entry
     public int? TotalQuestions { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? SubmittedAt { get; set; }
+    /// <summary>JSON kết quả chốt khi nộp bài; trả nguyên bản khi nộp lại, không tính lại.</summary>
+    public string? SubmissionResultJson { get; set; }
     public string? IpHash { get; set; }
 
+    public ContestCampaign? Contest { get; set; }
     public List<EntryAnswer> Answers { get; set; } = new();
 }
 
@@ -62,6 +67,8 @@ public class EntryAnswer
 public class Draw
 {
     public long Id { get; set; }
+    /// <summary>Cuộc thi được dùng để xác định tập người đủ điều kiện.</summary>
+    public long? ContestId { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = "";
     public int MinScore { get; set; }
@@ -71,6 +78,7 @@ public class Draw
     public string? Note { get; set; }
 
     public List<DrawWinner> Winners { get; set; } = new();
+    public ContestCampaign? Contest { get; set; }
 }
 
 /// <summary>Nguoi trung trong mot lan quay; chup lai thong tin tai thoi diem quay.</summary>
@@ -130,6 +138,7 @@ public class QuizTopic
     public string? Terms { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime UpdatedAt { get; set; }
+    public long Revision { get; set; } = 1;
 
     public List<QuizQuestion> Questions { get; set; } = new();
     public List<ContestTopic> Contests { get; set; } = new();
@@ -158,6 +167,7 @@ public class QuizQuestion
     public int SortOrder { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime UpdatedAt { get; set; }
+    public long Revision { get; set; } = 1;
 
     public QuizTopic? Topic { get; set; }
     public List<ContestQuestion> Contests { get; set; } = new();
@@ -172,12 +182,23 @@ public class ContestCampaign
     public DateTime StartAt { get; set; }
     public DateTime EndAt { get; set; }
     public int MaxAttempts { get; set; } = 2;
+    /// <summary>So gio con cho nop bai sau EndAt (QD-014 theo cuoc).</summary>
+    public int SubmitGraceHours { get; set; } = 24;
+    /// <summary>He so thoi gian doc moi cau (1 = mac dinh).</summary>
+    public decimal ReadTimerFactor { get; set; } = 1m;
+    /// <summary>Khoa linh vuc (trang Thu doan) de hien nhan; rong neu khong gan.</summary>
+    public string? FocusArea { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    /// <summary>Phiên bản ngân hàng tại lúc cấu hình được lưu.</summary>
+    public long BankVersion { get; set; }
+    public long Revision { get; set; } = 1;
 
     public List<ContestTopic> Topics { get; set; } = new();
     public List<ContestQuestion> Questions { get; set; } = new();
+    public List<Entry> Entries { get; set; } = new();
+    public List<Draw> Draws { get; set; } = new();
 }
 
 /// <summary>Chuyên đề được chọn cho một cuộc thi.</summary>
@@ -186,6 +207,10 @@ public class ContestTopic
     public long ContestId { get; set; }
     public int TopicId { get; set; }
     public int SortOrder { get; set; }
+    /// <summary>Bản chụp dữ liệu chuyên đề để lịch sử cuộc thi không đổi theo ngân hàng.</summary>
+    public string Title { get; set; } = "";
+    public string Intro { get; set; } = "[]";
+    public string? Terms { get; set; }
 
     public ContestCampaign? Contest { get; set; }
     public QuizTopic? Topic { get; set; }
@@ -196,7 +221,19 @@ public class ContestQuestion
 {
     public long ContestId { get; set; }
     public string QuestionCode { get; set; } = "";
+    public int TopicId { get; set; }
     public int SortOrder { get; set; }
+    /// <summary>Bản chụp đầy đủ nội dung và đáp án tại lúc lưu cuộc thi.</summary>
+    public string Kind { get; set; } = "";
+    public string? Situation { get; set; }
+    public string QuestionText { get; set; } = "";
+    public string Options { get; set; } = "[]";
+    public string Answer { get; set; } = "";
+    public string Explanations { get; set; } = "{}";
+    public string? SafeAction { get; set; }
+    public int ReadSeconds { get; set; }
+    public int? SampleOrder { get; set; }
+    public string? SampleLabel { get; set; }
 
     public ContestCampaign? Contest { get; set; }
     public QuizQuestion? Question { get; set; }
