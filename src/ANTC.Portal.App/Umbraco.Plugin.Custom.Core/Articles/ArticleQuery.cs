@@ -1,5 +1,54 @@
 namespace Umbraco.Plugin.Custom.Core.Articles;
 
+public sealed record ArticleCategoryQuery(string? Section = null, string? CategoryRole = null,
+    bool? IsField = null, bool? HasArticles = null)
+{
+    public string? SectionFilter => string.IsNullOrWhiteSpace(Section) ? null : Section.Trim();
+    public string? CategoryRoleFilter => string.IsNullOrWhiteSpace(CategoryRole) ? null : CategoryRole.Trim();
+
+    public IReadOnlyDictionary<string, string> Validate()
+    {
+        var fields = new Dictionary<string, string>();
+        if (SectionFilter is { } section && section is not ("fraud" or "policy"))
+            fields["section"] = "Chọn fraud (Thủ đoạn) hoặc policy (Chính sách).";
+        if (CategoryRoleFilter is { } role && role is not ("none" or "warning" or "topic" or "series" or "policy"))
+            fields["categoryRole"] = "Chọn none, warning, topic, series hoặc policy.";
+        return fields;
+    }
+
+    internal bool Matches(ArticleCategory category) =>
+        (SectionFilter is not { } section || (Role(category.Role) == "policy") == (section == "policy")) &&
+        (CategoryRoleFilter is not { } role || Role(category.Role) == role) &&
+        (IsField is not { } field || category.IsField == field) &&
+        (HasArticles is not { } hasArticles || (category.ArticleCount > 0) == hasArticles);
+
+    internal static string? Role(string? role) => role switch
+    {
+        null or "" or "Không có" => "none",
+        "Cảnh báo" => "warning",
+        "Bài đọc theo chuyên đề" => "topic",
+        "Chuỗi bài" => "series",
+        "Chính sách" => "policy",
+        _ => null
+    };
+}
+
+public static class ArticlePathQuery
+{
+    public const int MaxLength = 2048;
+
+    /// <summary>Chỉ nhận đường dẫn nội bộ của bài viết, không truy cập URL hay đọc tệp từ đầu vào.</summary>
+    public static string? Normalize(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length > MaxLength) return null;
+        var path = Uri.UnescapeDataString(value.Trim()).Normalize(System.Text.NormalizationForm.FormC);
+        if (!path.StartsWith('/') || path.Contains("//", StringComparison.Ordinal) ||
+            path.Any(c => char.IsControl(c) || char.IsWhiteSpace(c) || "\\?#%<>\"'`:".Contains(c)) ||
+            path.Split('/').Any(segment => segment is "." or "..")) return null;
+        return path.TrimEnd('/') + "/";
+    }
+}
+
 public sealed record ArticleQuery(Guid? CategoryId = null, string? Search = null, string? Label = null,
     DateOnly? UpdatedFrom = null, DateOnly? UpdatedTo = null, string? ReviewStatus = null, bool? IsDraft = null,
     int Page = 1, int PageSize = ArticlePage.DefaultPageSize, string? Sort = null,
@@ -18,7 +67,7 @@ public sealed record ArticleQuery(Guid? CategoryId = null, string? Search = null
 
     public IReadOnlyDictionary<string, string> Validate()
     {
-        var fields = new Dictionary<string, string>();
+        var fields = new Dictionary<string, string>(new ArticleCategoryQuery(Section, CategoryRole).Validate());
         if (CategoryId == Guid.Empty) fields["categoryId"] = "Chọn khóa danh mục hợp lệ.";
         if (SearchTerm?.Length > MaxSearchLength) fields["search"] = "Từ khóa tối đa 200 ký tự.";
         if (LabelFilter is { } label && label is not ("none" or "official-warning" or "unverified"))
@@ -30,10 +79,6 @@ public sealed record ArticleQuery(Guid? CategoryId = null, string? Search = null
         if (PageSize is < 1 or > ArticlePage.MaxPageSize) fields["pageSize"] = "Số bài mỗi trang phải từ 1 đến 50.";
         if (SortOrder is not ("updated-desc" or "updated-asc" or "title-asc" or "title-desc"))
             fields["sort"] = "Chọn updated-desc, updated-asc, title-asc hoặc title-desc.";
-        if (SectionFilter is { } section && section is not ("fraud" or "policy"))
-            fields["section"] = "Chọn fraud (Thủ đoạn) hoặc policy (Chính sách).";
-        if (CategoryRoleFilter is { } role && role is not ("none" or "warning" or "topic" or "series" or "policy"))
-            fields["categoryRole"] = "Chọn none, warning, topic, series hoặc policy.";
         if (SourceAgencyFilter?.Length > MaxSearchLength)
             fields["sourceAgency"] = "Tên cơ quan nguồn tối đa 200 ký tự.";
         if (ExcludeIds?.Count > MaxExcludedIds)

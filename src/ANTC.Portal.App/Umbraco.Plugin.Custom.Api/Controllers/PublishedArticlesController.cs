@@ -13,7 +13,16 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
     [HttpGet("article-categories")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType<IReadOnlyList<ArticleCategory>>(200)]
-    public IActionResult Categories() => Ok(articles.Categories());
+    [ProducesResponseType<ApiErrorResponse>(400)]
+    public IActionResult Categories(string? section = null, string? categoryRole = null,
+        bool? isField = null, bool? hasArticles = null)
+    {
+        var query = new ArticleCategoryQuery(section, categoryRole, isField, hasArticles);
+        var fields = query.Validate();
+        return fields.Count > 0
+            ? BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Tham số danh mục không hợp lệ.", fields)))
+            : Ok(articles.Categories(query));
+    }
 
     [HttpGet("articles")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
@@ -41,6 +50,20 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
     public IActionResult Detail(Guid id)
     {
         ArticleDetail? article = articles.Detail(id);
+        return article is null ? NotFound(new ApiErrorResponse(new ApiError("NOT_FOUND", "Không tìm thấy bài viết."))) : Ok(article);
+    }
+
+    [HttpGet("articles/by-path")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    [ProducesResponseType<ArticleDetail>(200)]
+    [ProducesResponseType<ApiErrorResponse>(400)]
+    [ProducesResponseType<ApiErrorResponse>(404)]
+    public IActionResult DetailByPath(string? path = null)
+    {
+        if (ArticlePathQuery.Normalize(path) is not { } normalized)
+            return BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Đường dẫn không hợp lệ.",
+                new Dictionary<string, string> { ["path"] = "Nhập đường dẫn nội bộ từ trường url, tối đa 2048 ký tự, không gồm query hoặc fragment." })));
+        var article = articles.DetailByPath(normalized);
         return article is null ? NotFound(new ApiErrorResponse(new ApiError("NOT_FOUND", "Không tìm thấy bài viết."))) : Ok(article);
     }
 }

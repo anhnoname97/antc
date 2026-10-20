@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "ANTC Portal — API danh mục và bài viết",
-    "version": "2.1.0",
-    "description": "Hợp đồng dữ liệu BE-07 cho FE, không dựng giao diện portal. CMS là nguồn dữ liệu duy nhất; tạo/sửa/xóa và xuất bản qua Content của Umbraco. API chỉ đọc bản đã xuất bản và không bật xem trước theo cookie, query hoặc header. Không trả bản nháp, nội dung thùng rác, nội dung bị bảo vệ hoặc bài có tổ tiên chưa xuất bản. Save chỉ lưu nháp; Save and publish mới cập nhật API. Không đệm để FE nhận thay đổi ở yêu cầu kế tiếp. Tất cả chuỗi trừ bodyHtml là dữ liệu chữ và phải được FE thoát ký tự. Phiên bản 2 thay API danh sách /article-categories/{id}/articles?trang=n bằng GET /articles?categoryId=...&page=n&pageSize=12. Bỏ categoryId để lấy bài từ toàn bộ danh mục. Mọi bộ lọc được kết hợp bằng AND trước khi phân trang. API chi tiết và API danh mục giữ nguyên. Phiên bản 2.1 thêm bộ lọc showOnHome, section, categoryRole, isField, hasImage, sourceAgency và excludeIds. Chính sách và Thủ đoạn dùng chung document type articleList/article; phân biệt bằng vai trò danh mục. Không thay đổi API hoặc giao diện portal khác."
+    "version": "2.2.0",
+    "description": "Hợp đồng API dữ liệu cho FE hiển thị các trang danh mục, trang chi tiết và các khối bài viết Thủ đoạn/Chính sách. FE tự quyết định bố cục, các khối hiển thị, bộ lọc và số lượng bài của từng khối; backend không cấu hình hoặc dựng các khối trang. CMS là nguồn dữ liệu duy nhất; tạo/sửa/xóa và xuất bản qua Content của Umbraco. API chỉ đọc bản đã xuất bản, kể cả người gọi đang đăng nhập/xem trước. Không trả bản nháp CMS, nội dung thùng rác, nội dung bị bảo vệ hoặc có tổ tiên chưa xuất bản. Save lưu nháp; Save and publish mới cập nhật API ở yêu cầu kế tiếp. Tất cả chuỗi trừ bodyHtml là dữ liệu chữ và FE phải thoát ký tự. bodyHtml đã được làm sạch. Chính sách và Thủ đoạn dùng chung document type articleList/article; phân biệt bằng vai trò danh mục. GET /articles hỗ trợ lọc danh mục, từ khóa, nhãn, khoảng ngày, tình trạng rà soát, cờ dự thảo văn bản, cờ trang chủ, nhóm nội dung, vai trò danh mục, lĩnh vực, có ảnh, nguồn và loại trừ ID. Các bộ lọc kết hợp AND trước khi đếm và phân trang. isDraft là cờ Bản dự thảo của văn bản đã xuất bản, không phải bản nháp CMS. showOnHome là cờ biên tập và chỉ áp dụng sau khi xuất bản. pageSize từ 1 đến 50. Phiên bản 2 thay API danh sách cũ bằng GET /articles?categoryId=...&page=n&pageSize=12; phiên bản 2.1 thêm bộ lọc; phiên bản 2.2 thêm lọc danh mục và tra chi tiết theo đường dẫn. Danh mục chuyên đề/chuỗi bài có thể chưa có bài; ảnh bài có thể null; nội dung các văn bản chính sách mẫu hiện để trống theo yêu cầu nhập liệu."
   },
   "servers": [
     {
@@ -14,7 +14,7 @@
   "tags": [
     {
       "name": "Bài viết",
-      "description": "Dữ liệu danh mục, danh sách và chi tiết từ CMS."
+      "description": "Dữ liệu danh mục, danh sách và chi tiết bài viết/chính sách từ CMS. FE sử dụng cho trang và khối theo thiết kế riêng."
     }
   ],
   "security": [],
@@ -26,7 +26,7 @@
           "Bài viết"
         ],
         "summary": "Danh mục bài viết và số bài đã xuất bản",
-        "description": "Gồm danh mục trong Quản lý nội dung → Thủ đoạn và kho Chính sách. Danh mục chưa có bài vẫn xuất hiện với articleCount=0. Sắp theo thứ tự trong CMS, rồi khóa Guid.",
+        "description": "Gồm danh mục ở Quản lý nội dung → Thủ đoạn và Chính sách. Mặc định gồm cả danh mục chưa có bài. Lọc kết hợp AND bằng section/categoryRole/isField/hasArticles. Giữ thứ tự CMS rồi khóa Guid; không phân trang mảng danh mục. articleCount chỉ đếm bài được phép công khai. hasArticles=false lấy danh mục trống. Tên vai trò role trong response là tiếng Việt; categoryRole trong query dùng mã ổn định.",
         "responses": {
           "200": {
             "description": "Mảng danh mục; [] khi chưa có dữ liệu.",
@@ -61,8 +61,69 @@
                 ]
               }
             }
+          },
+          "400": {
+            "description": "Tham số không hợp lệ. error.code=VALIDATION; error.fields ánh xạ tên tham số → thông báo tiếng Việt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "section",
+            "in": "query",
+            "required": false,
+            "description": "Nhóm kho nội dung. Dùng policy để lấy Chính sách và fraud để lấy Thủ đoạn, không phải nhớ ID danh mục.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fraud",
+                "policy"
+              ]
+            },
+            "example": "fraud"
+          },
+          {
+            "name": "categoryRole",
+            "in": "query",
+            "required": false,
+            "description": "Vai trò danh mục: none (không có), warning (Cảnh báo), topic (Bài đọc theo chuyên đề), series (Chuỗi bài), policy (Chính sách).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "warning",
+                "topic",
+                "series",
+                "policy"
+              ]
+            },
+            "example": "warning"
+          },
+          {
+            "name": "isField",
+            "in": "query",
+            "required": false,
+            "description": "true: bài trong danh mục được đánh dấu lĩnh vực; false: bài trong danh mục không phải lĩnh vực; bỏ qua: cả hai.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "hasArticles",
+            "in": "query",
+            "required": false,
+            "description": "true: có ít nhất một bài được phép công khai; false: chưa có bài công khai. Bỏ trống: cả hai.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ]
       }
     },
     "/api/v1/articles/{id}": {
@@ -515,6 +576,77 @@
                     "code": "NOT_FOUND",
                     "message": "Không tìm thấy danh mục bài viết."
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/articles/by-path": {
+      "get": {
+        "operationId": "getArticleByPath",
+        "tags": [
+          "Bài viết"
+        ],
+        "summary": "Chi tiết bài viết bằng đường dẫn công khai",
+        "description": "Dùng khi FE nhận URL từ trình duyệt hoặc trường url thay vì Guid. Trả cùng ArticleDetail như GET /articles/{id}, gồm bodyHtml, SEO, nguồn, ngày rà soát, nhãn, tối đa 3 bài liên quan. Không redirect hoặc truy cập URL đầu vào. Không nhận URL tuyệt đối, query, fragment, đoạn . hoặc .., dấu gạch chéo kép hay mã HTML. Chấp nhận có/không dấu / cuối và không phân biệt hoa thường. URL hợp lệ nhưng không có bài trả 404.",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "description": "Đường dẫn root-relative từ trường url, ví dụ /thu-doan/canh-bao/ten-bai/. FE mã hóa bằng URLSearchParams/encodeURIComponent.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bài viết đã xuất bản.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tham số không hợp lệ. error.code=VALIDATION; error.fields ánh xạ tên tham số → thông báo tiếng Việt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tồn tại hoặc chưa được phép công khai. error.code=NOT_FOUND.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "no-store, no-cache"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -1038,5 +1170,43 @@
         "description": "Danh mục khi lọc categoryId; null khi lấy tất cả danh mục."
       }
     }
-  }
+  },
+  "x-integration-examples": [
+    {
+      "purpose": "Thẻ lĩnh vực",
+      "request": "GET /api/v1/article-categories?section=fraud&isField=true"
+    },
+    {
+      "purpose": "Bài được chọn lên trang chủ, tối đa 6 bài",
+      "request": "GET /api/v1/articles?section=fraud&showOnHome=true&pageSize=6&sort=updated-desc"
+    },
+    {
+      "purpose": "Cảnh báo mới",
+      "request": "GET /api/v1/articles?section=fraud&categoryRole=warning&pageSize=6"
+    },
+    {
+      "purpose": "Danh sách lĩnh vực, trang 2",
+      "request": "GET /api/v1/articles?categoryId={id}&page=2&pageSize=12"
+    },
+    {
+      "purpose": "Bài đọc theo chuyên đề",
+      "request": "GET /api/v1/articles?section=fraud&categoryRole=topic&pageSize=6"
+    },
+    {
+      "purpose": "Chuỗi Lừa đảo: Từ cổ chí kim",
+      "request": "GET /api/v1/articles?section=fraud&categoryRole=series&pageSize=6"
+    },
+    {
+      "purpose": "Văn bản chính sách dự thảo",
+      "request": "GET /api/v1/articles?section=policy&isDraft=true&pageSize=12"
+    },
+    {
+      "purpose": "Gợi ý thêm bài cùng danh mục, bỏ bài đang xem",
+      "request": "GET /api/v1/articles?categoryId={id}&excludeIds={articleId}&pageSize=3"
+    },
+    {
+      "purpose": "Chi tiết bằng URL trả trong danh sách",
+      "request": "GET /api/v1/articles/by-path?path=%2Fchinh-sach%2Ften-van-ban%2F"
+    }
+  ]
 }

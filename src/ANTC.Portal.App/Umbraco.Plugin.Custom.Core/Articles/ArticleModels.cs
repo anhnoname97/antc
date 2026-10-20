@@ -47,7 +47,8 @@ public sealed record ArticlePage(ArticleCategory? Category, IReadOnlyList<Articl
 
 public interface IPublishedArticleService
 {
-    IReadOnlyList<ArticleCategory> Categories();
+    IReadOnlyList<ArticleCategory> Categories(ArticleCategoryQuery? query = null);
     ArticlePage? List(ArticleQuery query);
     ArticleDetail? Detail(Guid articleId);
+    ArticleDetail? DetailByPath(string path);
 }

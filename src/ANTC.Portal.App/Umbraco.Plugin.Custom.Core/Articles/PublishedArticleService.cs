@@ -8,7 +8,12 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
 {
     private static readonly StringComparer VietnameseTitles = StringComparer.Create(CultureInfo.GetCultureInfo("vi-VN"), true);
 
-    public IReadOnlyList<ArticleCategory> Categories() => source.Read().Categories.Select(x => x.Category).ToArray();
+    public IReadOnlyList<ArticleCategory> Categories(ArticleCategoryQuery? query = null)
+    {
+        query ??= new();
+        if (query.Validate().Count > 0) throw new ArgumentException("Tham số danh mục không hợp lệ.", nameof(query));
+        return source.Read().Categories.Select(x => x.Category).Where(query.Matches).ToArray();
+    }
 
     public ArticlePage? List(ArticleQuery query)
     {
@@ -19,14 +24,12 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
             ? library.Categories.FirstOrDefault(x => x.Category.Id == id) : null;
         if (query.CategoryId is not null && selected is null) return null;
         DateOnly today = ArticleReviewPolicy.Today(clock);
-        IEnumerable<ArticleCategoryContent> categories = selected is null ? library.Categories : [selected];
+        var categoryQuery = new ArticleCategoryQuery(query.Section, query.CategoryRole, query.IsField);
+        IEnumerable<ArticleCategoryContent> categories = (selected is null ? library.Categories : [selected])
+            .Where(x => categoryQuery.Matches(x.Category));
         IEnumerable<ArticleListItem> articles = categories.SelectMany(category => category.Articles
             .Select(article => new ArticleListItem(Card(article, library.ReviewAfterDays, today), category.Category)));
         if (query.ShowOnHome is { } home) articles = articles.Where(x => x.ShowOnHome == home);
-        if (query.SectionFilter is { } section)
-            articles = articles.Where(x => (CategoryRole(x.Category.Role) == "policy") == (section == "policy"));
-        if (query.CategoryRoleFilter is { } role) articles = articles.Where(x => CategoryRole(x.Category.Role) == role);
-        if (query.IsField is { } field) articles = articles.Where(x => x.Category.IsField == field);
         if (query.HasImage is { } image) articles = articles.Where(x => (x.Image is not null) == image);
         if (query.SourceAgencyFilter is { } agency)
             articles = articles.Where(x => x.Source.Agency is { } sourceAgency && Contains(sourceAgency, agency));
@@ -75,6 +78,15 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
         return null;
     }
 
+    public ArticleDetail? DetailByPath(string path)
+    {
+        string normalized = ArticlePathQuery.Normalize(path)
+            ?? throw new ArgumentException("Đường dẫn bài viết không hợp lệ.", nameof(path));
+        var card = source.Read().Categories.SelectMany(x => x.Articles).Select(x => x.Card)
+            .FirstOrDefault(x => string.Equals(ArticlePathQuery.Normalize(x.Url), normalized, StringComparison.OrdinalIgnoreCase));
+        return card is null ? null : Detail(card.Id);
+    }
+
     private static IOrderedEnumerable<ArticleContent> Order(IEnumerable<ArticleContent> articles) =>
         articles.OrderByDescending(x => x.Card.UpdatedDate).ThenBy(x => x.Card.Id);
 
@@ -88,16 +100,6 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
 
     private static bool Contains(string value, string term) =>
         value.Normalize(NormalizationForm.FormC).Contains(term.Normalize(NormalizationForm.FormC), StringComparison.OrdinalIgnoreCase);
-
-    private static string? CategoryRole(string? role) => role switch
-    {
-        null or "" or "Không có" => "none",
-        "Cảnh báo" => "warning",
-        "Bài đọc theo chuyên đề" => "topic",
-        "Chuỗi bài" => "series",
-        "Chính sách" => "policy",
-        _ => null
-    };
 
     private static ArticleCard Card(ArticleContent article, int days, DateOnly today) =>
         article.Card with { Review = ArticleReviewPolicy.Evaluate(article.Card.Review.LastReviewedDate, days, today) };
