@@ -569,6 +569,44 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.HasIndex("OccurredAt");
 
                     b.ToTable("privacy_operation", (string)null);
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuestionRetentionPolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("enabled");
+
+                    b.Property<int>("LastDeletedCount")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("last_deleted_count");
+
+                    b.Property<DateTime?>("LastRunAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("last_run_at");
+
+                    b.Property<int>("RetentionDays")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("retention_days");
+
+                    b.Property<long>("ReviewVersion")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("review_version");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("question_retention_policy", (string)null);
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuestionSubmission", b =>
@@ -582,6 +620,15 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT")
                         .HasColumnName("admin_note");
+
+                    b.Property<long?>("AggregatedIntoId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("aggregated_into_id");
+
+                    b.Property<string>("AggregatedSourceIds")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("aggregated_source_ids");
 
                     b.Property<string>("Answer")
                         .HasMaxLength(10000)
@@ -597,7 +644,7 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("approved_by");
 
-                    b.Property<DateTime>("ConsentAt")
+                    b.Property<DateTime?>("ConsentAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("consent_at");
 
@@ -615,6 +662,20 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("deleted_by");
 
                     b.Property<string>("GuidanceLabel")
                         .HasMaxLength(200)
@@ -663,6 +724,14 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("review_version");
 
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("portal")
+                        .HasColumnName("source");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -681,11 +750,17 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AggregatedIntoId");
+
+                    b.HasIndex("DeletedAt", "CreatedAt");
+
                     b.HasIndex("IpHash", "CreatedAt");
 
                     b.HasIndex("IsPublished", "ApprovedAt");
 
                     b.HasIndex("Status", "CreatedAt");
+
+                    b.HasIndex("IsPublished", "Status", "HandledAt");
 
                     b.ToTable("question_submission", (string)null);
                 });
@@ -945,6 +1020,14 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Entry");
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuestionSubmission", b =>
+                {
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.QuestionSubmission", null)
+                        .WithMany()
+                        .HasForeignKey("AggregatedIntoId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuizQuestion", b =>

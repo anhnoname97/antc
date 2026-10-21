@@ -108,7 +108,10 @@ public class QuestionSubmission
     public string Content { get; set; } = "";
     public bool WantReply { get; set; }
     public string? Contact { get; set; }
-    public DateTime ConsentAt { get; set; }
+    /// <summary>Thời điểm người gửi portal đồng ý; để trống với nội dung do ban biên tập tạo.</summary>
+    public DateTime? ConsentAt { get; set; }
+    public string Source { get; set; } = "portal";
+    public string? CreatedBy { get; set; }
     /// <summary>moi | dang-xu-ly | da-xu-ly | bo-qua</summary>
     public string Status { get; set; } = "moi";
     public string? AdminNote { get; set; }
@@ -128,6 +131,23 @@ public class QuestionSubmission
     public DateTime? ApprovedAt { get; set; }
     public string? ApprovedBy { get; set; }
     public long ReviewVersion { get; set; }
+    public long? AggregatedIntoId { get; set; }
+    /// <summary>JSON chứa ID nguồn, giữ dấu vết sau khi nội dung nguồn được dọn.</summary>
+    public string? AggregatedSourceIds { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
+}
+
+public class QuestionRetentionPolicy
+{
+    public int Id { get; set; } = 1;
+    public bool Enabled { get; set; }
+    public int RetentionDays { get; set; } = 365;
+    public long ReviewVersion { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? UpdatedBy { get; set; }
+    public DateTime? LastRunAt { get; set; }
+    public int LastDeletedCount { get; set; }
 }
 
 /// <summary>Chuyen de cua ngan hang cau hoi.</summary>

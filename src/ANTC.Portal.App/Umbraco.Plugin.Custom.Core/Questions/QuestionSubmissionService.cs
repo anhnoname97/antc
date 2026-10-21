@@ -13,7 +13,7 @@ using Umbraco.Plugin.Custom.Core.Data;
 namespace Umbraco.Plugin.Custom.Core.Questions;
 
 public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestSecurityOptions> security,
-    TimeProvider timeProvider) : IQuestionSubmissionService
+    TimeProvider timeProvider, IEnumerable<IQuestionPublicationObserver>? publicationObservers = null) : IQuestionSubmissionService
 {
     public async Task SubmitAsync(QuestionRegistration registration, IPAddress? ip, CancellationToken ct = default)
     {
@@ -31,7 +31,8 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
                 ?? throw new InvalidOperationException("Không tạo được giao dịch tiếp nhận câu hỏi.");
             DateTime now = timeProvider.GetUtcNow().UtcDateTime;
             DateTime cutoff = now.AddHours(-1);
-            DateTime[] recent = await db.QuestionSubmissions.Where(x => x.IpHash == hash && x.CreatedAt > cutoff)
+            // Mục vừa xóa vẫn tính hạn mức cho đến hết giờ; thao tác dọn không mở lại lượt gửi.
+            DateTime[] recent = await db.QuestionSubmissions.IgnoreQueryFilters().Where(x => x.IpHash == hash && x.CreatedAt > cutoff)
                 .OrderBy(x => x.CreatedAt).Take(5).Select(x => x.CreatedAt).ToArrayAsync(ct);
             if (recent.Length >= 5)
                 throw new QuestionRateLimitedException(Math.Max(1, (int)Math.Ceiling((recent[0].AddHours(1) - now).TotalSeconds)));
@@ -81,6 +82,9 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
             .SetProperty(x => x.IsPublished, x => status != "bo-qua" && x.IsPublished)
             .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1)
             .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now), ct);
+        if (updated == 1 && status == "bo-qua")
+            foreach (var observer in publicationObservers ?? [])
+                await observer.ChangedAsync(id, CancellationToken.None);
         return updated == 1;
     }
 

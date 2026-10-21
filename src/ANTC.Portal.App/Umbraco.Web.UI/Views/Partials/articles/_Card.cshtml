@@ -20,6 +20,9 @@
         <p class="article-meta">Cập nhật <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p>
         <h2><a href="@Model.Url()">@Model.Name</a></h2>
         @if (!string.IsNullOrWhiteSpace(Model.Value<string>("summary"))) { <p class="article-card__summary">@Model.Value("summary")</p> }
-        <span class="article-card__read" aria-hidden="true">Đọc bài viết <span>↗</span></span>
+        @if (ViewData["HideReadMore"] is not true)
+        {
+            <span class="article-card__read" aria-hidden="true">Đọc bài viết <span>↗</span></span>
+        }
     </div>
 </article>
