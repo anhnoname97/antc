@@ -1,11 +1,11 @@
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Plugin.Custom.Core.Contest
-@inject ICurrentContestService CurrentContests
+@inject ContestPromotionService Promotions
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
-    var contest = await CurrentContests.GetAsync(Context.RequestAborted);
+    var contest = await Promotions.GetAsync(Context.RequestAborted);
     var id = $"contest-{Model.ContentKey:N}";
 }
 <section class="sec white" id="thu-suc" aria-labelledby="@id">
@@ -21,7 +21,7 @@
 <div class="qz-nav"><button type="button" class="btn btn-navy" data-inline-next hidden>Câu tiếp theo ⟶</button></div>
 </div>
 <div class="qz-end" data-inline-end hidden><b data-inline-score tabindex="-1"></b><p data-inline-result></p><button type="button" class="btn btn-line" data-inline-restart>Làm lại</button>
-<div class="invite"><span class="k">@T("inviteLabel")</span><b>@T("inviteText")</b>
-@if (contest is not null && c.Value<Umbraco.Cms.Core.Models.Link>("entryLink") is { } entry) { <a class="btn btn-red" href="/cuoc-thi/lam-bai/?c=@contest.Id">@entry.Name</a> }
-<small>@T("inviteNotice")</small></div></div>
+<div class="invite"><span class="k">@(contest is null ? "THỬ SỨC" : "THI THẬT · THÁNG " + TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh")).ToString("MM/yyyy"))</span><b>@contest?.Name</b>
+@if (contest is not null && c.Value<Umbraco.Cms.Core.Models.Link>("entryLink") is { } entry) { <a class="btn btn-red" href="@(Promotions.IsUpcoming(contest) ? "/cuoc-thi-thang/" : $"/cuoc-thi/lam-bai/?c={contest.Id}")">@entry.Name</a> }
+<small>@ContestPromotionService.ShortSafetyNotice</small></div></div>
 </div></div></section>

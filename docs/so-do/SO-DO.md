@@ -54,10 +54,8 @@ graph TD
   ungPhoPage["Trang Ứng phó khẩn cấp<br/><i>ungPhoPage</i>"]
   antc --> pageManagement
   antc --> contentManagement
-  article -. composition .-> seoBase
   article -.-> tpl_article{{"article.cshtml"}}
   articleList --> article
-  articleList -. composition .-> seoBase
   articleList -.-> tpl_articleList{{"articleList.cshtml"}}
   articleManagement --> articleList
   articleManagement --> fraudContent
@@ -276,15 +274,15 @@ graph LR
 
 | Thư mục | Số file | File |
 |---|---|---|
-| Administration | 6 | AdministrationAccess, ContestAuditService, ContestCsv, ContestReportCsvRows, ContestReportingService, ContestReportModels |
+| Administration | 9 | AdministrationAccess, ContestAuditService, ContestCsv, ContestPrivacyModels, ContestPrivacyService, ContestReportCsvRows, ContestReportModels, ContestReportingService, SqlitePrivacyFileCleanup |
 | Articles | 10 | ArticleContentSource, ArticleHtmlSanitizer, ArticleModels, ArticlePageContent, ArticlePageContentSource, ArticleQuery, ArticleReviewPolicy, ArticleSchemaMigration, ArticleSearchText, PublishedArticleService |
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
-| Contest | 11 | ContestAdminModels, ContestAdminService, ContestAttemptService, ContestCatalog, ContestConfigCheck, ContestEntryService, ContestModels, ContestResultsModels, ContestResultsService, ContestScheduleService, CurrentContestService |
-| Data | 6 | AppDbContext, AppDbInitializer, ContestAccessAudit, ContestPublishedResult, Entities, SqliteDeploymentBackup |
+| Contest | 14 | ContestAdminModels, ContestAdminService.Draws, ContestAdminService, ContestAttemptService, ContestCatalog, ContestConfigCheck, ContestEntryService, ContestModels, ContestPromotionService, ContestResultsModels, ContestResultsService, ContestScheduleService, CryptographicLottery, CurrentContestService |
+| Data | 7 | AppDbContext, AppDbInitializer, ContestAccessAudit, ContestPublishedResult, Entities, PrivacyOperation, SqliteDeploymentBackup |
 | Questions | 7 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionOperations, QuestionRetentionService, QuestionSubmissionService |
-| Quiz | 3 | QuestionBank, QuizAdminModels, QuizAdminService |
+| Quiz | 5 | QuestionBank, QuizAdminModels, QuizAdminService, QuizWorkbookModels, QuizWorkbookService |
 | Services | 1 | AppInfoService |
 
 ### Umbraco.Plugin.Custom.Api
@@ -292,7 +290,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Composers | 1 | CustomApiComposer |
-| Controllers | 16 | ContestAdminController, ContestController, ContestReportingController, ContestResultsController, ContestsController, LegacyContestReportingController, LegacyQuestionsAdministrationController, PublishedArticleContentController, PublishedArticlesController, PublishedQuestionsController, QuestionManagementController, QuestionOperationsController, QuestionsController, QuizAdminController, QuizController, SystemController |
+| Controllers | 19 | ContestAdminController, ContestController, ContestDrawsController, ContestPrivacyController, ContestReportingController, ContestResultsController, ContestsController, LegacyContestReportingController, LegacyQuestionsAdministrationController, PublishedArticleContentController, PublishedArticlesController, PublishedQuestionsController, QuestionManagementController, QuestionOperationsController, QuestionsController, QuizAdminController, QuizController, QuizWorkbookController, SystemController |
 | Infrastructure | 7 | AdministrationIpAllowlistMiddleware, ApiBoundaryMiddleware, ApiPrivacyLogFilter, ApiProtection, ContestAdministrationAuthorizationResult, DatabaseReadiness, DeploymentTrafficGateMiddleware |
 | Models | 3 | ApiErrorModels, ContestScheduleModels, QuestionModels |
 | Validation | 1 | QuestionRequestValidator |
@@ -301,7 +299,7 @@ graph LR
 
 | Thư mục | Số file | File |
 |---|---|---|
-| (gốc) | 24 | AntcPublicPathsTests, ApiProtectionTests, ContestAdministrationFullHostTests, ContestAdministrationPrivacyTests, ContestAttemptServiceTests, ContestBackofficeAssetsTests, ContestCampaignAdminServiceTests, ContestCatalogTests, ContestDrawAdminServiceTests, ContestEntryServiceTests, ContestReportingTests, ContestResultsTests, ContestScheduleServiceTests, ContestsControllerTests, CurrentContestServiceTests, DatabaseReadinessTests, DeploymentSafetyTests, QuestionBankTests, QuestionGuidanceTests, QuestionsControllerTests, QuizAdminServiceTests, QuizControllerTests, SubmissionResultMigrationTests, Usings |
+| (gốc) | 27 | AntcPublicPathsTests, ApiProtectionTests, ContestAdministrationFullHostTests, ContestAdministrationPrivacyTests, ContestAttemptServiceTests, ContestBackofficeAssetsTests, ContestCampaignAdminServiceTests, ContestCatalogTests, ContestDrawAdminServiceTests, ContestEntryServiceTests, ContestPrivacyTests, ContestPromotionServiceTests, ContestReportingTests, ContestResultsTests, ContestScheduleServiceTests, ContestsControllerTests, CurrentContestServiceTests, DatabaseReadinessTests, DeploymentSafetyTests, QuestionBankTests, QuestionGuidanceTests, QuestionsControllerTests, QuizAdminServiceTests, QuizControllerTests, QuizWorkbookTests, SubmissionResultMigrationTests, Usings |
 
 
 ### API routes
@@ -310,6 +308,8 @@ graph LR
 |---|---|
 | ContestAdminController | GET api/v1/admin/contest/campaigns, GET api/v1/admin/contest/campaigns/question-tree, GET api/v1/admin/contest/campaigns/{id:long}, POST api/v1/admin/contest/campaigns, PUT api/v1/admin/contest/campaigns/{id:long}, DELETE api/v1/admin/contest/campaigns/{id:long}, GET api/v1/admin/contest/entries, GET api/v1/admin/contest/entries/{id:long}, GET api/v1/admin/contest/draws, GET api/v1/admin/contest/draws/{id:long}, POST api/v1/admin/contest/draws, PUT api/v1/admin/contest/draws/{id:long}, DELETE api/v1/admin/contest/draws/{id:long} |
 | ContestController | POST api/v1/contest/entries, GET api/v1/contest/entries/me, POST api/v1/contest/entries/me/answers, PUT api/v1/contest/entries/me/contact, POST api/v1/contest/entries/me/submit |
+| ContestDrawsController | GET /options, GET , GET /{id:long}, POST /preview, POST , GET /{id:long}/export/{kind} |
+| ContestPrivacyController | POST /preview, POST /erase, POST /bulk, GET /operations, POST /operations/{id:guid}/vacuum |
 | ContestReportingController | GET /options, GET /dashboard, GET /entries, GET /entries/{id:long}, GET /questions, GET /export/{kind}, GET /contests/{id:long}/publication, PUT /contests/{id:long}/publication, GET /contests/{id:long}/draws |
 | ContestResultsController | GET api/v1/contests/{contestId:long}/results, GET api/v1/contests/{contestId:long}/results/antiforgery, GET api/v1/contests/{contestId:long}/results, PUT api/v1/contests/{contestId:long}/results |
 | ContestsController | GET api/v1/contests |
@@ -323,4 +323,5 @@ graph LR
 | QuestionsController | POST api/v1/questions |
 | QuizAdminController | GET api/v1/admin/quiz/topics, GET api/v1/admin/quiz/topics/{id:int}, POST api/v1/admin/quiz/topics, PUT api/v1/admin/quiz/topics/{id:int}, DELETE api/v1/admin/quiz/topics/{id:int}, GET api/v1/admin/quiz/questions, GET api/v1/admin/quiz/questions/{code}, POST api/v1/admin/quiz/questions, PUT api/v1/admin/quiz/questions/{code}, DELETE api/v1/admin/quiz/questions/{code} |
 | QuizController | GET api/v1/quiz/topics, GET api/v1/quiz/topics/{topic:int}/questions, GET api/v1/quiz/sample |
+| QuizWorkbookController | GET api/v1/admin/quiz/imports/template, GET api/v1/admin/quiz/imports/export, POST api/v1/admin/quiz/imports/preview, POST api/v1/admin/quiz/imports/confirm, GET api/v1/admin/quiz/imports, GET api/v1/admin/quiz/imports/{id:long}/file |
 | SystemController | GET api/v1/system/info |

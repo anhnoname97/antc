@@ -570,7 +570,7 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.ToTable("privacy_operation", (string)null);
                 });
-                
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuestionRetentionPolicy", b =>
                 {
                     b.Property<int>("Id")

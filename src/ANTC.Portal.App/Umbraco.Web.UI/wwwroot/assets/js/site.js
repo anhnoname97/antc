@@ -66,9 +66,20 @@ if (header) {
   }
   window.addEventListener('scroll', updateHeader, { passive: true });
 
-  header.querySelector('[data-announcement-close]')?.addEventListener('click', () => {
-    header.querySelector('[data-header-announcement]').hidden = true;
-    header.querySelector('.site-brand')?.focus();
-    measureHeader();
+
+}
+
+// FE-32: dong bo an thanh trong phien, khong phu thuoc JavaScript de in noi dung.
+const notice = document.querySelector('[data-contest-notice]');
+if (notice) {
+  notice.querySelector('[data-contest-notice-close]').addEventListener('click', () => {
+    document.documentElement.dataset.contestAnnouncementHidden = 'true';
+    try { sessionStorage.setItem('at_contest_announcement', 'hidden'); } catch { /* van an trong trang */ }
+    document.querySelector('.contest-brand, .site-brand')?.focus();
+    requestAnimationFrame(() => {
+      const header = document.querySelector('[data-site-header], [data-contest-header]');
+      if (header) document.documentElement.style.setProperty('--site-header-height', `${header.offsetHeight}px`);
+      window.ScrollTrigger?.refresh(true);
+    });
   });
 }

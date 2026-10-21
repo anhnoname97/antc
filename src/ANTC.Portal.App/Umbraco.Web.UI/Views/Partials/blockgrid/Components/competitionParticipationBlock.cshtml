@@ -2,11 +2,11 @@
 @using Umbraco.Cms.Core.Models
 @using Umbraco.Plugin.Custom.Core.Contest
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
-@inject ICurrentContestService CurrentContests
+@inject ContestPromotionService Promotions
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
-    var contest = await CurrentContests.GetAsync(Context.RequestAborted);
+    var contest = await Promotions.GetAsync(Context.RequestAborted);
     var topic = contest?.Name ?? "chuyên đề cuộc thi";
     if (topic.StartsWith("Chuyên đề:", StringComparison.OrdinalIgnoreCase))
     {
@@ -38,7 +38,7 @@
             }
         </div>
         <div class="participation-actions" data-participation-reveal>
-            @if (contest is not null && c.Value<Link>("registrationLink") is { } registration)
+            @if (contest is not null && !Promotions.IsUpcoming(contest) && c.Value<Link>("registrationLink") is { } registration)
             {
                 <a class="btn btn-red" href="/cuoc-thi/lam-bai/?c=@contest.Id" target="@registration.Target">@registration.Name <span aria-hidden="true">⟶</span></a>
             }

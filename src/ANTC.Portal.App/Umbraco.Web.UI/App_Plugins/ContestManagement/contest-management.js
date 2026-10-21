@@ -1,8 +1,9 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { UmbLitElement } from "@umbraco-cms/backoffice/lit-element";
-import { css, html, nothing } from "@umbraco-cms/backoffice/external/lit";
-import { contestStyles, contestStylesText } from './contest-theme.js';
+import { css, html } from "@umbraco-cms/backoffice/external/lit";
+import { contestStylesText } from './contest-theme.js';
+import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import './contest-reports.js';
 import './contest-draws.js';
 import { ContestBankView } from './contest-bank.js';
@@ -39,6 +40,14 @@ class AdminPage extends UmbElementMixin(HTMLElement) {
     if (!response.ok) { const error = new Error(payload?.error?.message || `Yêu cầu thất bại (${response.status}).`); error.fields = payload?.error?.fields || {}; throw error; }
     return payload;
   }
+  async confirmDelete(content) {
+    try {
+      await umbOpenModal(this, UMB_CONFIRM_MODAL, { data: {
+        headline: 'Xác nhận xóa', content, confirmLabel: 'Xóa', cancelLabel: 'Hủy', color: 'danger',
+      } });
+      return true;
+    } catch { return false; }
+  }
   async run(action, success) {
     this.error = "";
     try { await action(); this.message = success; setTimeout(() => { this.message = ""; this.render(); }, 3500); }
@@ -51,7 +60,7 @@ class AdminPage extends UmbElementMixin(HTMLElement) {
     const count = [this.search, this.status, this.topicId, this.active].filter(value => value !== '' && value != null).length;
     content = content.replace(/<form id="search"[\s\S]*?<\/form>/g, form => `<details class="advanced-search" ${expanded ? 'open' : ''}><summary>Tìm kiếm nâng cao <span class="filter-status">${count ? `${count} điều kiện đang áp dụng` : 'Chưa áp dụng bộ lọc'}</span></summary>${form}</details>`);
     if (this.hasAttribute('embedded')) return `<style>${styles}</style><div class="embedded-page">${this.error ? `<div class="notice error" role="alert">${esc(this.error)}</div>` : ""}${this.message ? `<div class="notice success" role="status">${esc(this.message)}</div>` : ""}${content}</div>`;
-    const descriptions = { "Chuyên đề": "Tổ chức nội dung theo chuyên đề, quản lý trạng thái và theo dõi số câu đang sử dụng.", "Câu hỏi": "Quản lý ngân hàng câu hỏi với 2–4 lựa chọn và duy nhất 1 đáp án đúng.", "Cuộc thi": "Thiết lập cuộc thi, chọn chuyên đề và câu hỏi, quản lý các lần quay thưởng.", "Ngân hàng câu hỏi": "Quản lý nguồn dữ liệu dùng chung cho luyện tập và các cuộc thi." };
+    const descriptions = { "Chuyên đề": "Tổ chức nội dung theo chuyên đề, quản lý trạng thái và theo dõi số câu đang sử dụng.", "Câu hỏi": "Quản lý ngân hàng câu hỏi với 2–4 lựa chọn và duy nhất 1 đáp án đúng.", "Cuộc thi": "Thiết lập cuộc thi, chọn chuyên đề và câu hỏi.", "Ngân hàng câu hỏi": "Quản lý nguồn dữ liệu dùng chung cho luyện tập và các cuộc thi." };
     return `<style>${styles}</style><umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>${esc(this.title)}</h1><p class="page-description">${esc(descriptions[this.title] || "")}</p></div></header>${this.error ? `<div class="notice error" role="alert">${esc(this.error)}</div>` : ""}${this.message ? `<div class="notice success" role="status">${esc(this.message)}</div>` : ""}${content}</div></umb-body-layout>`;
   }
   bindPager() {
@@ -81,7 +90,7 @@ class TopicsPage extends AdminPage {
     dialog.innerHTML = `<form method="dialog" id="form"><header><h2>${item ? "Cập nhật" : "Thêm"} chuyên đề</h2><button type="button" data-close class="close" aria-label="Đóng">×</button></header><div class="form-grid"><label>Mã chuyên đề<span>*</span><input name="id" type="number" min="1" required value="${item?.id || ""}" ${item ? "readonly" : ""}></label><label>Tên chuyên đề<span>*</span><input name="title" maxlength="200" required value="${esc(item?.title)}"></label><label class="wide">Giới thiệu <small>Mỗi đoạn một dòng</small><textarea name="intro" rows="4">${esc((item?.intro || []).join("\n"))}</textarea></label><label class="wide">Thuật ngữ <small>Mỗi dòng: Thuật ngữ | Giải nghĩa</small><textarea name="terms" rows="5">${esc((item?.terms || []).map(x => `${x.term} | ${x.definition}`).join("\n"))}</textarea></label><label class="check wide"><input name="active" type="checkbox" ${item?.isActive !== false ? "checked" : ""}> Đang sử dụng</label></div><footer><button type="button" data-close>Hủy</button><button type="submit" value="save" class="primary">Lưu chuyên đề</button></footer></form>`;
     const form = dialog.querySelector("#form"); dialog.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => dialog.close())); form.addEventListener("submit", e => { e.preventDefault(); const d = new FormData(form); const payload = { id: Number(d.get("id")), title: d.get("title"), intro: lines(d.get("intro")), terms: lines(d.get("terms")).map(line => { const [term, ...rest] = line.split("|"); return { term: term.trim(), definition: rest.join("|").trim() }; }), isActive: d.get("active") === "on", expectedRevision: item?.revision ?? null }; this.run(async () => { await this.request(item ? `/topics/${item.id}` : "/topics", { method: item ? "PUT" : "POST", body: JSON.stringify(payload) }); dialog.close(); await this.load(); }, "Đã lưu chuyên đề."); }); dialog.showModal();
   }
-  async remove(id) { if (!confirm("Xóa chuyên đề này? Chuyên đề có câu hỏi sẽ không được phép xóa.")) return; await this.run(async () => { await this.request(`/topics/${id}`, { method: "DELETE" }); await this.load(); }, "Đã xóa chuyên đề."); }
+  async remove(id) { if (!await this.confirmDelete("Xóa chuyên đề này? Chuyên đề có câu hỏi sẽ không được phép xóa.")) return; await this.run(async () => { await this.request(`/topics/${id}`, { method: "DELETE" }); await this.load(); }, "Đã xóa chuyên đề."); }
 }
 
 class QuestionsPage extends AdminPage {
@@ -111,7 +120,7 @@ class QuestionsPage extends AdminPage {
     dialog.querySelector('input[name="sampleOrder"]').max = '8';
     const form = dialog.querySelector("#form"); dialog.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => dialog.close())); form.addEventListener("submit", e => { e.preventDefault(); const d = new FormData(form); const correct = d.get("correct"); const payload = { code: d.get("code"), topicId: Number(d.get("topic")), kind: d.get("kind"), situation: d.get("situation"), question: d.get("question"), answers: keys.map(key => ({ key, text: d.get(`text-${key}`), explanation: d.get(`exp-${key}`), isCorrect: key === correct })), safeAction: d.get("safe"), readSeconds: Number(d.get("seconds")), sampleOrder: d.get("sampleOrder") ? Number(d.get("sampleOrder")) : null, sampleLabel: d.get("sampleLabel") || null, sortOrder: Number(d.get("sort")), isActive: d.get("active") === "on", expectedRevision: item?.revision ?? null }; this.run(async () => { await this.request(item ? `/questions/${encodeURIComponent(item.code)}` : "/questions", { method: item ? "PUT" : "POST", body: JSON.stringify(payload) }); dialog.close(); await this.load(); }, "Đã lưu câu hỏi và cập nhật ngân hàng."); }); dialog.showModal();
   }
-  async remove(code) { if (!confirm(`Xóa câu hỏi ${code}? Nếu đã có người trả lời, hệ thống chỉ chuyển sang Ngừng dùng để bảo toàn lịch sử.`)) return; await this.run(async () => { const result = await this.request(`/questions/${encodeURIComponent(code)}`, { method: "DELETE" }); await this.load(); this.message = result.deactivated ? "Câu hỏi đã có dữ liệu dự thi nên được chuyển sang Ngừng dùng." : "Đã xóa câu hỏi."; }, "Đã xử lý câu hỏi."); }
+  async remove(code) { if (!await this.confirmDelete(`Xóa câu hỏi ${code}? Nếu đã có người trả lời, hệ thống chỉ chuyển sang Ngừng dùng để bảo toàn lịch sử.`)) return; await this.run(async () => { const result = await this.request(`/questions/${encodeURIComponent(code)}`, { method: "DELETE" }); await this.load(); this.message = result.deactivated ? "Câu hỏi đã có dữ liệu dự thi nên được chuyển sang Ngừng dùng." : "Đã xóa câu hỏi."; }, "Đã xử lý câu hỏi."); }
 }
 
 
@@ -139,20 +148,16 @@ class ContestPage extends AdminPage {
   render() {
     const now = Date.now();
     const rows = (this.result?.items || []).map(x => {
-        const state = !x.isActive ? ["off", "Ngừng dùng"] : now < Date.parse(x.startAt) ? ["off", "Sắp diễn ra"] : now > Date.parse(x.endAt) ? ["off", "Đã kết thúc"] : ["on", "Đang diễn ra"];
-        return `<tr><td class="mono">#${x.id}</td><td><strong>${esc(x.name)}</strong><small class="block">${esc(x.description || "")}</small></td><td>${formatDate(x.startAt)}<br>→ ${formatDate(x.endAt)}</td><td>${x.topicCount}</td><td>${x.questionCount}</td><td>${x.maxAttempts}</td><td>${x.entryCount}</td><td><span class="badge ${state[0]}">${state[1]}</span></td><td class="actions"><button data-edit-campaign="${x.id}">Sửa</button><button class="danger ghost" data-delete-campaign="${x.id}">Xóa</button></td></tr>`;
+      const state = !x.isActive ? ["off", "Ngừng dùng"] : now < Date.parse(x.startAt) ? ["off", "Sắp diễn ra"] : now > Date.parse(x.endAt) ? ["off", "Đã kết thúc"] : ["on", "Đang diễn ra"];
+      return `<tr><td class="mono">#${x.id}</td><td><strong>${esc(x.name)}</strong><small class="block">${esc(x.description || "")}</small></td><td>${formatDate(x.startAt)}<br>→ ${formatDate(x.endAt)}</td><td>${x.topicCount}</td><td>${x.questionCount}</td><td>${x.maxAttempts}</td><td>${x.entryCount}</td><td><span class="badge ${state[0]}">${state[1]}</span></td><td class="actions"><button data-edit-campaign="${x.id}">Sửa</button><button class="danger ghost" data-delete-campaign="${x.id}">Xóa</button></td></tr>`;
     }).join("");
-    const filters = `<select name="active"><option value="">Tất cả trạng thái</option><option value="true" ${this.active === "true" ? "selected" : ""}>Đang sử dụng</option><option value="false" ${this.active === "false" ? "selected" : ""}>Ngừng sử dụng</option></select>`;
+    const filters = `<select name="active" aria-label="Trạng thái cuộc thi"><option value="">Tất cả trạng thái</option><option value="true" ${this.active === "true" ? "selected" : ""}>Đang sử dụng</option><option value="false" ${this.active === "false" ? "selected" : ""}>Ngừng sử dụng</option></select>`;
     const headers = "<th>Mã</th><th>Cuộc thi</th><th>Thời gian</th><th>Chuyên đề</th><th>Câu hỏi</th><th>Lượt tối đa</th><th>Lượt dự thi</th><th>Trạng thái</th><th></th>";
-    const placeholder = "Tìm tên hoặc mô tả cuộc thi…";
-    const columnCount = 9;
-    const createButton = `<button class="primary" id="create-campaign">+ Tạo cuộc thi</button>`;
-    this.shadowRoot.innerHTML = this.shell(`<section class="box"><div class="toolbar">${createButton}</div><form id="search" class="filters" style="margin-top:16px"><input name="term" value="${esc(this.search)}" placeholder="${placeholder}">${filters}<button>Tìm kiếm</button></form><div class="summary">${this.loading ? "Đang tải…" : `${this.result?.totalItems || 0} bản ghi`}</div><div class="table-wrap"><table><thead><tr>${headers}</tr></thead><tbody>${rows || `<tr><td colspan="${columnCount}" class="empty">Không có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>${pager(this.result)}</section><dialog id="editor" class="large"></dialog>`);
-    this.shadowRoot.querySelector("#search")?.addEventListener("submit", e => { e.preventDefault(); const d = new FormData(e.currentTarget); this.search = d.get("term").trim(); this.active = d.get("active") || ""; this.page = 1; this.load(); });
-    this.shadowRoot.querySelector("#create-campaign")?.addEventListener("click", () => this.openCampaign());
+    this.shadowRoot.innerHTML = this.shell(`<section class="box"><div class="toolbar"><form id="search" class="filters"><input name="term" aria-label="Tìm cuộc thi" value="${esc(this.search)}" placeholder="Tìm tên hoặc mô tả cuộc thi…">${filters}<button>Tìm kiếm</button></form><button class="primary" id="create-campaign">+ Tạo cuộc thi</button></div><div class="summary">${this.loading ? "Đang tải…" : `${this.result?.totalItems || 0} bản ghi`}</div><div class="table-wrap"><table><thead><tr>${headers}</tr></thead><tbody>${rows || `<tr><td colspan="9" class="empty">Không có dữ liệu phù hợp.</td></tr>`}</tbody></table></div>${pager(this.result)}</section><dialog id="editor" class="large"></dialog>`);
+    this.shadowRoot.querySelector("#search").addEventListener("submit", e => { e.preventDefault(); const d = new FormData(e.currentTarget); this.search = d.get("term").trim(); this.active = d.get("active") || ""; this.page = 1; this.load(); });
+    this.shadowRoot.querySelector("#create-campaign").addEventListener("click", () => this.openCampaign());
     this.shadowRoot.querySelectorAll("[data-edit-campaign]").forEach(b => b.addEventListener("click", async () => this.openCampaign(await this.request(`/campaigns/${b.dataset.editCampaign}`))));
     this.shadowRoot.querySelectorAll("[data-delete-campaign]").forEach(b => b.addEventListener("click", () => this.removeCampaign(b.dataset.deleteCampaign)));
-
     this.bindPager();
   }
   async openCampaign(item = null) {
@@ -168,7 +173,7 @@ class ContestPage extends AdminPage {
     dialog.querySelector("#form").addEventListener("submit", e => { e.preventDefault(); const d = new FormData(e.currentTarget); const topics = [...dialog.querySelectorAll("[data-topic-node]")].map(node => ({ topicId: Number(node.dataset.topicNode), questionCodes: [...node.querySelectorAll("[data-question]:checked:not(:disabled)")].map(x => x.dataset.question) })).filter(x => x.questionCodes.length); const instant = (field, stored, second) => { const typed = d.get(field); if (stored && typed === localValue(stored)) return stored; const t = new Date(typed); t.setSeconds(second, 0); return t.toISOString(); }; const payload = { name: d.get("name"), description: d.get("description") || null, startAt: instant("startAt", item?.startAt, 0), endAt: instant("endAt", item?.endAt, 59), maxAttempts: Number(d.get("maxAttempts")), submitGraceHours: Number(d.get("submitGraceHours")), readTimerFactor: Number(d.get("readTimerFactor")), focusArea: d.get("focusArea")?.trim() || null, isActive: d.get("active") === "on", topics, expectedRevision: item?.revision ?? null }; this.run(async () => { await this.request(item ? `/campaigns/${item.id}` : "/campaigns", { method: item ? "PUT" : "POST", body: JSON.stringify(payload) }); dialog.close(); await this.load(); }, item ? "Đã cập nhật cuộc thi." : "Đã tạo cuộc thi."); });
     dialog.showModal();
   }
-  async removeCampaign(id) { if (!confirm("Xóa cuộc thi và toàn bộ cấu hình chuyên đề/câu hỏi đã chọn?")) return; await this.run(async () => { await this.request(`/campaigns/${id}`, { method: "DELETE" }); await this.load(); }, "Đã xóa cuộc thi."); }
+  async removeCampaign(id) { if (!await this.confirmDelete("Xóa cuộc thi và toàn bộ cấu hình chuyên đề/câu hỏi đã chọn?")) return; await this.run(async () => { await this.request(`/campaigns/${id}`, { method: "DELETE" }); await this.load(); }, "Đã xóa cuộc thi."); }
 }
 
 const styles = contestStylesText;
@@ -189,33 +194,7 @@ class ContestManagementLitView extends UmbLitElement {
 class QuestionsLitView extends ContestBankView {}
 class TopicsLitView extends ContestManagementLitView { constructor() { super(); this.view = "topics"; } }
 class QuestionBankLitView extends QuestionsLitView {}
-class ContestLitView extends UmbLitElement {
-  static properties = { _tab: { state: true } };
-  static styles = contestStyles;
-  constructor() { super(); this._tab = 'campaigns'; this._visited = new Set(['campaigns']); }
-  _select(tab) { this._visited.add(tab); this._tab = tab; }
-  async _tabKey(event) {
-    const tabs = ['campaigns', 'entries', 'draws'];
-    let index = tabs.indexOf(this._tab);
-    if (event.key === 'ArrowRight') index = (index + 1) % tabs.length;
-    else if (event.key === 'ArrowLeft') index = (index + tabs.length - 1) % tabs.length;
-    else if (event.key === 'Home') index = 0;
-    else if (event.key === 'End') index = tabs.length - 1;
-    else return;
-    event.preventDefault(); this._select(tabs[index]); await this.updateComplete;
-    this.renderRoot.querySelector(`#contest-tab-${this._tab}`)?.focus();
-  }
-  render() {
-    return html`<umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>Cuộc thi</h1><p class="page-description">Thiết lập cuộc thi, theo dõi lượt dự thi và tổ chức quay số chọn người trúng giải.</p></div></header>
-      <div class="tabs contest-tabs" role="tablist" aria-label="Quản lý cuộc thi" @keydown=${this._tabKey}>
-        ${[['campaigns', 'Danh sách cuộc thi'], ['entries', 'Lượt dự thi'], ['draws', 'Lần quay số']].map(([tab, label]) => html`<button id=${`contest-tab-${tab}`} data-tab=${tab} role="tab" class=${this._tab === tab ? 'primary' : ''} aria-selected=${this._tab === tab ? 'true' : 'false'} aria-controls=${`contest-panel-${tab}`} tabindex=${this._tab === tab ? 0 : -1} @click=${() => this._select(tab)}>${label}</button>`)}
-      </div>
-      <div class="contest-panel" id="contest-panel-campaigns" role="tabpanel" aria-labelledby="contest-tab-campaigns" ?hidden=${this._tab !== 'campaigns'}><antc-contest-table embedded></antc-contest-table></div>
-      <div class="contest-panel" id="contest-panel-entries" role="tabpanel" aria-labelledby="contest-tab-entries" ?hidden=${this._tab !== 'entries'}>${this._visited.has('entries') ? html`<antc-contest-entries-report-view embedded></antc-contest-entries-report-view>` : nothing}</div>
-      <div class="contest-panel" id="contest-panel-draws" role="tabpanel" aria-labelledby="contest-tab-draws" ?hidden=${this._tab !== 'draws'}>${this._visited.has('draws') ? html`<antc-contest-draws-view embedded></antc-contest-draws-view>` : nothing}</div>
-    </div></umb-body-layout>`;
-  }
-}
+class ContestLitView extends ContestManagementLitView { constructor() { super(); this.view = "contest"; } }
 
 if (!customElements.get("antc-contest-topics-table")) customElements.define("antc-contest-topics-table", TopicsPage);
 if (!customElements.get("antc-contest-questions-table")) customElements.define("antc-contest-questions-table", QuestionsPage);
