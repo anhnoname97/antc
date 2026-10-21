@@ -22,24 +22,28 @@ public sealed class ApiBoundaryMiddleware(RequestDelegate next, ILogger<ApiBound
         await using var request = new MemoryStream();
         context.Response.Body = response;
         string? error = null;
+        bool workbookUpload = HttpMethods.IsPost(context.Request.Method) && string.Equals(
+            context.Request.Path.Value?.TrimEnd('/'), "/api/v1/admin/quiz/imports/preview", StringComparison.OrdinalIgnoreCase);
         try
         {
             try
             {
-                bool tooLarge = context.Request.ContentLength > ApiProtection.MaxBodyBytes;
+                // Sole binary-upload exception; all other APIs retain the 16 KB limit.
+                int maxBodyBytes = workbookUpload ? 5 * 1024 * 1024 + 64 * 1024 : ApiProtection.MaxBodyBytes;
+                bool tooLarge = context.Request.ContentLength > maxBodyBytes;
                 // Đọc tối đa 16 KB + 1 tại đây thay vì hạ hard-limit của Kestrel:
                 // hard-limit có thể đóng kết nối trước khi gửi được JSON lỗi cho body chunked.
                 if (!tooLarge)
                 {
                     byte[] chunk = new byte[4096];
-                    while (request.Length <= ApiProtection.MaxBodyBytes)
+                    while (request.Length <= maxBodyBytes)
                     {
                         int read = await originalRequest.ReadAsync(chunk.AsMemory(0,
-                            (int)Math.Min(chunk.Length, ApiProtection.MaxBodyBytes + 1 - request.Length)), context.RequestAborted);
+                            (int)Math.Min(chunk.Length, maxBodyBytes + 1 - request.Length)), context.RequestAborted);
                         if (read == 0) break;
                         await request.WriteAsync(chunk.AsMemory(0, read), context.RequestAborted);
                     }
-                    tooLarge = request.Length > ApiProtection.MaxBodyBytes;
+                    tooLarge = request.Length > maxBodyBytes;
                 }
                 if (tooLarge)
                     context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
@@ -60,7 +64,11 @@ public sealed class ApiBoundaryMiddleware(RequestDelegate next, ILogger<ApiBound
 
             if (context.Response.StatusCode >= 400)
             {
-                ApiError apiError = ReadError(response) ?? DefaultError(context.Response.StatusCode);
+                ApiError apiError = ReadError(response) ?? (workbookUpload && context.Response.StatusCode == 413
+                    ? new ApiError("REQUEST_TOO_LARGE", "Tệp Excel không được vượt quá 5 MB; phần dữ liệu multipart phụ trợ tối đa 64 KB.")
+                    : workbookUpload && context.Response.StatusCode == 415
+                        ? new ApiError("UNSUPPORTED_MEDIA_TYPE", "Hãy gửi multipart/form-data với trường file chứa tệp .xlsx.")
+                        : DefaultError(context.Response.StatusCode));
                 error = apiError.Code;
                 response.SetLength(0);
                 context.Response.ContentLength = null;

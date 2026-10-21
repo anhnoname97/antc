@@ -15,6 +15,7 @@ const descriptions = { dashboard: 'Theo dõi mức độ tham gia, kết quả v
 
 export class ContestReportsView extends UmbLitElement {
     static properties = {
+        embedded: { type: Boolean, reflect: true },
         _data: { state: true }, _options: { state: true }, _busy: { state: true }, _error: { state: true },
         _detail: { state: true }, _state: { state: true }, _draws: { state: true }, _selected: { state: true }, _message: { state: true },
         _pagination: { state: true },
@@ -123,7 +124,8 @@ export class ContestReportsView extends UmbLitElement {
         return html`<label>${label}<select name=${name}>${choices.map(([value, text]) => html`<option value=${value} .selected=${String(this.filters[name] || '') === String(value)}>${text}</option>`)}</select></label>`;
     }
     _filters() {
-        return html`<form class="filter-panel" @submit=${this._filter}>
+        const count = Object.entries(this.filters).filter(([key, value]) => !['page', 'sort'].includes(key) && value !== '' && value != null).length;
+        return html`<details class="advanced-search" ?open=${this.view === 'publication'}><summary>Tìm kiếm nâng cao <span class="filter-status">${count ? `${count} điều kiện đang áp dụng` : 'Chưa áp dụng bộ lọc'}</span></summary><form class="filter-panel" @submit=${this._filter}>
             <div class="filters">
                 ${this._select('contestId', 'Cuộc thi', [['', this.view === 'publication' ? 'Chọn cuộc thi' : 'Tất cả cuộc thi'], ...this._options.contests.map(c => [c.id, c.name])])}
                 ${this.view === 'publication' ? nothing : html`
@@ -140,7 +142,7 @@ export class ContestReportsView extends UmbLitElement {
                 `}
             </div><div class="actions"><button class="primary" ?disabled=${this._busy}>${this.view === 'publication' ? 'Mở cuộc thi' : 'Lọc dữ liệu'}</button>
             <button type="button" ?disabled=${this._busy} @click=${event => { event.currentTarget.form?.reset(); this.filters = { sort: 'created_desc', page: '1' }; this._load(); }}>Đặt lại</button></div>
-        </form>`;
+        </form></details>`;
     }
     _dashboard() {
         const d = this._data, max = Math.max(1, ...d.scores.map(s => s.count));
@@ -185,11 +187,12 @@ export class ContestReportsView extends UmbLitElement {
             </tbody></table></div>${this._pager(key, questions, t.title)}</details>`; })}</div><footer class="dialog-footer"><button @click=${this._close}>Đóng</button></footer></dialog>`;
     }
     render() {
-        return html`<umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>${titles[this.view]}</h1><p class="page-description">${descriptions[this.view]}</p></div><span class="page-context">Giờ Việt Nam · UTC+7</span></header>
+        const content = html`<div class=${this.embedded ? 'embedded-page' : 'page'}>${this.embedded ? nothing : html`<header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>${titles[this.view]}</h1><p class="page-description">${descriptions[this.view]}</p></div><span class="page-context">Giờ Việt Nam · UTC+7</span></header>`}
             ${this._error ? html`<p class="error" role="alert">${this._error}</p>` : nothing}${this._message ? html`<p class="success-notice" role="status">${this._message}</p>` : nothing}
             ${this._filters()}${this._busy ? html`<p class="loading-notice" role="status">Đang xử lý…</p>` : nothing}
             ${this.view === 'publication' ? this._publication() : this._data ? this.view === 'dashboard' ? this._dashboard() : this.view === 'entries' ? this._entries() : this._questions() : nothing}
-            <p class="muted privacy-note">Dữ liệu cá nhân chỉ dành cho người được phân quyền. Việc xem chi tiết và xuất dữ liệu được ghi nhật ký.</p>${this._dialog()}</div></umb-body-layout>`;
+            <p class="muted privacy-note">Dữ liệu cá nhân chỉ dành cho người được phân quyền. Việc xem chi tiết và xuất dữ liệu được ghi nhật ký.</p>${this._dialog()}</div>`;
+        return this.embedded ? content : html`<umb-body-layout main-no-padding>${content}</umb-body-layout>`;
     }
     static styles = contestStyles;
 }

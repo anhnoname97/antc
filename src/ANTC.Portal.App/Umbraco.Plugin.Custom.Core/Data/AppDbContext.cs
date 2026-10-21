@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public static string FoldText(string value) => throw new NotSupportedException("SQL only");
     public DbSet<ContestAccessAudit> ContestAccessAudits => Set<ContestAccessAudit>();
     public DbSet<ContestPublishedResult> ContestPublishedResults => Set<ContestPublishedResult>();
+    public DbSet<PrivacyOperation> PrivacyOperations => Set<PrivacyOperation>();
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
@@ -36,6 +37,15 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        b.Entity<PrivacyOperation>(e =>
+        {
+            e.ToTable("privacy_operation");
+            e.Property(x => x.Scope).HasMaxLength(16);
+            e.Property(x => x.Action).HasMaxLength(16);
+            e.Property(x => x.RequestHash).HasMaxLength(64);
+            e.Property(x => x.CleanupErrorCode).HasMaxLength(40);
+            e.HasIndex(x => x.OccurredAt);
+        });
         b.Entity<ContestPublishedResult>(e =>
         {
             e.ToTable("contest_published_result");
@@ -85,6 +95,7 @@ public class AppDbContext : DbContext
             e.ToTable("draw");
             e.Property(x => x.CreatedBy).HasMaxLength(100);
             e.Property(x => x.Note).HasMaxLength(200);
+            e.HasIndex(x => x.RequestId).IsUnique();
             e.HasIndex(x => x.ContestId);
             e.HasOne(x => x.Contest).WithMany(x => x.Draws).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
         });

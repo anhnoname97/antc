@@ -226,6 +226,20 @@ public class ApiProtectionTests
             Assert.DoesNotContain(secret, log, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task ExcelBodyException_DoesNotRaiseLimitsForOtherPathsOrMethods()
+    {
+        await using var host = await Host.StartAsync();
+        // This host has no workbook controller: passing the boundary reaches routing (404), not 413.
+        using var upload = await host.Client.PostAsync("/api/v1/admin/quiz/imports/preview", new UnknownLengthContent(new byte[17000]));
+        Assert.Equal(HttpStatusCode.NotFound, upload.StatusCode);
+        await AssertError(await host.Client.PostAsync("/api/v1/admin/quiz/imports/confirm", new ByteArrayContent(new byte[17000])), HttpStatusCode.RequestEntityTooLarge, "REQUEST_TOO_LARGE");
+        await AssertError(await host.Client.PostAsync("/api/v1/admin/quiz/imports/preview/other", new ByteArrayContent(new byte[17000])), HttpStatusCode.RequestEntityTooLarge, "REQUEST_TOO_LARGE");
+        using var get = new HttpRequestMessage(HttpMethod.Get, "/api/v1/admin/quiz/imports/preview") { Content = new ByteArrayContent(new byte[17000]) };
+        await AssertError(await host.Client.SendAsync(get), HttpStatusCode.RequestEntityTooLarge, "REQUEST_TOO_LARGE");
+        await AssertError(await host.Client.PostAsync("/api/v1/admin/quiz/imports/preview", new UnknownLengthContent(new byte[5 * 1024 * 1024 + 65537])), HttpStatusCode.RequestEntityTooLarge, "REQUEST_TOO_LARGE");
+    }
+
     [Theory]
     [InlineData(true, HttpStatusCode.OK)]
     [InlineData(false, HttpStatusCode.ServiceUnavailable)]
