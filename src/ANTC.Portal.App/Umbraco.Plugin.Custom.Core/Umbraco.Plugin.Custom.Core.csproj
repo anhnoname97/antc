@@ -11,6 +11,7 @@
   <ItemGroup>
     <!-- Umbraco core tu feed noi bo. Version lay tu Directory.Packages.props -->
     <PackageReference Include="Umbraco.Cms" />
+    <PackageReference Include="HtmlSanitizer" />
     <!-- CSDL ung dung (App_Data/app.sqlite.db) -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

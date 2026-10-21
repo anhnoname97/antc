@@ -38,9 +38,11 @@ graph TD
   chinhSachPage["Trang Chính sách<br/><i>chinhSachPage</i>"]
   contentManagement["Quản lý nội dung<br/><i>contentManagement</i>"]
   cuocThiLamBaiPage["Trang Làm bài cuộc thi<br/><i>cuocThiLamBaiPage</i>"]
+  fraudContent["Nội dung giới thiệu Thủ đoạn<br/><i>fraudContent</i>"]
   hoiDapPage["Trang Hỏi – Đáp<br/><i>hoiDapPage</i>"]
   home["Trang chủ (Giới thiệu)<br/><i>home</i>"]
   pageManagement["Quản lý trang<br/><i>pageManagement</i>"]
+  policyContent["Nội dung giới thiệu Chính sách<br/><i>policyContent</i>"]
   qaItem["Câu trả lời công khai<br/><i>qaItem</i>"]
   searchPage["Trang Tìm kiếm<br/><i>searchPage</i>"]
   seoBase["SEO dùng chung<br/><i>seoBase</i>"]
@@ -58,10 +60,12 @@ graph TD
   articleList -. composition .-> seoBase
   articleList -.-> tpl_articleList{{"articleList.cshtml"}}
   articleManagement --> articleList
+  articleManagement --> fraudContent
   chinhSachPage -. composition .-> seoBase
   chinhSachPage -.-> tpl_chinhSachPage{{"chinhSachPage.cshtml"}}
   contentManagement --> articleManagement
   contentManagement --> articleList
+  contentManagement --> policyContent
   cuocThiLamBaiPage -. composition .-> seoBase
   cuocThiLamBaiPage -.-> tpl_cuocThiLamBaiPage{{"cuocThiLamBaiPage.cshtml"}}
   hoiDapPage -. composition .-> seoBase
@@ -98,7 +102,7 @@ graph TD
 
 ## 3. Element type (block dùng trong trang)
 
-Tổng 71 element type.
+Tổng 72 element type.
 
 | Nhóm | Số | Element type |
 |---|---|---|
@@ -113,6 +117,7 @@ Tổng 71 element type.
 | faq | 2 | faqBlock, faqItemBlock |
 | intro | 2 | introHeroBlock, introStoryBlock |
 | warning | 2 | warningSignItemBlock, warningSignsBlock |
+| article | 1 | articleInformationItem |
 | information | 1 | informationItemBlock |
 | monthly | 1 | monthlyCompetitionHeroBlock |
 | navigation | 1 | navigationItemBlock |
@@ -127,7 +132,7 @@ Tổng 71 element type.
 | story | 1 | storyChapterBlock |
 | two | 1 | twoColumnLayoutBlock |
 
-## 4. Cây nội dung mẫu (47 node)
+## 4. Cây nội dung mẫu (67 node)
 
 ```mermaid
 graph LR
@@ -164,36 +169,72 @@ graph LR
   nf9386cdc_74f6_4893_acc8_eba3162cc7c0 --> n90ab7780_e72b_4d53_ae5a_147dfb353e03
   n06451cc2_39c5_56cb_8c28_329ee3795768["Cuộc gọi báo tài khoản gặp sự cố: đừng vội đọc mã OTP<br/><i>article</i>"]
   nf9386cdc_74f6_4893_acc8_eba3162cc7c0 --> n06451cc2_39c5_56cb_8c28_329ee3795768
+  n93bd0a2a_c311_54cd_bfa9_02ffecb90594["Cuộc gọi video tự xưng Công an: dừng lại trước yêu cầu chuyển tiền<br/><i>article</i>"]
+  nf9386cdc_74f6_4893_acc8_eba3162cc7c0 --> n93bd0a2a_c311_54cd_bfa9_02ffecb90594
+  n58b40473_ff1c_523c_990d_5a60737e74db["Video giống người thân nhờ chuyển tiền: xác minh thêm trước khi giúp<br/><i>article</i>"]
+  nf9386cdc_74f6_4893_acc8_eba3162cc7c0 --> n58b40473_ff1c_523c_990d_5a60737e74db
+  n00369843_d423_5608_93f8_188c004a7391["Tin nhắn báo phạt nguội kèm link: đừng thanh toán trong vội vàng<br/><i>article</i>"]
+  nf9386cdc_74f6_4893_acc8_eba3162cc7c0 --> n00369843_d423_5608_93f8_188c004a7391
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> nf9386cdc_74f6_4893_acc8_eba3162cc7c0
   nfd38232c_0847_4379_9ccb_aba5ee852401["Mua bán, đặt cọc<br/><i>articleList</i>"]
   nd8e9bb9f_9494_4ec1_bfb1_8b862a2ddf84["Bài mẫu: Mua bán, đặt cọc<br/><i>article</i>"]
   nfd38232c_0847_4379_9ccb_aba5ee852401 --> nd8e9bb9f_9494_4ec1_bfb1_8b862a2ddf84
   naae99319_3ddd_5715_8ad7_ab98f0770b8c["Mua hàng online: kiểm tra trước khi đặt cọc hoặc nhận hoàn tiền<br/><i>article</i>"]
   nfd38232c_0847_4379_9ccb_aba5ee852401 --> naae99319_3ddd_5715_8ad7_ab98f0770b8c
+  n96b33d9f_81f9_530a_a665_b6ac9fa648fb["Đặt phòng qua mạng: kiểm tra nơi nhận tiền trước khi đặt cọc<br/><i>article</i>"]
+  nfd38232c_0847_4379_9ccb_aba5ee852401 --> n96b33d9f_81f9_530a_a665_b6ac9fa648fb
+  n57400092_c253_5156_91ab_6e7b6ddbaf26["Shipper báo chuyển nhầm tiền: đừng nộp thêm để được hoàn đơn<br/><i>article</i>"]
+  nfd38232c_0847_4379_9ccb_aba5ee852401 --> n57400092_c253_5156_91ab_6e7b6ddbaf26
+  nb917d043_7ede_594b_9d44_c1a9ee6645be["Mua đồ cũ giá rẻ: đừng để lời hứa giữ hàng kéo bạn vào bẫy đặt cọc<br/><i>article</i>"]
+  nfd38232c_0847_4379_9ccb_aba5ee852401 --> nb917d043_7ede_594b_9d44_c1a9ee6645be
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> nfd38232c_0847_4379_9ccb_aba5ee852401
   n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49["Việc làm, làm thêm<br/><i>articleList</i>"]
   nadbb6788_1e56_411e_a493_aa42e457fc63["Bài mẫu: Việc làm, làm thêm<br/><i>article</i>"]
   n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49 --> nadbb6788_1e56_411e_a493_aa42e457fc63
   n90ec1803_f525_5b8b_afb6_1958f72f7f55["Việc làm online yêu cầu nạp tiền: nhận diện bẫy nhiệm vụ<br/><i>article</i>"]
   n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49 --> n90ec1803_f525_5b8b_afb6_1958f72f7f55
+  nc5517b54_2c0d_5c83_9d5a_7015801a2984["Nhà tuyển dụng yêu cầu phí giữ chỗ: kiểm tra trước khi chuyển tiền<br/><i>article</i>"]
+  n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49 --> nc5517b54_2c0d_5c83_9d5a_7015801a2984
+  n621ec217_8391_5d3a_a0b7_67b4c099285e["Việc đánh máy tại nhà đòi nạp tiền: phân biệt công việc với nhiệm vụ thu phí<br/><i>article</i>"]
+  n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49 --> n621ec217_8391_5d3a_a0b7_67b4c099285e
+  nf84f67cc_31f4_5fec_9acc_64b0d3303d3f["Việc nhẹ lương cao ở nước ngoài: kiểm tra trước khi giao giấy tờ và lên đường<br/><i>article</i>"]
+  n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49 --> nf84f67cc_31f4_5fec_9acc_64b0d3303d3f
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49
   n928d8fe6_a83a_425c_a71e_419e28d0d3c3["Đầu tư, góp vốn<br/><i>articleList</i>"]
   nba05466b_4f4e_4a74_9d1c_db6d35b27cf3["Bài mẫu: Đầu tư, góp vốn<br/><i>article</i>"]
   n928d8fe6_a83a_425c_a71e_419e28d0d3c3 --> nba05466b_4f4e_4a74_9d1c_db6d35b27cf3
   n9a6b23e4_ca07_5d28_80f6_89d85d05035d["Đầu tư qua nhóm chat: lợi nhuận trên màn hình chưa phải tiền của bạn<br/><i>article</i>"]
   n928d8fe6_a83a_425c_a71e_419e28d0d3c3 --> n9a6b23e4_ca07_5d28_80f6_89d85d05035d
+  n0640d792_3578_5f82_a6ed_213b627fa91f["Ứng dụng đầu tư do chuyên gia gửi: kiểm tra đơn vị đứng sau màn hình<br/><i>article</i>"]
+  n928d8fe6_a83a_425c_a71e_419e28d0d3c3 --> n0640d792_3578_5f82_a6ed_213b627fa91f
+  n9944d64d_2e79_5465_9ab8_faf70e23ea24["Rút lợi nhuận lại bị đòi nộp thuế, phí: đừng chuyển tiền theo thông báo trong nhóm<br/><i>article</i>"]
+  n928d8fe6_a83a_425c_a71e_419e28d0d3c3 --> n9944d64d_2e79_5465_9ab8_faf70e23ea24
+  nce8fe46d_4895_5e4f_beed_ad9dc5fe92cc["Góp vốn nhận lãi đều: hỏi tiền trả lãi đến từ hoạt động nào<br/><i>article</i>"]
+  n928d8fe6_a83a_425c_a71e_419e28d0d3c3 --> nce8fe46d_4895_5e4f_beed_ad9dc5fe92cc
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n928d8fe6_a83a_425c_a71e_419e28d0d3c3
   n0400f699_d1d5_4ad1_8b76_91722ba48a77["Vay, nợ<br/><i>articleList</i>"]
   n1c05cd5b_9cb3_42ab_8992_18308d3e0332["Bài mẫu: Vay, nợ<br/><i>article</i>"]
   n0400f699_d1d5_4ad1_8b76_91722ba48a77 --> n1c05cd5b_9cb3_42ab_8992_18308d3e0332
   n7bcb3b89_2799_5fee_b814_141615ff32e0["Vay online phải chuyển phí trước: dừng lại để xác minh<br/><i>article</i>"]
   n0400f699_d1d5_4ad1_8b76_91722ba48a77 --> n7bcb3b89_2799_5fee_b814_141615ff32e0
+  n33ce6e02_927c_5849_b985_9a1b3094ed42["Ứng dụng vay xin quyền danh bạ: đọc kỹ trước khi đồng ý<br/><i>article</i>"]
+  n0400f699_d1d5_4ad1_8b76_91722ba48a77 --> n33ce6e02_927c_5849_b985_9a1b3094ed42
+  n975b49e1_a6db_5169_bc2d_4b510b090aba["Nhân viên báo đổi tài khoản thu nợ: xác minh trước khi thanh toán<br/><i>article</i>"]
+  n0400f699_d1d5_4ad1_8b76_91722ba48a77 --> n975b49e1_a6db_5169_bc2d_4b510b090aba
+  n5df38bc5_9ce8_5a50_b9cc_2269e9ac131a["Tài khoản nhận tiền lạ rồi bị đòi nợ: xử lý qua ngân hàng<br/><i>article</i>"]
+  n0400f699_d1d5_4ad1_8b76_91722ba48a77 --> n5df38bc5_9ce8_5a50_b9cc_2269e9ac131a
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n0400f699_d1d5_4ad1_8b76_91722ba48a77
   ncbcea9dd_b92a_4d94_9d43_0487077fe916["Hợp đồng, dịch vụ<br/><i>articleList</i>"]
   naf76aeed_93a0_4872_8d27_8f8a4ee64657["Bài mẫu: Hợp đồng, dịch vụ<br/><i>article</i>"]
   ncbcea9dd_b92a_4d94_9d43_0487077fe916 --> naf76aeed_93a0_4872_8d27_8f8a4ee64657
   n3f4d17ca_584f_573d_a4a6_ac1eb04d5d37["Hợp đồng kỳ nghỉ: kiểm tra gì trước khi ký và đặt cọc?<br/><i>article</i>"]
   ncbcea9dd_b92a_4d94_9d43_0487077fe916 --> n3f4d17ca_584f_573d_a4a6_ac1eb04d5d37
+  nc1e925df_0616_5796_85d0_51a4bbf0edb2["Dịch vụ hứa lấy lại tiền bị lừa: cảnh giác mất tiền lần hai<br/><i>article</i>"]
+  ncbcea9dd_b92a_4d94_9d43_0487077fe916 --> nc1e925df_0616_5796_85d0_51a4bbf0edb2
+  nd9ba1e27_9d68_5ab5_b2d8_911be2d53e06["Dịch vụ visa hứa bao đậu: đọc rõ phạm vi công việc trước khi trả phí<br/><i>article</i>"]
+  ncbcea9dd_b92a_4d94_9d43_0487077fe916 --> nd9ba1e27_9d68_5ab5_b2d8_911be2d53e06
+  n011d01f8_cc0e_52a5_8e56_b4ee6e2cbbbc["Hợp đồng dịch vụ: đừng ký khi phí và điều kiện hoàn tiền còn bỏ trống<br/><i>article</i>"]
+  ncbcea9dd_b92a_4d94_9d43_0487077fe916 --> n011d01f8_cc0e_52a5_8e56_b4ee6e2cbbbc
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> ncbcea9dd_b92a_4d94_9d43_0487077fe916
   ncda7084d_12ac_4edf_bbd9_94b53d78cecc["Cảnh báo<br/><i>articleList</i>"]
   n3efa48cc_59f6_4dcf_afc8_ac76442f4135["Ứng dụng giả mạo dịch vụ công dụ người dân cài đặt<br/><i>article</i>"]
@@ -209,6 +250,8 @@ graph LR
   nca384def_c79b_50ca_aef1_f7d53736f3fb["Từ cổ chí kim: Từ mô hình Ponzi đến ứng dụng đầu tư giả mạo<br/><i>article</i>"]
   n3ca68856_dc5b_4335_af7d_42addb4e4db6 --> nca384def_c79b_50ca_aef1_f7d53736f3fb
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n3ca68856_dc5b_4335_af7d_42addb4e4db6
+  nb514b99f_0e40_570d_bf72_f5b9c98f3b20["Nội dung giới thiệu<br/><i>fraudContent</i>"]
+  n33df5aae_5658_5ea1_8b01_500630acfd60 --> nb514b99f_0e40_570d_bf72_f5b9c98f3b20
   n5a1e0af5_bbf2_54ed_a359_bc4716736ea5 --> n33df5aae_5658_5ea1_8b01_500630acfd60
   n2de3a8b9_e4b6_4348_9321_9b979aa1f398["Chính sách<br/><i>articleList</i>"]
   n0193cd20_026f_4a33_8f04_b5bf5fc3c0fc["Tuyên bố miễn trừ trách nhiệm<br/><i>article</i>"]
@@ -222,6 +265,8 @@ graph LR
   n7a2fe7ec_f999_46e2_9029_db9943057404["Cách báo lỗi và cải chính<br/><i>article</i>"]
   n2de3a8b9_e4b6_4348_9321_9b979aa1f398 --> n7a2fe7ec_f999_46e2_9029_db9943057404
   n5a1e0af5_bbf2_54ed_a359_bc4716736ea5 --> n2de3a8b9_e4b6_4348_9321_9b979aa1f398
+  n2c005e78_f6d3_5403_9cdf_0ac15562d9c0["Nội dung giới thiệu Chính sách<br/><i>policyContent</i>"]
+  n5a1e0af5_bbf2_54ed_a359_bc4716736ea5 --> n2c005e78_f6d3_5403_9cdf_0ac15562d9c0
   n068471f0_605e_57ee_b164_547aee46bc79 --> n5a1e0af5_bbf2_54ed_a359_bc4716736ea5
 ```
 
@@ -232,6 +277,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Administration | 6 | AdministrationAccess, ContestAuditService, ContestCsv, ContestReportCsvRows, ContestReportingService, ContestReportModels |
+| Articles | 10 | ArticleContentSource, ArticleHtmlSanitizer, ArticleModels, ArticlePageContent, ArticlePageContentSource, ArticleQuery, ArticleReviewPolicy, ArticleSchemaMigration, ArticleSearchText, PublishedArticleService |
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
@@ -246,7 +292,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Composers | 1 | CustomApiComposer |
-| Controllers | 14 | ContestAdminController, ContestController, ContestReportingController, ContestResultsController, ContestsController, LegacyContestReportingController, LegacyQuestionsAdministrationController, PublishedQuestionsController, QuestionManagementController, QuestionOperationsController, QuestionsController, QuizAdminController, QuizController, SystemController |
+| Controllers | 16 | ContestAdminController, ContestController, ContestReportingController, ContestResultsController, ContestsController, LegacyContestReportingController, LegacyQuestionsAdministrationController, PublishedArticleContentController, PublishedArticlesController, PublishedQuestionsController, QuestionManagementController, QuestionOperationsController, QuestionsController, QuizAdminController, QuizController, SystemController |
 | Infrastructure | 7 | AdministrationIpAllowlistMiddleware, ApiBoundaryMiddleware, ApiPrivacyLogFilter, ApiProtection, ContestAdministrationAuthorizationResult, DatabaseReadiness, DeploymentTrafficGateMiddleware |
 | Models | 3 | ApiErrorModels, ContestScheduleModels, QuestionModels |
 | Validation | 1 | QuestionRequestValidator |
@@ -269,6 +315,8 @@ graph LR
 | ContestsController | GET api/v1/contests |
 | LegacyContestReportingController | GET //quan-tri, GET //quan-tri/cuoc-thi, GET //quan-tri/luot-thi, GET //quan-tri/luot-thi/{id:long}, GET //quan-tri/thong-ke-cau-hoi |
 | LegacyQuestionsAdministrationController | GET //quan-tri/hoi-dap |
+| PublishedArticleContentController | GET api/v1/article-content/fraud, GET api/v1/article-content/policy |
+| PublishedArticlesController | GET api/v1/article-categories, GET api/v1/article-categories/{id:guid}, GET api/v1/article-categories/by-path, GET api/v1/articles, GET api/v1/articles/{id:guid}, GET api/v1/articles/by-path |
 | PublishedQuestionsController | GET api/v1/questions, GET api/v1/questions/{id:long} |
 | QuestionManagementController | POST , GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
 | QuestionOperationsController | POST /aggregate, DELETE /{id:long}, POST /bulk-delete, GET /retention, PUT /retention, POST /retention/run |
