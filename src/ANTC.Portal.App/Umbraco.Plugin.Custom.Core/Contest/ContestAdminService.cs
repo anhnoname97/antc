@@ -20,11 +20,13 @@ public interface IContestAdminService
     Task<PagedResult<DrawAdminDto>> SearchDrawsAsync(string? search, int page, int pageSize, CancellationToken ct);
     Task<DrawAdminDto?> GetDrawAsync(long id, CancellationToken ct);
     Task<DrawAdminDto> CreateDrawAsync(SaveDrawRequest request, string actor, CancellationToken ct);
+    Task<DrawPreviewDto> PreviewDrawAsync(PreviewDrawRequest request, CancellationToken ct);
+    Task<IReadOnlyList<DrawCandidateSnapshot>?> ExportDrawAsync(long id, bool winners, CancellationToken ct);
     Task<DrawAdminDto?> UpdateDrawAsync(long id, SaveDrawRequest request, CancellationToken ct);
     Task<bool> DeleteDrawAsync(long id, CancellationToken ct);
 }
 
-public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvider, IQuestionBank? bank = null) : IContestAdminService
+public sealed partial class ContestAdminService(AppDbContext db, TimeProvider timeProvider, IQuestionBank? bank = null) : IContestAdminService
 {
     private static readonly System.Text.RegularExpressions.Regex FocusAreaPattern =
         new("^[a-z0-9_-]{1,50}$", System.Text.RegularExpressions.RegexOptions.Compiled);
@@ -178,7 +180,7 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         }
 
         int total = await query.CountAsync(ct);
-        List<Draw> draws = await query.Include(x => x.Winners).AsSplitQuery().OrderByDescending(x => x.CreatedAt)
+        List<Draw> draws = await query.Include(x => x.Winners).AsSplitQuery().OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return Page(draws.Select(MapDraw).ToList(), page, pageSize, total);
     }
@@ -187,73 +189,11 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         await db.Draws.AsNoTracking().Include(x => x.Winners).Include(x => x.Contest).AsSplitQuery()
             .SingleOrDefaultAsync(x => x.Id == id, ct) is { } draw ? MapDraw(draw) : null;
 
-    public async Task<DrawAdminDto> CreateDrawAsync(SaveDrawRequest request, string actor, CancellationToken ct)
-    {
-        Validate(request);
-        ContestCampaign contest = await db.ContestCampaigns.SingleOrDefaultAsync(x => x.Id == request.ContestId, ct)
-            ?? throw new ContestAdminValidationException(new Dictionary<string, string> { ["contestId"] = "Cuộc thi không tồn tại." });
-        DateTime now = UtcNow();
-        List<long> previousWinnerIds = request.ExcludePrevious
-            ? await db.DrawWinners.Where(x => x.EntryId != null && x.Draw!.ContestId == contest.Id)
-                .Select(x => x.EntryId!.Value).Distinct().ToListAsync(ct)
-            : [];
-        IQueryable<Entry> eligibleQuery = db.Entries.Where(x =>
-            x.ContestId == contest.Id && x.Status == EntryStatuses.Submitted && x.Score >= request.MinScore);
-        if (previousWinnerIds.Count > 0) eligibleQuery = eligibleQuery.Where(x => !previousWinnerIds.Contains(x.Id));
-        List<Entry> eligible = await eligibleQuery.OrderBy(_ => EF.Functions.Random()).ToListAsync(ct);
-        Draw draw = new()
-        {
-            ContestId = contest.Id,
-            Contest = contest,
-            CreatedAt = now,
-            CreatedBy = NormalizeActor(actor),
-            MinScore = request.MinScore,
-            WinnersRequested = request.WinnersRequested,
-            EligibleCount = eligible.Count,
-            ExcludePrevious = request.ExcludePrevious,
-            Note = NullIfEmpty(request.Note),
-        };
-        foreach (Entry entry in eligible.Take(request.WinnersRequested))
-        {
-            draw.Winners.Add(new DrawWinner
-            {
-                Rank = draw.Winners.Count + 1,
-                EntryId = entry.Id,
-                Code = entry.Code,
-                FullName = entry.FullName ?? "Ẩn danh",
-                Phone = entry.Phone ?? "",
-                Score = entry.Score ?? 0,
-            });
-        }
+    public Task<DrawAdminDto?> UpdateDrawAsync(long id, SaveDrawRequest request, CancellationToken ct) =>
+        throw new ContestAdminConflictException("DRAW_IMMUTABLE", "Lần quay đã lưu không được sửa. Hãy tạo lần quay mới.");
 
-        db.Draws.Add(draw);
-        await db.SaveChangesAsync(ct);
-        return MapDraw(draw);
-    }
-
-    public async Task<DrawAdminDto?> UpdateDrawAsync(long id, SaveDrawRequest request, CancellationToken ct)
-    {
-        Validate(request);
-        Draw? draw = await db.Draws.Include(x => x.Winners).Include(x => x.Contest).SingleOrDefaultAsync(x => x.Id == id, ct);
-        if (draw is null) return null;
-        if (request.ContestId != draw.ContestId)
-            throw new ContestAdminValidationException(new Dictionary<string, string> { ["contestId"] = "Không được đổi cuộc thi của một lần quay đã tạo." });
-        draw.MinScore = request.MinScore;
-        draw.WinnersRequested = request.WinnersRequested;
-        draw.ExcludePrevious = request.ExcludePrevious;
-        draw.Note = NullIfEmpty(request.Note);
-        await db.SaveChangesAsync(ct);
-        return MapDraw(draw);
-    }
-
-    public async Task<bool> DeleteDrawAsync(long id, CancellationToken ct)
-    {
-        Draw? draw = await db.Draws.SingleOrDefaultAsync(x => x.Id == id, ct);
-        if (draw is null) return false;
-        db.Draws.Remove(draw);
-        await db.SaveChangesAsync(ct);
-        return true;
-    }
+    public Task<bool> DeleteDrawAsync(long id, CancellationToken ct) =>
+        throw new ContestAdminConflictException("DRAW_IMMUTABLE", "Lần quay đã lưu không được xóa. Lịch sử phải được giữ nguyên.");
 
     private static void Validate(SaveDrawRequest request)
     {
@@ -418,10 +358,11 @@ public sealed class ContestAdminService(AppDbContext db, TimeProvider timeProvid
         x.Score, x.TotalQuestions, x.AttemptNo, x.CreatedAt, x.SubmittedAt, x.ContestId, x.Contest?.Name);
 
     private static DrawAdminDto MapDraw(Draw x) => new(
-        x.Id, x.CreatedAt, x.CreatedBy, x.MinScore, x.WinnersRequested, x.EligibleCount,
+        x.Id, AsUtc(x.CreatedAt), x.CreatedBy, x.MinScore, x.WinnersRequested, x.EligibleCount,
         x.ExcludePrevious, x.Note, x.Winners.OrderBy(w => w.Rank)
-            .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, w.Phone, w.Score)).ToList(),
-        x.ContestId, x.Contest?.Name);
+            .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, ContestResultsService.MaskPhone(w.Phone), w.Score)).ToList(),
+        x.ContestId, x.Contest?.Name, x.EligibleSnapshotJson is not null,
+        x.EligibleSnapshotJson?.Contains("\"Phone\":\"\"", StringComparison.Ordinal) == true);
 
     private static (int Page, int PageSize) NormalizePaging(int page, int pageSize) =>
         (Math.Max(1, page), Math.Clamp(pageSize, 1, 100));

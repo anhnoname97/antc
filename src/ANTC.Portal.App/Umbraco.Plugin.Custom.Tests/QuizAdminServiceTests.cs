@@ -8,6 +8,16 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class QuizAdminServiceTests
 {
     [Fact]
+    public async Task TrueFalseQuestion_CanBeCreatedAndEdited_WithoutInventingBlankOptions()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        var request = ValidQuestion() with { Answers = ValidQuestion().Answers!.Take(2).ToList(), Kind = "Đúng – Sai" };
+        var created = await test.Service.CreateQuestionAsync(request, "admin", default);
+        Assert.Equal(2, created.Answers.Count);
+        var edited = await test.Service.UpdateQuestionAsync(created.Code, request with { Question = "Đã sửa câu hỏi Đúng – Sai?" }, "admin", default);
+        Assert.Equal(2, edited!.Answers.Count); Assert.Equal("B", edited.CorrectAnswer);
+    }
+    [Fact]
     public async Task CreateQuestion_DerivesAnswerFromExactlyOneCorrectOption()
     {
         await using TestDatabase test = await TestDatabase.CreateAsync();
@@ -24,10 +34,10 @@ public class QuizAdminServiceTests
     }
 
     [Fact]
-    public async Task CreateQuestion_RejectsAnythingOtherThanFourAnswers()
+    public async Task CreateQuestion_RejectsFewerThanTwoAnswers()
     {
         await using TestDatabase test = await TestDatabase.CreateAsync();
-        SaveQuizQuestionRequest request = ValidQuestion() with { Answers = ValidQuestion().Answers!.Take(3).ToList() };
+        SaveQuizQuestionRequest request = ValidQuestion() with { Answers = ValidQuestion().Answers!.Take(1).ToList() };
         QuizAdminValidationException error = await Assert.ThrowsAsync<QuizAdminValidationException>(
             () => test.Service.CreateQuestionAsync(request, "admin", default));
         Assert.Contains("answers", error.Fields);

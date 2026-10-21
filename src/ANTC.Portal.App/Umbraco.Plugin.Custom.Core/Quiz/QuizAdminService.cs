@@ -170,20 +170,23 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         if (request.SafeAction?.Trim().Length > 3000) errors["safeAction"] = "Khuyến nghị tối đa 3000 ký tự.";
         if (request.ReadSeconds is < 0 or > 600) errors["readSeconds"] = "Thời gian đọc phải từ 0 đến 600 giây.";
         if (request.SortOrder < 0) errors["sortOrder"] = "Thứ tự không được âm.";
-        if (request.SampleOrder is <= 0) errors["sampleOrder"] = "Thứ tự Thử sức phải lớn hơn 0.";
+        if (request.SampleOrder is <= 0 or > 8) errors["sampleOrder"] = "Thứ tự Thử sức phải từ 1 đến 8.";
         if (request.SampleOrder is not null && string.IsNullOrWhiteSpace(request.SampleLabel)) errors["sampleLabel"] = "Nhãn Thử sức là bắt buộc khi có thứ tự.";
         if (request.SampleLabel?.Trim().Length > 60) errors["sampleLabel"] = "Nhãn Thử sức tối đa 60 ký tự.";
 
         List<QuizAnswerAdminDto> answers = request.Answers?.ToList() ?? [];
-        if (answers.Count != 4) errors["answers"] = "Câu hỏi phải có đúng 4 đáp án.";
-        var normalizedAnswers = answers.Select(x => x with { Key = x.Key.Trim().ToUpperInvariant(), Text = x.Text.Trim(), Explanation = x.Explanation.Trim() }).ToList();
-        if (normalizedAnswers.Select(x => x.Key).Distinct().Order().SequenceEqual(AnswerKeys) is false)
-            errors["answers.keys"] = "Bốn đáp án phải có khóa A, B, C, D và không được trùng.";
+        var normalizedAnswers = answers.Select(x => x with { Key = (x.Key ?? "").Trim().ToUpperInvariant(), Text = (x.Text ?? "").Trim(), Explanation = (x.Explanation ?? "").Trim() }).ToList();
+        if (normalizedAnswers.Any(x => x.Text.Length == 0 && (x.IsCorrect || x.Explanation.Length > 0)))
+            errors["answers"] = "Lựa chọn trống không được là đáp án đúng hoặc có giải thích.";
+        normalizedAnswers = normalizedAnswers.Where(x => x.Text.Length > 0).ToList();
+        if (normalizedAnswers.Count is < 2 or > 4) errors["answers"] = "Câu hỏi phải có từ 2 đến 4 lựa chọn có nội dung.";
+        if (normalizedAnswers.Any(x => !AnswerKeys.Contains(x.Key)) || normalizedAnswers.Select(x => x.Key).Distinct().Count() != normalizedAnswers.Count)
+            errors["answers.keys"] = "Lựa chọn chỉ có khóa A, B, C, D và không được trùng.";
         if (normalizedAnswers.Any(x => x.Text.Length is < 1 or > 1000)) errors["answers.text"] = "Nội dung mỗi đáp án phải có 1–1000 ký tự.";
         if (normalizedAnswers.Any(x => x.Explanation.Length > 2000)) errors["answers.explanation"] = "Giải thích mỗi đáp án tối đa 2000 ký tự.";
         if (normalizedAnswers.Count(x => x.IsCorrect) != 1) errors["answers.correct"] = "Phải có duy nhất một đáp án đúng.";
         if (request.SampleOrder is not null && await db.QuizQuestions.AnyAsync(
-                x => x.SampleOrder == request.SampleOrder && x.Code != currentCode, ct))
+                x => x.IsActive && x.SampleOrder == request.SampleOrder && x.Code != currentCode, ct))
             errors["sampleOrder"] = "Thứ tự Thử sức đã được dùng bởi câu hỏi khác.";
         if (errors.Count > 0) throw new QuizAdminValidationException(errors);
         return new NormalizedQuestion(code, normalizedAnswers, normalizedAnswers.Single(x => x.IsCorrect).Key);

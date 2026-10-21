@@ -295,6 +295,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("eligible_count");
 
+                    b.Property<string>("EligibleSnapshotJson")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("eligible_snapshot_json");
+
                     b.Property<bool>("ExcludePrevious")
                         .HasColumnType("INTEGER")
                         .HasColumnName("exclude_previous");
@@ -308,6 +312,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("note");
 
+                    b.Property<Guid?>("RequestId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("request_id");
+
                     b.Property<int>("WinnersRequested")
                         .HasColumnType("INTEGER")
                         .HasColumnName("winners_requested");
@@ -315,6 +323,9 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ContestId");
+
+                    b.HasIndex("RequestId")
+                        .IsUnique();
 
                     b.ToTable("draw", (string)null);
                 });
@@ -500,6 +511,64 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.HasIndex("QuestionCode");
 
                     b.ToTable("entry_answer", (string)null);
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.PrivacyOperation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("action");
+
+                    b.Property<Guid>("ActorUserKey")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("actor_user_key");
+
+                    b.Property<string>("CleanupErrorCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cleanup_error_code");
+
+                    b.Property<string>("CountsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("counts_json");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("request_hash");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("scope");
+
+                    b.Property<bool>("VacuumCompleted")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("vacuum_completed");
+
+                    b.Property<DateTime?>("VacuumCompletedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("vacuum_completed_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.ToTable("privacy_operation", (string)null);
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuestionRetentionPolicy", b =>

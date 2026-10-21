@@ -197,9 +197,11 @@ public class ContestAttemptService : IContestAttemptService
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
             // Doc lai trang thai trong khoa: entry tu AuthenticateAsync co the da cu (vd da nop o yeu cau khac)
-            string status = await _db.Entries.AsNoTracking()
-                .Where(e => e.Id == entry.Id).Select(e => e.Status).FirstAsync(ct);
-            if (status == EntryStatuses.Submitted)
+            var current = await _db.Entries.AsNoTracking()
+                .Where(e => e.Id == entry.Id).Select(e => new { e.Status, e.TokenHash }).FirstOrDefaultAsync(ct);
+            if (current is null || current.TokenHash != entry.TokenHash)
+                return SaveAnswerResult.Fail(new("INVALID_TOKEN", "Phiên làm bài đã bị thu hồi hoặc lượt thi đã được xóa."));
+            if (current.Status == EntryStatuses.Submitted)
             {
                 return SaveAnswerResult.Fail(new("ALREADY_SUBMITTED", "Lượt thi này đã được nộp bài."));
             }
@@ -260,7 +262,9 @@ public class ContestAttemptService : IContestAttemptService
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
             // Doc lai luot co theo doi trong khoa: entry tu AuthenticateAsync khong theo doi va co the da cu
-            var current = await _db.Entries.FirstAsync(e => e.Id == entry.Id, ct);
+            var current = await _db.Entries.FirstOrDefaultAsync(e => e.Id == entry.Id, ct);
+            if (current is null || current.TokenHash != entry.TokenHash)
+                return AttachContactResult.Fail(new("INVALID_TOKEN", "Phiên làm bài đã bị thu hồi hoặc lượt thi đã được xóa."));
             if (current.Status == EntryStatuses.Submitted)
             {
                 return AttachContactResult.Fail(new("ALREADY_SUBMITTED", "Lượt thi này đã được nộp bài."));
@@ -297,7 +301,9 @@ public class ContestAttemptService : IContestAttemptService
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
             // Doc lai luot co theo doi trong khoa: entry tu AuthenticateAsync khong theo doi va co the da cu
-            var current = await _db.Entries.FirstAsync(e => e.Id == entry.Id, ct);
+            var current = await _db.Entries.FirstOrDefaultAsync(e => e.Id == entry.Id, ct);
+            if (current is null || current.TokenHash != entry.TokenHash)
+                return SubmitResult.Fail(new("INVALID_TOKEN", "Phiên làm bài đã bị thu hồi hoặc lượt thi đã được xóa."));
             if (current.Status == EntryStatuses.Submitted && current.SubmissionResultJson is { } saved)
             {
                 // Không đọc lại đáp án hay tính lại kết quả đã chốt.
