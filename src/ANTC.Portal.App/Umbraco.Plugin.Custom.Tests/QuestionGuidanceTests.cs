@@ -56,7 +56,7 @@ public class QuestionGuidanceTests
     [InlineData(1, 1, 0)]
     [InlineData(2, 2, 0)]
     [InlineData(7, 6, 1)]
-    public async Task SixItemPages_OnlyIncludePublishedQuestions(int count, int firstCount, int secondCount)
+    public async Task SixItemPages_FilterOnlyPublishedQuestions(int count, int firstCount, int secondCount)
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");
         await connection.OpenAsync(); await using var db = CreateDb(connection);
@@ -71,7 +71,7 @@ public class QuestionGuidanceTests
         var feedback = NewQuestion(); feedback.Type = "gop-y"; feedback.IsPublished = true;
         feedback.ApprovedAt = DateTime.UtcNow; feedback.PublishedAnswer = "PRIVATE_FEEDBACK"; db.Add(feedback);
         await db.SaveChangesAsync(); var service = new QuestionModerationService(db, TimeProvider.System);
-        var first = await service.ListAsync(new(PageSize: 6)); var second = await service.ListAsync(new(Page: 2, PageSize: 6));
+        var first = await service.ListAsync(new(PageSize: 6, Type: "cau-hoi")); var second = await service.ListAsync(new(Page: 2, PageSize: 6, Type: "cau-hoi"));
         Assert.Equal(count, first.Total); Assert.Equal(firstCount, first.Items.Count); Assert.Equal(secondCount, second.Items.Count);
     }
 
