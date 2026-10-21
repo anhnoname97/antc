@@ -4,6 +4,7 @@ using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Plugin.Custom.Api.Models;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Quiz;
+using Umbraco.Plugin.Custom.Core.Administration;
 
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
@@ -76,17 +77,20 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
             ? Ok(item) : NotFound(Error("ENTRY_NOT_FOUND", "Không tìm thấy lượt thi."));
 
     [HttpGet("draws")]
+    [Authorize(Policy = AdministrationAccess.BackofficePolicy)]
     public async Task<ActionResult<PagedResult<DrawAdminDto>>> Draws(
         [FromQuery] string? search, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20, CancellationToken ct = default) =>
         Ok(await service.SearchDrawsAsync(search, page, pageSize, ct));
 
     [HttpGet("draws/{id:long}")]
+    [Authorize(Policy = AdministrationAccess.BackofficePolicy)]
     public async Task<ActionResult<DrawAdminDto>> Draw(long id, CancellationToken ct) =>
         await service.GetDrawAsync(id, ct) is { } item
             ? Ok(item) : NotFound(Error("DRAW_NOT_FOUND", "Không tìm thấy lần quay."));
 
     [HttpPost("draws")]
+    [Authorize(Policy = AdministrationAccess.BackofficePolicy)]
     public async Task<ActionResult<DrawAdminDto>> CreateDraw([FromBody] SaveDrawRequest request, CancellationToken ct)
     {
         try
@@ -95,9 +99,11 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
             return CreatedAtAction(nameof(Draw), new { id = item.Id }, item);
         }
         catch (ContestAdminValidationException ex) { return BadRequest(Error("VALIDATION", ex.Message, ex.Fields)); }
+        catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
     }
 
     [HttpPut("draws/{id:long}")]
+    [Authorize(Policy = AdministrationAccess.BackofficePolicy)]
     public async Task<ActionResult<DrawAdminDto>> UpdateDraw(long id, [FromBody] SaveDrawRequest request, CancellationToken ct)
     {
         try
@@ -106,11 +112,16 @@ public sealed class ContestAdminController(IContestAdminService service) : Contr
                 ? Ok(item) : NotFound(Error("DRAW_NOT_FOUND", "Không tìm thấy lần quay."));
         }
         catch (ContestAdminValidationException ex) { return BadRequest(Error("VALIDATION", ex.Message, ex.Fields)); }
+        catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
     }
 
     [HttpDelete("draws/{id:long}")]
-    public async Task<IActionResult> DeleteDraw(long id, CancellationToken ct) =>
-        await service.DeleteDrawAsync(id, ct) ? NoContent() : NotFound();
+    [Authorize(Policy = AdministrationAccess.BackofficePolicy)]
+    public async Task<IActionResult> DeleteDraw(long id, CancellationToken ct)
+    {
+        try { return await service.DeleteDrawAsync(id, ct) ? NoContent() : NotFound(); }
+        catch (ContestAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
+    }
 
     private string Actor() => User.Identity?.Name ?? "backoffice";
     private static ApiErrorResponse HasEntries(ContestHasEntriesException ex) =>

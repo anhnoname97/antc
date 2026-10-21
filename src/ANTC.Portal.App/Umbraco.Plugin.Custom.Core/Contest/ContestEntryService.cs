@@ -120,6 +120,14 @@ public class ContestEntryService : IContestEntryService
         try
         {
             await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+            // The request may have waited while the contest closed, was disabled, or privacy cleanup ran.
+            // Re-read the participation window inside the write transaction before storing fresh PII.
+            now = _clock.GetUtcNow().UtcDateTime;
+            var live = await _db.ContestCampaigns.AsNoTracking().Where(c => c.Id == contest.Id)
+                .Select(c => new { c.IsActive, c.StartAt, c.EndAt, c.MaxAttempts }).SingleOrDefaultAsync(ct);
+            if (live is null || !live.IsActive || now < live.StartAt || now >= live.EndAt)
+                return CreateEntryResult.Fail(new("CONTEST_CLOSED", "Cuộc thi chưa mở hoặc đã kết thúc."));
+            contest = contest with { StartAt = live.StartAt, EndAt = live.EndAt, MaxAttempts = live.MaxAttempts };
             int? attemptNo = null;
             if (phone is not null)
             {
