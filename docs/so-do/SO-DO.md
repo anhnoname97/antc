@@ -127,10 +127,11 @@ Tổng 71 element type.
 | story | 1 | storyChapterBlock |
 | two | 1 | twoColumnLayoutBlock |
 
-## 4. Cây nội dung mẫu (38 node)
+## 4. Cây nội dung mẫu (47 node)
 
 ```mermaid
 graph LR
+  nc02d1e18_b173_4e6c_88f6_e98ced94dc1e["Bài mẫu test123<br/><i>article</i>"]
   n068471f0_605e_57ee_b164_547aee46bc79["An toàn tài chính<br/><i>antc</i>"]
   n437e3947_4f08_52e1_baee_75907a540fac["Quản lý trang<br/><i>pageManagement</i>"]
   nd660b5ab_7cd1_48b5_b6e1_1ab56b8218cd["Trang chủ<br/><i>home</i>"]
@@ -161,26 +162,38 @@ graph LR
   nf9386cdc_74f6_4893_acc8_eba3162cc7c0["Cuộc gọi, tin nhắn, giả mạo<br/><i>articleList</i>"]
   n90ab7780_e72b_4d53_ae5a_147dfb353e03["Bài mẫu: Cuộc gọi, tin nhắn, giả mạo<br/><i>article</i>"]
   nf9386cdc_74f6_4893_acc8_eba3162cc7c0 --> n90ab7780_e72b_4d53_ae5a_147dfb353e03
+  n06451cc2_39c5_56cb_8c28_329ee3795768["Cuộc gọi báo tài khoản gặp sự cố: đừng vội đọc mã OTP<br/><i>article</i>"]
+  nf9386cdc_74f6_4893_acc8_eba3162cc7c0 --> n06451cc2_39c5_56cb_8c28_329ee3795768
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> nf9386cdc_74f6_4893_acc8_eba3162cc7c0
   nfd38232c_0847_4379_9ccb_aba5ee852401["Mua bán, đặt cọc<br/><i>articleList</i>"]
   nd8e9bb9f_9494_4ec1_bfb1_8b862a2ddf84["Bài mẫu: Mua bán, đặt cọc<br/><i>article</i>"]
   nfd38232c_0847_4379_9ccb_aba5ee852401 --> nd8e9bb9f_9494_4ec1_bfb1_8b862a2ddf84
+  naae99319_3ddd_5715_8ad7_ab98f0770b8c["Mua hàng online: kiểm tra trước khi đặt cọc hoặc nhận hoàn tiền<br/><i>article</i>"]
+  nfd38232c_0847_4379_9ccb_aba5ee852401 --> naae99319_3ddd_5715_8ad7_ab98f0770b8c
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> nfd38232c_0847_4379_9ccb_aba5ee852401
   n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49["Việc làm, làm thêm<br/><i>articleList</i>"]
   nadbb6788_1e56_411e_a493_aa42e457fc63["Bài mẫu: Việc làm, làm thêm<br/><i>article</i>"]
   n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49 --> nadbb6788_1e56_411e_a493_aa42e457fc63
+  n90ec1803_f525_5b8b_afb6_1958f72f7f55["Việc làm online yêu cầu nạp tiền: nhận diện bẫy nhiệm vụ<br/><i>article</i>"]
+  n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49 --> n90ec1803_f525_5b8b_afb6_1958f72f7f55
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n9404a4c7_3fa8_4791_9c9e_dd677f5f3d49
   n928d8fe6_a83a_425c_a71e_419e28d0d3c3["Đầu tư, góp vốn<br/><i>articleList</i>"]
   nba05466b_4f4e_4a74_9d1c_db6d35b27cf3["Bài mẫu: Đầu tư, góp vốn<br/><i>article</i>"]
   n928d8fe6_a83a_425c_a71e_419e28d0d3c3 --> nba05466b_4f4e_4a74_9d1c_db6d35b27cf3
+  n9a6b23e4_ca07_5d28_80f6_89d85d05035d["Đầu tư qua nhóm chat: lợi nhuận trên màn hình chưa phải tiền của bạn<br/><i>article</i>"]
+  n928d8fe6_a83a_425c_a71e_419e28d0d3c3 --> n9a6b23e4_ca07_5d28_80f6_89d85d05035d
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n928d8fe6_a83a_425c_a71e_419e28d0d3c3
   n0400f699_d1d5_4ad1_8b76_91722ba48a77["Vay, nợ<br/><i>articleList</i>"]
   n1c05cd5b_9cb3_42ab_8992_18308d3e0332["Bài mẫu: Vay, nợ<br/><i>article</i>"]
   n0400f699_d1d5_4ad1_8b76_91722ba48a77 --> n1c05cd5b_9cb3_42ab_8992_18308d3e0332
+  n7bcb3b89_2799_5fee_b814_141615ff32e0["Vay online phải chuyển phí trước: dừng lại để xác minh<br/><i>article</i>"]
+  n0400f699_d1d5_4ad1_8b76_91722ba48a77 --> n7bcb3b89_2799_5fee_b814_141615ff32e0
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n0400f699_d1d5_4ad1_8b76_91722ba48a77
   ncbcea9dd_b92a_4d94_9d43_0487077fe916["Hợp đồng, dịch vụ<br/><i>articleList</i>"]
   naf76aeed_93a0_4872_8d27_8f8a4ee64657["Bài mẫu: Hợp đồng, dịch vụ<br/><i>article</i>"]
   ncbcea9dd_b92a_4d94_9d43_0487077fe916 --> naf76aeed_93a0_4872_8d27_8f8a4ee64657
+  n3f4d17ca_584f_573d_a4a6_ac1eb04d5d37["Hợp đồng kỳ nghỉ: kiểm tra gì trước khi ký và đặt cọc?<br/><i>article</i>"]
+  ncbcea9dd_b92a_4d94_9d43_0487077fe916 --> n3f4d17ca_584f_573d_a4a6_ac1eb04d5d37
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> ncbcea9dd_b92a_4d94_9d43_0487077fe916
   ncda7084d_12ac_4edf_bbd9_94b53d78cecc["Cảnh báo<br/><i>articleList</i>"]
   n3efa48cc_59f6_4dcf_afc8_ac76442f4135["Ứng dụng giả mạo dịch vụ công dụ người dân cài đặt<br/><i>article</i>"]
@@ -189,8 +202,12 @@ graph LR
   ncda7084d_12ac_4edf_bbd9_94b53d78cecc --> nc2d699ab_57b1_4ded_b55e_5a02c178a556
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> ncda7084d_12ac_4edf_bbd9_94b53d78cecc
   ne2aa83a7_8e13_436b_9569_8de11c44ce4d["Bài đọc theo chuyên đề<br/><i>articleList</i>"]
+  n4a808713_bc6e_536c_84cf_a92fcbaa71e0["Chuyên đề: Dừng lại khi bị thúc ép chuyển tiền<br/><i>article</i>"]
+  ne2aa83a7_8e13_436b_9569_8de11c44ce4d --> n4a808713_bc6e_536c_84cf_a92fcbaa71e0
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> ne2aa83a7_8e13_436b_9569_8de11c44ce4d
   n3ca68856_dc5b_4335_af7d_42addb4e4db6["Lừa đảo: Từ cổ chí kim<br/><i>articleList</i>"]
+  nca384def_c79b_50ca_aef1_f7d53736f3fb["Từ cổ chí kim: Từ mô hình Ponzi đến ứng dụng đầu tư giả mạo<br/><i>article</i>"]
+  n3ca68856_dc5b_4335_af7d_42addb4e4db6 --> nca384def_c79b_50ca_aef1_f7d53736f3fb
   n33df5aae_5658_5ea1_8b01_500630acfd60 --> n3ca68856_dc5b_4335_af7d_42addb4e4db6
   n5a1e0af5_bbf2_54ed_a359_bc4716736ea5 --> n33df5aae_5658_5ea1_8b01_500630acfd60
   n2de3a8b9_e4b6_4348_9321_9b979aa1f398["Chính sách<br/><i>articleList</i>"]
@@ -214,13 +231,13 @@ graph LR
 
 | Thư mục | Số file | File |
 |---|---|---|
-| Administration | 6 | AdministrationAccess, ContestAuditService, ContestCsv, ContestReportCsvRows, ContestReportModels, ContestReportingService |
+| Administration | 6 | AdministrationAccess, ContestAuditService, ContestCsv, ContestReportCsvRows, ContestReportingService, ContestReportModels |
 | Backoffice | 1 | ContestManagementSectionAccessHandler |
 | Composers | 1 | CustomCoreComposer |
 | Content | 4 | AntcPublicPaths, AntcPublicRouting, PageTreeNotifications, PageTreeRules |
 | Contest | 11 | ContestAdminModels, ContestAdminService, ContestAttemptService, ContestCatalog, ContestConfigCheck, ContestEntryService, ContestModels, ContestResultsModels, ContestResultsService, ContestScheduleService, CurrentContestService |
 | Data | 6 | AppDbContext, AppDbInitializer, ContestAccessAudit, ContestPublishedResult, Entities, SqliteDeploymentBackup |
-| Questions | 5 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionSubmissionService |
+| Questions | 7 | QuestionCsv, QuestionGuidanceLink, QuestionModels, QuestionModerationService, QuestionOperations, QuestionRetentionService, QuestionSubmissionService |
 | Quiz | 3 | QuestionBank, QuizAdminModels, QuizAdminService |
 | Services | 1 | AppInfoService |
 
@@ -229,7 +246,7 @@ graph LR
 | Thư mục | Số file | File |
 |---|---|---|
 | Composers | 1 | CustomApiComposer |
-| Controllers | 13 | ContestAdminController, ContestController, ContestReportingController, ContestResultsController, ContestsController, LegacyContestReportingController, LegacyQuestionsAdministrationController, PublishedQuestionsController, QuestionManagementController, QuestionsController, QuizAdminController, QuizController, SystemController |
+| Controllers | 14 | ContestAdminController, ContestController, ContestReportingController, ContestResultsController, ContestsController, LegacyContestReportingController, LegacyQuestionsAdministrationController, PublishedQuestionsController, QuestionManagementController, QuestionOperationsController, QuestionsController, QuizAdminController, QuizController, SystemController |
 | Infrastructure | 7 | AdministrationIpAllowlistMiddleware, ApiBoundaryMiddleware, ApiPrivacyLogFilter, ApiProtection, ContestAdministrationAuthorizationResult, DatabaseReadiness, DeploymentTrafficGateMiddleware |
 | Models | 3 | ApiErrorModels, ContestScheduleModels, QuestionModels |
 | Validation | 1 | QuestionRequestValidator |
@@ -253,7 +270,8 @@ graph LR
 | LegacyContestReportingController | GET //quan-tri, GET //quan-tri/cuoc-thi, GET //quan-tri/luot-thi, GET //quan-tri/luot-thi/{id:long}, GET //quan-tri/thong-ke-cau-hoi |
 | LegacyQuestionsAdministrationController | GET //quan-tri/hoi-dap |
 | PublishedQuestionsController | GET api/v1/questions, GET api/v1/questions/{id:long} |
-| QuestionManagementController | GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
+| QuestionManagementController | POST , GET , GET /{id:long}, PUT /{id:long}, POST /{id:long}/approve, POST /{id:long}/unpublish, GET /export |
+| QuestionOperationsController | POST /aggregate, DELETE /{id:long}, POST /bulk-delete, GET /retention, PUT /retention, POST /retention/run |
 | QuestionsController | POST api/v1/questions |
 | QuizAdminController | GET api/v1/admin/quiz/topics, GET api/v1/admin/quiz/topics/{id:int}, POST api/v1/admin/quiz/topics, PUT api/v1/admin/quiz/topics/{id:int}, DELETE api/v1/admin/quiz/topics/{id:int}, GET api/v1/admin/quiz/questions, GET api/v1/admin/quiz/questions/{code}, POST api/v1/admin/quiz/questions, PUT api/v1/admin/quiz/questions/{code}, DELETE api/v1/admin/quiz/questions/{code} |
 | QuizController | GET api/v1/quiz/topics, GET api/v1/quiz/topics/{topic:int}/questions, GET api/v1/quiz/sample |
