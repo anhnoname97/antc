@@ -50,6 +50,11 @@ strong{font-weight:600}a{color:var(--cm-accent-text)}
 .advanced-search>summary:focus-visible{outline:2px solid var(--cm-accent);outline-offset:2px}
 .filter-status{display:inline-block;margin-left:12px;font-size:12px;font-weight:400;color:var(--cm-muted)}
 .advanced-search>form.filters{padding:16px;margin:0!important;border-top:1px solid var(--cm-border)}
+/* Chi can lai hang tim kiem va nut them, giu nguyen chieu rong/hinh thuc. */
+.toolbar:has(>.advanced-search){align-items:flex-start}
+.toolbar>.advanced-search{margin-bottom:0}
+.toolbar>.advanced-search>summary{min-height:46px;padding:13px 16px;line-height:20px}
+.toolbar:has(>.advanced-search)>button{height:48px;min-height:48px}
 .advanced-search>.filter-panel{border:0;border-top:1px solid var(--cm-border);border-radius:0;box-shadow:none;margin:0;padding-bottom:16px}
 .filters>input:not([type=checkbox]):not([type=radio]){flex:1 1 240px;width:auto}.filters>select{flex:0 1 210px;width:auto}
 .privacy-note{font-size:12px;margin-top:22px}
@@ -103,6 +108,8 @@ button.link:hover:not(:disabled){background:transparent;text-decoration:underlin
 .summary{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--cm-muted);margin:20px 0 12px;font-variant-numeric:tabular-nums}
 .summary::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#8b8d98}
 .scroll,.table-wrap{overflow:auto;border:1px solid var(--cm-border);border-radius:9px;max-height:66vh;scrollbar-width:thin;scrollbar-color:#cdced6 transparent}
+/* Chua cho phan trang duoi danh sach cau hoi trong workspace. */
+:host(antc-contest-questions-table) .table-wrap{max-height:clamp(160px,calc(100dvh - 460px),54dvh)}
 table{width:100%;border-collapse:separate;border-spacing:0;background:var(--cm-surface);font-size:13px}
 .table-wrap table{min-width:800px}
 th,td{text-align:left;padding:13px 15px;vertical-align:middle;border:0;border-bottom:1px solid var(--cm-border);line-height:1.55}
