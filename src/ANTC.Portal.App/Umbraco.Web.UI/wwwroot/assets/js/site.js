@@ -1,29 +1,45 @@
-// Ma JS dung chung cho moi trang. Moi chuc nang mot module rieng trong thu muc nay (xem FE-01).
-// Vi du co san: doc/ghi co chu cho nut "A+ Chu to" (FE-04 hoan thien giao dien va nhan nut).
+// FE-04: ba muc chu, dong bo cac nut va giu hoat dong khi storage bi chan.
 const KEY = 'at_font_scale';
+const labels = ['A+ Chữ to', 'A++ Chữ to hơn', 'A Chữ thường'];
+const compactLabels = ['A', 'A++', 'A+++'];
+const compactScreen = matchMedia('(max-width: 1199px)');
+const descriptions = ['Cỡ chữ thường, 100%', 'Cỡ chữ to, 112,5%', 'Cỡ chữ rất to, 125%'];
+const normalize = value => ['0', '1', '2'].includes(String(value)) ? Number(value) : 0;
 
 export function getFontScale() {
-  try { return Number(localStorage.getItem(KEY) || 0); } catch { return 0; }
+  return normalize(document.documentElement.dataset.fontScale);
 }
 
-export function setFontScale(level) {
+function updateFontButtons(level) {
+  for (const button of document.querySelectorAll('[data-font-toggle]')) {
+    button.textContent = compactScreen.matches ? compactLabels[level] : labels[level];
+    button.setAttribute('aria-pressed', String(level > 0));
+    button.setAttribute('aria-label', `${labels[level]}. Hiện tại: ${descriptions[level]}.`);
+  }
+}
+
+export function setFontScale(value, persist = true) {
+  const level = normalize(value);
   document.documentElement.dataset.fontScale = String(level);
-  try { localStorage.setItem(KEY, String(level)); } catch { /* che do rieng tu */ }
+  if (persist) {
+    try { localStorage.setItem(KEY, String(level)); } catch { /* van dung duoc trong phien trang */ }
+  }
+  updateFontButtons(level);
+  const status = document.querySelector('[data-font-status]');
+  if (status) status.textContent = descriptions[level];
+  // Cho cac khoi theo doi data-font-scale va trinh duyet cap nhat bo cuc truoc khi do lai.
+  requestAnimationFrame(() => window.ScrollTrigger?.refresh(true));
 }
 
-document.querySelector('[data-font-toggle]')?.addEventListener('click', () => {
-  setFontScale((getFontScale() + 1) % 3);
-  updateFontButton();
+updateFontButtons(getFontScale());
+compactScreen.addEventListener('change', () => updateFontButtons(getFontScale()));
+for (const button of document.querySelectorAll('[data-font-toggle]')) {
+  button.addEventListener('click', () => setFontScale((getFontScale() + 1) % 3));
+}
+window.addEventListener('storage', event => {
+  if (event.key !== KEY && event.key !== null) return;
+  setFontScale(normalize(event.newValue), false);
 });
-
-function updateFontButton() {
-  const level = getFontScale();
-  const button = document.querySelector('[data-font-toggle]');
-  button?.setAttribute('aria-pressed', String(level > 0));
-  button?.setAttribute('aria-label', level === 2 ? 'Khôi phục cỡ chữ mặc định' : 'Tăng cỡ chữ');
-}
-
-updateFontButton();
 
 const header = document.querySelector('[data-site-header]');
 if (header) {

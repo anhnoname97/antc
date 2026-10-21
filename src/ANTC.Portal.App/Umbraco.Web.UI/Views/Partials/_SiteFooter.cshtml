@@ -31,6 +31,7 @@
         .FirstOrDefault(item => item.Content.Value<string>("number")?.Trim() == "113" && item.Content.Value<bool>("enableCall"))?.Content;
 }
 <footer class="site-footer" id="site-footer">
+    <span class="sr-only" role="status" aria-live="polite" data-font-status></span>
     <div class="site-footer__wrap site-footer__grid">
         <div class="site-footer__about">
             <a class="site-footer__brand" href="@homeUrl" aria-label="@(siteName + ", trang giới thiệu")">

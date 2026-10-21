@@ -89,7 +89,6 @@ document.querySelectorAll('[data-story]').forEach(story => {
     animationFrame = undefined;
     previousFrameTime = undefined;
     enhanced = desktop.matches && !reduced.matches && innerHeight >= 760
-      && !(Number(document.documentElement.dataset.fontScale) > 0)
       && story.closest('[data-hero-motion]')?.dataset.heroMotion === 'true';
     story.classList.toggle('is-enhanced', enhanced);
     stage.hidden = !enhanced;
