@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" />
     <!-- Umbraco core tu feed noi bo. Version lay tu Directory.Packages.props -->
     <PackageReference Include="Umbraco.Cms" />
     <!-- CSDL ung dung (App_Data/app.sqlite.db) -->

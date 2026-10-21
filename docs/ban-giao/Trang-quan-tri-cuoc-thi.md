@@ -7,17 +7,22 @@ Từ ngày 20/10/2026, các trang quản trị cuộc thi được chuyển hoà
 | Menu trái | Đường dẫn |
 | --- | --- |
 | Tổng quan | `/umbraco/section/contest-management/dashboard` |
-| Lượt thi | `/umbraco/section/contest-management/entries-report` |
+| Câu hỏi (Danh sách câu hỏi / Nhập từ Excel / Lịch sử nhập) | `/umbraco/section/contest-management/view/questions` |
+| Cuộc thi (Danh sách cuộc thi / Lượt dự thi / Lần quay số) | `/umbraco/section/contest-management/contest` |
 | Thống kê câu hỏi | `/umbraco/section/contest-management/question-report` |
 | Công bố kết quả | `/umbraco/section/contest-management/publication` |
 
-Các mục Câu hỏi, Chuyên đề, Cuộc thi và chức năng tạo/quay thưởng hiện có được giữ lại. Tab “Lượt dự thi” trong màn hình Cuộc thi chuyển sang bảng báo cáo mới.
+Các mục Câu hỏi, Chuyên đề, Cuộc thi và chức năng tạo/quay thưởng hiện có được giữ lại. Tab “Lượt dự thi” và “Lần quay số” hiển thị trực tiếp trong màn hình Cuộc thi, không chuyển URL, không iframe. Tab được nạp khi mở lần đầu và giữ bộ lọc/dữ liệu đang nhập khi đổi tab. Đã bỏ hai mục menu trái “Lượt thi”, “Quay số”. Các URL cũ `/entries-report` và `/draws` vẫn hoạt động để tương thích liên kết cũ; quyền và API không đổi.
 
 Khởi động lại ứng dụng, tải lại backoffice (Ctrl+F5). Ứng dụng tự tạo/giữ nhóm **Quản trị cuộc thi** (`quanTriCuocThi`) và cấp nhóm quyền vào section `Antc.Section.ContestManagement`. Trong **Users → User groups**, quản trị viên tự gán tài khoản vào nhóm; không tự thêm thành viên hoặc mặc định miễn quyền cho Administrators/Super User. Không tự cấp nhóm quyền Hỏi – Đáp.
 
 Những tài khoản có quyền mở section để sửa câu hỏi nhưng không thuộc nhóm báo cáo vẫn nhận **403** khi gọi API báo cáo/xuất/công bố. Chưa đăng nhập nhận 401; người bị khóa/không được duyệt không có quyền. IP được kiểm tra theo allowlist backoffice sau forwarded headers tin cậy.
 
 ## Chức năng được giữ khi di chuyển
+
+Chức năng nhập/xuất Excel và lịch sử file gốc được hướng dẫn trong [Nhập ngân hàng câu hỏi từ Excel](../api/Nhap-ngan-hang-cau-hoi-Excel.md). File là ma trận đầy đủ, có kiểm tra và xem trước trước khi ghi; ngân hàng cập nhật không thay đổi bản chụp đề thi cũ.
+
+Các bộ lọc tại Chuyên đề, Câu hỏi, Danh sách cuộc thi và báo cáo nằm trong khối **Tìm kiếm nâng cao**, mặc định thu gọn. Bấm tiêu đề để mở/đóng (hỗ trợ bàn phím); đóng không xóa điều kiện hoặc tự gửi yêu cầu lọc. Tiêu đề hiển thị số điều kiện đã áp dụng, không hiển thị từ khóa chứa dữ liệu cá nhân. Chọn cuộc thi ở màn Công bố kết quả vẫn mở mặc định vì đây là bước chọn đối tượng thao tác.
 
 - Tổng quan số lượt tạo/nộp/có tên/ẩn danh, số điện thoại khác nhau, biểu đồ điểm của lượt nộp và số lượt theo ngày.
 - Danh sách đầy đủ các cột, lọc cuộc thi/chế độ/trạng thái/có số điện thoại/điểm/ngày tạo, tìm mã-tên-điện thoại, sắp xếp, 50 dòng mỗi trang.

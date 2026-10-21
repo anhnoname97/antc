@@ -85,14 +85,22 @@ public sealed record DrawAdminDto(
     string? Note,
     IReadOnlyList<DrawWinnerAdminDto> Winners,
     long? ContestId = null,
-    string? ContestName = null);
+    string? ContestName = null,
+    bool HasEligibleSnapshot = false,
+    bool EligibleSnapshotRedacted = false);
 
 public sealed record SaveDrawRequest(
     int MinScore,
     int WinnersRequested,
-    bool ExcludePrevious,
-    string? Note,
-    long? ContestId = null);
+    bool ExcludePrevious = true,
+    string? Note = null,
+    long? ContestId = null,
+    Guid? RequestId = null);
+
+public sealed record PreviewDrawRequest(long ContestId, int? MinScore = null, bool ExcludePrevious = true);
+public sealed record DrawScoreCount(int Score, int Count);
+public sealed record DrawPreviewDto(int SuggestedMinScore, int MinScore, int EligibleCount, int TotalCandidates, IReadOnlyList<DrawScoreCount> Scores);
+public sealed record DrawCandidateSnapshot(long EntryId, string Code, string FullName, string Phone, int Score, DateTime? SubmittedAt);
 
 public sealed class ContestAdminValidationException(IReadOnlyDictionary<string, string> fields)
     : Exception("Dữ liệu cuộc thi không hợp lệ.")

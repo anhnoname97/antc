@@ -77,6 +77,10 @@ public class Draw
     public bool ExcludePrevious { get; set; }
     public string? Note { get; set; }
 
+    /// <summary>Exact eligible-person snapshot. Null for legacy draws: never reconstruct from live entries.</summary>
+    public string? EligibleSnapshotJson { get; set; }
+    public Guid? RequestId { get; set; }
+
     public List<DrawWinner> Winners { get; set; } = new();
     public ContestCampaign? Contest { get; set; }
 }
