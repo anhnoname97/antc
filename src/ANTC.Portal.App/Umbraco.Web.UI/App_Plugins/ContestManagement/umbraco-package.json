@@ -146,6 +146,7 @@
     ,
     { "type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.Dashboard", "name": "Contest Dashboard", "weight": 500,
       "meta": { "label": "Tổng quan", "icon": "icon-dashboard", "menus": ["Antc.Menu.ContestManagement"], "href": "section/contest-management/dashboard" } },
+    {"type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.EntriesReport", "name": "Contest Entry Reports", "weight": 90, "meta": {"label": "Lượt thi", "icon": "icon-users", "menus": ["Antc.Menu.ContestManagement"], "href": "section/contest-management/entries-report"}},
     { "type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.QuestionReport", "name": "Contest Question Reports", "weight": 80,
       "meta": { "label": "Thống kê câu hỏi", "icon": "icon-chart", "menus": ["Antc.Menu.ContestManagement"], "href": "section/contest-management/question-report" } },
     { "type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.Publication", "name": "Contest Result Publication", "weight": 70,

@@ -42,17 +42,17 @@ public sealed class ContestBackofficeAssetsTests
         Assert.Contains("table.topics = []; table.page = 1; await table.load();",workspace);
         Assert.DoesNotContain("async _loadQuestions()",workspace); // only one question list, no duplicate read-only table
     }
-    [Fact] public void ContestTabsEmbedEntriesAndDraws_WithoutDuplicateLeftMenus()
+    [Fact] public void ContestHasNoTabs_AndKeepsEntriesInLeftMenu()
     {
         string plugin=Path.Combine(ProjectFiles.WebRoot,"App_Plugins","ContestManagement");
         using var manifest=JsonDocument.Parse(File.ReadAllText(Path.Combine(plugin,"umbraco-package.json")));
         var menus=manifest.RootElement.GetProperty("extensions").EnumerateArray().Where(e=>e.GetProperty("type").GetString()=="menuItem").ToArray();
-        Assert.DoesNotContain(menus,e=>e.GetProperty("alias").GetString()=="Antc.MenuItem.ContestManagement.EntriesReport");
+        Assert.Single(menus,e=>e.GetProperty("alias").GetString()=="Antc.MenuItem.ContestManagement.EntriesReport");
         Assert.DoesNotContain(menus,e=>e.GetProperty("alias").GetString()=="Antc.MenuItem.ContestManagement.Draws");
         string script=File.ReadAllText(Path.Combine(plugin,"contest-management.js"));
-        Assert.Contains("<antc-contest-entries-report-view embedded>",script);
-        Assert.Contains("<antc-contest-draws-view embedded>",script);
-        Assert.Contains("role=\"tablist\"",script);
+        Assert.DoesNotContain("<antc-contest-entries-report-view embedded>",script);
+        Assert.DoesNotContain("<antc-contest-draws-view embedded>",script);
+        Assert.DoesNotContain("role=\"tablist\"",script);
         Assert.DoesNotContain("window.location.assign",script);
     }
     [Fact] public void PrivacyScreenUsesLitAndPostBodiesInsteadOfSelectorsInUrls()
