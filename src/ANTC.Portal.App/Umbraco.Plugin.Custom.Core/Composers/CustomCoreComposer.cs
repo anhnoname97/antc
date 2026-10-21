@@ -71,6 +71,7 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddScoped<QuestionRetentionService>();
         builder.Services.AddHostedService<QuestionRetentionWorker>();
         builder.Services.AddScoped<ContestScheduleService>();
+        builder.Services.AddScoped<ContestPromotionService>();
         builder.Services.AddScoped<ICurrentContestService>(services => new CurrentContestService(
             services.GetRequiredService<IContestCatalog>()));
 

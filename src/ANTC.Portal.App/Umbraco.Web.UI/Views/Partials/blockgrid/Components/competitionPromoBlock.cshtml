@@ -1,14 +1,19 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
 @using Umbraco.Cms.Core.Models
+@using Umbraco.Plugin.Custom.Core.Contest
+@inject ContestPromotionService Promotions
 @{
     var content = Model.Content;
-    var eyebrow = content.Value<string>("eyebrow");
-    var title = content.Value<string>("title");
-    var schedule = content.Value<string>("scheduleText");
-    var summary = content.Value<string>("summary");
+    var contest = await Promotions.GetAsync(Context.RequestAborted);
+    var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+    DateTime Local(DateTime value) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value, DateTimeKind.Utc), vietnam);
+    var eyebrow = contest is null ? null : $"Cuộc thi tháng {Local(contest.StartAt):MM/yyyy}";
+    var title = contest?.Name;
+    var schedule = contest is null ? null : $"{Local(contest.StartAt):d/M/yyyy} – {Local(contest.EndAt):d/M/yyyy}";
+    var summary = contest is null ? null : $"{contest.QuestionCount} câu hỏi · Tối đa {contest.MaxAttempts} lượt / số điện thoại";
     var link = content.Value<Link>("link");
-    var contestUrl = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("thiPage").FirstOrDefault()?.Url() ?? "/cuoc-thi/";
-    var safetyNote = content.Value<string>("safetyNote");
+    var contestUrl = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("thiThangPage").FirstOrDefault()?.Url() ?? "/cuoc-thi-thang/";
+    var safetyNote = ContestPromotionService.ShortSafetyNotice;
     var metadata = string.Join(" · ", new[] { schedule, summary }.Where(value => !string.IsNullOrWhiteSpace(value)));
 }
 @if (!string.IsNullOrWhiteSpace(title))
