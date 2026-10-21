@@ -128,7 +128,7 @@ body.has-header-hero #noi-dung > .page-hero:first-child {
   .site-header__nav::-webkit-scrollbar { display: none; }
   .site-header.is-scrolled .site-header__nav { border-top-color: var(--header-line); }
   .site-header__nav a { padding: 12px 0; flex-shrink: 0; }
-  .site-header__font { display: none; }
+  .site-header__font { display: inline-flex; min-width: 44px; min-height: 44px; padding: 7px 8px; }
   html { scroll-padding-top: calc(var(--site-header-height, 112px) + 12px); }
   #noi-dung { padding-top: var(--site-header-height, 112px); }
 }
@@ -149,3 +149,5 @@ body.has-header-hero #noi-dung > .page-hero:first-child {
   .site-brand__mark { display: none; }
   .site-brand__text b { font-size: .9375rem; }
 }
+
+@media(max-width:600px){.site-header__tools{flex:0 0 100%;justify-content:flex-end;padding-bottom:8px}}

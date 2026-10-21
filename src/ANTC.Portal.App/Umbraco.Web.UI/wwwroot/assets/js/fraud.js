@@ -76,7 +76,6 @@ function setupMotion() {
     if (element) gsap.set(element, { autoAlpha: 1 });
   });
   document.fonts.ready.then(() => ScrollTrigger.refresh());
-  document.querySelector('[data-font-toggle]')?.addEventListener('click', () => requestAnimationFrame(() => ScrollTrigger.refresh()));
 }
 if (document.readyState === 'complete') setupMotion();
 else addEventListener('load', setupMotion, { once: true });
