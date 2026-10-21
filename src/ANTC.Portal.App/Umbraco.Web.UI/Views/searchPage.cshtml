@@ -76,13 +76,13 @@
     </div></header>
     <div class="article-wrap fraud-results-layout">
         <aside class="fraud-results-sidebar"><p class="article-side-label">Danh mục bài viết</p>
-            <nav class="fraud-result-filters" aria-label="Lọc kết quả theo danh mục"><a href="@ResultUrl(null)" class="@(categoryKey is null ? "is-active" : null)" aria-current="@(categoryKey is null ? "true" : null)"><span>Tất cả</span><b>@matches.Count</b></a>
+            <nav class="fraud-result-filters" id="fraud-result-filters" data-category-limit="8" aria-label="Lọc kết quả theo danh mục"><a href="@ResultUrl(null)" class="@(categoryKey is null ? "is-active" : null)" aria-current="@(categoryKey is null ? "true" : null)"><span>Tất cả</span><b>@matches.Count</b></a>
             @foreach (var category in categories)
             {
                 var count = matches.Count(x => x.Content.Parent<IPublishedContent>()?.Key == category.Key);
                 <a href="@ResultUrl(category.Key)" class="@(categoryKey == category.Key ? "is-active" : null)" aria-current="@(categoryKey == category.Key ? "true" : null)"><span>@category.Name</span><b>@count</b></a>
             }
-            </nav><a class="fraud-results-back" href="@(fraud?.Url() ?? "/thu-doan/")">← Khám phá các thủ đoạn</a>
+            </nav>
         </aside>
         <section class="fraud-results-content" aria-label="Kết quả tìm kiếm">
             @if (privateNumber)
@@ -91,11 +91,10 @@
             }
             else
             {
-                <div class="fraud-results-heading"><div><p class="article-side-label">Kết quả tìm kiếm</p><h2>@filtered.Count bài viết phù hợp</h2><p class="fraud-results-heading__query">@if (terms.Length == 0) { <text>Tất cả bài viết@(categoryKey is null ? " trong phần Thủ đoạn" : " trong danh mục đã chọn")</text> } else { <text>Kết quả cho <strong>“@query”</strong></text> }</p></div><span>@(terms.Length == 0 ? "Mới cập nhật" : "Phù hợp nhất")</span></div>
                 <div class="article-cards">
                 @foreach (var article in filtered.Skip((currentPage - 1) * pageSize).Take(pageSize))
                 {
-                    @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", article, new ViewDataDictionary(ViewData) { ["ShowCategory"] = true })
+                    @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", article, new ViewDataDictionary(ViewData) { ["ShowCategory"] = true, ["HideReadMore"] = true })
                 }
                 </div>
                 @if (filtered.Count == 0) { <div class="article-empty"><h2>Chưa tìm thấy bài phù hợp</h2><p>Thử từ khóa ngắn hơn, bỏ bớt từ hoặc chọn danh mục khác.</p><a href="@(fraud?.Url() ?? "/thu-doan/")">Xem các lĩnh vực thủ đoạn →</a></div> }

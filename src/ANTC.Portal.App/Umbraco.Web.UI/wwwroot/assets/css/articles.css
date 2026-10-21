@@ -86,12 +86,12 @@
 .article-card__read span { display:grid; place-items:center; width:25px; height:25px; border:1px solid #e6dfd2; border-radius:50%; color:var(--article-gold); transition:background .2s,color .2s; }
 .article-card:hover .article-card__read span { color:#fff; background:#14233b; border-color:#14233b; }
 .article-portal--list .article-cards { grid-auto-rows:1fr; }
-.article-portal--list .article-card { grid-template-columns:33% minmax(0,1fr); }
-.article-portal--list .article-card .article-card__art { min-height:220px; }
+.article-portal--list .article-card { grid-template-columns:minmax(0,4fr) minmax(0,8fr); }
+.article-portal--list .article-card .article-card__art { min-height:180px; }
 .article-portal--list .article-card .article-card__field-icon { width:82px; height:82px; }
 .article-portal--list .article-card .article-card__orbit { width:240px; height:240px; }
-.article-portal--list .article-card h2 { font-size:1.5rem; }
-.article-portal--list .article-card .article-card__copy { padding:26px; }
+.article-portal--list .article-card h2 { font-size:1.25rem; }
+.article-portal--list .article-card .article-card__copy { padding:20px 24px; }
 .article-meta { font-size:.875rem; color:#647084; margin:0; }
 .article-labels { display:flex; flex-wrap:wrap; gap:6px; }
 .article-label { display:inline-block; padding:4px 9px; margin-bottom:9px; border-radius:4px; background:#eef1f6; font-size:.8125rem; font-weight:600; color:#14233b; }
@@ -195,26 +195,37 @@
 .fraud-results-form__submit:hover { background:#f0dcae; }
 .fraud-search-privacy { font-size:.8125rem; color:#bdc7d7; margin-top:14px; }
 .fraud-results-layout { display:grid; grid-template-columns:246px minmax(0,1fr); gap:48px; padding-block:42px 72px; align-items:start; }
-.fraud-result-filters { display:flex; flex-direction:column; gap:4px; }
-.fraud-result-filters a { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:12px; border-radius:8px; text-decoration:none; font-size:.875rem; }
-.fraud-result-filters a.is-active { background:#ece7db; font-weight:700; }
-.fraud-result-filters a:hover { background:#f0ece4; }
-.fraud-result-filters b { color:#697589; font-size:.8125rem; font-weight:500; }
-.fraud-results-back { display:block; margin-top:22px; border-top:1px solid var(--article-line); padding-top:20px; font-size:.8125rem; text-decoration:none; }
+.fraud-results-sidebar { padding:18px 12px 16px; border:1px solid var(--article-line); border-radius:14px; background:#fff; }
+.fraud-results-sidebar>.article-side-label { margin:0 10px 16px; font-size:.6875rem; letter-spacing:.14em; }
+.fraud-result-filters { display:flex; flex-direction:column; gap:3px; }
+.fraud-result-filters a { position:relative; display:flex; justify-content:space-between; align-items:center; gap:10px; min-height:42px; padding:9px 10px; border-radius:7px; text-decoration:none; font-size:.875rem; line-height:1.5; }
+.fraud-result-filters a.is-active { background:#f4efe3; font-weight:700; }
+.fraud-result-filters a.is-active::before { content:''; position:absolute; left:0; top:12px; bottom:12px; width:3px; border-radius:3px; background:var(--article-gold); }
+.fraud-result-filters a:hover { background:#f7f5f0; }
+.fraud-result-filters a.is-active:hover { background:#f4efe3; }
+.fraud-result-filters b { display:grid; place-items:center; flex-shrink:0; min-width:25px; height:23px; padding-inline:5px; border-radius:6px; background:#f2f3f5; color:#697589; font-size:.75rem; font-weight:500; font-variant-numeric:tabular-nums; }
+.fraud-result-filters a.is-active b { background:#e9ddc5; color:#76521e; }
+.fraud-result-filters a[hidden] { display:none; }
+.fraud-result-filters-actions { margin-top:12px; padding-top:6px; border-top:1px solid var(--article-line); }
+.fraud-result-filters-toggle { display:flex; justify-content:center; align-items:center; gap:10px; width:100%; padding:7px 4px; border:0; background:transparent; color:#8a642e; font:inherit; font-size:.8125rem; font-weight:600; cursor:pointer; }
+.fraud-result-filters-toggle[hidden] { display:none; }
+.fraud-result-filters-toggle::after { content:''; width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); margin-top:-3px; }
+.fraud-result-filters-toggle--collapse { color:var(--article-muted); font-weight:500; }
+.fraud-result-filters-toggle--collapse::after { transform:rotate(225deg); margin-top:3px; }
+.fraud-result-filters-toggle:hover { color:var(--article-navy); }
 .fraud-results-content { min-width:0; }
-.fraud-results-heading { display:flex; gap:20px; justify-content:space-between; align-items:flex-start; margin-bottom:24px; border-bottom:1px solid var(--article-line); padding-bottom:24px; }
-.fraud-results-heading .article-side-label { margin-bottom:8px; }
-.fraud-results-heading h2 { font-size:1.375rem; margin:0; line-height:1.5; overflow-wrap:anywhere; }
-.fraud-results-heading>span { font-size:.8125rem; color:#647084; white-space:nowrap; }
 .article-card__category { font-size:.75rem; color:#8a642e; font-weight:600; margin:0 0 8px; }
-.article-portal--search .article-cards { grid-auto-rows:1fr; }
-.article-portal--search .article-card { grid-template-columns:200px minmax(0,1fr); }
-.article-portal--search .article-card h2 { font-size:1.25rem; }
-.article-portal--search .article-card__art { min-height:205px; }
+.article-portal--search .article-cards,.article-related .article-cards { grid-auto-rows:1fr; }
+.article-portal--search .article-card,.article-related .article-card { grid-template-columns:minmax(0,4fr) minmax(0,8fr); }
+.article-portal--search .article-card__field-icon,.article-related .article-card__field-icon { width:82px; height:82px; }
+.article-portal--search .article-card__orbit,.article-related .article-card__orbit { width:260px; height:260px; }
+.article-portal--search .article-card h2,.article-portal--list .article-card h2,.article-related .article-card h2 { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; font-size:1.25rem; line-height:1.4; }
+.article-portal--search .article-card__art,.article-related .article-card__art { min-height:180px; }
+.article-portal--search .article-card__copy,.article-related .article-card__copy { padding:20px 24px; }
+.article-portal--search .article-card__summary,.article-portal--list .article-card__summary,.article-related .article-card__summary { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; margin-bottom:0; line-height:1.65; }
 @media (max-width:1050px) {
  .fraud-results-layout { grid-template-columns:210px minmax(0,1fr); gap:28px; }
  .fraud-results-form select { width:200px; }
- .article-portal--search .article-card { grid-template-columns:135px minmax(0,1fr); }
  .fraud-search-hero__row>p { max-width:30ch; }
 }
 @media (max-width:760px) {
@@ -227,11 +238,10 @@
  .fraud-results-layout { display:flex; flex-direction:column; gap:28px; padding-block:28px 44px; }
  .fraud-results-content { width:100%; order:0; }
  .fraud-results-sidebar { width:100%; order:1; border-top:1px solid var(--article-line); padding-top:24px; }
- .fraud-results-heading { align-items:flex-start; }
- .fraud-results-heading h2 { font-size:1.1875rem; }
- .fraud-results-heading>span { display:none; }
- .article-portal--search .article-card { grid-template-columns:90px minmax(0,1fr); }
- .article-portal--search .article-card h2 { font-size:1.125rem; }
+ .article-portal--search .article-card,.article-portal--list .article-card,.article-related .article-card { grid-template-columns:minmax(0,1fr); }
+ .article-portal--search .article-card__art,.article-portal--list .article-card .article-card__art,.article-related .article-card__art { min-height:180px; }
+ .article-portal--search .article-card__art-label,.article-portal--list .article-card__art-label,.article-related .article-card__art-label { writing-mode:horizontal-tb; left:auto; bottom:16px; font-size:.4375rem; }
+ .article-portal--search .article-card h2,.article-portal--list .article-card h2,.article-related .article-card h2 { font-size:1.125rem; -webkit-line-clamp:3; line-clamp:3; }
 }
 
 /* Keep focus on the complete search field, including its icon. */
@@ -239,10 +249,6 @@
 .fraud-results-form__query:focus-within { box-shadow:0 0 0 3px #0e1a2e,0 0 0 5px #e3c88f; }
 .article-portal .fraud-results-form input[type=search]:focus-visible { outline:none; }
 .fraud-results-form__submit { min-height:58px; flex-shrink:0; }
-.fraud-results-heading>div { min-width:0; }
-.fraud-results-heading>span { padding-top:28px; }
-.fraud-results-heading__query { margin:8px 0 0; font-size:.9375rem; line-height:1.7; color:#647084; overflow-wrap:anywhere; max-width:65ch; }
-.fraud-results-heading__query strong { font-weight:500; color:#34445c; }
 .fraud-category-picker { position:relative; width:260px; flex-shrink:0; }
 .fraud-category-picker__trigger { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; height:100%; min-height:58px; padding:14px 18px; border:1px solid #ffffff38; border-radius:9px; color:#fff; background:#1c2e47; font:inherit; font-size:.875rem; line-height:1.5; text-align:left; cursor:pointer; }
 .fraud-category-picker__trigger::after { content:''; width:7px; height:7px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); flex-shrink:0; margin-top:-4px; }
@@ -258,6 +264,5 @@
 @media(max-width:760px) {
  .fraud-category-picker { width:auto; flex:1; min-width:0; }
  .fraud-category-picker__options { left:0; right:auto; }
- .fraud-results-heading>span { padding:0; }
 }
 @media(prefers-reduced-motion:reduce) { .fraud-results-form__query { transition:none; } }

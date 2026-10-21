@@ -2,6 +2,7 @@
 @using System.Globalization
 @using System.Text
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     const int pageSize = 10;
@@ -58,7 +59,7 @@
         <div class="article-cards">
             @foreach (var article in articles)
             {
-                @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", article)
+                @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", article, new ViewDataDictionary(ViewData) { ["HideReadMore"] = true })
             }
         </div>
         @if (matches.Count == 0)

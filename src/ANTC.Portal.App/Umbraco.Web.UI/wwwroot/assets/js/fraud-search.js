@@ -81,3 +81,51 @@
     select.hidden = true;
     sync();
 })();
+
+// Keep every category reachable without JavaScript; collapse only after enhancement.
+(() => {
+    const filters = document.querySelector('[data-category-limit]');
+    if (!filters) return;
+    const limit = Number(filters.dataset.categoryLimit);
+    if (!Number.isInteger(limit) || limit < 1) return;
+    // The first link is "All", which stays visible independently of the category limit.
+    const categories = Array.from(filters.querySelectorAll('a')).slice(1);
+    const extra = categories.slice(limit).filter(link => !link.hasAttribute('aria-current'));
+    if (!extra.length) return;
+    const actions = document.createElement('div');
+    actions.className = 'fraud-result-filters-actions';
+    const more = document.createElement('button');
+    const collapse = document.createElement('button');
+    for (const button of [more, collapse]) {
+        button.type = 'button';
+        button.className = 'fraud-result-filters-toggle';
+        button.setAttribute('aria-controls', filters.id);
+    }
+    collapse.classList.add('fraud-result-filters-toggle--collapse');
+    collapse.textContent = 'Thu gọn';
+    let revealed = 0;
+    const step = 5;
+    function render() {
+        extra.forEach((link, index) => { link.hidden = index >= revealed; });
+        const remaining = extra.length - revealed;
+        more.hidden = remaining === 0;
+        more.textContent = 'Xem thêm';
+        more.setAttribute('aria-label', `Xem thêm ${Math.min(step, remaining)} danh mục`);
+        more.setAttribute('aria-expanded', String(revealed > 0));
+        collapse.hidden = revealed === 0;
+        collapse.setAttribute('aria-expanded', String(revealed > 0));
+    }
+    more.addEventListener('click', () => {
+        revealed = Math.min(extra.length, revealed + step);
+        render();
+        (more.hidden ? collapse : more).focus({ preventScroll: true });
+    });
+    collapse.addEventListener('click', () => {
+        revealed = 0;
+        render();
+        more.focus({ preventScroll: true });
+    });
+    actions.append(more, collapse);
+    filters.after(actions);
+    render();
+})();
