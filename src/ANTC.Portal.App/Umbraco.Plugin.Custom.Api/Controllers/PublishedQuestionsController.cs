@@ -15,9 +15,9 @@ public sealed class PublishedQuestionsController(IPublishedQuestionService quest
     [ProducesResponseType<PublishedQuestionPage>(200)]
     [ProducesResponseType<ApiErrorResponse>(400)]
     public async Task<IActionResult> List(int page = 1, int pageSize = PublishedQuestionPage.DefaultPageSize,
-        string? search = null, string? sort = null, CancellationToken ct = default)
+        string? search = null, string? sort = null, string? type = null, CancellationToken ct = default)
     {
-        var query = new PublishedQuestionQuery(page, pageSize, search, string.IsNullOrWhiteSpace(sort) ? "newest" : sort);
+        var query = new PublishedQuestionQuery(page, pageSize, search, string.IsNullOrWhiteSpace(sort) ? "newest" : sort, type);
         var fields = query.Validate();
         return fields.Count > 0
             ? BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Tham số danh sách không hợp lệ.", fields)))
