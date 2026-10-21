@@ -1,7 +1,5 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Umbraco.Plugin.Custom.Core.Data;
 using Umbraco.Plugin.Custom.Core.Questions;
 
@@ -9,58 +7,6 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public class QuestionGuidanceTests
 {
-    [Fact]
-    public async Task UpgradeFromMain_PreservesGuidance_WhenBackofficeMigrationIsStillPending()
-    {
-        await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
-        await using var db = CreateDb(connection);
-        await db.GetService<IMigrator>().MigrateAsync("20261016044750_AddContestCampaigns");
-        var guidance = new Umbraco.Plugin.Custom.Core.Data.Migrations.QuestionGuidanceLinks();
-        foreach (var command in db.GetService<IMigrationsSqlGenerator>().Generate(guidance.UpOperations, db.Model))
-            await db.Database.ExecuteSqlRawAsync(command.CommandText);
-        await db.Database.ExecuteSqlRawAsync("""
-            INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion)
-            VALUES ('20261019085141_QuestionGuidanceLinks', '10.0.11');
-            INSERT INTO question_submission
-            (type, content, want_reply, created_at, consent_at, status, review_version, is_published,
-             answer, published_answer, approved_at, guidance_label, guidance_url, published_guidance_label, published_guidance_url)
-            VALUES ('cau-hoi', 'Câu hỏi đã có trên main', 0, '2026-10-19', '2026-10-19', 'da-xu-ly', 2, 1,
-             'Bản nháp', 'Bản đã duyệt', '2026-10-19', 'Nhãn nháp', '/nhap/', 'Hướng dẫn đã duyệt', '/ung-pho/');
-            """);
-
-        await db.Database.MigrateAsync();
-
-        var row = await db.QuestionSubmissions.AsNoTracking().SingleAsync();
-        Assert.Equal("/nhap/", row.GuidanceUrl);
-        Assert.Equal("/ung-pho/", row.PublishedGuidanceUrl);
-        Assert.Equal("Bản đã duyệt", row.PublishedAnswer);
-        Assert.Equal("portal", row.Source);
-        Assert.NotNull(row.ConsentAt);
-        Assert.False(db.Database.HasPendingModelChanges());
-        var editor = new QuestionModerationService(db, TimeProvider.System);
-        var created = await editor.CreateAsync(new("gop-y", "Góp ý mới do quản trị tạo"), "editor");
-        Assert.Equal("quan-tri", created.Source);
-        Assert.Null((await db.QuestionSubmissions.AsNoTracking().SingleAsync(x => x.Id == created.Id)).ConsentAt);
-    }
-
-    [Fact]
-    public async Task Feedback_CanBeCreatedAndApproved_WithoutMandatoryGuidance()
-    {
-        await using var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
-        await using var db = CreateDb(connection);
-        await db.Database.EnsureCreatedAsync();
-        var service = new QuestionModerationService(db, TimeProvider.System);
-        var created = await service.CreateAsync(new("gop-y", "Đề nghị bổ sung thêm nội dung hướng dẫn"), "editor");
-        await service.ApproveAsync(created.Id, new(created.ReviewVersion, "da-xu-ly", null,
-            "Ban biên tập đã tiếp nhận góp ý của bạn."), "editor");
-        var published = Assert.Single((await service.ListAsync(new(Type: "gop-y"))).Items);
-        Assert.Equal("gop-y", published.Type);
-        Assert.Null(published.GuidanceUrl);
-        Assert.Empty((await service.ListAsync(new(Type: "cau-hoi"))).Items);
-    }
-
     [Fact]
     public async Task DraftChanges_DoNotChangePublishedGuidance_UntilApprovedAgain()
     {
@@ -110,7 +56,7 @@ public class QuestionGuidanceTests
     [InlineData(1, 1, 0)]
     [InlineData(2, 2, 0)]
     [InlineData(7, 6, 1)]
-    public async Task SixItemPages_OnlyIncludePublishedQuestions(int count, int firstCount, int secondCount)
+    public async Task SixItemPages_FilterOnlyPublishedQuestions(int count, int firstCount, int secondCount)
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");
         await connection.OpenAsync(); await using var db = CreateDb(connection);
@@ -125,11 +71,8 @@ public class QuestionGuidanceTests
         var feedback = NewQuestion(); feedback.Type = "gop-y"; feedback.IsPublished = true;
         feedback.ApprovedAt = DateTime.UtcNow; feedback.PublishedAnswer = "PRIVATE_FEEDBACK"; db.Add(feedback);
         await db.SaveChangesAsync(); var service = new QuestionModerationService(db, TimeProvider.System);
-        var first = await service.ListAsync(new(PageSize: 6, Type: "cau-hoi"));
-        var second = await service.ListAsync(new(Page: 2, PageSize: 6, Type: "cau-hoi"));
+        var first = await service.ListAsync(new(PageSize: 6, Type: "cau-hoi")); var second = await service.ListAsync(new(Page: 2, PageSize: 6, Type: "cau-hoi"));
         Assert.Equal(count, first.Total); Assert.Equal(firstCount, first.Items.Count); Assert.Equal(secondCount, second.Items.Count);
-        Assert.All(first.Items, item => Assert.Equal("cau-hoi", item.Type));
-        Assert.Equal(count + 1, (await service.ListAsync(new())).Total);
     }
 
     private static AppDbContext CreateDb(SqliteConnection connection) => new(

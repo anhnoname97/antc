@@ -2,11 +2,14 @@
   "openapi": "3.0.3",
   "info": {
     "title": "API Hỏi – Đáp dành cho frontend portal",
-    "version": "1.3.0",
-    "description": "Tiếp nhận câu hỏi/góp ý và đọc nội dung cùng phản hồi đã được duyệt, công bố. Câu hỏi và góp ý dùng cùng luồng duyệt; mọi nội dung mới vẫn riêng tư cho đến khi được duyệt. GET trả type để phân biệt cau-hoi/gop-y và có bộ lọc type. Không yêu cầu đăng nhập. Frontend tự xây dựng giao diện theo hợp đồng này. Quy tắc độ dài content/contact áp dụng sau khi backend trim khoảng trắng hai đầu; FE nên trim trước khi gửi."
+    "version": "1.4.0",
+    "description": "Tiếp nhận câu hỏi/góp ý và đọc nội dung cùng phản hồi đã được duyệt, công bố. Câu hỏi và góp ý dùng cùng luồng duyệt; mọi nội dung mới vẫn riêng tư cho đến khi được duyệt. GET trả type để phân biệt cau-hoi/gop-y và có bộ lọc type. Hai API portal không yêu cầu đăng nhập. Frontend tự xây dựng giao diện theo hợp đồng này. Quy tắc độ dài content/contact áp dụng sau khi backend trim khoảng trắng hai đầu; FE nên trim trước khi gửi. Phiên bản 1.4 bổ sung thao tác backoffice: tổng hợp 2–50 câu hỏi/kiến nghị/góp ý thành một nội dung chung chờ duyệt, chuyển nguồn sang Đã xử lý trong cùng giao dịch; xóa một/nhiều mục có kiểm tra phiên bản; cấu hình và chạy dọn dữ liệu. Các route /umbraco/management/... yêu cầu đăng nhập Umbraco và quyền section Hỏi–Đáp. Không thay hợp đồng portal hoặc tự động công bố bản tổng hợp."
   },
   "servers": [
-    { "url": "http://localhost:11000", "description": "Môi trường phát triển; thay base URL theo môi trường tích hợp." }
+    {
+      "url": "http://localhost:11000",
+      "description": "Môi trường phát triển; thay base URL theo môi trường tích hợp."
+    }
   ],
   "security": [],
   "paths": {
@@ -19,7 +22,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateQuestionRequest" },
+              "schema": {
+                "$ref": "#/components/schemas/CreateQuestionRequest"
+              },
               "examples": {
                 "question": {
                   "summary": "Câu hỏi không yêu cầu trả lời riêng",
@@ -63,8 +68,12 @@
             "description": "Đã tiếp nhận; hoặc trả cùng phản hồi cho ô bẫy mà không lưu.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CreateQuestionResponse" },
-                "example": { "ok": true }
+                "schema": {
+                  "$ref": "#/components/schemas/CreateQuestionResponse"
+                },
+                "example": {
+                  "ok": true
+                }
               }
             }
           },
@@ -72,12 +81,16 @@
             "description": "Dữ liệu hoặc JSON không hợp lệ. error.fields ánh xạ tên trường sang thông báo; có thể chứa body khi lỗi JSON.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ApiErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
                 "example": {
                   "error": {
                     "code": "VALIDATION",
                     "message": "Dữ liệu gửi lên không hợp lệ.",
-                    "fields": { "content": "Nội dung cần từ 10 đến 2000 ký tự." }
+                    "fields": {
+                      "content": "Nội dung cần từ 10 đến 2000 ký tự."
+                    }
                   }
                 }
               }
@@ -88,12 +101,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Số giây cần chờ trước khi gửi lại.",
-                "schema": { "type": "integer", "minimum": 1 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ApiErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
                 "example": {
                   "error": {
                     "code": "RATE_LIMITED",
@@ -116,35 +134,66 @@
             "in": "query",
             "required": false,
             "description": "Lọc loại nội dung sau trim; phân biệt hoa thường. Bỏ trường hoặc chuỗi trắng để lấy cả câu hỏi và góp ý đã duyệt.",
-            "schema": { "type": "string", "enum": ["cau-hoi", "gop-y"] }
+            "schema": {
+              "type": "string",
+              "enum": [
+                "cau-hoi",
+                "gop-y"
+              ]
+            }
           },
           {
             "name": "page",
             "in": "query",
             "required": false,
             "description": "Số trang, tính từ 1.",
-            "schema": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 2147483647, "default": 1 }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 2147483647,
+              "default": 1
+            }
           },
           {
             "name": "pageSize",
             "in": "query",
             "required": false,
             "description": "Số mục mỗi trang. Ngoài khoảng 1–50 trả 400, không tự điều chỉnh.",
-            "schema": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 50, "default": 20 }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
           },
           {
             "name": "search",
             "in": "query",
             "required": false,
             "description": "Từ khóa tối đa 200 ký tự sau trim. Chuỗi trắng không lọc. Tìm literal trong câu hỏi hoặc bản trả lời đã duyệt, hỗ trợ hoa/thường tiếng Việt và giữ dấu.",
-            "schema": { "type": "string", "x-validation": { "trim": true, "maxLengthAfterTrim": 200 } }
+            "schema": {
+              "type": "string",
+              "x-validation": {
+                "trim": true,
+                "maxLengthAfterTrim": 200
+              }
+            }
           },
           {
             "name": "sort",
             "in": "query",
             "required": false,
             "description": "Thứ tự theo ngày duyệt và id; newest giảm dần, oldest tăng dần. Bỏ trống hoặc chuỗi trắng dùng mặc định newest.",
-            "schema": { "type": "string", "enum": ["newest", "oldest"], "default": "newest" }
+            "schema": {
+              "type": "string",
+              "enum": [
+                "newest",
+                "oldest"
+              ],
+              "default": "newest"
+            }
           }
         ],
         "responses": {
@@ -153,12 +202,16 @@
             "headers": {
               "Cache-Control": {
                 "description": "Có no-store; tải lại danh sách để nhận thay đổi duyệt hoặc gỡ công bố.",
-                "schema": { "type": "string" }
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PublishedQuestionPage" },
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedQuestionPage"
+                },
                 "example": {
                   "items": [
                     {
@@ -188,8 +241,18 @@
             "description": "Query sai kiểu, page nhỏ hơn 1, pageSize ngoài 1–50, search quá 200 ký tự, sort không hợp lệ hoặc type khác cau-hoi/gop-y.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ApiErrorResponse" },
-                "example": { "error": { "code": "VALIDATION", "message": "Tham số danh sách không hợp lệ.", "fields": { "pageSize": "Số mục mỗi trang phải từ 1 đến 50." } } }
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "message": "Tham số danh sách không hợp lệ.",
+                    "fields": {
+                      "pageSize": "Số mục mỗi trang phải từ 1 đến 50."
+                    }
+                  }
+                }
               }
             }
           }
@@ -207,23 +270,413 @@
             "in": "path",
             "required": true,
             "description": "Mã bản ghi lấy từ danh sách công khai.",
-            "schema": { "type": "integer", "format": "int64", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Chi tiết công khai; DTO giống một mục danh sách.",
-            "headers": { "Cache-Control": { "description": "Có no-store để gỡ công bố có hiệu lực ở lần tải tiếp theo.", "schema": { "type": "string" } } },
+            "headers": {
+              "Cache-Control": {
+                "description": "Có no-store để gỡ công bố có hiệu lực ở lần tải tiếp theo.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PublishedQuestion" },
-                "example": { "id": 130, "type": "cau-hoi", "question": "Tôi có thể gửi góp ý về nội dung website ở đâu?", "answer": "Bạn chọn Góp ý trong biểu mẫu Hỏi – Đáp và gửi nội dung cho ban biên tập.", "answeredAt": "2026-10-16T06:00:00+00:00" }
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedQuestion"
+                },
+                "example": {
+                  "id": 130,
+                  "type": "cau-hoi",
+                  "question": "Tôi có thể gửi góp ý về nội dung website ở đâu?",
+                  "answer": "Bạn chọn Góp ý trong biểu mẫu Hỏi – Đáp và gửi nội dung cho ban biên tập.",
+                  "answeredAt": "2026-10-16T06:00:00+00:00"
+                }
               }
             }
           },
           "404": {
             "description": "Không tìm thấy câu hỏi công khai; không tiết lộ bản riêng có tồn tại hay không.",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorResponse" }, "example": { "error": { "code": "NOT_FOUND", "message": "Không tìm thấy câu hỏi.", "fields": null } } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "message": "Không tìm thấy câu hỏi.",
+                    "fields": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/umbraco/management/api/v1/antc/questions/aggregate": {
+      "post": {
+        "operationId": "aggregateQuestions",
+        "tags": [
+          "Quản trị Hỏi–Đáp"
+        ],
+        "summary": "Tạo câu hỏi và câu trả lời chung từ nhiều nguồn",
+        "description": "Chọn 2–50 mục Mới/Đang xử lý, chưa công bố, chưa tổng hợp; cho phép nguồn câu hỏi và góp ý. Kiểm tra ID và reviewVersion của toàn bộ nguồn. Tạo nội dung chung ở bản nháp với source=tong-hop; giữ câu gốc, đánh dấu nguồn da-xu-ly, lưu người/thời điểm xử lý và liên kết đến bản tổng hợp, tăng phiên bản nguồn. Tất cả trong một giao dịch; thất bại không tạo bản tổng hợp hoặc xử lý dở nguồn. Không sao chép contact, wantReply, IP hoặc consent từ nguồn. Sau khi tạo, duyệt/công bố bằng luồng quản trị hiện có; câu hỏi vẫn cần liên kết hướng dẫn đã thẩm định. Không gửi email.",
+        "security": [
+          {
+            "UmbracoBackoffice": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Thực hiện thành công.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedQuestion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION: nội dung hoặc danh sách chọn không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên backoffice hết hạn."
+          },
+          "403": {
+            "description": "Chưa được cấp quyền section Hỏi–Đáp."
+          },
+          "409": {
+            "description": "CONFLICT: có dữ liệu hoặc cấu hình đã thay đổi. Tải lại và chọn lại; thao tác theo lô không thực hiện một phần.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AggregateQuestionsRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/umbraco/management/api/v1/antc/questions/bulk-delete": {
+      "post": {
+        "operationId": "deleteQuestions",
+        "tags": [
+          "Quản trị Hỏi–Đáp"
+        ],
+        "summary": "Xóa 1–50 nội dung đã chọn",
+        "description": "Kiểm tra phiên bản và xóa toàn bộ hoặc không xóa mục nào. Có thể xóa câu hỏi, góp ý, bản tổng hợp và mục đang công bố. Mục bị xóa biến mất khỏi danh sách quản trị, CSV, API công khai và được thông báo gỡ khỏi chỉ mục. Xóa bản tổng hợp không mở lại trạng thái nguồn. Không có thao tác khôi phục trong quản trị. Dữ liệu vừa gửi được giữ nội bộ trong cửa sổ hạn mức một giờ rồi dọn vật lý; việc xóa không làm vượt giới hạn gửi theo IP.",
+        "security": [
+          {
+            "UmbracoBackoffice": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thực hiện thành công.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteQuestionsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION: nội dung hoặc danh sách chọn không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên backoffice hết hạn."
+          },
+          "403": {
+            "description": "Chưa được cấp quyền section Hỏi–Đáp."
+          },
+          "409": {
+            "description": "CONFLICT: có dữ liệu hoặc cấu hình đã thay đổi. Tải lại và chọn lại; thao tác theo lô không thực hiện một phần.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteQuestionsRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/umbraco/management/api/v1/antc/questions/{id}": {
+      "delete": {
+        "operationId": "deleteQuestion",
+        "tags": [
+          "Quản trị Hỏi–Đáp"
+        ],
+        "summary": "Xóa một nội dung",
+        "description": "Tương đương xóa theo lô một phần tử. ID và reviewVersion bắt buộc; câu đã thay đổi hoặc bị xóa trả 409.",
+        "security": [
+          {
+            "UmbracoBackoffice": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thực hiện thành công.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteQuestionsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION: nội dung hoặc danh sách chọn không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên backoffice hết hạn."
+          },
+          "403": {
+            "description": "Chưa được cấp quyền section Hỏi–Đáp."
+          },
+          "409": {
+            "description": "CONFLICT: có dữ liệu hoặc cấu hình đã thay đổi. Tải lại và chọn lại; thao tác theo lô không thực hiện một phần.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "reviewVersion",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0
+            }
+          }
+        ]
+      }
+    },
+    "/umbraco/management/api/v1/antc/questions/retention": {
+      "get": {
+        "operationId": "getQuestionRetention",
+        "tags": [
+          "Quản trị Hỏi–Đáp"
+        ],
+        "summary": "Xem cấu hình và số mục đủ điều kiện dọn",
+        "description": "Chỉ xem trước, không xóa. Không có cấu hình đã lưu trả mặc định tắt/365 ngày/phiên bản 0.",
+        "security": [
+          {
+            "UmbracoBackoffice": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thực hiện thành công.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionRetentionView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên backoffice hết hạn."
+          },
+          "403": {
+            "description": "Chưa được cấp quyền section Hỏi–Đáp."
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveQuestionRetention",
+        "tags": [
+          "Quản trị Hỏi–Đáp"
+        ],
+        "summary": "Lưu cấu hình dọn dữ liệu",
+        "description": "Thời hạn 30–3650 ngày; kiểm tra reviewVersion. Bật tự động chỉ áp dụng cho mục đã kết thúc xử lý và chưa công bố. Không xóa ngay khi lưu.",
+        "security": [
+          {
+            "UmbracoBackoffice": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thực hiện thành công.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionRetentionView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION: nội dung hoặc danh sách chọn không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên backoffice hết hạn."
+          },
+          "403": {
+            "description": "Chưa được cấp quyền section Hỏi–Đáp."
+          },
+          "409": {
+            "description": "CONFLICT: có dữ liệu hoặc cấu hình đã thay đổi. Tải lại và chọn lại; thao tác theo lô không thực hiện một phần.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionRetentionSettings"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/umbraco/management/api/v1/antc/questions/retention/run": {
+      "post": {
+        "operationId": "runQuestionRetention",
+        "tags": [
+          "Quản trị Hỏi–Đáp"
+        ],
+        "summary": "Dọn một lần theo cấu hình đã lưu",
+        "description": "Dùng sau khi biên tập viên xác nhận. Cho phép chạy thủ công khi tự động đang tắt. Kiểm tra phiên bản cấu hình và điều kiện thực tế lúc chạy; giữ mục Mới/Đang xử lý/đang công bố. Không xóa câu tổng hợp đang công bố khi dọn nguồn. Cập nhật lastRunAt, lastDeletedCount và phiên bản cấu hình.",
+        "security": [
+          {
+            "UmbracoBackoffice": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thực hiện thành công.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionRetentionView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION: nội dung hoặc danh sách chọn không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên backoffice hết hạn."
+          },
+          "403": {
+            "description": "Chưa được cấp quyền section Hỏi–Đáp."
+          },
+          "409": {
+            "description": "CONFLICT: có dữ liệu hoặc cấu hình đã thay đổi. Tải lại và chọn lại; thao tác theo lô không thực hiện một phần.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionRetentionRun"
+              }
+            }
           }
         }
       }
@@ -233,17 +686,28 @@
     "schemas": {
       "CreateQuestionRequest": {
         "type": "object",
-        "required": ["type", "content", "consent"],
+        "required": [
+          "type",
+          "content",
+          "consent"
+        ],
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["cau-hoi", "gop-y"],
+            "enum": [
+              "cau-hoi",
+              "gop-y"
+            ],
             "description": "Loại nội dung; phân biệt hoa thường. cau-hoi: câu hỏi/kiến nghị, gop-y: góp ý."
           },
           "content": {
             "type": "string",
             "description": "Nội dung 10–2000 ký tự sau khi trim khoảng trắng hai đầu. HTML được giữ như văn bản, không tự chuyển thành rich text.",
-            "x-validation": { "trim": true, "minLengthAfterTrim": 10, "maxLengthAfterTrim": 2000 }
+            "x-validation": {
+              "trim": true,
+              "minLengthAfterTrim": 10,
+              "maxLengthAfterTrim": 2000
+            }
           },
           "wantReply": {
             "type": "boolean",
@@ -254,11 +718,19 @@
             "type": "string",
             "nullable": true,
             "description": "Thông tin liên hệ tối đa 200 ký tự sau trim; bắt buộc khi wantReply=true. Không giới hạn chỉ email. Để chuỗi rỗng/null hoặc bỏ trường nếu không cần trả lời riêng.",
-            "x-validation": { "trim": true, "maxLengthAfterTrim": 200, "requiredWhen": { "wantReply": true } }
+            "x-validation": {
+              "trim": true,
+              "maxLengthAfterTrim": 200,
+              "requiredWhen": {
+                "wantReply": true
+              }
+            }
           },
           "consent": {
             "type": "boolean",
-            "enum": [true],
+            "enum": [
+              true
+            ],
             "description": "Bắt buộc đồng ý, lấy từ checkbox xác nhận của người dùng."
           },
           "website": {
@@ -272,50 +744,534 @@
       "CreateQuestionResponse": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["ok"],
-        "properties": { "ok": { "type": "boolean", "enum": [true] } }
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        }
       },
       "PublishedQuestion": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "type", "question", "answer", "answeredAt"],
+        "required": [
+          "id",
+          "type",
+          "question",
+          "answer",
+          "answeredAt"
+        ],
         "properties": {
-          "id": { "type": "integer", "format": "int64", "minimum": 1 },
-          "type": { "type": "string", "enum": ["cau-hoi", "gop-y"], "description": "Loại nội dung: câu hỏi/kiến nghị hoặc góp ý." },
-          "question": { "type": "string", "description": "Nội dung gốc của câu hỏi hoặc góp ý, hiển thị dạng văn bản có thoát ký tự." },
-          "answer": { "type": "string", "description": "Bản câu trả lời hoặc phản hồi đã được duyệt, hiển thị dạng văn bản có thoát ký tự." },
-          "answeredAt": { "type": "string", "format": "date-time", "description": "Thời điểm duyệt/công bố gần nhất, ISO 8601 có múi giờ." },
-          "guidanceLabel": { "type": "string", "nullable": true, "maxLength": 200, "description": "Nhãn liên kết nội dung hướng dẫn đã được duyệt cùng bản trả lời; bản công bố cũ có thể null." },
-          "guidanceUrl": { "type": "string", "nullable": true, "maxLength": 2048, "description": "Đường dẫn hướng dẫn đã duyệt, bắt đầu bằng / hoặc http(s)://; không trả liên kết nháp." }
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "cau-hoi",
+              "gop-y"
+            ],
+            "description": "Loại nội dung: câu hỏi/kiến nghị hoặc góp ý."
+          },
+          "question": {
+            "type": "string",
+            "description": "Nội dung gốc của câu hỏi hoặc góp ý, hiển thị dạng văn bản có thoát ký tự."
+          },
+          "answer": {
+            "type": "string",
+            "description": "Bản câu trả lời hoặc phản hồi đã được duyệt, hiển thị dạng văn bản có thoát ký tự."
+          },
+          "answeredAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Thời điểm duyệt/công bố gần nhất, ISO 8601 có múi giờ."
+          },
+          "guidanceLabel": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 200,
+            "description": "Nhãn liên kết nội dung hướng dẫn đã được duyệt cùng bản trả lời; bản công bố cũ có thể null."
+          },
+          "guidanceUrl": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 2048,
+            "description": "Đường dẫn hướng dẫn đã duyệt, bắt đầu bằng / hoặc http(s)://; không trả liên kết nháp."
+          }
         }
       },
       "PublishedQuestionPage": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["items", "total", "page", "pageSize", "totalPages"],
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
+        ],
         "properties": {
-          "items": { "type": "array", "maxItems": 50, "items": { "$ref": "#/components/schemas/PublishedQuestion" } },
-          "total": { "type": "integer", "format": "int32", "minimum": 0 },
-          "page": { "type": "integer", "format": "int32", "minimum": 1 },
-          "pageSize": { "type": "integer", "format": "int32", "minimum": 1, "maximum": 50 },
-          "totalPages": { "type": "integer", "format": "int32", "minimum": 1 }
+          "items": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/PublishedQuestion"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          }
         }
       },
       "ApiErrorResponse": {
         "type": "object",
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "properties": {
           "error": {
             "type": "object",
-            "required": ["code", "message"],
+            "required": [
+              "code",
+              "message"
+            ],
             "properties": {
-              "code": { "type": "string", "enum": ["VALIDATION", "RATE_LIMITED", "NOT_FOUND"] },
-              "message": { "type": "string" },
-              "fields": { "type": "object", "nullable": true, "additionalProperties": { "type": "string" } }
+              "code": {
+                "type": "string",
+                "enum": [
+                  "VALIDATION",
+                  "RATE_LIMITED",
+                  "NOT_FOUND",
+                  "CONFLICT"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "object",
+                "nullable": true,
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
             }
           }
         }
+      },
+      "QuestionSelection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "reviewVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "reviewVersion"
+        ],
+        "additionalProperties": false,
+        "description": "Lấy ID và phiên bản hiện hành từ danh sách quản trị. Một ID chỉ xuất hiện một lần trong yêu cầu."
+      },
+      "AggregateQuestionDraft": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "cau-hoi",
+              "gop-y"
+            ]
+          },
+          "content": {
+            "type": "string",
+            "x-validation": {
+              "trim": true,
+              "minLengthAfterTrim": 10,
+              "maxLengthAfterTrim": 2000
+            }
+          },
+          "answer": {
+            "type": "string",
+            "maxLength": 10000,
+            "x-validation": {
+              "trim": true,
+              "minLengthAfterTrim": 10
+            }
+          },
+          "adminNote": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "type",
+          "content",
+          "answer"
+        ],
+        "additionalProperties": false,
+        "description": "Ban biên tập tự viết nội dung chung; không tự ghép hoặc sao chép liên hệ riêng. Câu trả lời chung bắt buộc."
+      },
+      "AggregateQuestionsRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/QuestionSelection"
+            },
+            "uniqueItems": true,
+            "x-validation": {
+              "uniqueBy": "id"
+            },
+            "minItems": 2
+          },
+          "draft": {
+            "$ref": "#/components/schemas/AggregateQuestionDraft"
+          }
+        },
+        "required": [
+          "items",
+          "draft"
+        ],
+        "additionalProperties": false
+      },
+      "DeleteQuestionsRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/QuestionSelection"
+            },
+            "uniqueItems": true,
+            "x-validation": {
+              "uniqueBy": "id"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "DeleteQuestionsResult": {
+        "type": "object",
+        "properties": {
+          "deletedCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        },
+        "required": [
+          "deletedCount",
+          "ids"
+        ],
+        "additionalProperties": false
+      },
+      "ManagedQuestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "cau-hoi",
+              "gop-y"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "wantReply": {
+            "type": "boolean"
+          },
+          "contact": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "moi",
+              "dang-xu-ly",
+              "da-xu-ly",
+              "bo-qua"
+            ]
+          },
+          "adminNote": {
+            "type": "string",
+            "nullable": true
+          },
+          "handledBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "handledAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "answer": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishedAnswer": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "approvedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "approvedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "reviewVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "portal",
+              "quan-tri",
+              "tong-hop"
+            ]
+          },
+          "createdBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "guidanceLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "guidanceUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishedGuidanceLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishedGuidanceUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "aggregatedIntoId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "aggregatedSourceIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "content",
+          "wantReply",
+          "contact",
+          "status",
+          "adminNote",
+          "handledBy",
+          "handledAt",
+          "createdAt",
+          "answer",
+          "publishedAnswer",
+          "isPublished",
+          "approvedAt",
+          "approvedBy",
+          "reviewVersion",
+          "source",
+          "createdBy",
+          "guidanceLabel",
+          "guidanceUrl",
+          "publishedGuidanceLabel",
+          "publishedGuidanceUrl",
+          "aggregatedIntoId",
+          "aggregatedSourceIds"
+        ],
+        "additionalProperties": false,
+        "description": "Dữ liệu quản trị có thông tin riêng. Không chuyển đối tượng này ra giao diện công khai. Nguồn tổng hợp có source=tong-hop và danh sách ID nguồn; các nguồn có aggregatedIntoId."
+      },
+      "QuestionRetentionSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "retentionDays": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 3650
+          },
+          "reviewVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "enabled",
+          "retentionDays",
+          "reviewVersion"
+        ],
+        "additionalProperties": false
+      },
+      "QuestionRetentionRun": {
+        "type": "object",
+        "properties": {
+          "reviewVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "reviewVersion"
+        ],
+        "additionalProperties": false
+      },
+      "QuestionRetentionView": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "retentionDays": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 3650
+          },
+          "reviewVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "eligibleCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastRunAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "lastDeletedCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "updatedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "enabled",
+          "retentionDays",
+          "reviewVersion",
+          "eligibleCount",
+          "lastRunAt",
+          "lastDeletedCount",
+          "updatedBy",
+          "updatedAt"
+        ],
+        "additionalProperties": false,
+        "description": "Mặc định enabled=false, retentionDays=365. Chỉ dọn Đã xử lý/Bỏ qua, chưa công bố, quá thời hạn kể từ handledAt hoặc createdAt nếu chưa có handledAt. Kiểm tra mỗi giờ, tự động tối đa một lần/ngày. Số đủ điều kiện được tính lại lúc chạy."
+      }
+    },
+    "securitySchemes": {
+      "UmbracoBackoffice": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Phiên backoffice Umbraco và quyền Antc.Section.Questions. Extension lấy thông tin xác thực từ UMB_AUTH_CONTEXT; không nhúng mật khẩu/token cố định."
       }
     }
+  },
+  "tags": [
+    {
+      "name": "Quản trị Hỏi–Đáp",
+      "description": "Chỉ dùng trong backoffice Umbraco, không gọi từ portal."
+    }
+  ],
+  "x-backoffice-workflow": {
+    "selection": "Cột chọn trên danh sách; tối đa 50 nội dung, hỗ trợ chọn cả trang. Tạm dừng tự cập nhật khi đang chọn.",
+    "aggregation": "Chọn nguồn → Tổng hợp → nhập nội dung chung và câu trả lời → Tạo bản tổng hợp → nguồn Đã xử lý; bản chung chờ duyệt.",
+    "deletion": "Xóa từng dòng hoặc Xóa đã chọn; phải xác nhận, cảnh báo nếu đang công bố.",
+    "retention": "Dọn dữ liệu → cấu hình thời hạn/bật tự động → Lưu; Dọn ngay là thao tác riêng cần xác nhận."
   }
 }

@@ -81,12 +81,14 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
     }
     async _act(action) {
         if (this._busy || (!this._row && action !== 'create') || (this._row && action === 'create')) return;
+        const aggregating = action === 'create' && this.data.sources?.length;
         if (action === 'create') {
             const errors = {};
             if (!Object.hasOwn(types, this._draft.type)) errors.type = 'Chọn loại nội dung.';
             const length = this._draft.content.trim().length;
             if (length < 10 || length > 2000) errors.content = 'Nội dung cần từ 10 đến 2000 ký tự.';
             if (this._draft.answer.length > 10000) errors.answer = 'Câu trả lời tối đa 10.000 ký tự.';
+            if (aggregating && this._draft.answer.trim().length < 10) errors.answer = 'Câu trả lời chung cần từ 10 đến 10.000 ký tự.';
             if (this._draft.adminNote.length > 1000) errors.adminNote = 'Ghi chú tối đa 1.000 ký tự.';
             this._fieldErrors = errors;
             if (Object.keys(errors).length) { this._error = 'Kiểm tra các trường cần nhập.'; return; }
@@ -98,9 +100,10 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
         this._busy = true; this._action = action; this._error = ''; this._message = '';
         try {
             const suffix = action === 'save' ? '' : '/' + action;
-            const body = action === 'create' ? this._draft : action === 'unpublish' ? { reviewVersion: this._row.reviewVersion }
+            const body = aggregating ? { draft: this._draft, items: this.data.sources.map(source => ({ id: source.id, reviewVersion: source.reviewVersion })) }
+                : action === 'create' ? this._draft : action === 'unpublish' ? { reviewVersion: this._row.reviewVersion }
                 : { ...this._draft, reviewVersion: this._row.reviewVersion };
-            const path = action === 'create' ? '' : '/' + this._row.id + suffix;
+            const path = aggregating ? '/aggregate' : action === 'create' ? '' : '/' + this._row.id + suffix;
             const row = await (await this.data.request(path, {
                 method: action === 'save' ? 'PUT' : 'POST', body: JSON.stringify(body),
             })).json();
@@ -108,7 +111,8 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
             if (action !== 'unpublish') this._resetDraft();
             if (action === 'create') this.data.onCreated(row);
             else this.data.onUpdated(row);
-            this._message = action === 'create' ? 'Đã tạo bản nháp. Bạn có thể tiếp tục xử lý và duyệt công bố tại đây.'
+            this._message = aggregating ? `Đã tạo câu hỏi và câu trả lời chung. ${this.data.sources.length} nội dung nguồn đã chuyển sang Đã xử lý. Bản tổng hợp chờ duyệt công bố.`
+                : action === 'create' ? 'Đã tạo bản nháp. Bạn có thể tiếp tục xử lý và duyệt công bố tại đây.'
                 : action === 'approve' ? (row.type === 'gop-y' ? 'Đã duyệt và công bố góp ý cùng phản hồi.' : 'Đã duyệt và công bố câu hỏi cùng câu trả lời.')
                 : action === 'unpublish' ? 'Đã gỡ công bố. Nội dung không còn hiển thị công khai.'
                     : 'Đã lưu xử lý. Nội dung và phản hồi chỉ hiển thị trên portal sau khi được duyệt và công bố.';
@@ -118,7 +122,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
     render() {
         const row = this._row;
         return html`
-            <umb-body-layout headline=${row ? `Xử lý nội dung #${row.id}` : 'Tạo nội dung Hỏi – Đáp'} .loading=${this._busy}>
+            <umb-body-layout headline=${row ? `Xử lý nội dung #${row.id}` : this.data.sources?.length ? `Tổng hợp ${this.data.sources.length} nội dung` : 'Tạo nội dung Hỏi – Đáp'} .loading=${this._busy}>
                 <div slot="header" class="header-meta"><uui-tag>${types[row?.type || this._draft.type]}</uui-tag>
                     <uui-tag>${sources[row?.source] || (row ? 'Portal' : 'Quản trị')}</uui-tag>
                     <uui-tag color=${row?.isPublished ? 'positive' : 'default'}>${row?.isPublished ? 'Đã công bố' : 'Chưa công bố'}</uui-tag>
@@ -129,8 +133,13 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                 ${this._message ? html`<div class="notice success" role="status"><umb-icon name="icon-check"></umb-icon><span>${this._message}</span></div>` : nothing}
                 <div class="review-grid">
                     <div class="submission-panel">
+                        ${!row && this.data.sources?.length ? html`<uui-box headline="Nội dung nguồn đã chọn">
+                            <p class="muted intro">Viết lại câu hỏi và câu trả lời chung. Không đưa liên hệ hoặc dữ liệu riêng của người gửi vào nội dung chung. Chỉ chuyển nguồn sang Đã xử lý khi lưu tổng hợp thành công.</p>
+                            ${this.data.sources.map(source => html`<details class="source-item"><summary>#${source.id} · ${types[source.type]} · ${date(source.createdAt)}</summary>
+                                <pre class="original">${source.content}</pre></details>`)}
+                        </uui-box>` : nothing}
                         ${!row ? html`<uui-box headline="Nội dung tạo mới">
-                            <p class="muted intro">Nội dung do ban biên tập nhập trực tiếp. Lưu bản nháp trước khi duyệt và công bố.</p>
+                            <p class="muted intro">${this.data.sources?.length ? 'Nhập nội dung chung để trả lời các mục đã chọn. Bản tổng hợp được lưu nháp và chờ duyệt công bố.' : 'Nội dung do ban biên tập nhập trực tiếp. Lưu bản nháp trước khi duyệt và công bố.'}</p>
                             <umb-property-layout orientation="vertical" label="Loại nội dung" description="Câu hỏi, kiến nghị và góp ý đều có thể nhập phản hồi, duyệt và công bố.">
                                 <uui-select slot="editor" id="create-type" label="Loại nội dung" ?disabled=${this._busy}
                                     .options=${Object.entries(types).map(([value, name]) => ({ value, name, selected: value === this._draft.type }))}
@@ -144,9 +153,11 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                                 <span slot="description" class="counter">${this._draft.content.trim().length.toLocaleString('vi-VN')} / 2.000 ký tự</span>
                                 ${this._fieldErrors.content ? html`<span slot="description" class="field-error">${this._fieldErrors.content}</span>` : nothing}
                             </umb-property-layout>
-                        </uui-box>` : html`<uui-box headline=${row.source === 'quan-tri' ? 'Nội dung do ban biên tập tạo' : 'Nội dung người dùng gửi'}>
+                        </uui-box>` : html`<uui-box headline=${row.source === 'tong-hop' ? 'Câu hỏi tổng hợp' : row.source === 'quan-tri' ? 'Nội dung do ban biên tập tạo' : 'Nội dung người dùng gửi'}>
                             <p class="muted intro">Nội dung gốc, chỉ xem.</p>
                             <pre class="original">${row.content}</pre>
+                            ${row.aggregatedSourceIds?.length ? html`<p class="muted">Tổng hợp từ các nội dung: ${row.aggregatedSourceIds.map(id => '#' + id).join(', ')}.</p>` : nothing}
+                            ${row.aggregatedIntoId ? html`<p class="muted">Đã được xử lý trong nội dung tổng hợp #${row.aggregatedIntoId}.</p>` : nothing}
                         </uui-box>
                         <uui-box headline="Thông tin tiếp nhận">
                             <dl><dt>Nguồn tiếp nhận</dt><dd>${sources[row.source] || 'Portal'}</dd>
@@ -205,8 +216,8 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                     .state=${this._action === 'unpublish' ? 'waiting' : undefined} ?disabled=${this._busy} @click=${() => this._act('unpublish')}>Gỡ công bố</uui-button>` : nothing}
                 ${row ? html`<uui-button slot="actions" label="Lưu xử lý" look="outline" data-action="save" .state=${this._action === 'save' ? 'waiting' : undefined}
                     ?disabled=${this._busy} @click=${() => this._act('save')}>Lưu xử lý</uui-button>` : html`
-                    <uui-button slot="actions" label="Tạo bản nháp" look="primary" data-action="create" .state=${this._action === 'create' ? 'waiting' : undefined}
-                        ?disabled=${this._busy} @click=${() => this._act('create')}>Tạo bản nháp</uui-button>`}
+                    <uui-button slot="actions" label=${this.data.sources?.length ? 'Tạo bản tổng hợp' : 'Tạo bản nháp'} look="primary" data-action="create" .state=${this._action === 'create' ? 'waiting' : undefined}
+                        ?disabled=${this._busy} @click=${() => this._act('create')}>${this.data.sources?.length ? 'Tạo bản tổng hợp' : 'Tạo bản nháp'}</uui-button>`}
                 ${row && Object.hasOwn(types, row.type) ? html`<uui-button slot="actions" label="Duyệt và công bố" look="primary" color="positive" data-action="approve"
                     .state=${this._action === 'approve' ? 'waiting' : undefined}
                     ?disabled=${this._busy || this._draft.answer.trim().length < 10 || row.type === 'cau-hoi' && (!this._draft.guidanceLabel.trim() || !this._draft.guidanceUrl.trim())}
@@ -225,6 +236,9 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
         .field-error { display:block; color:var(--uui-color-danger); font-size:var(--uui-type-small-size); margin-top:var(--uui-size-space-2); }
         .intro { margin:0 0 var(--uui-size-space-4); }
         .original { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; line-height:1.7; }
+        .source-item { padding:var(--uui-size-space-4) 0; border-top:1px solid var(--uui-color-border); }
+        .source-item summary { cursor:pointer; color:var(--uui-color-text-alt); }
+        .source-item .original { margin-top:var(--uui-size-space-3); }
         dl { display:grid; grid-template-columns:minmax(130px,0.8fr) minmax(0,1.2fr); gap:0 var(--uui-size-space-4); margin:0; }
         dt, dd { margin:0; padding:var(--uui-size-space-4) 0; border-bottom:1px solid var(--uui-color-border); overflow-wrap:anywhere; }
         dt { color:var(--uui-color-text-alt); }

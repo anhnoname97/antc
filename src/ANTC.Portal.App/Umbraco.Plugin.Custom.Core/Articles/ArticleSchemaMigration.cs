@@ -20,13 +20,13 @@ public sealed class ArticleSchemaMigration(IContentTypeService types, IDataTypeS
         var article = types.Get("article");
         if (article is null) return;
         bool changed = false;
-        var legacy = article.PropertyTypes.FirstOrDefault(x => x.Alias == "isDraft");
+        var legacy = article.PropertyTypes.FirstOrDefault(x => x.Alias == "policyDraft");
         if (legacy is not null)
         {
-            if (article.PropertyTypes.Any(x => x.Alias == "policyDraft"))
+            if (article.PropertyTypes.Any(x => x.Alias == "isDraft"))
                 throw new InvalidOperationException("Bài viết có đồng thời isDraft và policyDraft; cần kiểm tra trước khi chuyển dữ liệu.");
-            // Sửa trên chính đối tượng đã lưu để giữ Id và Key cùng dữ liệu phiên bản.
-            legacy.Alias = "policyDraft";
+            // Đồng bộ alias với main trên chính thuộc tính đã lưu, giữ Id/Key và dữ liệu phiên bản.
+            legacy.Alias = "isDraft";
             changed = true;
         }
         if (!article.PropertyTypeExists("showOnHome"))

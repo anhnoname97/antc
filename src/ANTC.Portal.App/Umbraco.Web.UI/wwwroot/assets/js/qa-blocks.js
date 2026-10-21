@@ -1,5 +1,5 @@
 import { animateContestCommunity } from './contest-community.js';
-import { animateQaPublishedAnswers, initQaLoadMore, initQaAnchor } from './qa-published.js';
+import { animateQaPublishedAnswers, initQaLoadMore } from './qa-published.js';
 import { initQaSubmissions, animateQaSubmissionBlocks } from './qa-submission.js';
 import { animateQaProcesses } from './qa-process.js';
 import { initReferencePage } from './reference-page.js';
@@ -15,5 +15,4 @@ if (page) {
   animateQaPublishedAnswers(page);
   initQaLoadMore(page);
   animateContestCommunity(page);
-  initQaAnchor(page);
 }

@@ -1,5 +1,4 @@
 using System.Globalization;
-using Umbraco.Plugin.Custom.Core.Search;
 
 namespace Umbraco.Plugin.Custom.Core.Articles;
 
@@ -54,7 +53,7 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
             {
                 Articles = category.Articles.Where(article => ArticleSearchText.Contains(article.Card.Title, term)
                     || ArticleSearchText.Contains(article.Card.Summary, term)
-                    || ArticleSearchText.Contains(SearchText.PlainHtml(article.BodyHtml), term)).ToArray()
+                    || ArticleSearchText.Contains(ArticleSearchText.PlainHtml(article.BodyHtml), term)).ToArray()
             });
         IEnumerable<ArticleListItem> articles = categories.SelectMany(category => category.Articles
             .Select(article => new ArticleListItem(Card(article, library.ReviewAfterDays, today), category.Category)));

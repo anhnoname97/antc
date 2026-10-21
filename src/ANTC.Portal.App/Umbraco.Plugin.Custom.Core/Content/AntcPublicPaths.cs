@@ -9,11 +9,12 @@ public static class AntcPublicPaths
     {
         ["home"] = "/", ["ungPhoPage"] = "/ung-pho/", ["thuDoanPage"] = "/thu-doan/",
         ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi/",
+        ["thiThangPage"] = "/cuoc-thi-thang/", ["cuocThiLamBaiPage"] = "/cuoc-thi/lam-bai/",
         ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/"
     };
 
     public static bool IsManagement(string alias) =>
-        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement" or "qaItem"
+        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement"
             or "fraudContent" or "policyContent";
 
     public static string? FixedAlias(string path) => FixedPaths
@@ -40,6 +41,7 @@ public static class AntcPublicPaths
         {
             "articleList" => $"/thu-doan/{segment}/",
             "article" when parentPath is not null => $"{parentPath.TrimEnd('/')}/{segment}/",
+            "qaItem" => $"/hoi-dap/{segment}/",
             _ => null
         };
     }

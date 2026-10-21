@@ -1,0 +1,15 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{ string T(string alias) => Model.Content.Value<string>(alias) ?? string.Empty; }
+        <aside data-contest-copy="sidebar" data-participant-label="@T("participantLabel")" data-anonymous-label="@T("anonymousLabel")" data-progress-label="@T("progressLabel")" id="cside" class="contest__side" aria-label="Thí sinh và tiến độ">
+            <div id="sidecards" class="contest__sidecards">
+                <div class="sidecard">
+                    <p class="eyebrow">@T("participantLabel")</p>
+                    <p class="sidecard__text">@T("emptyMessage")</p>
+                </div>
+            </div>
+            <div class="sidewarn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.8 19.5h18.4z" /><path d="M12 10v4.2" /><circle cx="12" cy="16.8" r=".7" fill="currentColor" /></svg>
+                <p>@T("warning")<br /><a href="/ung-pho">@T("emergencyLabel")</a></p>
+            </div>
+        </aside>

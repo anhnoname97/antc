@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Umbraco.Plugin.Custom.Core.Data;
 
 namespace Umbraco.Plugin.Custom.Core.Questions;
@@ -7,9 +8,10 @@ public static class QuestionValues
 {
     public const string PortalSource = "portal";
     public const string BackofficeSource = "quan-tri";
+    public const string AggregateSource = "tong-hop";
     public static readonly IReadOnlyDictionary<string, string> Sources = new Dictionary<string, string>
     {
-        [PortalSource] = "Portal", [BackofficeSource] = "Quản trị"
+        [PortalSource] = "Portal", [BackofficeSource] = "Quản trị", [AggregateSource] = "Tổng hợp"
     };
     public static readonly IReadOnlyDictionary<string, string> Types = new Dictionary<string, string>
     {
@@ -38,12 +40,19 @@ public sealed record QuestionRow(long Id, string Type, string Content, bool Want
     string Source = QuestionValues.PortalSource, string? CreatedBy = null,
     string? GuidanceLabel = null, string? GuidanceUrl = null, string? PublishedGuidanceLabel = null, string? PublishedGuidanceUrl = null)
 {
+    public long? AggregatedIntoId { get; init; }
+    public IReadOnlyList<long> AggregatedSourceIds { get; init; } = [];
+
     public static QuestionRow FromEntity(QuestionSubmission row) => new(row.Id, row.Type, row.Content,
         row.WantReply, row.Contact, row.Status, row.AdminNote, row.HandledBy,
         row.HandledAt is { } handled ? QuestionValues.AsUtc(handled) : null, QuestionValues.AsUtc(row.CreatedAt),
         row.Answer, row.PublishedAnswer, row.IsPublished,
         row.ApprovedAt is { } approved ? QuestionValues.AsUtc(approved) : null, row.ApprovedBy, row.ReviewVersion,
-        row.Source, row.CreatedBy, row.GuidanceLabel, row.GuidanceUrl, row.PublishedGuidanceLabel, row.PublishedGuidanceUrl);
+        row.Source, row.CreatedBy, row.GuidanceLabel, row.GuidanceUrl, row.PublishedGuidanceLabel, row.PublishedGuidanceUrl)
+    {
+        AggregatedIntoId = row.AggregatedIntoId,
+        AggregatedSourceIds = row.AggregatedSourceIds is { Length: > 0 } ids ? JsonSerializer.Deserialize<long[]>(ids) ?? [] : []
+    };
 }
 
 public sealed record QuestionDraft(string? Type, string? Content, string? Answer = null, string? AdminNote = null)

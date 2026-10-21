@@ -12,7 +12,6 @@
     var path = Context.Request.Path.Value ?? "/";
     var contest = Model.ContentType.Alias == "thiPage" ? await CurrentContests.GetAsync(Context.RequestAborted) : null;
     var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
-    var contestMonth = contest is null ? string.Empty : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), vietnam).ToString("MM/yyyy");
     string DateLabel(DateTime value) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value, DateTimeKind.Utc), vietnam).ToString("dd/MM/yyyy");
 }
 <header class="contest-header" data-contest-header>
@@ -21,8 +20,8 @@
         <div class="contest-announcement" data-contest-banner role="region" aria-label="Cuộc thi đang diễn ra">
             <div class="contest-announcement-inner">
                 <span class="contest-announcement-dot" aria-hidden="true"></span>
-                <span><b>Cuộc thi tháng @contestMonth</b><span class="contest-announcement-details"> · @contest.Name · @DateLabel(contest.StartAt) – @DateLabel(contest.EndAt)</span></span>
-                <a href="#cuoc-thi">Tham gia ⟶</a>
+                <span><b>Cuộc thi đang diễn ra</b><span class="contest-announcement-details"> · @contest.Name · @DateLabel(contest.StartAt) – @DateLabel(contest.EndAt)</span></span>
+                <a href="/cuoc-thi/lam-bai/?c=@contest.Id">Tham gia ⟶</a>
                 <button type="button" class="contest-banner-close" data-contest-banner-close aria-label="Ẩn thông báo cuộc thi">×</button>
             </div>
         </div>
@@ -38,7 +37,6 @@
             {
                 <span class="contest-brand-mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8 19.5 5.6v6.1c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V5.6z"/><path d="m8.7 12 2.3 2.3 4.3-4.6"/></svg></span>
                 <span><b>@siteName</b>
-                @if (site.Value<bool>("showPreviewBanner")) { <small>BẢN DỰNG THỬ</small> }
                 </span>
             }
         </a>

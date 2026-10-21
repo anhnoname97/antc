@@ -96,7 +96,7 @@ public sealed partial class UmbracoArticleContentSource(IDocumentNavigationQuery
         var card = new ArticleCard(item.Key, item.Name, slug, url, summary, Image(item, "image"),
             Label(Dropdown(item, "labelType"), agency),
             new ArticleSource(agency, Text(item, "sourceDocNo"), Date(item, "sourceDocDate")),
-            Date(item, "updatedDate"), item.Value<bool>("policyDraft"),
+            Date(item, "updatedDate"), PolicyDraft(item),
             new ArticleReview(Date(item, "lastReviewedDate"), days, false, null))
         {
             ShowOnHome = item.Value<bool>("showOnHome")
@@ -105,6 +105,10 @@ public sealed partial class UmbracoArticleContentSource(IDocumentNavigationQuery
         string html = includeBodies || item.Key == bodyArticleId ? item.Value<IHtmlEncodedString>("body")?.ToHtmlString() ?? string.Empty : string.Empty;
         return new(card, html, Text(item, "safeAction"), seo);
     }
+
+    // Giữ alias mà giao diện trên main đang dùng; đọc được dữ liệu trên nhánh API trước khi uSync đồng bộ.
+    private static bool PolicyDraft(IPublishedContent item) => item.HasProperty("isDraft")
+        ? item.Value<bool>("isDraft") : item.Value<bool>("policyDraft");
 
     private static ArticleSeo Seo(IPublishedContent content, string summary, ArticleImage? fallbackImage) =>
         new(Text(content, "seoTitle") ?? content.Name, Text(content, "seoDescription") ?? summary,

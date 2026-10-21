@@ -1,0 +1,8 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    var label = Model.Value<string>("labelType") ?? "";
+    var agency = Model.Value<string>("sourceAgency");
+}
+@if (Model.Value<bool>("isDraft")) { <span class="article-label article-label--amber">Bản dự thảo</span> }
+@if (label.Contains("Cần kiểm chứng", StringComparison.OrdinalIgnoreCase)) { <span class="article-label article-label--amber">Cần kiểm chứng · Chưa có kết luận</span> }
+else if (label.Contains("cảnh báo", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(agency)) { <span class="article-label">Dựa trên cảnh báo của @agency</span> }

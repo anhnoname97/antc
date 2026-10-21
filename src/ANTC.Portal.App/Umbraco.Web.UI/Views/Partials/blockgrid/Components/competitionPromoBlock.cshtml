@@ -7,10 +7,9 @@
     var schedule = content.Value<string>("scheduleText");
     var summary = content.Value<string>("summary");
     var link = content.Value<Link>("link");
+    var contestUrl = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("thiPage").FirstOrDefault()?.Url() ?? "/cuoc-thi/";
     var safetyNote = content.Value<string>("safetyNote");
     var metadata = string.Join(" · ", new[] { schedule, summary }.Where(value => !string.IsNullOrWhiteSpace(value)));
-    var canLink = !string.IsNullOrWhiteSpace(link?.Url) && !string.IsNullOrWhiteSpace(link.Name)
-        && (link.Url.StartsWith('/') || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"));
 }
 @if (!string.IsNullOrWhiteSpace(title))
 {
@@ -24,10 +23,7 @@
         {
             <p class="competition-promo__meta">@metadata</p>
         }
-        @if (canLink)
-        {
-            <a class="intro-hero__button intro-hero__button--primary competition-promo__link" href="@link!.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener noreferrer" : null)">@link.Name <span aria-hidden="true">⟶</span></a>
-        }
+        <a class="intro-hero__button intro-hero__button--primary competition-promo__link" href="@contestUrl">@(string.IsNullOrWhiteSpace(link?.Name) ? "Xem cuộc thi" : link.Name) <span aria-hidden="true">⟶</span></a>
         @if (!string.IsNullOrWhiteSpace(safetyNote))
         {
             <p class="competition-promo__safety">

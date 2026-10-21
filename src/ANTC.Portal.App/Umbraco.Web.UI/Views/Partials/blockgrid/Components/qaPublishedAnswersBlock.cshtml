@@ -2,25 +2,21 @@
 @using Umbraco.Plugin.Custom.Core.Questions
 @using Microsoft.AspNetCore.WebUtilities
 @inject IPublishedQuestionService PublishedQuestions
-@inject QuestionPublicNavigation QuestionNavigation
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
     var id = $"qa-published-{Model.ContentKey:N}";
     var currentPage = int.TryParse(Context.Request.Query["qaPage"], out var requestedPage) && requestedPage > 0 ? requestedPage : 1;
-    if (long.TryParse(Context.Request.Query["cauHoi"], out var requestedQuestion) && requestedQuestion > 0)
-        currentPage = await QuestionNavigation.PageAsync(requestedQuestion, Context.RequestAborted) ?? currentPage;
-    var result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6, Type: "cau-hoi"), Context.RequestAborted);
+    var result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6), Context.RequestAborted);
     if (currentPage > result.TotalPages)
     {
         currentPage = result.TotalPages;
-        result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6, Type: "cau-hoi"), Context.RequestAborted);
+        result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6), Context.RequestAborted);
     }
     string PageUrl(int number)
     {
         var query = Context.Request.Query.ToDictionary(x => x.Key, x => (string?)x.Value.ToString());
-        query.Remove("cauHoi");
         query["qaPage"] = number.ToString();
         return QueryHelpers.AddQueryString(Context.Request.Path.ToString(), query) + "#da-tra-loi";
     }
@@ -34,7 +30,7 @@
 @for (var index = 0; index < result.Items.Count; index++)
 {
     var question = result.Items[index];
-<details id="@QuestionPublicNavigation.Anchor(question.Id)" open="@(index == 0)" data-question-id="@question.Id">
+<details open="@(index == 0)" data-question-id="@question.Id">
 <summary><span class="t"><span class="tag">@T("tagLabel")</span><h3>@question.Question</h3></span><span class="pm" aria-hidden="true">+</span></summary>
 <div class="ans"><p>@question.Answer</p>
 @if (!string.IsNullOrWhiteSpace(question.GuidanceLabel) && QuestionGuidanceLink.IsSafe(question.GuidanceUrl))

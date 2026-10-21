@@ -22,7 +22,7 @@ export function initReferencePage(page) {
     });
   });
   if (header) {
-    const updateHeader = () => header.classList.toggle('is-scrolled', scrollY > (page.querySelector('.ph')?.offsetHeight || 500) - 90);
+    const updateHeader = () => header.classList.toggle('is-scrolled', scrollY > (page.querySelector('.ph, .page-hero')?.offsetHeight || 500) - 90);
     window.addEventListener('scroll', updateHeader, { passive: true });
     updateHeader();
     document.querySelector('[data-contest-banner-close]')?.addEventListener('click', () => header.classList.add('no-bar'));

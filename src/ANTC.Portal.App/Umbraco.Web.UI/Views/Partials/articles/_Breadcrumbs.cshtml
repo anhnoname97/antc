@@ -1,0 +1,14 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    var home = Model.Root().DescendantsOrSelfOfType("home").FirstOrDefault();
+    var fraud = Model.Root().DescendantsOrSelfOfType("thuDoanPage").FirstOrDefault();
+    var category = Model.ContentType.Alias == "article" ? Model.Parent<IPublishedContent>() : null;
+    var inFraud = Model.Ancestors().Any(x => x.ContentType.Alias == "articleManagement");
+}
+<nav class="article-breadcrumbs" aria-label="Vị trí">
+    <ol><li><a href="@(home?.Url() ?? "/")">Trang chủ</a></li>
+        @if (inFraud && fraud is not null) { <li><a href="@fraud.Url()">Thủ đoạn</a></li> }
+        @if (category?.ContentType.Alias == "articleList") { <li><a href="@category.Url()">@category.Name</a></li> }
+        <li aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
