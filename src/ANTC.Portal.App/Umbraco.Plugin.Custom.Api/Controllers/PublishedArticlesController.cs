@@ -12,13 +12,18 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
 {
     [HttpGet("article-categories")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    [ProducesResponseType<IReadOnlyList<ArticleCategory>>(200)]
+    [ProducesResponseType<ArticleCategoryPage>(200)]
     [ProducesResponseType<ApiErrorResponse>(400)]
     public IActionResult Categories(string? section = null, string? categoryRole = null,
-        bool? isField = null, bool? hasArticles = null, bool? showOnHome = null, int? limit = null, string? search = null)
+        bool? isField = null, bool? hasArticles = null, bool? showOnHome = null, string? search = null,
+        int page = 1, int pageSize = ArticleCategoryPage.DefaultPageSize, string? sort = null,
+        [FromQuery] Guid[]? excludeIds = null)
     {
-        var query = new ArticleCategoryQuery(section, categoryRole, isField, hasArticles, showOnHome, limit, search);
-        var fields = query.Validate();
+        var query = new ArticleCategoryQuery(section, categoryRole, isField, hasArticles, showOnHome, search,
+            page, pageSize, sort, excludeIds);
+        var fields = new Dictionary<string, string>(query.Validate());
+        if (Request.Query.ContainsKey("limit"))
+            fields["limit"] = "Tham số limit đã được thay bằng pageSize; dùng page để chọn trang và đọc danh mục từ items.";
         return fields.Count > 0
             ? BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Tham số danh mục không hợp lệ.", fields)))
             : Ok(articles.Categories(query));

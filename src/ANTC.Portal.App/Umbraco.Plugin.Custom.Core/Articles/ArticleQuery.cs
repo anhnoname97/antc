@@ -1,12 +1,14 @@
 namespace Umbraco.Plugin.Custom.Core.Articles;
 
 public sealed record ArticleCategoryQuery(string? Section = null, string? CategoryRole = null,
-    bool? IsField = null, bool? HasArticles = null, bool? ShowOnHome = null, int? Limit = null, string? Search = null)
+    bool? IsField = null, bool? HasArticles = null, bool? ShowOnHome = null, string? Search = null,
+    int Page = 1, int PageSize = ArticleCategoryPage.DefaultPageSize, string? Sort = null,
+    IReadOnlyList<Guid>? ExcludeIds = null)
 {
-    public const int MaxLimit = 50;
     public string? SectionFilter => string.IsNullOrWhiteSpace(Section) ? null : Section.Trim();
     public string? CategoryRoleFilter => string.IsNullOrWhiteSpace(CategoryRole) ? null : CategoryRole.Trim();
     public string? SearchTerm => string.IsNullOrWhiteSpace(Search) ? null : Search.Trim();
+    public string SortOrder => string.IsNullOrWhiteSpace(Sort) ? "cms-order" : Sort.Trim();
 
     public IReadOnlyDictionary<string, string> Validate()
     {
@@ -15,10 +17,18 @@ public sealed record ArticleCategoryQuery(string? Section = null, string? Catego
             fields["section"] = "Chọn fraud (Thủ đoạn) hoặc policy (Chính sách).";
         if (CategoryRoleFilter is { } role && role is not ("none" or "warning" or "topic" or "series" or "policy"))
             fields["categoryRole"] = "Chọn none, warning, topic, series hoặc policy.";
-        if (Limit is < 1 or > MaxLimit)
-            fields["limit"] = "Số danh mục tối đa phải từ 1 đến 50.";
         if (SearchTerm?.Length > ArticleQuery.MaxSearchLength)
             fields["search"] = "Từ khóa tối đa 200 ký tự.";
+        if (Page < 1)
+            fields["page"] = "Số trang phải từ 1 trở lên.";
+        if (PageSize is < 1 or > ArticleCategoryPage.MaxPageSize)
+            fields["pageSize"] = "Số danh mục mỗi trang phải từ 1 đến 50.";
+        if (SortOrder is not ("cms-order" or "title-asc" or "title-desc" or "article-count-asc" or "article-count-desc"))
+            fields["sort"] = "Chọn cms-order, title-asc, title-desc, article-count-asc hoặc article-count-desc.";
+        if (ExcludeIds?.Count > ArticleQuery.MaxExcludedIds)
+            fields["excludeIds"] = "Chỉ được loại trừ tối đa 50 ID danh mục.";
+        else if (ExcludeIds?.Contains(Guid.Empty) == true)
+            fields["excludeIds"] = "ID danh mục cần loại trừ phải là Guid khác rỗng.";
         return fields;
     }
 

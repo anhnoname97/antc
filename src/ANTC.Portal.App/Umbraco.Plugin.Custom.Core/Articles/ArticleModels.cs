@@ -51,9 +51,16 @@ public sealed record ArticlePage(ArticleCategory? Category, IReadOnlyList<Articl
     public const int MaxPageSize = 50;
 }
 
+public sealed record ArticleCategoryPage(IReadOnlyList<ArticleCategory> Items,
+    int Total, int Page, int PageSize, int TotalPages)
+{
+    public const int DefaultPageSize = 12;
+    public const int MaxPageSize = 50;
+}
+
 public interface IPublishedArticleService
 {
-    IReadOnlyList<ArticleCategory> Categories(ArticleCategoryQuery? query = null);
+    ArticleCategoryPage Categories(ArticleCategoryQuery? query = null);
     ArticleCategory? Category(Guid categoryId);
     ArticleCategory? CategoryByPath(string path);
     ArticlePage? List(ArticleQuery query);

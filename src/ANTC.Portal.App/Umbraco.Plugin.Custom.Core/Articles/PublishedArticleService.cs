@@ -8,12 +8,22 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
 {
     private static readonly StringComparer VietnameseTitles = StringComparer.Create(CultureInfo.GetCultureInfo("vi-VN"), true);
 
-    public IReadOnlyList<ArticleCategory> Categories(ArticleCategoryQuery? query = null)
+    public ArticleCategoryPage Categories(ArticleCategoryQuery? query = null)
     {
         query ??= new();
         if (query.Validate().Count > 0) throw new ArgumentException("Tham số danh mục không hợp lệ.", nameof(query));
-        return source.Read().Categories.Select(x => x.Category).Where(query.Matches)
-            .Take(query.Limit ?? int.MaxValue).ToArray();
+        IEnumerable<ArticleCategory> categories = source.Read().Categories.Select(x => x.Category).Where(query.Matches);
+        if (query.ExcludeIds is { Count: > 0 } ids)
+        {
+            var excluded = ids.ToHashSet();
+            categories = categories.Where(x => !excluded.Contains(x.Id));
+        }
+        ArticleCategory[] filtered = categories.ToArray();
+        int total = filtered.Length;
+        long skip = ((long)query.Page - 1) * query.PageSize;
+        ArticleCategory[] items = skip >= total ? [] : SortCategories(filtered, query.SortOrder)
+            .Skip((int)skip).Take(query.PageSize).ToArray();
+        return new(items, total, query.Page, query.PageSize, (int)Math.Ceiling((double)total / query.PageSize));
     }
 
     public ArticleCategory? Category(Guid categoryId) =>
@@ -106,6 +116,15 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
 
     private static IOrderedEnumerable<ArticleContent> Order(IEnumerable<ArticleContent> articles) =>
         articles.OrderByDescending(x => x.Card.UpdatedDate).ThenBy(x => x.Card.Id);
+
+    private static IEnumerable<ArticleCategory> SortCategories(IEnumerable<ArticleCategory> categories, string sort) => sort switch
+    {
+        "title-asc" => categories.OrderBy(x => x.Title, VietnameseTitles).ThenBy(x => x.Id),
+        "title-desc" => categories.OrderByDescending(x => x.Title, VietnameseTitles).ThenBy(x => x.Id),
+        "article-count-asc" => categories.OrderBy(x => x.ArticleCount).ThenBy(x => x.Id),
+        "article-count-desc" => categories.OrderByDescending(x => x.ArticleCount).ThenBy(x => x.Id),
+        _ => categories
+    };
 
     private static IOrderedEnumerable<ArticleListItem> Sort(IEnumerable<ArticleListItem> articles, string sort) => sort switch
     {
