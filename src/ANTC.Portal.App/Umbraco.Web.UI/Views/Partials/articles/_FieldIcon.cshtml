@@ -1,0 +1,27 @@
+@model string
+<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+@if (Model?.Contains("Cuộc gọi") == true)
+{
+    <rect x="17" y="5" width="30" height="54" rx="7"/><path d="M27 11h10M29 52h6"/><path d="m25 28 5 5 10-11"/><circle cx="32" cy="29" r="13"/>
+}
+else if (Model?.Contains("Mua bán") == true)
+{
+    <path d="M13 22h38l4 34H9zM23 23v-9a9 9 0 0 1 18 0v9"/><path d="m24 39 6 6 11-13"/>
+}
+else if (Model?.Contains("Việc làm") == true)
+{
+    <rect x="7" y="19" width="50" height="35" rx="5"/><path d="M23 19v-8h18v8M7 31l25 10 25-10M29 34h6v10h-6z"/>
+}
+else if (Model?.Contains("Đầu tư") == true)
+{
+    <path d="M9 8v47h48M17 41l12-13 10 7 16-21M43 14h12v12"/><path d="M20 48v-5M33 48v-9M46 48V31"/>
+}
+else if (Model?.Contains("Vay") == true)
+{
+    <rect x="8" y="17" width="48" height="36" rx="6"/><path d="M13 17V9h35v8M56 29H40v13h16"/><circle cx="45" cy="35.5" r="1.5"/>
+}
+else
+{
+    <path d="M15 6h24l12 12v40H15zM39 6v13h12M24 29h18M24 37h18M24 45h11"/>
+}
+</svg>

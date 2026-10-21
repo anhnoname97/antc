@@ -1,0 +1,22 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@{ var c = Model.Content; var items = c.Value<BlockListModel>("items"); var index = 0; var help = c.Value<Link>("helpLink"); }
+<div class="tac" data-fraud-methods>
+    <div class="tac-pin">
+        <div class="wrap tac-head"><div><p class="eyebrow">@c.Value("eyebrow")</p><h2>@c.Value("title")</h2></div><p class="tac-count" aria-hidden="true"><b data-method-number>01</b> / @((items?.Count ?? 0).ToString("00"))</p></div>
+        <div class="track" tabindex="0" role="region" aria-label="Các cách thức lừa đảo">
+            @foreach (var item in items ?? Enumerable.Empty<BlockListItem>())
+            {
+                var method = item.Content;
+                <article class="tc @(method.Value<bool>("isWarning") ? "warn" : null)">
+                    <span class="ico" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/blockgrid/_FraudIcon.cshtml", method.Value<string>("icon"))</span>
+                    <span class="k">CÁCH @( (++index).ToString("00") )</span><h3>@method.Value("title")</h3><p>@method.Value("description")</p>
+                </article>
+            }
+        </div>
+        <div class="wrap"><div class="tac-bar" aria-hidden="true"><i></i></div><p class="tac-note">@c.Value("note")</p>
+            @if (help?.Url?.StartsWith('/') == true && !help.Url.StartsWith("//")) { <a class="fraud-help" href="@help.Url">@help.Name</a> }
+        </div>
+    </div>
+</div>

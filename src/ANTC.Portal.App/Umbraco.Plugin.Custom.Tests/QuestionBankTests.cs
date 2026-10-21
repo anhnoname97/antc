@@ -103,6 +103,42 @@ public class QuestionBankTests
         }
     }
 
+    [Fact]
+    public async Task CurrentAt_UsesFrozenQuestionSelectionOfActiveContest()
+    {
+        string databasePath = Path.Combine(Path.GetTempPath(), $"antc-question-bank-{Guid.NewGuid():N}.db");
+        try
+        {
+            await using ServiceProvider provider = CreateProvider(databasePath);
+            DateTime now = DateTime.UtcNow;
+            await using (AsyncServiceScope scope = provider.CreateAsyncScope())
+            {
+                AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                await db.Database.EnsureCreatedAsync();
+                db.QuizTopics.Add(Topic(1, true));
+                db.QuizQuestions.Add(Question("LIVE", 1, 1));
+                var contest = new ContestCampaign { Name = "Active", StartAt = now.AddHours(-1), EndAt = now.AddHours(1), IsActive = true, BankVersion = 5, Revision = 2, CreatedAt = now, UpdatedAt = now };
+                contest.Topics.Add(new ContestTopic { TopicId = 1, Title = "Frozen topic", Intro = "[]", SortOrder = 0 });
+                contest.Questions.Add(new ContestQuestion { QuestionCode = "LIVE", TopicId = 1, Kind = "kind", QuestionText = "Frozen question", Options = "[[\"A\",\"A\"],[\"B\",\"B\"]]", Answer = "B", Explanations = "{}", SortOrder = 0 });
+                db.ContestCampaigns.Add(contest);
+                await db.SaveChangesAsync();
+            }
+
+            var bank = new QuestionBank(provider.GetRequiredService<IServiceScopeFactory>());
+            QuestionBankSnapshot snapshot = bank.CurrentAt(now);
+
+            Assert.Equal("quiz-c1-v5-r2", snapshot.CacheKey);
+            Assert.Equal("Frozen topic", Assert.Single(snapshot.Topics).Title);
+            Assert.Equal("Frozen question", Assert.Single(snapshot.QuestionsByTopic[1]).Q);
+            Assert.Equal("B", snapshot.Keys["LIVE"].Answer);
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
+    }
+
     private static ServiceProvider CreateProvider(string databasePath)
     {
         var services = new ServiceCollection();

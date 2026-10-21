@@ -39,7 +39,7 @@ body.contest-site { font-family: 'Roboto', Arial, Helvetica, sans-serif; font-si
   .contest-site .contest-nav a { width: 100% }
   .contest-site .contest-nav a + a { border-top: 1px solid #ffffff26; }
   .contest-site .contest-nav a::after { display: none; }
-  .contest-site .contest-menu-toggle { display: block; flex-shrink: 0; }
+  .contest-site .contest-menu-toggle { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; }
 }
 @media (max-width: 700px) {
   .contest-site .contest-announcement-details { display: none; }
@@ -63,5 +63,31 @@ body.contest-site { font-family: 'Roboto', Arial, Helvetica, sans-serif; font-si
   .contest-site .contest-brand b { font-size: 1rem; }
   .contest-site .contest-tools .btn { font-size: .84375rem; padding: 7px 13px; }
   .contest-site .contest-tools .ic { display: none; }
-  .contest-site .contest-font-toggle, .contest-site .contest-brand small { display: none; }
+  .contest-site .contest-brand small { display: none; }
 }
+
+/* Its fixed transparent header overlays the hero; shared header spacing must not apply. */
+body.contest-site #noi-dung { padding-top: 0; }
+
+.contest-site .contest-font-toggle[aria-pressed="true"]{background:#fff;color:#14233B;border-color:#fff}
+.contest-site .contest-header.is-scrolled .contest-font-toggle[aria-pressed="true"]{background:#14233B;color:#fff;border-color:#14233B}
+.contest-site .contest-font-toggle:focus-visible{outline:3px solid #B78A3A;outline-offset:4px}
+@media(max-width:1023px){.contest-site .contest-font-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:6px 8px}}
+
+/* Header dien thoai: menu, thuong hieu va hai nut cung mot hang. */
+@media(max-width:600px){
+ .contest-site .contest-header-inner{display:flex;flex-wrap:nowrap;height:64px;min-height:64px;padding:0;gap:6px}
+ .contest-site .contest-menu-toggle{display:inline-flex;align-items:center;justify-content:center;width:32px;height:44px;padding:6px;flex:none;line-height:1}
+ .contest-site .contest-brand{flex:1 1 auto;gap:5px;min-width:0}
+ .contest-site .contest-brand-mark{width:26px;height:26px;flex:none}
+ .contest-site .contest-brand-mark svg{width:16px;height:16px}
+ .contest-site .contest-brand>span:last-child{min-width:0}
+ .contest-site .contest-brand b{display:block;font-size:.8125rem;line-height:1.3;white-space:nowrap}
+ .contest-site .contest-brand img{max-width:100%;height:auto;max-height:28px;object-fit:contain}
+ .contest-site .contest-tools{flex:none;gap:4px;margin-left:0}
+ .contest-site .contest-font-toggle{min-width:36px;height:36px;min-height:36px;padding:4px;font-size:.6875rem;line-height:1}
+ .contest-site .contest-tools .btn{height:36px;min-height:36px;padding:6px 8px;font-size:.6875rem;line-height:1;gap:0}
+}
+
+.contest-site .contest-menu-toggle svg{display:block;width:20px;height:20px;flex:none}
+.contest-site .contest-menu-toggle:focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:6px}

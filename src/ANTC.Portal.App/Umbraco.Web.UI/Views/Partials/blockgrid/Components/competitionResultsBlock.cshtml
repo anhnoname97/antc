@@ -1,0 +1,36 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Plugin.Custom.Core.Contest
+@inject IContestCatalog Contests
+@inject TimeProvider Clock
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    var schedule = await Contests.GetScheduleAsync(Clock.GetUtcNow().UtcDateTime, Context.RequestAborted);
+    var selected = long.TryParse(Context.Request.Query["resultsContest"], out var requested) && requested > 0
+        ? requested : schedule.Ended.FirstOrDefault()?.Id;
+    var id = $"results-{Model.ContentKey:N}";
+}
+<section class="sec results-section" id="ket-qua" aria-labelledby="@id" data-competition-results data-contest-id="@selected" data-results-source="api">
+    <div class="wrap res">
+        <div class="res-side" data-results-reveal>
+            <p class="eyebrow">@T("eyebrow")</p>
+            <h2 class="h2" id="@id">@T("title")<br><em data-results-month></em></h2>
+            <p class="results-description" data-results-description>Tên người thi được che thông tin nhận dạng. Không công bố số điện thoại.</p>
+            <div class="stat2" data-results-stats hidden>
+                <div><b data-results-ranked></b><span>thí sinh trong bảng xếp hạng</span></div>
+                <div><b data-results-winners></b><span>lượt đoạt giải đã công bố</span></div>
+            </div>
+        </div>
+        <div class="board" data-results-reveal>
+            <div class="board-h"><span>@T("boardTitle")</span></div>
+            <p class="results-message" data-results-status role="status" aria-live="polite">Đang tải kết quả…</p>
+            <table data-results-table hidden aria-label="Danh sách đoạt giải đã công bố">
+                <thead><tr><th scope="col">STT</th><th scope="col">Người thi</th><th scope="col">Điểm</th></tr></thead>
+                <tbody data-results-rows></tbody>
+            </table>
+            <button type="button" class="btn btn-line results-retry" data-results-retry hidden>Thử lại</button>
+            <noscript><p class="results-message">Cần bật JavaScript để xem kết quả cuộc thi.</p></noscript>
+        </div>
+    </div>
+</section>

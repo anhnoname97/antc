@@ -9,6 +9,8 @@ public class AntcPublicPathsTests
     [InlineData("home", "/")]
     [InlineData("ungPhoPage", "/ung-pho/")]
     [InlineData("thiThuPage", "/thu-suc/")]
+    [InlineData("thiPage", "/cuoc-thi/")]
+    [InlineData("cuocThiLamBaiPage", "/cuoc-thi/lam-bai/")]
     [InlineData("searchPage", "/tim-kiem/")]
     [InlineData("chinhSachPage", "/chinh-sach/")]
     public void Page_paths_do_not_expose_management_nodes(string alias, string path)
@@ -64,5 +66,5 @@ public class AntcPublicPathsTests
     public void Missing_article_parent_does_not_produce_a_broken_url() => Assert.Null(AntcPublicPaths.GetPath("article", "bai-viet"));
 
     [Fact]
-    public void Manual_faq_documents_do_not_have_a_public_route() => Assert.Null(AntcPublicPaths.GetPath("qaItem", "cau-hoi"));
+    public void Faq_documents_are_routed_under_hoi_dap() => Assert.Equal("/hoi-dap/cau-hoi/", AntcPublicPaths.GetPath("qaItem", "cau-hoi"));
 }

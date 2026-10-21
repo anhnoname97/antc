@@ -1,0 +1,31 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    var titleId = $"prizes-{Model.ContentKey:N}";
+    var steps = T("claimSteps").Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}
+<section class="sec prize-section" aria-labelledby="@titleId">
+    <div class="wrap prize-grid">
+        <div data-prize-reveal>
+            <div class="sec-head">
+                <div><p class="eyebrow">@T("eyebrow")</p><h2 id="@titleId">@T("title")<br><em>@T("titleAccent")</em></h2></div>
+            </div>
+            <div class="claim">
+                <h3>@T("claimTitle")</h3>
+                <ol>@foreach (var step in steps) { <li>@step</li> }</ol>
+                @if (!string.IsNullOrWhiteSpace(T("warning")))
+                {
+                    <p class="warnx"><span aria-hidden="true">⚠</span><span>@T("warning")</span></p>
+                }
+            </div>
+        </div>
+        <div class="prizes" role="list" aria-label="Các hạng giải thưởng">
+            @foreach (var area in Model.Areas)
+            {
+                @await Html.GetBlockGridItemAreaHtmlAsync(area)
+            }
+        </div>
+    </div>
+</section>

@@ -1,10 +1,18 @@
 using System.Net;
+using System.Text.Json;
 using Umbraco.Plugin.Custom.Core.Data;
 
 namespace Umbraco.Plugin.Custom.Core.Questions;
 
 public static class QuestionValues
 {
+    public const string PortalSource = "portal";
+    public const string BackofficeSource = "quan-tri";
+    public const string AggregateSource = "tong-hop";
+    public static readonly IReadOnlyDictionary<string, string> Sources = new Dictionary<string, string>
+    {
+        [PortalSource] = "Portal", [BackofficeSource] = "Quản trị", [AggregateSource] = "Tổng hợp"
+    };
     public static readonly IReadOnlyDictionary<string, string> Types = new Dictionary<string, string>
     {
         ["cau-hoi"] = "Câu hỏi, kiến nghị", ["gop-y"] = "Góp ý"
@@ -28,22 +36,50 @@ public sealed record QuestionPage(IReadOnlyList<QuestionRow> Items, int Total, i
 public sealed record QuestionRow(long Id, string Type, string Content, bool WantReply, string? Contact,
     string Status, string? AdminNote, string? HandledBy, DateTimeOffset? HandledAt, DateTimeOffset CreatedAt,
     string? Answer = null, string? PublishedAnswer = null, bool IsPublished = false,
-    DateTimeOffset? ApprovedAt = null, string? ApprovedBy = null, long ReviewVersion = 0)
+    DateTimeOffset? ApprovedAt = null, string? ApprovedBy = null, long ReviewVersion = 0,
+    string Source = QuestionValues.PortalSource, string? CreatedBy = null,
+    string? GuidanceLabel = null, string? GuidanceUrl = null, string? PublishedGuidanceLabel = null, string? PublishedGuidanceUrl = null)
 {
+    public long? AggregatedIntoId { get; init; }
+    public IReadOnlyList<long> AggregatedSourceIds { get; init; } = [];
+
     public static QuestionRow FromEntity(QuestionSubmission row) => new(row.Id, row.Type, row.Content,
         row.WantReply, row.Contact, row.Status, row.AdminNote, row.HandledBy,
         row.HandledAt is { } handled ? QuestionValues.AsUtc(handled) : null, QuestionValues.AsUtc(row.CreatedAt),
         row.Answer, row.PublishedAnswer, row.IsPublished,
-        row.ApprovedAt is { } approved ? QuestionValues.AsUtc(approved) : null, row.ApprovedBy, row.ReviewVersion);
+        row.ApprovedAt is { } approved ? QuestionValues.AsUtc(approved) : null, row.ApprovedBy, row.ReviewVersion,
+        row.Source, row.CreatedBy, row.GuidanceLabel, row.GuidanceUrl, row.PublishedGuidanceLabel, row.PublishedGuidanceUrl)
+    {
+        AggregatedIntoId = row.AggregatedIntoId,
+        AggregatedSourceIds = row.AggregatedSourceIds is { Length: > 0 } ids ? JsonSerializer.Deserialize<long[]>(ids) ?? [] : []
+    };
 }
 
-public sealed record QuestionReview(long ReviewVersion, string Status, string? AdminNote, string? Answer);
-public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt);
+public sealed record QuestionDraft(string? Type, string? Content, string? Answer = null, string? AdminNote = null)
+{
+    public IReadOnlyDictionary<string, string> Validate()
+    {
+        var errors = new Dictionary<string, string>();
+        if (Type is null || !QuestionValues.Types.ContainsKey(Type))
+            errors["type"] = "Chọn Câu hỏi, kiến nghị hoặc Góp ý.";
+        if ((Content?.Trim().Length ?? 0) is < 10 or > 2000)
+            errors["content"] = "Nội dung cần từ 10 đến 2000 ký tự.";
+        if (Answer?.Length > 10000) errors["answer"] = "Câu trả lời tối đa 10.000 ký tự.";
+        if (AdminNote?.Length > 1000) errors["adminNote"] = "Ghi chú nội bộ tối đa 1.000 ký tự.";
+        return errors;
+    }
+}
+
+public sealed record QuestionReview(long ReviewVersion, string Status, string? AdminNote, string? Answer,
+    string? GuidanceLabel = null, string? GuidanceUrl = null);
+public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt, string Type,
+    string? GuidanceLabel = null, string? GuidanceUrl = null);
 public sealed record PublishedQuestionQuery(int Page = 1, int PageSize = PublishedQuestionPage.DefaultPageSize,
-    string? Search = null, string Sort = "newest")
+    string? Search = null, string Sort = "newest", string? Type = null)
 {
     public const int MaxSearchLength = 200;
     public string? SearchTerm => string.IsNullOrWhiteSpace(Search) ? null : Search.Trim();
+    public string? TypeFilter => string.IsNullOrWhiteSpace(Type) ? null : Type.Trim();
 
     public IReadOnlyDictionary<string, string> Validate()
     {
@@ -53,6 +89,8 @@ public sealed record PublishedQuestionQuery(int Page = 1, int PageSize = Publish
             errors["pageSize"] = "Số mục mỗi trang phải từ 1 đến 50.";
         if (SearchTerm?.Length > MaxSearchLength) errors["search"] = "Từ khóa tối đa 200 ký tự.";
         if (Sort is not ("newest" or "oldest")) errors["sort"] = "Chọn newest hoặc oldest.";
+        if (TypeFilter is { } type && !QuestionValues.Types.ContainsKey(type))
+            errors["type"] = "Chọn cau-hoi hoặc gop-y.";
         return errors;
     }
 }
@@ -65,6 +103,7 @@ public sealed record PublishedQuestionPage(IReadOnlyList<PublishedQuestion> Item
 
 public interface IQuestionModerationService
 {
+    Task<QuestionRow> CreateAsync(QuestionDraft draft, string actor, CancellationToken ct = default);
     Task<QuestionRow?> GetAsync(long id, CancellationToken ct = default);
     Task<QuestionRow> SaveAsync(long id, QuestionReview review, string actor, CancellationToken ct = default);
     Task<QuestionRow> ApproveAsync(long id, QuestionReview review, string actor, CancellationToken ct = default);
@@ -77,9 +116,16 @@ public interface IPublishedQuestionService
     Task<PublishedQuestion?> GetPublishedAsync(long id, CancellationToken ct = default);
 }
 
-public sealed class QuestionModerationException(string code, string message) : Exception(message)
+public interface IQuestionPublicationObserver
+{
+    Task ChangedAsync(long id, CancellationToken ct = default);
+}
+
+public sealed class QuestionModerationException(string code, string message,
+    IReadOnlyDictionary<string, string>? fields = null) : Exception(message)
 {
     public string Code { get; } = code;
+    public IReadOnlyDictionary<string, string>? Fields { get; } = fields;
 }
 
 public interface IQuestionSubmissionService

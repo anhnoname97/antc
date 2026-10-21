@@ -27,12 +27,11 @@
     var sponsorDisclaimer = site.Value<string>("footerSponsorDisclaimer");
     var showSponsor = site.Value<bool>("sponsorShow") && (sponsorLogo is not null || !string.IsNullOrWhiteSpace(sponsorName));
     var copyright = site.Value<string>("copyright");
-    var previewNote = site.Value<string>("footerPreviewNote");
-    var showPreviewNote = site.Value<bool>("showPreviewBanner") && !string.IsNullOrWhiteSpace(previewNote);
     var emergency = site.Value<BlockListModel>("emergencyNumbers")?
         .FirstOrDefault(item => item.Content.Value<string>("number")?.Trim() == "113" && item.Content.Value<bool>("enableCall"))?.Content;
 }
 <footer class="site-footer" id="site-footer">
+    <span class="sr-only" role="status" aria-live="polite" data-font-status></span>
     <div class="site-footer__wrap site-footer__grid">
         <div class="site-footer__about">
             <a class="site-footer__brand" href="@homeUrl" aria-label="@(siteName + ", trang giới thiệu")">
@@ -107,16 +106,12 @@
             }
         </div>
     }
-    @if (!string.IsNullOrWhiteSpace(copyright) || showPreviewNote)
+    @if (!string.IsNullOrWhiteSpace(copyright))
     {
         <div class="site-footer__wrap site-footer__bottom">
             @if (!string.IsNullOrWhiteSpace(copyright))
             {
                 <p>@copyright</p>
-            }
-            @if (showPreviewNote)
-            {
-                <p>@previewNote</p>
             }
         </div>
     }

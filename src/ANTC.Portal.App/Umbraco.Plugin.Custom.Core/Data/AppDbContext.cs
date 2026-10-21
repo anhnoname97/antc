@@ -13,6 +13,11 @@ namespace Umbraco.Plugin.Custom.Core.Data;
 /// </summary>
 public class AppDbContext : DbContext
 {
+    [DbFunction("antc_casefold", IsBuiltIn = true)]
+    public static string FoldText(string value) => throw new NotSupportedException("SQL only");
+    public DbSet<ContestAccessAudit> ContestAccessAudits => Set<ContestAccessAudit>();
+    public DbSet<ContestPublishedResult> ContestPublishedResults => Set<ContestPublishedResult>();
+    public DbSet<PrivacyOperation> PrivacyOperations => Set<PrivacyOperation>();
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
@@ -22,6 +27,7 @@ public class AppDbContext : DbContext
     public DbSet<Draw> Draws => Set<Draw>();
     public DbSet<DrawWinner> DrawWinners => Set<DrawWinner>();
     public DbSet<QuestionSubmission> QuestionSubmissions => Set<QuestionSubmission>();
+    public DbSet<QuestionRetentionPolicy> QuestionRetentionPolicies => Set<QuestionRetentionPolicy>();
     public DbSet<QuizTopic> QuizTopics => Set<QuizTopic>();
     public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
     public DbSet<QuizImport> QuizImports => Set<QuizImport>();
@@ -31,6 +37,29 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        b.Entity<PrivacyOperation>(e =>
+        {
+            e.ToTable("privacy_operation");
+            e.Property(x => x.Scope).HasMaxLength(16);
+            e.Property(x => x.Action).HasMaxLength(16);
+            e.Property(x => x.RequestHash).HasMaxLength(64);
+            e.Property(x => x.CleanupErrorCode).HasMaxLength(40);
+            e.HasIndex(x => x.OccurredAt);
+        });
+        b.Entity<ContestPublishedResult>(e =>
+        {
+            e.ToTable("contest_published_result");
+            e.HasKey(x => x.ContestId);
+            e.Property(x => x.Revision).IsConcurrencyToken();
+            e.HasOne(x => x.Contest).WithOne().HasForeignKey<ContestPublishedResult>(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<ContestAccessAudit>(e =>
+        {
+            e.ToTable("contest_access_audit");
+            e.Property(x => x.Action).HasMaxLength(40);
+            e.Property(x => x.EntryCode).HasMaxLength(9);
+            e.HasIndex(x => x.OccurredAt);
+        });
         b.Entity<Entry>(e =>
         {
             e.ToTable("entry");
@@ -45,7 +74,10 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.Code).IsUnique();
             e.HasIndex(x => x.TokenHash).IsUnique();
             e.HasIndex(x => x.Phone);
+            e.HasIndex(x => x.CreatedAt);
+            e.HasIndex(x => new { x.ContestId, x.Phone });
             e.HasIndex(x => new { x.Status, x.Score });
+            e.HasOne(x => x.Contest).WithMany(x => x.Entries).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<EntryAnswer>(e =>
@@ -63,6 +95,9 @@ public class AppDbContext : DbContext
             e.ToTable("draw");
             e.Property(x => x.CreatedBy).HasMaxLength(100);
             e.Property(x => x.Note).HasMaxLength(200);
+            e.HasIndex(x => x.RequestId).IsUnique();
+            e.HasIndex(x => x.ContestId);
+            e.HasOne(x => x.Contest).WithMany(x => x.Draws).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<DrawWinner>(e =>
@@ -81,6 +116,8 @@ public class AppDbContext : DbContext
             e.Property(x => x.Type).HasMaxLength(8);
             e.Property(x => x.Content).HasMaxLength(2000);
             e.Property(x => x.Contact).HasMaxLength(200);
+            e.Property(x => x.Source).HasMaxLength(16).HasDefaultValue("portal");
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
             e.Property(x => x.Status).HasMaxLength(10);
             e.Property(x => x.AdminNote).HasMaxLength(1000);
             e.Property(x => x.HandledBy).HasMaxLength(100);
@@ -89,8 +126,25 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.IpHash, x.CreatedAt });
             e.Property(x => x.Answer).HasMaxLength(10000);
             e.Property(x => x.PublishedAnswer).HasMaxLength(10000);
+            e.Property(x => x.GuidanceLabel).HasMaxLength(200);
+            e.Property(x => x.GuidanceUrl).HasMaxLength(2048);
+            e.Property(x => x.PublishedGuidanceLabel).HasMaxLength(200);
+            e.Property(x => x.PublishedGuidanceUrl).HasMaxLength(2048);
             e.Property(x => x.ApprovedBy).HasMaxLength(100);
             e.HasIndex(x => new { x.IsPublished, x.ApprovedAt });
+            e.Property(x => x.AggregatedSourceIds).HasMaxLength(2048);
+            e.Property(x => x.DeletedBy).HasMaxLength(100);
+            e.HasOne<QuestionSubmission>().WithMany().HasForeignKey(x => x.AggregatedIntoId).OnDelete(DeleteBehavior.SetNull);
+            e.HasIndex(x => new { x.DeletedAt, x.CreatedAt });
+            e.HasIndex(x => new { x.IsPublished, x.Status, x.HandledAt });
+            e.HasQueryFilter(x => x.DeletedAt == null);
+        });
+
+        b.Entity<QuestionRetentionPolicy>(e =>
+        {
+            e.ToTable("question_retention_policy");
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.UpdatedBy).HasMaxLength(100);
         });
 
         b.Entity<QuizTopic>(e =>
@@ -98,6 +152,7 @@ public class AppDbContext : DbContext
             e.ToTable("quiz_topic");
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Title).HasMaxLength(200);
+            e.Property(x => x.Revision).IsConcurrencyToken();
         });
 
         b.Entity<QuizQuestion>(e =>
@@ -108,6 +163,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.Kind).HasMaxLength(40);
             e.Property(x => x.Answer).HasMaxLength(1);
             e.Property(x => x.SampleLabel).HasMaxLength(60);
+            e.Property(x => x.Revision).IsConcurrencyToken();
             e.HasOne(x => x.Topic).WithMany(x => x.Questions).HasForeignKey(x => x.TopicId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.TopicId);
         });
@@ -117,6 +173,9 @@ public class AppDbContext : DbContext
             e.ToTable("contest");
             e.Property(x => x.Name).HasMaxLength(200);
             e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.FocusArea).HasMaxLength(50);
+            e.Property(x => x.ReadTimerFactor).HasPrecision(4, 2);
+            e.Property(x => x.Revision).IsConcurrencyToken();
             e.HasIndex(x => new { x.IsActive, x.StartAt, x.EndAt });
         });
 
@@ -124,6 +183,7 @@ public class AppDbContext : DbContext
         {
             e.ToTable("contest_topic");
             e.HasKey(x => new { x.ContestId, x.TopicId });
+            e.Property(x => x.Title).HasMaxLength(200);
             e.HasOne(x => x.Contest).WithMany(x => x.Topics).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Topic).WithMany(x => x.Contests).HasForeignKey(x => x.TopicId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.TopicId);
@@ -134,6 +194,9 @@ public class AppDbContext : DbContext
             e.ToTable("contest_question");
             e.HasKey(x => new { x.ContestId, x.QuestionCode });
             e.Property(x => x.QuestionCode).HasMaxLength(16);
+            e.Property(x => x.Kind).HasMaxLength(40);
+            e.Property(x => x.Answer).HasMaxLength(1);
+            e.Property(x => x.SampleLabel).HasMaxLength(60);
             e.HasOne(x => x.Contest).WithMany(x => x.Questions).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Question).WithMany(x => x.Contests).HasForeignKey(x => x.QuestionCode).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.QuestionCode);

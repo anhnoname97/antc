@@ -72,6 +72,9 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         ValidateTopic(request with { Id = id });
         QuizTopic? topic = await db.QuizTopics.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (topic is null) return null;
+        if (request.ExpectedRevision is not null && request.ExpectedRevision != topic.Revision)
+            throw new QuizAdminConflictException("TOPIC_CHANGED", "Chuyên đề đã được người khác cập nhật. Hãy tải lại dữ liệu.");
+        topic.Revision++;
         Apply(topic, request with { Id = id });
         await SaveAndReloadAsync("update-topic", id.ToString(), actor, ct);
         return (await GetTopicAsync(id, ct))!;
@@ -83,6 +86,8 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         if (topic is null) return false;
         if (await db.QuizQuestions.AnyAsync(x => x.TopicId == id, ct))
             throw new QuizAdminConflictException("TOPIC_HAS_QUESTIONS", "Không thể xóa chuyên đề đang có câu hỏi; hãy chuyển sang trạng thái ngừng dùng.");
+        if (await db.ContestTopics.AnyAsync(x => x.TopicId == id, ct))
+            throw new QuizAdminConflictException("TOPIC_IN_CONTEST", "Không thể xóa chuyên đề đã được dùng trong cuộc thi; hãy chuyển sang trạng thái ngừng dùng.");
         db.QuizTopics.Remove(topic);
         await SaveAndReloadAsync("delete-topic", id.ToString(), actor, ct);
         return true;
@@ -127,7 +132,10 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         string normalizedCode = NormalizeCode(code);
         QuizQuestion? question = await db.QuizQuestions.SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
         if (question is null) return null;
+        if (request.ExpectedRevision is not null && request.ExpectedRevision != question.Revision)
+            throw new QuizAdminConflictException("QUESTION_CHANGED", "Câu hỏi đã được người khác cập nhật. Hãy tải lại dữ liệu.");
         NormalizedQuestion normalized = await ValidateQuestionAsync(request with { Code = normalizedCode }, normalizedCode, ct);
+        question.Revision++;
         Apply(question, request, normalized);
         await SaveAndReloadAsync("update-question", question.Code, actor, ct);
         return (await GetQuestionAsync(question.Code, ct))!;
@@ -138,7 +146,8 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         string normalizedCode = NormalizeCode(code);
         QuizQuestion? question = await db.QuizQuestions.SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
         if (question is null) return null;
-        bool used = await db.EntryAnswers.AnyAsync(x => x.QuestionCode == normalizedCode, ct);
+        bool used = await db.EntryAnswers.AnyAsync(x => x.QuestionCode == normalizedCode, ct) ||
+                    await db.ContestQuestions.AnyAsync(x => x.QuestionCode == normalizedCode, ct);
         if (used)
         {
             question.IsActive = false;
@@ -154,27 +163,30 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         var errors = new Dictionary<string, string>();
         string code = NormalizeCode(request.Code);
         if (code.Length is < 1 or > 16 || !CodePattern().IsMatch(code)) errors["code"] = "Mã gồm 1–16 chữ, số, dấu chấm, gạch ngang hoặc gạch dưới.";
-        if (!await db.QuizTopics.AnyAsync(x => x.Id == request.TopicId, ct)) errors["topicId"] = "Chuyên đề không tồn tại.";
+        if (!await db.QuizTopics.AnyAsync(x => x.Id == request.TopicId && x.IsActive, ct)) errors["topicId"] = "Chuyên đề không tồn tại hoặc đang ngừng dùng.";
         if (string.IsNullOrWhiteSpace(request.Kind) || request.Kind.Trim().Length > 40) errors["kind"] = "Loại câu hỏi bắt buộc, tối đa 40 ký tự.";
         if (string.IsNullOrWhiteSpace(request.Question) || request.Question.Trim().Length is < 5 or > 2000) errors["question"] = "Nội dung câu hỏi phải có 5–2000 ký tự.";
         if (request.Situation?.Trim().Length > 2000) errors["situation"] = "Tình huống tối đa 2000 ký tự.";
         if (request.SafeAction?.Trim().Length > 3000) errors["safeAction"] = "Khuyến nghị tối đa 3000 ký tự.";
         if (request.ReadSeconds is < 0 or > 600) errors["readSeconds"] = "Thời gian đọc phải từ 0 đến 600 giây.";
         if (request.SortOrder < 0) errors["sortOrder"] = "Thứ tự không được âm.";
-        if (request.SampleOrder is <= 0) errors["sampleOrder"] = "Thứ tự Thử sức phải lớn hơn 0.";
+        if (request.SampleOrder is <= 0 or > 8) errors["sampleOrder"] = "Thứ tự Thử sức phải từ 1 đến 8.";
         if (request.SampleOrder is not null && string.IsNullOrWhiteSpace(request.SampleLabel)) errors["sampleLabel"] = "Nhãn Thử sức là bắt buộc khi có thứ tự.";
         if (request.SampleLabel?.Trim().Length > 60) errors["sampleLabel"] = "Nhãn Thử sức tối đa 60 ký tự.";
 
         List<QuizAnswerAdminDto> answers = request.Answers?.ToList() ?? [];
-        if (answers.Count != 4) errors["answers"] = "Câu hỏi phải có đúng 4 đáp án.";
-        var normalizedAnswers = answers.Select(x => x with { Key = x.Key.Trim().ToUpperInvariant(), Text = x.Text.Trim(), Explanation = x.Explanation.Trim() }).ToList();
-        if (normalizedAnswers.Select(x => x.Key).Distinct().Order().SequenceEqual(AnswerKeys) is false)
-            errors["answers.keys"] = "Bốn đáp án phải có khóa A, B, C, D và không được trùng.";
+        var normalizedAnswers = answers.Select(x => x with { Key = (x.Key ?? "").Trim().ToUpperInvariant(), Text = (x.Text ?? "").Trim(), Explanation = (x.Explanation ?? "").Trim() }).ToList();
+        if (normalizedAnswers.Any(x => x.Text.Length == 0 && (x.IsCorrect || x.Explanation.Length > 0)))
+            errors["answers"] = "Lựa chọn trống không được là đáp án đúng hoặc có giải thích.";
+        normalizedAnswers = normalizedAnswers.Where(x => x.Text.Length > 0).ToList();
+        if (normalizedAnswers.Count is < 2 or > 4) errors["answers"] = "Câu hỏi phải có từ 2 đến 4 lựa chọn có nội dung.";
+        if (normalizedAnswers.Any(x => !AnswerKeys.Contains(x.Key)) || normalizedAnswers.Select(x => x.Key).Distinct().Count() != normalizedAnswers.Count)
+            errors["answers.keys"] = "Lựa chọn chỉ có khóa A, B, C, D và không được trùng.";
         if (normalizedAnswers.Any(x => x.Text.Length is < 1 or > 1000)) errors["answers.text"] = "Nội dung mỗi đáp án phải có 1–1000 ký tự.";
         if (normalizedAnswers.Any(x => x.Explanation.Length > 2000)) errors["answers.explanation"] = "Giải thích mỗi đáp án tối đa 2000 ký tự.";
         if (normalizedAnswers.Count(x => x.IsCorrect) != 1) errors["answers.correct"] = "Phải có duy nhất một đáp án đúng.";
         if (request.SampleOrder is not null && await db.QuizQuestions.AnyAsync(
-                x => x.SampleOrder == request.SampleOrder && x.Code != currentCode, ct))
+                x => x.IsActive && x.SampleOrder == request.SampleOrder && x.Code != currentCode, ct))
             errors["sampleOrder"] = "Thứ tự Thử sức đã được dùng bởi câu hỏi khác.";
         if (errors.Count > 0) throw new QuizAdminValidationException(errors);
         return new NormalizedQuestion(code, normalizedAnswers, normalizedAnswers.Single(x => x.IsCorrect).Key);
@@ -221,13 +233,15 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
 
     private async Task SaveAndReloadAsync(string action, string key, string actor, CancellationToken ct)
     {
-        db.QuizImports.Add(new QuizImport { CreatedAt = UtcNow(), CreatedBy = string.IsNullOrWhiteSpace(actor) ? "backoffice" : actor[..Math.Min(actor.Length, 100)], FileName = $"backoffice:{action}:{key}", DuringContest = false });
+        DateTime now = UtcNow();
+        bool duringContest = await db.ContestCampaigns.AnyAsync(x => x.IsActive && x.StartAt <= now && x.EndAt >= now, ct);
+        db.QuizImports.Add(new QuizImport { CreatedAt = now, CreatedBy = string.IsNullOrWhiteSpace(actor) ? "backoffice" : actor[..Math.Min(actor.Length, 100)], FileName = $"backoffice:{action}:{key}", DuringContest = duringContest });
         await db.SaveChangesAsync(ct);
         bank.Reload();
     }
 
     private static QuizTopicAdminDto MapTopic(QuizTopic x, int total, int active) => new(
-        x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt);
+        x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt, x.Revision);
 
     private static QuizQuestionAdminDto MapQuestion(QuizQuestion x)
     {
@@ -236,7 +250,7 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         return new(x.Code, x.TopicId, x.Topic?.Title ?? "", x.Kind, x.Situation ?? "", x.Question,
             options.Select(o => new QuizAnswerAdminDto(o.ElementAtOrDefault(0) ?? "", o.ElementAtOrDefault(1) ?? "",
                 explanations.GetValueOrDefault(o.ElementAtOrDefault(0) ?? "") ?? "", o.ElementAtOrDefault(0) == x.Answer)).ToList(),
-            x.Answer, x.SafeAction ?? "", x.ReadSeconds, x.SampleOrder, x.SampleLabel, x.SortOrder, x.IsActive, x.UpdatedAt);
+            x.Answer, x.SafeAction ?? "", x.ReadSeconds, x.SampleOrder, x.SampleLabel, x.SortOrder, x.IsActive, x.UpdatedAt, x.Revision);
     }
 
     private static IReadOnlyList<string> ParseStringArray(string json) => JsonSerializer.Deserialize<List<string>>(json, JsonOptions) ?? [];

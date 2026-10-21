@@ -16,6 +16,10 @@ public sealed class QuestionManagementController(IQuestionSubmissionService ques
     IQuestionModerationService moderation, IBackOfficeSecurityAccessor security, TimeProvider clock)
     : ManagementApiControllerBase
 {
+    [HttpPost]
+    public Task<IActionResult> Create([FromBody] QuestionDraft draft, CancellationToken ct)
+        => Execute(() => moderation.CreateAsync(draft, Actor(), ct), created: true);
+
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] QuestionFilter filter, int page = 1, CancellationToken ct = default)
     {
@@ -53,13 +57,17 @@ public sealed class QuestionManagementController(IQuestionSubmissionService ques
         return actor.Length > 100 ? actor[..100] : actor;
     }
 
-    private async Task<IActionResult> Execute(Func<Task<QuestionRow>> operation)
+    private async Task<IActionResult> Execute(Func<Task<QuestionRow>> operation, bool created = false)
     {
-        try { return Ok(await operation()); }
+        try
+        {
+            QuestionRow row = await operation();
+            return created ? Created($"/umbraco/management/api/v1/antc/questions/{row.Id}", row) : Ok(row);
+        }
         catch (QuestionModerationException error)
         {
             int status = error.Code switch { "NOT_FOUND" => 404, "CONFLICT" => 409, _ => 400 };
-            return StatusCode(status, new { error = new { code = error.Code, message = error.Message } });
+            return StatusCode(status, new { error = new { code = error.Code, message = error.Message, fields = error.Fields } });
         }
     }
 

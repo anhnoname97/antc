@@ -9,11 +9,13 @@ public static class AntcPublicPaths
     {
         ["home"] = "/", ["ungPhoPage"] = "/ung-pho/", ["thuDoanPage"] = "/thu-doan/",
         ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi/",
+        ["thiThangPage"] = "/cuoc-thi-thang/", ["cuocThiLamBaiPage"] = "/cuoc-thi/lam-bai/",
         ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/"
     };
 
     public static bool IsManagement(string alias) =>
-        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement";
+        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement"
+            or "fraudContent" or "policyContent";
 
     public static string? FixedAlias(string path) => FixedPaths
         .FirstOrDefault(x => string.Equals(x.Value.Trim('/'), path.Trim('/'), StringComparison.OrdinalIgnoreCase)).Key;

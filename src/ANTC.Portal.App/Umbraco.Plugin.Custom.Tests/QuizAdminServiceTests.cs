@@ -8,6 +8,16 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class QuizAdminServiceTests
 {
     [Fact]
+    public async Task TrueFalseQuestion_CanBeCreatedAndEdited_WithoutInventingBlankOptions()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        var request = ValidQuestion() with { Answers = ValidQuestion().Answers!.Take(2).ToList(), Kind = "Đúng – Sai" };
+        var created = await test.Service.CreateQuestionAsync(request, "admin", default);
+        Assert.Equal(2, created.Answers.Count);
+        var edited = await test.Service.UpdateQuestionAsync(created.Code, request with { Question = "Đã sửa câu hỏi Đúng – Sai?" }, "admin", default);
+        Assert.Equal(2, edited!.Answers.Count); Assert.Equal("B", edited.CorrectAnswer);
+    }
+    [Fact]
     public async Task CreateQuestion_DerivesAnswerFromExactlyOneCorrectOption()
     {
         await using TestDatabase test = await TestDatabase.CreateAsync();
@@ -24,10 +34,10 @@ public class QuizAdminServiceTests
     }
 
     [Fact]
-    public async Task CreateQuestion_RejectsAnythingOtherThanFourAnswers()
+    public async Task CreateQuestion_RejectsFewerThanTwoAnswers()
     {
         await using TestDatabase test = await TestDatabase.CreateAsync();
-        SaveQuizQuestionRequest request = ValidQuestion() with { Answers = ValidQuestion().Answers!.Take(3).ToList() };
+        SaveQuizQuestionRequest request = ValidQuestion() with { Answers = ValidQuestion().Answers!.Take(1).ToList() };
         QuizAdminValidationException error = await Assert.ThrowsAsync<QuizAdminValidationException>(
             () => test.Service.CreateQuestionAsync(request, "admin", default));
         Assert.Contains("answers", error.Fields);
@@ -54,6 +64,23 @@ public class QuizAdminServiceTests
         await test.Db.SaveChangesAsync();
 
         DeleteQuizQuestionResult result = (await test.Service.DeleteQuestionAsync("Q-001", "admin", default))!;
+        Assert.True(result.Deactivated);
+        Assert.False((await test.Db.QuizQuestions.SingleAsync()).IsActive);
+    }
+
+    [Fact]
+    public async Task DeleteQuestion_DeactivatesWhenCampaignReferencesIt()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        await test.Service.CreateQuestionAsync(ValidQuestion(), "admin", default);
+        var campaign = new ContestCampaign { Name = "Test", StartAt = DateTime.UtcNow.AddDays(1), EndAt = DateTime.UtcNow.AddDays(2), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        campaign.Topics.Add(new ContestTopic { TopicId = 1, Title = "Chuyên đề 1", Intro = "[]" });
+        campaign.Questions.Add(new ContestQuestion { QuestionCode = "Q-001", TopicId = 1, Kind = "Trắc nghiệm", QuestionText = "Snapshot", Options = "[]", Answer = "B", Explanations = "{}" });
+        test.Db.ContestCampaigns.Add(campaign);
+        await test.Db.SaveChangesAsync();
+
+        DeleteQuizQuestionResult result = (await test.Service.DeleteQuestionAsync("Q-001", "admin", default))!;
+
         Assert.True(result.Deactivated);
         Assert.False((await test.Db.QuizQuestions.SingleAsync()).IsActive);
     }
