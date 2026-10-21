@@ -64,6 +64,22 @@ public sealed class ContestPrivacyTests
         Assert.False(await f.Db.Entries.AnyAsync(e=>e.Phone!=null));
     }
 
+    [Theory] [InlineData(10)] [InlineData(50)] [InlineData(100)]
+    public async Task PrivacyPageSize_DoesNotLimitTheErasureScope(int size)
+    {
+        await using var f = await Fixture.Create();
+        for(int i=0;i<51;i++) f.Person("0912345678");
+        await f.Save();
+        var preview=await f.Service.PreviewAsync(new("phone","0912345678",1,size),Actor,default);
+        Assert.Equal(Math.Min(size,51),preview.Items.Count); Assert.Equal(size,preview.PageSize);
+        Assert.Equal((int)Math.Ceiling(51d/size),preview.Pages);
+        var result=await f.Service.ErasePersonAsync(new(Guid.NewGuid(),preview.PreviewToken,"anonymize",ContestPrivacyService.AnonymizePhrase),Actor,default);
+        Assert.Equal(51,result.Counts.Entries);
+        Assert.False(await f.Db.Entries.AnyAsync(e=>e.Phone!=null));
+        var history=await f.Service.HistoryAsync(1,default,size);
+        Assert.Equal(size,history.PageSize); Assert.Single(history.Items);
+    }
+
     [Fact]
     public async Task MalformedSnapshotRollsBackErasureAndDoesNotCreateOperation()
     {
@@ -102,7 +118,7 @@ public sealed class ContestPrivacyTests
         var a = f.Person("0912345678"); var b = f.Person("0912345678"); var other = f.Person("0987654321");
         await f.Save(); string token = a.TokenHash;
         var preview = await f.Service.PreviewAsync(new("code", a.Code), Actor, default);
-        Assert.Equal(2, preview.Total); Assert.All(preview.Items, e => Assert.Equal("091****678", e.Phone));
+        Assert.Equal(2, preview.Total); Assert.All(preview.Items, e => Assert.Equal("0912345678", e.Phone));
         var request = new PrivacyEraseRequest(Guid.NewGuid(), preview.PreviewToken, "anonymize", ContestPrivacyService.AnonymizePhrase);
         var result = await f.Service.ErasePersonAsync(request, Actor, default);
         Assert.Equal(2, result.Counts.Entries); Assert.Equal(0, result.Counts.Answers); Assert.True(result.VacuumCompleted);

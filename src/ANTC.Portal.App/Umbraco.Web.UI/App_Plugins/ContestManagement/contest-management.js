@@ -14,10 +14,10 @@ const keys = ["A", "B", "C", "D"];
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
 const formatDate = (v) => v ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(v)) : "—";
 const lines = (v) => String(v || "").split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-const pager = (r) => `<div class="pager"><button data-prev ${!r || r.page <= 1 ? "disabled" : ""}>← Trước</button><span>Trang ${r?.page || 1}/${Math.max(1, r?.totalPages || 1)}</span><button data-next ${!r || r.page >= r.totalPages ? "disabled" : ""}>Sau →</button></div>`;
+const pager = (r) => `<div class="pager"><label class="page-size">Số dòng<select data-page-size aria-label="Số dòng mỗi trang">${[10, 50, 100].map(n => `<option value="${n}" ${(r?.pageSize || 50) === n ? "selected" : ""}>${n}</option>`).join("")}</select></label><button data-prev ${!r || r.page <= 1 ? "disabled" : ""}>← Trước</button><span>Trang ${r?.page || 1}/${Math.max(1, r?.totalPages || 1)}</span><button data-next ${!r || r.page >= r.totalPages ? "disabled" : ""}>Sau →</button></div>`;
 
 class AdminPage extends UmbElementMixin(HTMLElement) {
-  constructor(title) { super(); this.title = title; this.page = 1; this.pageSize = 20; this.loading = false; this.message = ""; this.error = ""; this.attachShadow({ mode: "open" }); }
+  constructor(title) { super(); this.title = title; this.page = 1; this.pageSize = 50; this.loading = false; this.message = ""; this.error = ""; this.attachShadow({ mode: "open" }); }
   async connectedCallback() {
     super.connectedCallback?.();
     this.loading = true;
@@ -64,6 +64,8 @@ class AdminPage extends UmbElementMixin(HTMLElement) {
     return `<style>${styles}</style><umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>${esc(this.title)}</h1><p class="page-description">${esc(descriptions[this.title] || "")}</p></div></header>${this.error ? `<div class="notice error" role="alert">${esc(this.error)}</div>` : ""}${this.message ? `<div class="notice success" role="status">${esc(this.message)}</div>` : ""}${content}</div></umb-body-layout>`;
   }
   bindPager() {
+    this.shadowRoot.querySelectorAll('[data-page-size],[data-prev],[data-next]').forEach(element => { element.disabled ||= this.loading; });
+    this.shadowRoot.querySelector("[data-page-size]")?.addEventListener("change", event => { this.pageSize = Number(event.target.value); this.page = 1; this.load(); });
     this.shadowRoot.querySelector("[data-prev]")?.addEventListener("click", () => { if (this.page > 1) { this.page--; this.load(); } });
     this.shadowRoot.querySelector("[data-next]")?.addEventListener("click", () => { if (this.page < (this.result?.totalPages || 1)) { this.page++; this.load(); } });
   }

@@ -31,7 +31,11 @@ public sealed class ContestDrawsController(IContestAdminService service, Contest
         await service.GetDrawAsync(id, ct) is { } draw ? Ok(draw) : NotFound(Missing()));
     [HttpPost("preview")]
     public Task<IActionResult> Preview([FromBody] PreviewDrawRequest request, CancellationToken ct) =>
-        Execute(async () => Ok(await service.PreviewDrawAsync(request, ct)));
+        Execute(async () => {
+            var result = await service.PreviewDrawAsync(request, ct);
+            await audit.RecordAsync(CurrentUserKey(security), "view.draw.candidates", request, null, ct);
+            return Ok(result);
+        });
     [HttpPost]
     public Task<IActionResult> Draw([FromBody] SaveDrawRequest request, CancellationToken ct) => Execute(async () =>
     {

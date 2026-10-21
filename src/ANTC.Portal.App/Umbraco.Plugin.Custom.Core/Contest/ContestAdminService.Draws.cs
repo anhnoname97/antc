@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Umbraco.Plugin.Custom.Core.Data;
+using Umbraco.Plugin.Custom.Core.Quiz;
 
 namespace Umbraco.Plugin.Custom.Core.Contest;
 
@@ -35,8 +36,15 @@ public sealed partial class ContestAdminService
         var candidates = await DrawCandidatesAsync(request.ContestId, request.ExcludePrevious, ct);
         int suggestion = candidates.Count == 0 ? 0 : candidates.Max(e => e.Score);
         int minimum = request.MinScore ?? suggestion;
-        return new(suggestion, minimum, candidates.Count(e => e.Score >= minimum), candidates.Count,
-            candidates.GroupBy(e => e.Score).OrderByDescending(g => g.Key).Select(g => new DrawScoreCount(g.Key, g.Count())).ToList());
+        var eligible = candidates.Where(e => e.Score >= minimum).OrderByDescending(e => e.Score)
+            .ThenBy(e => e.SubmittedAt ?? DateTime.MaxValue).ThenBy(e => e.EntryId).ToList();
+        (int page, int size) = NormalizePaging(request.Page, request.PageSize);
+        page = Math.Min(page, Math.Max(1, (int)Math.Ceiling(eligible.Count / (double)size)));
+        var rows = eligible.Skip((page - 1) * size).Take(size)
+            .Select(e => new DrawCandidateAdminDto(e.Code, e.FullName, e.Phone, e.Score, e.SubmittedAt)).ToList();
+        return new(suggestion, minimum, eligible.Count, candidates.Count,
+            candidates.GroupBy(e => e.Score).OrderByDescending(g => g.Key).Select(g => new DrawScoreCount(g.Key, g.Count())).ToList(),
+            new PagedResult<DrawCandidateAdminDto>(rows, page, size, eligible.Count, (int)Math.Ceiling(eligible.Count / (double)size)));
     }
 
     public async Task<DrawAdminDto> CreateDrawAsync(SaveDrawRequest request, string actor, CancellationToken ct)

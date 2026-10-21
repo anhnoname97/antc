@@ -1,3 +1,5 @@
+using Umbraco.Plugin.Custom.Core.Quiz;
+
 namespace Umbraco.Plugin.Custom.Core.Contest;
 
 public sealed record ContestQuestionTreeItemDto(
@@ -97,9 +99,11 @@ public sealed record SaveDrawRequest(
     long? ContestId = null,
     Guid? RequestId = null);
 
-public sealed record PreviewDrawRequest(long ContestId, int? MinScore = null, bool ExcludePrevious = true);
+public sealed record PreviewDrawRequest(long ContestId, int? MinScore = null, bool ExcludePrevious = true, int Page = 1, int PageSize = 20);
 public sealed record DrawScoreCount(int Score, int Count);
-public sealed record DrawPreviewDto(int SuggestedMinScore, int MinScore, int EligibleCount, int TotalCandidates, IReadOnlyList<DrawScoreCount> Scores);
+public sealed record DrawPreviewDto(int SuggestedMinScore, int MinScore, int EligibleCount, int TotalCandidates, IReadOnlyList<DrawScoreCount> Scores,
+    PagedResult<DrawCandidateAdminDto>? Candidates = null);
+public sealed record DrawCandidateAdminDto(string Code, string FullName, string Phone, int Score, DateTime? SubmittedAt);
 public sealed record DrawCandidateSnapshot(long EntryId, string Code, string FullName, string Phone, int Score, DateTime? SubmittedAt);
 
 public sealed class ContestAdminValidationException(IReadOnlyDictionary<string, string> fields)

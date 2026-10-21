@@ -3,6 +3,7 @@ import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { contestStyles } from './contest-theme.js';
+import { pageSizeSelect } from './contest-page-size.js';
 
 const API = '/umbraco/management/api/v1/antc/contest-privacy';
 const BULK = 'XÓA DỮ LIỆU CÁ NHÂN', ANON = 'XÓA THÔNG TIN', DELETE = 'XÓA VĨNH VIỄN';
@@ -16,7 +17,7 @@ export class ContestPrivacyView extends UmbLitElement {
     static styles = contestStyles;
     constructor() {
         super(); this._busy = true; this._error = ''; this._preview = null; this._history = null; this._mode = 'anonymize';
-        this._confirmation = ''; this._bulkConfirmation = ''; this._result = null; this._page = 1;
+        this._confirmation = ''; this._bulkConfirmation = ''; this._result = null; this._page = 1; this._historySize ??= 50; this._lookupSize ??= 50;
         this._personRequest = crypto.randomUUID(); this._bulkRequest = crypto.randomUUID();
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._load(); } });
     }
@@ -35,7 +36,7 @@ export class ContestPrivacyView extends UmbLitElement {
     }
     async _load() {
         this._busy = true;
-        try { this._history = await this._request('/operations?page=' + this._page); }
+        try { this._history = await this._request(`/operations?page=${this._page}&pageSize=${this._historySize}`); }
         catch (error) { this._error = error.message; } finally { this._busy = false; }
     }
     async _search(event, page = 1) {
@@ -44,7 +45,7 @@ export class ContestPrivacyView extends UmbLitElement {
         const data = new FormData(form);
         this._busy = true; this._error = ''; this._preview = null; this._confirmation = '';
         try {
-            this._preview = await this._request('/preview', { kind: data.get('kind'), value: data.get('value'), page });
+            this._preview = await this._request('/preview', { kind: data.get('kind'), value: data.get('value'), page, pageSize: this._lookupSize });
             this._personRequest = crypto.randomUUID();
         } catch (error) { this._error = error.message; } finally { this._busy = false; }
     }
@@ -67,7 +68,7 @@ export class ContestPrivacyView extends UmbLitElement {
             this._preview = null; this._confirmation = ''; this._bulkConfirmation = '';
             this._personRequest = crypto.randomUUID(); this._bulkRequest = crypto.randomUUID();
             this.renderRoot.querySelector('#privacy-search').reset();
-            this._page = 1; this._history = await this._request('/operations?page=1');
+            this._page = 1; this._historySize ??= 50; this._lookupSize ??= 50; this._history = await this._request(`/operations?page=1&pageSize=${this._historySize}`);
         } catch (error) { this._error = error.message; } finally { this._busy = false; }
     }
     async _vacuum(id) {
@@ -76,7 +77,7 @@ export class ContestPrivacyView extends UmbLitElement {
             try { await umbOpenModal(this, UMB_CONFIRM_MODAL, { data: { headline: 'Chạy lại VACUUM và làm sạch WAL?', content: 'Dữ liệu đã được xóa. Thao tác này chỉ hoàn tất làm sạch file CSDL, không thực hiện thêm lần xóa dữ liệu mới.', confirmLabel: 'Chạy VACUUM', cancelLabel: 'Hủy' } }); }
             catch { return; }
             this._result = await this._request(`/operations/${id}/vacuum`, { requestId: crypto.randomUUID(), confirmation: BULK });
-            this._history = await this._request('/operations?page=' + this._page);
+            this._history = await this._request(`/operations?page=${this._page}&pageSize=${this._historySize}`);
         } catch (error) { this._error = error.message; } finally { this._busy = false; }
     }
     _previewView() {
@@ -84,7 +85,7 @@ export class ContestPrivacyView extends UmbLitElement {
         const phrase = this._mode === 'delete' ? DELETE : ANON;
         return html`<div class="privacy-preview"><h3>${p.total} lượt liên quan trên tất cả cuộc thi</h3>
             <div class="scroll"><table><thead><tr><th>Mã dự thi</th><th>Họ tên</th><th>Điện thoại</th><th>Đơn vị</th><th>Cuộc thi</th><th>Trạng thái</th><th>Đã làm</th><th>Điểm</th></tr></thead><tbody>${p.items.map(e => html`<tr><td>${e.code}</td><td>${e.fullName || 'Ẩn danh'}</td><td>${e.phone || '—'}</td><td>${e.org || '—'}</td><td>${e.contestId ?? 'Dữ liệu cũ'}</td><td>${e.status === 'submitted' ? 'Đã nộp' : 'Đang thi'}</td><td>${e.answered}</td><td>${e.score ?? '—'}</td></tr>`)}</tbody></table></div>
-            <nav class="pager" aria-label="Phân trang lượt liên quan"><button ?disabled=${this._busy || p.page <= 1} @click=${() => this._search(null, p.page - 1)}>← Trước</button><span>Trang ${p.page}/${p.pages} · 50 dòng/trang</span><button ?disabled=${this._busy || p.page >= p.pages} @click=${() => this._search(null, p.page + 1)}>Sau →</button></nav>
+            <nav class="pager" aria-label="Phân trang lượt liên quan">${pageSizeSelect(this._lookupSize, size => { this._lookupSize = size; this._search(null, 1); }, this._busy, 'Số dòng lượt liên quan')}<button ?disabled=${this._busy || p.page <= 1} @click=${() => this._search(null, p.page - 1)}>← Trước</button><span>Trang ${p.page}/${p.pages} · ${p.pageSize || this._lookupSize} dòng/trang</span><button ?disabled=${this._busy || p.page >= p.pages} @click=${() => this._search(null, p.page + 1)}>Sau →</button></nav>
             ${p.total ? html`<fieldset ?disabled=${this._busy} class="privacy-options"><legend>Cách xử lý</legend>
                 <label class="check"><input type="radio" name="eraseMode" value="anonymize" .checked=${this._mode === 'anonymize'} @change=${() => { this._mode = 'anonymize'; this._confirmation = ''; this._personRequest = crypto.randomUUID(); }}>Xóa thông tin cá nhân, giữ bài làm ẩn danh và thống kê</label>
                 <label class="check"><input type="radio" name="eraseMode" value="delete" .checked=${this._mode === 'delete'} @change=${() => { this._mode = 'delete'; this._confirmation = ''; this._personRequest = crypto.randomUUID(); }}>Xóa hẳn lượt và toàn bộ đáp án (thống kê sẽ giảm tương ứng)</label>
@@ -104,7 +105,7 @@ export class ContestPrivacyView extends UmbLitElement {
                 <button class="danger" ?disabled=${this._busy || this._bulkConfirmation.trim().normalize('NFC') !== BULK} @click=${() => this._erase(true)}>Xóa dữ liệu cá nhân hàng loạt</button></section>
             ${this._result ? html`<p role="status" class=${this._result.vacuumCompleted ? 'success-notice' : 'notice error'}>Đã xử lý ${this._result.counts.entries} lượt; xóa ${this._result.counts.answers} đáp án, ${this._result.counts.contacts} liên hệ câu hỏi. ${this._result.vacuumCompleted ? 'Đã hoàn tất VACUUM và checkpoint WAL.' : 'Đã xóa dữ liệu nhưng chưa hoàn tất làm sạch file. Dùng nút chạy lại VACUUM trong nhật ký.'}</p>` : nothing}
             <section><h2>Nhật ký xóa dữ liệu</h2><p class="muted">Không ghi số điện thoại, mã dự thi hoặc nội dung đã xóa vào nhật ký này.</p><div class="table-wrap"><table><thead><tr><th>Thời điểm (VN)</th><th>Người thực hiện</th><th>Phạm vi</th><th>Cách xóa</th><th>Lượt</th><th>Đáp án xóa</th><th>Liên hệ xóa</th><th>Làm sạch file</th></tr></thead><tbody>${(h?.items || []).map(o => html`<tr><td>${date(o.occurredAt)}</td><td title=${o.actorUserKey}>${o.actorName || o.actorUserKey}</td><td>${o.scope === 'all' ? 'Hàng loạt' : 'Theo yêu cầu'}</td><td>${o.action === 'delete' ? 'Xóa hẳn' : 'Ẩn danh'}</td><td>${o.counts.entries}</td><td>${o.counts.answers}</td><td>${o.counts.contacts}</td><td>${o.vacuumCompleted ? html`<span class="badge on">Hoàn tất</span>` : html`<button ?disabled=${this._busy} @click=${() => this._vacuum(o.id)}>Chạy lại VACUUM</button>`}</td></tr>`)}</tbody></table></div>
-                <nav class="pager" aria-label="Phân trang nhật ký xóa"><button ?disabled=${this._busy || !h || h.page <= 1} @click=${() => { this._page--; this._load(); }}>← Trước</button><span>Trang ${h?.page || 1}/${h?.pages || 1} · ${h?.total || 0} thao tác</span><button ?disabled=${this._busy || !h || h.page >= h.pages} @click=${() => { this._page++; this._load(); }}>Sau →</button></nav></section>
+                <nav class="pager" aria-label="Phân trang nhật ký xóa">${pageSizeSelect(this._historySize, size => { this._historySize = size; this._page = 1; this._load(); }, this._busy, 'Số dòng nhật ký xóa')}<button ?disabled=${this._busy || !h || h.page <= 1} @click=${() => { this._page--; this._load(); }}>← Trước</button><span>Trang ${h?.page || 1}/${h?.pages || 1} · ${h?.total || 0} thao tác</span><button ?disabled=${this._busy || !h || h.page >= h.pages} @click=${() => { this._page++; this._load(); }}>Sau →</button></nav></section>
         </div></umb-body-layout>`;
     }
 }

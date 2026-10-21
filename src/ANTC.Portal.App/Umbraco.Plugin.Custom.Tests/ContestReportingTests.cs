@@ -11,6 +11,22 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public sealed class ContestReportingTests
 {
+    [Theory] [InlineData(10)] [InlineData(50)] [InlineData(100)]
+    public async Task EntryPageSize_ChangesSliceButNotFilterOrExport(int size)
+    {
+        await using var f = await Fixture.CreateAsync();
+        for(int i=4;i<=123;i++) f.Db.Entries.Add(new Entry { ContestId=f.ContestId, Code=$"AD-{i:000000}", TokenHash=$"page-hash{i}", CreatedAt=Fixture.Now });
+        await f.Db.SaveChangesAsync();
+        var filter=new ContestReportFilter { ContestId=f.ContestId, PageSize=size };
+        var first=await f.Reports.EntriesAsync(filter,default);
+        Assert.Equal(size,first.Items.Count); Assert.Equal(123,first.Total); Assert.Equal(size,first.PageSize);
+        filter.Page=2;
+        var second=await f.Reports.EntriesAsync(filter,default);
+        Assert.Equal(Math.Min(size,123-size),second.Items.Count);
+        Assert.Empty(first.Items.Select(e=>e.Id).Intersect(second.Items.Select(e=>e.Id)));
+        int exported=0; await foreach(var entry in f.Reports.ExportEntries(filter)) exported++;
+        Assert.Equal(123,exported);
+    }
     internal sealed class Fixture : IAsyncDisposable
     {
         private readonly SqliteConnection connection = new("Data Source=:memory:");

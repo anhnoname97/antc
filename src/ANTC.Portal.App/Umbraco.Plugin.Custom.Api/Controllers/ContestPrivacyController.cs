@@ -27,9 +27,9 @@ public sealed class ContestPrivacyController(ContestPrivacyService privacy, IBac
     [HttpPost("bulk")]
     public Task<IActionResult> Bulk([FromBody] PrivacyBulkRequest request, CancellationToken ct) => Execute(async actor => await privacy.EraseAllAsync(request, actor, ct));
     [HttpGet("operations")]
-    public Task<IActionResult> Operations([FromServices] IUserService users, int page = 1, CancellationToken ct = default) => Execute(async _ =>
+    public Task<IActionResult> Operations([FromServices] IUserService users, int page = 1, CancellationToken ct = default, int pageSize = 50) => Execute(async _ =>
     {
-        var history = await privacy.HistoryAsync(page, ct);
+        var history = await privacy.HistoryAsync(page, ct, pageSize);
         var actors = (await users.GetAsync(history.Items.Select(o => o.ActorUserKey).Distinct())).ToDictionary(u => u.Key, u => u.Name);
         return history with { Items = history.Items.Select(o => o with { ActorName = actors.GetValueOrDefault(o.ActorUserKey) }).ToList() };
     });

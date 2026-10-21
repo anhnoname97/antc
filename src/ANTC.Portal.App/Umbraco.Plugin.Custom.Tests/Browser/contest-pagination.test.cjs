@@ -27,10 +27,11 @@ test('out-of-range pages clamp after filtering instead of showing a blank table'
 test('supported page sizes and per-list defaults work without changing source totals', async () => {
     const { paginate } = await modulePromise;
     const rows = Array.from({ length: 200 }, (_, i) => i);
-    for (const size of [10, 20, 50, 100]) {
+    for (const size of [10, 50, 100]) {
         const p = paginate(rows, { page: 2, size });
         assert.equal(p.items.length, size); assert.equal(p.items[0], size); assert.equal(p.total, 200);
     }
     assert.equal(paginate(rows, {}, 10).size, 10);
     assert.equal(paginate(rows, { size: 0 }).size, 50);
+    assert.equal(paginate(rows, { size: 20 }).size, 50);
 });

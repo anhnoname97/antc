@@ -10,6 +10,18 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public sealed class QuizWorkbookTests
 {
+    [Theory] [InlineData(10)] [InlineData(50)] [InlineData(100)]
+    public async Task ImportHistory_RespectsPageSize(int size)
+    {
+        await using var test = await Fixture.Create();
+        for(int i=0;i<125;i++) test.Db.QuizImports.Add(new QuizImport { FileName=$"history-{i}.xlsx", CreatedBy="test", CreatedAt=DateTime.UtcNow });
+        await test.Db.SaveChangesAsync();
+        var first=await test.Service.HistoryAsync(1,default,size);
+        var second=await test.Service.HistoryAsync(2,default,size);
+        Assert.Equal(size,first.Items.Count); Assert.Equal(size,first.PageSize); Assert.Equal(125,first.TotalItems);
+        Assert.Equal(Math.Min(size,125-size),second.Items.Count);
+        Assert.Empty(first.Items.Select(x=>x.Id).Intersect(second.Items.Select(x=>x.Id)));
+    }
     [Fact] public async Task ExportRoundtrip_IsZeroChanges_AndPreviewDoesNotWrite()
     {
         await using var test = await Fixture.Create();

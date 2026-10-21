@@ -71,8 +71,8 @@ public sealed class ContestReportingService
     {
         var q = Filtered(f);
         int count = await q.CountAsync(ct);
-        var rows = await Rows(Ordered(q,f.Sort).Skip((f.Page-1)*50).Take(50)).ToListAsync(ct);
-        return new(rows,count,f.Page);
+        var rows = await Rows(Ordered(q,f.Sort).Skip((f.Page-1)*f.PageSize).Take(f.PageSize)).ToListAsync(ct);
+        return new(rows,count,f.Page,f.PageSize);
     }
 
     public IAsyncEnumerable<ReportEntry> ExportEntries(ContestReportFilter f) => Rows(Ordered(Filtered(f),f.Sort)).AsAsyncEnumerable();

@@ -43,7 +43,7 @@ public sealed class QuizWorkbookController(QuizWorkbookService service) : Contro
         catch (QuizAdminConflictException ex) { return Conflict(Error(ex.Code, ex.Message)); }
     }
     [HttpGet]
-    public async Task<IActionResult> History([FromQuery] int page = 1, CancellationToken ct = default) => Ok(await service.HistoryAsync(page, ct));
+    public async Task<IActionResult> History([FromQuery] int page = 1, CancellationToken ct = default, [FromQuery] int pageSize = 50) => Ok(await service.HistoryAsync(page, ct, pageSize));
     [HttpGet("{id:long}/file")]
     public async Task<IActionResult> Download(long id, CancellationToken ct) => await service.DownloadAsync(id, ct) is { } item
         ? File(item.Bytes, Excel, item.Name) : NotFound(Error("IMPORT_NOT_FOUND", "Không tìm thấy tệp nhập của lần này."));
