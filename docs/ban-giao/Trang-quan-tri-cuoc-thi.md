@@ -2,6 +2,8 @@
 
 ## Vị trí và quyền truy cập
 
+Số điện thoại trong các màn backoffice có phân quyền được hiển thị **đầy đủ**, gồm danh sách/chi tiết lượt thi, người đủ điều kiện quay, người trúng và bản xem trước xử lý dữ liệu cá nhân. Màn trình chiếu kết quả của backoffice cũng hiện đầy đủ: cần lưu ý khi chia sẻ màn hình. Không phục hồi hoặc suy đoán số đã bị xóa/ẩn danh. API công khai, kết quả đã công bố ra cổng thông tin và `entries/me` vẫn che số như trước; thay đổi này không tự sửa các bản công bố hoặc đưa dữ liệu thô ra log.
+
 Từ ngày 20/10/2026, các trang quản trị cuộc thi được chuyển hoàn toàn sang **Lit Element** trong section **Quản lý cuộc thi** của Umbraco. Không nhúng iframe và không dùng Razor Pages để hiển thị báo cáo.
 
 | Menu trái | Đường dẫn |
@@ -19,6 +21,8 @@ Khởi động lại ứng dụng, tải lại backoffice (Ctrl+F5). Ứng dụn
 Những tài khoản có quyền mở section để sửa câu hỏi nhưng không thuộc nhóm báo cáo vẫn nhận **403** khi gọi API báo cáo/xuất/công bố. Chưa đăng nhập nhận 401; người bị khóa/không được duyệt không có quyền. IP được kiểm tra theo allowlist backoffice sau forwarded headers tin cậy.
 
 ## Chức năng được giữ khi di chuyển
+
+Tất cả bảng dữ liệu trong section dùng lựa chọn **10 / 50 / 100 dòng mỗi trang**, mặc định 50 (một số bảng nhỏ mặc định 10). Bao gồm Chuyên đề, Câu hỏi, Danh sách cuộc thi, Lượt thi, bảng theo ngày, câu trong chi tiết lượt thi, thống kê, công bố, lỗi/xem trước/lịch sử nhập Excel, người đủ điều kiện/phân bố điểm/người trúng/lịch sử quay và các bảng dữ liệu cá nhân. Đổi số dòng về trang đầu, giữ bộ lọc; mỗi bảng có kích thước trang độc lập. CSV không bị giới hạn theo trang. Phân trang khi xem dữ liệu cá nhân không thay đổi phạm vi xóa: thao tác xóa vẫn áp dụng cho toàn bộ các lượt liên quan đã xác nhận, không chỉ trang đang xem.
 
 Chức năng nhập/xuất Excel và lịch sử file gốc được hướng dẫn trong [Nhập ngân hàng câu hỏi từ Excel](../api/Nhap-ngan-hang-cau-hoi-Excel.md). File là ma trận đầy đủ, có kiểm tra và xem trước trước khi ghi; ngân hàng cập nhật không thay đổi bản chụp đề thi cũ.
 

@@ -147,12 +147,13 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
         }
     }
 
-    public async Task<PagedResult<WorkbookImportHistory>> HistoryAsync(int page, CancellationToken ct)
+    public async Task<PagedResult<WorkbookImportHistory>> HistoryAsync(int page, CancellationToken ct, int pageSize = 50)
     {
-        page = Math.Max(1, page); const int size = 20;
+        page = Math.Max(1, page); int size = Math.Clamp(pageSize, 1, 100);
         // CRUD uses quiz_import too, but is not an Excel import and has no source workbook.
         var query = db.QuizImports.AsNoTracking().Where(x => !x.FileName.StartsWith("backoffice:"));
         int count = await query.CountAsync(ct);
+        page = Math.Clamp(page, 1, Math.Max(1, (int)Math.Ceiling(count / (double)size)));
         var list = await query.OrderByDescending(x => x.Id).Skip((page - 1) * size).Take(size).ToListAsync(ct);
         return new(list.Select(History).ToList(), page, size, count, (int)Math.Ceiling(count / (double)size));
     }

@@ -220,12 +220,20 @@ public sealed class ContestAdministrationFullHostTests
             const string drawApi="/umbraco/management/api/v1/antc/contest-draws";
             var preview=await client.PostAsJsonAsync(drawApi+"/preview",new{contestId,excludePrevious=false});
             Assert.Equal(HttpStatusCode.OK,preview.StatusCode);
+            var candidatePreview=(await preview.Content.ReadFromJsonAsync<DrawPreviewDto>())!;
+            Assert.Equal("0912345678",Assert.Single(candidatePreview.Candidates!.Items).Phone);
+            await using(var auditDb=new SqliteConnection($"Data Source={appDb};Pooling=False"))
+            {
+                await auditDb.OpenAsync();await using var auditCommand=auditDb.CreateCommand();
+                auditCommand.CommandText="SELECT COUNT(*) FROM contest_access_audit WHERE action='view.draw.candidates'";
+                Assert.True((long)(await auditCommand.ExecuteScalarAsync())!>=1);
+            }
             var drawRequest=new SaveDrawRequest(1,1,false,"Giải kiểm thử API",contestId,Guid.NewGuid());
             var drawResponse=await client.PostAsJsonAsync(drawApi,drawRequest);
             Assert.Equal(HttpStatusCode.OK,drawResponse.StatusCode);
             var createdDraw=(await drawResponse.Content.ReadFromJsonAsync<DrawAdminDto>())!;
-            Assert.Equal("091****678",Assert.Single(createdDraw.Winners).Phone);
-            Assert.DoesNotContain("0912345678",await drawResponse.Content.ReadAsStringAsync());
+            Assert.Equal("0912345678",Assert.Single(createdDraw.Winners).Phone);
+            Assert.DoesNotContain("091****678",await drawResponse.Content.ReadAsStringAsync());
             Assert.Equal(createdDraw.Id,(await (await client.PostAsJsonAsync(drawApi,drawRequest)).Content.ReadFromJsonAsync<DrawAdminDto>())!.Id);
             Assert.Equal(HttpStatusCode.Conflict,(await client.PutAsJsonAsync($"/api/v1/admin/contest/draws/{createdDraw.Id}",drawRequest)).StatusCode);
             Assert.Equal(HttpStatusCode.Conflict,(await client.DeleteAsync($"/api/v1/admin/contest/draws/{createdDraw.Id}")).StatusCode);

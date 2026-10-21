@@ -4,6 +4,7 @@ import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
 import { contestStyles } from './contest-theme.js';
+import { pageSizeSelect } from './contest-page-size.js';
 import { paginate } from './contest-pagination.js';
 
 const API = '/api/v1/admin/quiz';
@@ -20,7 +21,7 @@ export class ContestBankView extends UmbLitElement {
     constructor() {
         super(); this._busy = true; this._error = ''; this._message = ''; this._tab = 'bank';
         this._history = null; this._preview = null; this._file = null; this._phrase = '';
-        this._historyPage = 1; this._detail = null; this._pagination = {};
+        this._historyPage = 1; this._historySize = 50; this._detail = null; this._pagination = {};
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._run(() => this._load()); } });
     }
     async _request(path, options = {}, retry = true) {
@@ -44,7 +45,7 @@ export class ContestBankView extends UmbLitElement {
     async _load() {
         await this._loadHistory();
     }
-    async _loadHistory() { this._history = await (await this._request(`/imports?page=${this._historyPage}`)).json(); }
+    async _loadHistory() { this._history = await (await this._request(`/imports?page=${this._historyPage}&pageSize=${this._historySize}`)).json(); }
     async _download(path, name) {
         await this._run(async () => { const response = await this._request(path); blobDownload(await response.blob(), name); });
     }
@@ -81,9 +82,9 @@ export class ContestBankView extends UmbLitElement {
         });
     }
     _slice(items, key) {
-        const p = paginate(items, this._pagination[key], 20);
+        const p = paginate(items, this._pagination[key], 50);
         const move = page => { this._pagination = { ...this._pagination, [key]: { page, size: p.size } }; };
-        return { ...p, controls: p.total ? html`<nav class="pager" aria-label=${`Phân trang ${key}`}><button ?disabled=${this._busy || p.page <= 1} @click=${() => move(p.page - 1)}>← Trước</button><span>${p.start}–${p.end} / ${p.total} · Trang ${p.page}/${p.pages}</span><button ?disabled=${this._busy || p.page >= p.pages} @click=${() => move(p.page + 1)}>Sau →</button></nav>` : nothing };
+        return { ...p, controls: p.total ? html`<nav class="pager" aria-label=${`Phân trang ${key}`}>${pageSizeSelect(p.size, size => { this._pagination = { ...this._pagination, [key]: { page: 1, size } }; }, this._busy, `Số dòng ${key}`)}<button ?disabled=${this._busy || p.page <= 1} @click=${() => move(p.page - 1)}>← Trước</button><span>${p.start}–${p.end} / ${p.total} · Trang ${p.page}/${p.pages}</span><button ?disabled=${this._busy || p.page >= p.pages} @click=${() => move(p.page + 1)}>Sau →</button></nav>` : nothing };
     }
     _bank() {
         return html`<antc-contest-questions-table embedded
@@ -115,9 +116,9 @@ export class ContestBankView extends UmbLitElement {
     }
     _historyView() {
         const data = this._history;
-        return html`<section><h2>Lịch sử nhập Excel</h2><p class="muted">${data?.totalItems || 0} lần nhập · File gốc được lưu riêng, không thay đổi theo ngân hàng hiện tại.</p>
+        return html`<section><h2>Lịch sử nhập Excel</h2><p class="muted">${data?.totalItems || 0} lần nhập · ${data?.pageSize || this._historySize} dòng/trang · File gốc được lưu riêng, không thay đổi theo ngân hàng hiện tại.</p>
             <div class="table-wrap"><table><thead><tr><th>Lần nhập</th><th>Thời điểm (VN)</th><th>Người nhập</th><th>File</th><th>Thêm</th><th>Sửa</th><th>Ngừng dùng</th><th>Trong giờ thi</th><th></th></tr></thead><tbody>${(data?.items || []).map(i => html`<tr><td>#${i.id}</td><td>${date(i.createdAt)}</td><td>${i.createdBy}</td><td>${i.fileName}</td><td>${i.added}</td><td>${i.updated}</td><td>${i.deactivated}</td><td>${i.duringContest ? 'Có' : 'Không'}</td><td><button ?disabled=${this._busy || !i.canDownload} @click=${() => this._download(`/imports/${i.id}/file`, i.fileName)}>Tải file gốc</button></td></tr>`)}</tbody></table></div>
-            <div class="pager"><button ?disabled=${this._busy || !data || data.page <= 1} @click=${() => { this._historyPage--; this._run(() => this._loadHistory()); }}>← Trước</button><span>Trang ${data?.page || 1}/${Math.max(1, data?.totalPages || 0)}</span><button ?disabled=${this._busy || !data || data.page >= data.totalPages} @click=${() => { this._historyPage++; this._run(() => this._loadHistory()); }}>Sau →</button></div></section>`;
+            <div class="pager" aria-label="Phân trang lịch sử nhập">${pageSizeSelect(this._historySize, size => { this._historySize = size; this._historyPage = 1; this._run(() => this._loadHistory()); }, this._busy, 'Số dòng lịch sử nhập')}<button ?disabled=${this._busy || !data || data.page <= 1} @click=${() => { this._historyPage--; this._run(() => this._loadHistory()); }}>← Trước</button><span>Trang ${data?.page || 1}/${Math.max(1, data?.totalPages || 0)}</span><button ?disabled=${this._busy || !data || data.page >= data.totalPages} @click=${() => { this._historyPage++; this._run(() => this._loadHistory()); }}>Sau →</button></div></section>`;
     }
     render() {
         return html`<umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>Câu hỏi</h1><p class="page-description">Thêm, sửa, tra cứu câu hỏi, nhập ma trận Excel và theo dõi lịch sử cập nhật.</p></div></header>

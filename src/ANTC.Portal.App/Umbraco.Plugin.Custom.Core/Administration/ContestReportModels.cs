@@ -13,6 +13,7 @@ public sealed class ContestReportFilter
     public string? Search { get; set; }
     public string Sort { get; set; } = "created_desc";
     public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 50;
 
     public Dictionary<string,string> Validate()
     {
@@ -26,6 +27,7 @@ public sealed class ContestReportFilter
         if (Search?.Length > 150) errors[nameof(Search)] = "Từ khóa tối đa 150 ký tự.";
         if (Sort is not ("created_desc" or "created_asc" or "score_desc" or "score_asc" or "submitted_desc")) errors[nameof(Sort)] = "Cách sắp xếp không hợp lệ.";
         if (Page is < 1 or > 1000000) errors[nameof(Page)] = "Số trang không hợp lệ.";
+        if (PageSize is < 1 or > 100) errors[nameof(PageSize)] = "Số dòng mỗi trang phải từ 1 đến 100.";
         return errors;
     }
 
@@ -35,9 +37,9 @@ public record ContestChoice(long Id, string Name);
 public record ReportTopic(int Id, string Title);
 public record ReportEntry(long Id, long? ContestId, string Code, string? FullName, string? Phone, string? Org,
     string Mode, int? AttemptNo, string Status, int Answered, int Correct, DateTime CreatedAt, DateTime? SubmittedAt);
-public record EntryReportPage(IReadOnlyList<ReportEntry> Items, int Total, int Page)
+public record EntryReportPage(IReadOnlyList<ReportEntry> Items, int Total, int Page, int PageSize = 50)
 {
-    public int Pages => (int)Math.Ceiling(Total / 50d);
+    public int Pages => (int)Math.Ceiling(Total / (double)PageSize);
 }
 public record ScoreFrequency(int Score, int Count);
 public record DayFrequency(DateTime Day, int Count);

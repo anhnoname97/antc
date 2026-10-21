@@ -53,15 +53,16 @@ public sealed class ContestPrivacyService(AppDbContext db, IDataProtectionProvid
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         var target = await ResolveAsync(lookup, ct);
         var entries = await FindAsync(target.Kind, target.Value, ct);
-        int page = Math.Clamp(lookup.Page, 1, Math.Max(1, (int)Math.Ceiling(entries.Count / 50d)));
-        var ids = entries.Skip((page - 1) * 50).Take(50).Select(e => e.Id).ToArray();
+        int size = Math.Clamp(lookup.PageSize, 1, 100);
+        int page = Math.Clamp(lookup.Page, 1, Math.Max(1, (int)Math.Ceiling(entries.Count / (double)size)));
+        var ids = entries.Skip((page - 1) * size).Take(size).Select(e => e.Id).ToArray();
         var answered = await db.EntryAnswers.Where(a => ids.Contains(a.EntryId)).GroupBy(a => a.EntryId).Select(g => new { Id = g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Id, x => x.Count, ct);
         string ticket = Protector.Protect(JsonSerializer.Serialize(new Ticket(actor, target.Kind, target.Value, Fingerprint(entries), Now.AddMinutes(10))));
         await audit.RecordAsync(actor, "privacy.preview", new { Total = entries.Count, Page = page }, null, ct);
         await tx.CommitAsync(ct);
-        return new(ticket, entries.Count, page, Math.Max(1, (int)Math.Ceiling(entries.Count / 50d)), entries.Where(e => ids.Contains(e.Id))
-            .Select(e => new PrivacyEntry(e.Id, e.Code, e.FullName, e.Phone is null ? null : ContestResultsService.MaskPhone(e.Phone), e.Org,
-                e.ContestId, e.Status, answered.GetValueOrDefault(e.Id), e.Score)).ToList());
+        return new(ticket, entries.Count, page, Math.Max(1, (int)Math.Ceiling(entries.Count / (double)size)), entries.Where(e => ids.Contains(e.Id))
+            .Select(e => new PrivacyEntry(e.Id, e.Code, e.FullName, e.Phone, e.Org,
+                e.ContestId, e.Status, answered.GetValueOrDefault(e.Id), e.Score)).ToList(), size);
     }
 
     public async Task<PrivacyResult> ErasePersonAsync(PrivacyEraseRequest request, Guid actor, CancellationToken ct)
@@ -254,13 +255,14 @@ public sealed class ContestPrivacyService(AppDbContext db, IDataProtectionProvid
         }
         return Map(operation);
     }
-    public async Task<PrivacyHistory> HistoryAsync(int page, CancellationToken ct)
+    public async Task<PrivacyHistory> HistoryAsync(int page, CancellationToken ct, int pageSize = 50)
     {
-        int total = await db.PrivacyOperations.CountAsync(ct), pages = Math.Max(1, (int)Math.Ceiling(total / 20d));
+        int size = Math.Clamp(pageSize, 1, 100);
+        int total = await db.PrivacyOperations.CountAsync(ct), pages = Math.Max(1, (int)Math.Ceiling(total / (double)size));
         page = Math.Clamp(page, 1, pages);
         var rows = await db.PrivacyOperations.AsNoTracking().OrderByDescending(o => o.OccurredAt).ThenByDescending(o => o.Id)
-            .Skip((page - 1) * 20).Take(20).ToListAsync(ct);
-        return new(total, page, pages, rows.Select(Map).ToList());
+            .Skip((page - 1) * size).Take(size).ToListAsync(ct);
+        return new(total, page, pages, rows.Select(Map).ToList(), size);
     }
     private static PrivacyResult Map(PrivacyOperation o) => new(o.Id, o.ActorUserKey, DateTime.SpecifyKind(o.OccurredAt, DateTimeKind.Utc), o.Scope, o.Action,
         JsonSerializer.Deserialize<PrivacyCounts>(o.CountsJson)!, o.VacuumCompleted, o.VacuumCompletedAt, o.CleanupErrorCode);

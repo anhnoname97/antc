@@ -360,7 +360,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
     private static DrawAdminDto MapDraw(Draw x) => new(
         x.Id, AsUtc(x.CreatedAt), x.CreatedBy, x.MinScore, x.WinnersRequested, x.EligibleCount,
         x.ExcludePrevious, x.Note, x.Winners.OrderBy(w => w.Rank)
-            .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, ContestResultsService.MaskPhone(w.Phone), w.Score)).ToList(),
+            .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, w.Phone, w.Score)).ToList(),
         x.ContestId, x.Contest?.Name, x.EligibleSnapshotJson is not null,
         x.EligibleSnapshotJson?.Contains("\"Phone\":\"\"", StringComparison.Ordinal) == true);
 

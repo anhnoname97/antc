@@ -9,6 +9,32 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class ContestDrawAdminServiceTests
 {
     [Fact]
+    public async Task CandidatePreview_IsPagedWithFullPhoneAndUsesExactEligibilityAndTieBreak()
+    {
+        await using var f = await Fixture.Create();
+        var early = f.Person("0912345678", 12, -5);
+        f.Person("0912345678", 12, -1); f.Person("0912345678", 8, -10);
+        f.Person("0987654321", 11); f.Person("0900000001", 9);
+        f.Person(null, 20); f.Person("0900000002", 20).Status = EntryStatuses.InProgress;
+        await f.Db.SaveChangesAsync();
+        var first = await f.Service.PreviewDrawAsync(new(f.ContestId, 10, true, 1, 1), default);
+        Assert.Equal(2, first.Candidates!.TotalItems); Assert.Equal(2, first.Candidates.TotalPages);
+        Assert.Equal(early.Code, Assert.Single(first.Candidates.Items).Code);
+        Assert.Equal("0912345678", first.Candidates.Items[0].Phone);
+        Assert.DoesNotContain("091****678", System.Text.Json.JsonSerializer.Serialize(first));
+        var second = await f.Service.PreviewDrawAsync(new(f.ContestId, 10, true, 2, 1), default);
+        Assert.Equal("0987654321", Assert.Single(second.Candidates!.Items).Phone);
+        Assert.Equal(2, second.EligibleCount); Assert.Equal(3, second.TotalCandidates);
+        var empty = await f.Service.PreviewDrawAsync(new(f.ContestId, 100), default);
+        Assert.Empty(empty.Candidates!.Items); Assert.Equal(0, empty.Candidates.TotalItems);
+        var draw = await f.Service.CreateDrawAsync(f.Request(0, 3), "actor", default);
+        Assert.Equal(3, draw.Winners.Count);
+        var excluded = await f.Service.PreviewDrawAsync(new(f.ContestId, 0), default);
+        Assert.Empty(excluded.Candidates!.Items);
+        var included = await f.Service.PreviewDrawAsync(new(f.ContestId, 0, false), default);
+        Assert.Equal(3, included.Candidates!.TotalItems);
+    }
+    [Fact]
     public async Task CreateDraw_SelectsEntriesFromRequestedContestOnly()
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");
@@ -54,7 +80,7 @@ public class ContestDrawAdminServiceTests
         var draw = await f.Service.CreateDrawAsync(f.Request(10, 2), "actor", default);
         Assert.Equal(2, draw.Winners.Count); Assert.Equal(2, draw.Winners.Select(w => w.Phone).Distinct().Count());
         Assert.Contains(draw.Winners, w => w.Code == early.Code);
-        Assert.All(draw.Winners, w => Assert.Contains("****", w.Phone));
+        Assert.All(draw.Winners, w => Assert.DoesNotContain("*", w.Phone));
         var full = (await f.Service.ExportDrawAsync(draw.Id, false, default))!;
         Assert.Contains(full, w => w.Phone == "0912345678" && w.EntryId == early.Id);
     }
@@ -70,7 +96,7 @@ public class ContestDrawAdminServiceTests
         await f.Db.SaveChangesAsync();
         Assert.Equal(1, (await f.Service.PreviewDrawAsync(new(f.ContestId, 0, true), default)).EligibleCount);
         var second = await f.Service.CreateDrawAsync(f.Request(0, 1), "actor", default);
-        Assert.Equal("098****321", Assert.Single(second.Winners).Phone);
+        Assert.Equal("0987654321", Assert.Single(second.Winners).Phone);
         Assert.Equal(2, (await f.Service.PreviewDrawAsync(new(f.ContestId, 0, false), default)).EligibleCount);
         Assert.Equal(2, (await f.Service.CreateDrawAsync(f.Request(0, 2) with { ExcludePrevious = false }, "actor", default)).Winners.Count);
     }
@@ -96,7 +122,7 @@ public class ContestDrawAdminServiceTests
         await using var reopened = f.Open(); var service = new ContestAdminService(reopened, TimeProvider.System);
         var history = (await service.GetDrawAsync(draw.Id, default))!;
         Assert.Equal("Nguyễn Văn An", Assert.Single(history.Winners).FullName);
-        Assert.Equal("091****678", history.Winners[0].Phone);
+        Assert.Equal("0912345678", history.Winners[0].Phone);
         var eligible = Assert.Single((await service.ExportDrawAsync(draw.Id, false, default))!);
         var winner = Assert.Single((await service.ExportDrawAsync(draw.Id, true, default))!);
         Assert.Equal("0912345678", eligible.Phone); Assert.Equal("Nguyễn Văn An", eligible.FullName);
