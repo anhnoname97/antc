@@ -1,122 +1,55 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using System.Globalization
-@using System.Text
-@using System.Text.RegularExpressions
-@using System.Net
-@using Umbraco.Cms.Core.Strings
-@using Microsoft.AspNetCore.WebUtilities
-@using Microsoft.AspNetCore.Mvc.ViewFeatures
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ArticleSearchPageModel>
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
-    const int pageSize = 10;
-    var site = Model.Root();
-    var fraud = site.DescendantsOrSelfOfType("thuDoanPage").FirstOrDefault();
-    var source = site.Children().FirstOrDefault(x => x.ContentType.Alias == "contentManagement")?.Children().FirstOrDefault(x => x.ContentType.Alias == "articleManagement");
-    var categories = source?.Children().Where(x => x.ContentType.Alias == "articleList" && !x.Value<bool>("hideFromSearch")).ToList() ?? new List<IPublishedContent>();
-    var query = Context.Request.Query["q"].ToString().Trim();
-    if (query.Length > 150) { query = query[..150]; }
-    var privateNumber = Regex.IsMatch(query, @"\d{4,}|\d[\d\s.()+-]{3,}\d");
-    var terms = Normalize(query).Split(' ', StringSplitOptions.RemoveEmptyEntries);
-    var categoryKey = Guid.TryParse(Context.Request.Query["category"], out var requestedCategory) && categories.Any(x => x.Key == requestedCategory) ? (Guid?)requestedCategory : null;
-    var matches = new List<(IPublishedContent Content, int Score)>();
-    if (!privateNumber)
-    {
-        foreach (var category in categories)
-        {
-            foreach (var article in category.Children().Where(x => x.ContentType.Alias == "article" && !x.Value<bool>("hideFromSearch")))
-            {
-                var title = Normalize(article.Name);
-                var summary = Normalize(article.Value<string>("summary") ?? "");
-                var body = Normalize(WebUtility.HtmlDecode(Regex.Replace(article.Value<IHtmlEncodedString>("body")?.ToHtmlString() ?? "", "<[^>]*>", " ")));
-                var haystack = title + " " + summary + " " + body + " " + Normalize(category.Name);
-                if (terms.All(term => haystack.Contains(term, StringComparison.Ordinal)))
-                {
-                    var score = terms.Sum(term => title.Contains(term, StringComparison.Ordinal) ? 4 : summary.Contains(term, StringComparison.Ordinal) ? 2 : 1);
-                    matches.Add((article, score));
-                }
-            }
-        }
-    }
-    var filtered = matches.Where(x => categoryKey is null || x.Content.Parent<IPublishedContent>()?.Key == categoryKey)
-        .OrderByDescending(x => x.Score)
-        .ThenByDescending(x => x.Content.Value<DateTime>("updatedDate") == default ? x.Content.UpdateDate : x.Content.Value<DateTime>("updatedDate"))
-        .ThenBy(x => x.Content.Key).Select(x => x.Content).ToList();
-    var totalPages = Math.Max(1, (int)Math.Ceiling(filtered.Count / (double)pageSize));
-    var currentPage = int.TryParse(Context.Request.Query["page"], out var requestedPage) ? Math.Clamp(requestedPage, 1, totalPages) : 1;
-    string ResultUrl(Guid? category, int number = 1) => QueryHelpers.AddQueryString(Model.Url(), new Dictionary<string,string?> { ["scope"] = "thu-doan", ["q"] = query, ["category"] = category?.ToString(), ["page"] = number == 1 ? null : number.ToString(CultureInfo.InvariantCulture) });
-}
-@functions {
-    private static string Normalize(string value)
-    {
-        var result = new StringBuilder();
-        foreach (var c in value.ToLowerInvariant().Normalize(NormalizationForm.FormD))
-        {
-            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark) { result.Append(c == 'đ' ? 'd' : c); }
-        }
-        return Regex.Replace(result.ToString().Normalize(NormalizationForm.FormC), @"\s+", " ").Trim();
-    }
+    var browse = Model.Browse;
+    var policy = browse.Query.SectionFilter == "policy";
+    var sectionTitle = policy ? "Chính sách" : "Thủ đoạn";
+    var sectionUrl = policy ? "/chinh-sach/" : "/thu-doan/";
 }
 @section Head {
     <meta name="robots" content="noindex, follow">
     <link rel="stylesheet" href="~/assets/css/articles.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/search-responsive.css" asp-append-version="true">
 }
-<div class="article-portal article-portal--search">
+<div class="article-portal article-portal--search" data-article-browser data-search-page="true" data-section="@browse.Query.SectionFilter" data-page-size="@browse.Query.PageSize">
     <header class="fraud-search-hero"><div class="article-wrap">
-        <nav class="article-breadcrumbs" aria-label="Vị trí"><ol><li><a href="/">Trang chủ</a></li><li><a href="@(fraud?.Url() ?? "/thu-doan/")">Thủ đoạn</a></li><li aria-current="page">Tìm kiếm</li></ol></nav>
-        <div class="fraud-search-hero__row"><div><p class="article-eyebrow">Tra cứu để tự bảo vệ</p><h1>Tìm kiếm <em>thủ đoạn</em></h1></div></div>
-        <form class="fraud-results-form" method="get" action="@Model.Url()" role="search" autocomplete="off">
-            <input type="hidden" name="scope" value="thu-doan">
-            <label for="fraud-results-query" class="article-sr-only">Từ khóa tìm bài viết về thủ đoạn</label>
-            <div class="fraud-results-form__query"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="fraud-results-query" type="search" name="q" value="@query" placeholder="Ví dụ: đặt cọc, việc làm, vay…" maxlength="150" aria-describedby="search-privacy"></div>
+        <nav class="article-breadcrumbs" aria-label="Vị trí"><ol><li><a href="/">Trang chủ</a></li><li><a href="@sectionUrl">@sectionTitle</a></li><li aria-current="page">Tìm kiếm</li></ol></nav>
+        <div class="fraud-search-hero__row"><div><p class="article-eyebrow">Tra cứu để tự bảo vệ</p><h1>Tìm kiếm <em>@sectionTitle.ToLowerInvariant()</em></h1></div></div>
+        <form class="fraud-results-form" data-article-form method="get" action="@browse.Path" role="search" autocomplete="off">
+            <input type="hidden" name="scope" value="@browse.Scope">
+            @if (browse.Query.PageSize != 10) { <input type="hidden" name="pageSize" value="@browse.Query.PageSize"> }
+            @if (browse.Query.SortOrder != "updated-desc") { <input type="hidden" name="sort" value="@browse.Query.SortOrder"> }
+            <label for="fraud-results-query" class="article-sr-only">Từ khóa tìm bài viết</label>
+            <div class="fraud-results-form__query"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="fraud-results-query" type="search" name="q" value="@browse.Search" placeholder="Ví dụ: đặt cọc, việc làm, vay…" maxlength="@ArticleQuery.MaxSearchLength" aria-describedby="search-privacy"></div>
             <label class="article-sr-only" for="fraud-results-category">Danh mục</label>
-            <select id="fraud-results-category" name="category"><option value="">Tất cả danh mục</option>@foreach (var category in categories) { <option value="@category.Key" selected="@(categoryKey == category.Key)">@category.Name</option> }</select>
+            <select id="fraud-results-category" name="category"><option value="">Tất cả danh mục</option>@foreach (var category in Model.Categories) { <option value="@category.Id" selected="@(browse.Query.CategoryId == category.Id)">@category.Title</option> }</select>
             <button class="fraud-results-form__submit" type="submit">Tìm kiếm <span aria-hidden="true">→</span></button>
         </form>
         <p class="fraud-search-privacy" id="search-privacy">Không nhập số điện thoại, số tài khoản hay thông tin cá nhân.</p>
     </div></header>
     <div class="article-wrap fraud-results-layout">
-        <aside class="fraud-results-sidebar"><p class="article-side-label">Danh mục bài viết</p>
-            <button class="fraud-results-sidebar__toggle" type="button" aria-expanded="true" aria-controls="fraud-filter-panel" data-search-filters-toggle><span>@(categories.FirstOrDefault(x => x.Key == categoryKey)?.Name ?? "Tất cả")</span><b>@filtered.Count</b></button>
+        <aside class="fraud-results-sidebar"><p class="article-side-label">Danh mục · Tổng số bài</p>
+            <button class="fraud-results-sidebar__toggle" type="button" aria-expanded="true" aria-controls="fraud-filter-panel" data-search-filters-toggle><span data-search-filter-label>@(Model.Categories.FirstOrDefault(x => x.Id == browse.Query.CategoryId)?.Title ?? "Tất cả")</span><b data-search-filter-count>@browse.Result.Total</b></button>
             <div id="fraud-filter-panel">
-            <nav class="fraud-result-filters" id="fraud-result-filters" data-category-limit="8" aria-label="Lọc kết quả theo danh mục"><a href="@ResultUrl(null)" class="@(categoryKey is null ? "is-active" : null)" aria-current="@(categoryKey is null ? "true" : null)"><span>Tất cả</span><b>@matches.Count</b></a>
-            @foreach (var category in categories)
-            {
-                var count = matches.Count(x => x.Content.Parent<IPublishedContent>()?.Key == category.Key);
-                <a href="@ResultUrl(category.Key)" class="@(categoryKey == category.Key ? "is-active" : null)" aria-current="@(categoryKey == category.Key ? "true" : null)"><span>@category.Name</span><b>@count</b></a>
-            }
+            <nav class="fraud-result-filters" id="fraud-result-filters" data-category-limit="8" aria-label="Lọc kết quả theo danh mục">
+                <a data-article-category="" href="@browse.PageUrl(1)" class="@(browse.Query.CategoryId is null ? "is-active" : null)" aria-current="@(browse.Query.CategoryId is null ? "true" : null)"><span>Tất cả</span><b title="Tổng số bài trong các danh mục">@Model.Categories.Sum(x => x.ArticleCount)</b></a>
+                @foreach (var category in Model.Categories)
+                {
+                    <a data-article-category="@category.Id" href="@browse.PageUrl(1, category.Id)" class="@(browse.Query.CategoryId == category.Id ? "is-active" : null)" aria-current="@(browse.Query.CategoryId == category.Id ? "true" : null)"><span>@category.Title</span><b title="Tổng số bài trong danh mục">@category.ArticleCount</b></a>
+                }
             </nav>
             </div>
         </aside>
         <section class="fraud-results-content" aria-label="Kết quả tìm kiếm">
-            @if (privateNumber)
-            {
-                <div class="article-empty" role="status"><h2>Hãy tìm theo tên thủ đoạn</h2><p>Website không tra cứu theo số điện thoại hay số tài khoản. Bạn có thể thử “giả mạo”, “việc làm” hoặc “đặt cọc”.</p></div>
-            }
-            else
-            {
-                <div class="article-cards">
-                @foreach (var article in filtered.Skip((currentPage - 1) * pageSize).Take(pageSize))
-                {
-                    @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", article, new ViewDataDictionary(ViewData) { ["ShowCategory"] = true, ["HideReadMore"] = true })
-                }
-                </div>
-                @if (filtered.Count == 0) { <div class="article-empty"><h2>Chưa tìm thấy bài phù hợp</h2><p>Thử từ khóa ngắn hơn, bỏ bớt từ hoặc chọn danh mục khác.</p><a href="@(fraud?.Url() ?? "/thu-doan/")">Xem các lĩnh vực thủ đoạn →</a></div> }
-                @if (totalPages > 1)
-                {
-                    <nav class="article-pagination" aria-label="Phân trang kết quả">
-                        @if (currentPage > 1) { <a href="@ResultUrl(categoryKey, currentPage - 1)" rel="prev" aria-label="Trang trước"><span aria-hidden="true">←</span></a> }
-                        @for (var number = Math.Max(1, currentPage - 2); number <= Math.Min(totalPages, currentPage + 2); number++)
-                        {
-                            @if (number == currentPage) { <span aria-current="page">@number</span> } else { <a href="@ResultUrl(categoryKey, number)">@number</a> }
-                        }
-                        @if (currentPage < totalPages) { <a href="@ResultUrl(categoryKey, currentPage + 1)" rel="next" aria-label="Trang sau"><span aria-hidden="true">→</span></a> }
-                    </nav>
-                }
-            }
+            @await Html.PartialAsync("~/Views/Partials/articles/_Results.cshtml", browse)
         </section>
     </div>
+    @foreach (var category in Model.Categories)
+    {
+        <template data-article-icon="@category.Id">@await Html.PartialAsync("~/Views/Partials/articles/_FieldIcon.cshtml", category.Title)</template>
+    }
 </div>
 @section Scripts {
     <script src="~/assets/js/fraud-search.js" asp-append-version="true" defer></script>
+    <script type="module" src="~/assets/js/articles.js" asp-append-version="true"></script>
 }
