@@ -1,5 +1,7 @@
+@model Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent
 <section class="quiz quiz-sample-page" aria-labelledby="quiz-title" data-quiz-sample>
-    <div class="page-hero quiz-hero">
+    <div class="page-hero quiz-hero page-hero--image">
+        @Html.HeroImage(Model, 4)
         <div class="container">
             <nav aria-label="Vị trí"><a href="/">Trang chủ</a> / <a href="/tham-gia/">Phần 4</a> / Thử sức</nav>
             <p class="eyebrow">Phần 4 · Thi trắc nghiệm</p>

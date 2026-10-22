@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Hệ thống tạm thời gián đoạn — An toàn tài chính</title>
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <style>
+
+    :root { --font: 'Roboto', Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; color: #fffdf9; background: #0e1a2e; font-family: var(--font); }
+    a { color: inherit; }
+    .error-skip { position: fixed; top: -100px; left: 16px; z-index: 10; padding: 12px 18px; border-radius: 8px; background: #e3c88f; color: #14233b; }
+    .error-skip:focus { top: 12px; }
+    .error-header { background: #0b1424; }
+    .error-header__inner { width: min(1320px, 94%); min-height: 80px; margin: auto; display: flex; align-items: center; gap: 32px; }
+    .error-brand { display: inline-flex; align-items: center; gap: 12px; flex-shrink: 0; color: #fff; text-decoration: none; }
+    .error-brand__mark { width: 40px; height: 40px; border: 1.5px solid currentColor; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
+    .error-brand strong { font-size: 1.1875rem; font-weight: 600; line-height: 1.3; letter-spacing: -.02em; }
+    .error-nav { display: flex; flex: 1; justify-content: space-evenly; align-items: center; gap: 20px; margin: 0 2vw; font-size: .96875rem; font-weight: 500; white-space: nowrap; }
+    .error-nav a { padding: 8px 0; color: #dce4ee; font-size: inherit; font-weight: inherit; line-height: 1.5; text-decoration: none; }
+    .error-nav a:hover { color: #e3c88f; }
+    .error-help { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 10px 18px; border-radius: 24px; background: #b3261e; color: #fff; text-decoration: none; font-size: .8125rem; font-weight: 600; }
+    .error-footer { background: #0e1a2e; color: #c9d2e0; font-size: .9375rem; line-height: 1.7; }
+    .error-footer__inner { width: min(1240px, 90%); margin: auto; padding: 38px 0 28px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 56px; }
+    .error-footer__brand { display: inline-block; color: #fff; font-size: 1.5rem; font-weight: 700; text-decoration: none; }
+    .error-footer p { max-width: 46ch; margin: 12px 0 0; color: #afbacb; }
+    .error-footer h2 { margin: 0 0 14px; color: #fff; font-size: 1.125rem; font-weight: 500; }
+    .error-footer h2::after { content: ''; display: block; width: 40px; height: 2px; margin-top: 10px; background: #e3c88f; }
+    .error-footer__links { display: grid; justify-items: start; gap: 7px; }
+    .error-footer__links a { text-decoration: none; }
+    .error-footer__links a:hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
+    .error-footer__bottom { width: min(1240px, 90%); margin: auto; padding: 16px 0 20px; border-top: 1px solid #ffffff1f; color: #8f9bae; font-size: .8125rem; }
+    .error-header a:focus-visible, .error-footer a:focus-visible { outline: 3px solid #e3c88f; outline-offset: 5px; }
+    @media (max-width: 1100px) { .error-header__inner { gap: 22px; }.error-nav { gap: 18px; }.error-nav a { font-size: .8125rem; } }
+    @media (max-width: 960px) { .error-nav { display: none; }.error-help { margin-left: auto; }.error-footer__inner { grid-template-columns: 1.6fr 1fr; gap: 32px; }.error-footer__support { grid-column: 1 / -1; } }
+    @media (max-width: 540px) {
+      .error-header__inner { width: 88%; min-height: 72px; gap: 12px; }
+      .error-brand { gap: 9px; }.error-brand__mark { width: 32px; height: 32px; }.error-brand strong { font-size: .9375rem; }
+      .error-help { min-height: 36px; padding: 8px 12px; font-size: .75rem; }.error-help svg { display: none; }
+      .error-footer__inner { width: 88%; padding-top: 30px; grid-template-columns: 1fr 1fr; gap: 26px 18px; }
+      .error-footer__about { grid-column: 1 / -1; }.error-footer__support { grid-column: auto; }.error-footer h2 { font-size: 1rem; }
+      .error-footer__brand { font-size: 1.25rem; }.error-footer { font-size: .875rem; }.error-footer__bottom { width: 88%; }
+    }
+
+    /* Cùng giao diện với Views/notFoundPage.cshtml; nội dung 500 vẫn là HTML tĩnh. */
+.not-found { --nf-ink:#112138; --nf-gold:#e3c88f; --nf-paper:#faf8f4; color:var(--nf-ink); background:var(--nf-paper); font-family:var(--font); }
+.not-found__stage { position:relative; isolation:isolate; overflow:hidden; background:radial-gradient(ellipse at 76% 40%,#28456270,transparent 52%),linear-gradient(115deg,#0b1627,#14263f 76%,#142239); }
+.not-found__stage::before { content:''; position:absolute; inset:0; z-index:-1; opacity:.2; background-image:radial-gradient(#c8d4e5 0.6px,transparent .6px); background-size:26px 26px; mask-image:linear-gradient(90deg,transparent 32%,#000); }
+.not-found__hero { width:min(1320px,88%); margin-inline:auto; }
+.not-found__hero { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:36px; align-items:center; min-height:530px; padding-block:48px; }
+.not-found__copy { position:relative; z-index:2; min-width:0; animation:nf-arrive .8s both; }
+.not-found__eyebrow { display:flex; align-items:center; gap:12px; margin:0 0 28px; color:#b99861; font-size:.6875rem; font-weight:600; line-height:1.6; letter-spacing:.17em; text-transform:uppercase; }
+.not-found__status { padding:3px 8px; flex-shrink:0; border:1px solid #e3c88f55; border-radius:4px; background:#e3c88f09; color:var(--nf-gold); font-size:.625rem; letter-spacing:.08em; }
+.not-found__stage .not-found__eyebrow { color:var(--nf-gold); }
+.not-found h1 { margin:0; max-width:14ch; color:#fffdf9; font-size:clamp(2.5rem,4vw,3.75rem); font-weight:700; line-height:1.06; letter-spacing:-.045em; text-wrap:balance; }
+.not-found__description { max-width:43ch; margin:26px 0 32px; color:#b8c6d8; font-size:1rem; line-height:1.9; }
+.not-found__actions { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+.not-found a.not-found__button { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-height:54px; padding:10px 12px 10px 22px; border:1px solid transparent; border-radius:30px; font-size:.875rem; font-weight:700; line-height:1.5; text-decoration:none; transition:background .2s,transform .2s,border-color .2s; }
+.not-found a.not-found__button--primary { background:var(--nf-gold); color:#14233b; box-shadow:0 4px 24px #e3c88f10; }
+.not-found__button--primary>span { display:grid; place-items:center; width:32px; height:32px; margin-left:8px; border-radius:50%; color:var(--nf-gold); background:#14233b; font-size:1.125rem; }
+.not-found a.not-found__button--primary:hover { background:#f1dba9; transform:translateY(-2px); }
+.not-found a.not-found__button--secondary { color:#e0e7ef; border-radius:0; padding:8px 0; min-height:42px; font-weight:500; border-bottom-color:#8c9bb252; }
+.not-found a.not-found__button--secondary:hover { color:var(--nf-gold); border-bottom-color:var(--nf-gold); }
+.not-found__button svg { width:17px; height:17px; }
+.not-found__art { position:relative; display:grid; place-items:center; align-content:center; isolation:isolate; width:100%; min-width:0; height:410px; color:var(--nf-gold); animation:nf-arrive 1.1s .1s both; }
+.not-found__art::before { content:''; position:absolute; z-index:-1; width:74%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,#e3c88f0a,transparent 65%); box-shadow:0 0 130px #b7cbe808; }
+.not-found__orbit { position:absolute; top:50%; left:50%; aspect-ratio:1; border:1px solid #c0d4ee12; border-radius:50%; z-index:-1; transform:translate(-50%,-50%); }
+.not-found__orbit--outer { width:88%; }.not-found__orbit--inner { width:74%; border-style:dashed; border-color:#e3c88f18; animation:nf-orbit 100s linear infinite; }
+.not-found__code { display:flex; align-items:center; justify-content:center; gap:0; width:100%; line-height:.9; }
+.not-found__digit { display:block; color:var(--nf-gold); background:linear-gradient(140deg,#f3dfaf,#b79558); background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:clamp(8rem,18vw,17rem); font-weight:600; letter-spacing:-.06em; }
+.not-found__compass { position:relative; display:block; width:32%; max-width:220px; flex-shrink:0; filter:drop-shadow(0 0 22px #e3c88f14); }
+.not-found__compass svg { display:block; width:100%; height:auto; }
+.not-found__compass-ring { transform-origin:80px 80px; animation:nf-turn 90s linear infinite; }
+.not-found__needle { transform-origin:80px 80px; animation:nf-needle 12s ease-in-out infinite; }
+.not-found__north { position:absolute; top:-11%; left:50%; transform:translateX(-50%); color:#c4d2e4; font-size:.5625rem; line-height:1; letter-spacing:.1em; }
+.not-found__spark { position:absolute; font-size:1.125rem; animation:nf-spark 5s ease-in-out infinite; }.not-found__spark--one { left:17%; top:14%; }.not-found__spark--two { right:5%; bottom:24%; font-size:1.6rem; animation-delay:2s; }
+.not-found a:focus-visible { outline:3px solid #b99861; outline-offset:5px; }
+@keyframes nf-arrive { from { transform:translateY(12px); } to { transform:translateY(0); } }
+@keyframes nf-orbit { to { transform:translate(-50%,-50%) rotate(360deg); } }
+@keyframes nf-turn { to { transform:rotate(360deg); } }
+@keyframes nf-needle { 0%,100% { transform:rotate(-14deg); } 40%,65% { transform:rotate(22deg); } }
+@keyframes nf-spark { 0%,100% { opacity:.4; } 50% { opacity:1; } }
+@media(min-width:1700px) { .not-found__hero { min-height:560px; } }
+@media(max-width:1100px) { .not-found__hero { gap:24px; min-height:500px; }.not-found__actions { gap:16px; }.not-found__art { height:360px; }.not-found__description { font-size:.9375rem; }}
+@media(max-width:960px) {
+ .not-found__hero { grid-template-columns:minmax(0,1fr); gap:12px; padding-block:44px 32px; }.not-found__copy { max-width:580px; }
+ .not-found h1 { font-size:3.25rem; max-width:17ch; }.not-found__description { max-width:52ch; margin-block:20px 24px; }
+ .not-found__art { height:300px; max-width:540px; justify-self:center; }.not-found__digit { font-size:13rem; }.not-found__compass { width:38%; }
+
+}
+@media(max-width:540px) {
+ .not-found__hero { padding-top:34px; gap:4px; }.not-found__eyebrow { margin-bottom:20px; font-size:.625rem; letter-spacing:.12em; }
+ .not-found h1 { font-size:2.65rem; max-width:13ch; }.not-found__description { font-size:.9375rem; line-height:1.8; }
+ .not-found__actions { gap:18px; }.not-found a.not-found__button { font-size:.8125rem; }.not-found a.not-found__button--primary { padding-left:18px; min-height:50px; }
+ .not-found__art { height:240px; }.not-found__digit { font-size:8.5rem; }.not-found__compass { width:40%; }
+ .not-found__spark--one { left:12%; top:10%; }.not-found__spark--two { right:1%; bottom:29%; }
+}
+@media(prefers-reduced-motion:reduce) { .not-found *, .not-found *::before,.not-found *::after { animation:none !important; transition:none !important; } }
+
+  </style>
+</head>
+<body>
+  <a class="error-skip" href="#noi-dung">Bỏ qua, tới nội dung chính</a>
+  <header class="error-header">
+    <div class="error-header__inner">
+      <a class="error-brand" href="/" aria-label="An toàn tài chính, về trang chủ">
+        <span class="error-brand__mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8 19.5 5.6v6.1c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V5.6z"/><path d="m8.7 12 2.3 2.3 4.3-4.6"/></svg>
+        </span>
+        <strong>antoantaichinh.vn</strong>
+      </a>
+      <nav class="error-nav" aria-label="Điều hướng chính">
+        <a href="/">Giới thiệu</a>
+        <a href="/ung-pho/">Ứng phó</a>
+        <a href="/thu-doan/">Thủ đoạn</a>
+        <a href="/tham-gia/">Tham gia</a>
+        <a href="/hoi-dap/">Hỏi – Đáp</a>
+      </nav>
+      <a class="error-help" href="/ung-pho/">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3.5 2.8 19.5h18.4zM12 10v4.2"/><circle cx="12" cy="17" r=".7"/></svg>
+        Cần trợ giúp
+      </a>
+    </div>
+  </header>
+  <main class="not-found" id="noi-dung" tabindex="-1">
+    <div class="not-found__stage">
+      <section class="not-found__hero" aria-labelledby="server-error-title">
+        <div class="not-found__copy">
+          <p class="not-found__eyebrow"><span class="not-found__status" aria-hidden="true">500</span>Hệ thống tạm thời gián đoạn</p>
+          <h1 id="server-error-title">Chúng tôi đang gặp sự cố.</h1>
+          <p class="not-found__description">Hệ thống hiện chưa thể xử lý yêu cầu của bạn. Vui lòng thử lại sau ít phút hoặc quay về trang chủ.</p>
+          <div class="not-found__actions">
+            <a class="not-found__button not-found__button--primary" href="/">Về trang chủ <span aria-hidden="true">↗</span></a>
+            <a class="not-found__button not-found__button--secondary" href="">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M19.2 12a7.2 7.2 0 1 1-1.8-5.1L20 9"/></svg>
+              Thử lại
+            </a>
+          </div>
+        </div>
+        <div class="not-found__art" aria-hidden="true">
+          <div class="not-found__orbit not-found__orbit--outer"></div>
+          <div class="not-found__orbit not-found__orbit--inner"></div>
+          <span class="not-found__spark not-found__spark--one">✦</span>
+          <div class="not-found__code">
+            <span class="not-found__digit">5</span>
+            <span class="not-found__compass">
+              <svg viewBox="0 0 160 160" fill="none">
+                <circle class="not-found__compass-ring" cx="80" cy="80" r="73" stroke="currentColor" stroke-width=".7" stroke-dasharray=".8 4"/>
+                <circle cx="80" cy="80" r="62" stroke="currentColor" stroke-width=".6"/>
+                <circle cx="80" cy="80" r="53" stroke="currentColor" stroke-opacity=".23" stroke-width=".6"/>
+                <path d="M80 9v12m0 118v12M9 80h12m118 0h12" stroke="currentColor" stroke-width="1"/>
+                <g class="not-found__needle"><path d="m102 47-10 45-34 21 10-45z" fill="currentColor" fill-opacity=".08" stroke="currentColor" stroke-width="1"/><path d="m102 47-22 33 12 12z" fill="currentColor"/><path d="m58 113 22-33-12-12z" fill="currentColor" fill-opacity=".22"/></g>
+                <circle cx="80" cy="80" r="4" fill="#12233b" stroke="currentColor" stroke-width="1"/>
+              </svg>
+              <span class="not-found__north">N</span>
+            </span>
+            <span class="not-found__digit">0</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="error-footer">
+    <div class="error-footer__inner">
+      <div class="error-footer__about">
+        <a class="error-footer__brand" href="/">antoantaichinh.vn</a>
+        <p>Bạn có thể quay về trang chủ hoặc thử tải lại trang sau ít phút.</p>
+      </div>
+      <nav aria-label="Nội dung website">
+        <h2>Nội dung website</h2>
+        <div class="error-footer__links">
+          <a href="/">Giới thiệu</a><a href="/thu-doan/">Thủ đoạn</a><a href="/tham-gia/">Tham gia</a>
+        </div>
+      </nav>
+      <nav class="error-footer__support" aria-label="Hỗ trợ">
+        <h2>Hỗ trợ</h2>
+        <div class="error-footer__links">
+          <a href="/ung-pho/">Ứng phó</a><a href="/hoi-dap/">Hỏi – Đáp</a>
+        </div>
+      </nav>
+    </div>
+    <div class="error-footer__bottom">An toàn tài chính · antoantaichinh.vn</div>
+  </footer>
+</body>
+</html>

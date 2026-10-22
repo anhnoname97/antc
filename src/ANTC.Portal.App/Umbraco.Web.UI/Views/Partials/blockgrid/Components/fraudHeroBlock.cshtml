@@ -5,7 +5,7 @@
     var searchUrl = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("searchPage").FirstOrDefault()?.Url() ?? "/tim-kiem/";
 }
 <div class="ph" data-header-hero="true">
-    <div class="ph-sky"></div>
+    <div class="ph-sky">@Html.HeroImage(Umbraco.AssignedContentItem, 3)</div>
     <div class="ph-drum" aria-hidden="true"><img src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt=""></div>
     <span class="ph-num" aria-hidden="true">03</span><div class="ph-shade"></div>
     <div class="ph-copy">
