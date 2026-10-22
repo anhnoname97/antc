@@ -4,6 +4,7 @@ using Microsoft.Extensions.WebEncoders;
 using Umbraco.Plugin.Custom.Api.Infrastructure;
 using Antc.Deployment;
 using Microsoft.AspNetCore.DataProtection;
+using Antc.Web;
 
 // Offline command: no Umbraco host, no migrations and no service is started during backup.
 if (args.FirstOrDefault() == "--deployment-backup")
@@ -67,6 +68,8 @@ app.Use(async (context, next) =>
         context.Response.Headers["X-ANTC-Release"] = release;
     await next(context);
 });
+
+app.UseWebsiteErrorPages(app.Environment);
 
 app.UseUmbraco()
     .WithMiddleware(u =>
