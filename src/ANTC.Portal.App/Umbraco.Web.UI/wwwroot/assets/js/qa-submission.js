@@ -1,3 +1,5 @@
+import { initMotion, markMotion } from './motion.js';
+
 export function initQaSubmissions(page) {
   for (const root of page.querySelectorAll('[data-qa-submission]')) {
     const form = root.querySelector('[data-qa-form]');
@@ -74,21 +76,6 @@ export function initQaSubmissions(page) {
 }
 
 export function animateQaSubmissionBlocks(page) {
-  const { gsap, ScrollTrigger } = window;
-  if (!gsap || !ScrollTrigger) return;
-  gsap.registerPlugin(ScrollTrigger);
-  for (const element of page.querySelectorAll('[data-qa-submission] > .form, [data-qa-guidelines]')) {
-    gsap.matchMedia(element).add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.fromTo(element, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, ease: 'power2.out',
-        scrollTrigger: { trigger: element, start: 'top 94%', end: 'top 70%', scrub: .6 } });
-      const revealFocus = () => gsap.to(element, { autoAlpha: 1, y: 0, duration: 0, overwrite: true });
-      element.addEventListener('focusin', revealFocus);
-      return () => element.removeEventListener('focusin', revealFocus);
-    });
-  }
-  const refresh = () => { ScrollTrigger.sort(); ScrollTrigger.refresh(); };
-  let frame;
-  const observer = new ResizeObserver(() => { cancelAnimationFrame(frame); frame = requestAnimationFrame(refresh); });
-  observer.observe(page);
-  refresh(); document.fonts?.ready.then(refresh);
+  markMotion(page, '[data-qa-submission] > .form, [data-qa-guidelines]', 'data-rv');
+  initMotion(page);
 }

@@ -35,7 +35,7 @@ export function initCompetitionResults(page) {
         find('month').textContent = 'tháng ' + new Intl.DateTimeFormat('vi-VN', {
           month: 'numeric', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh'
         }).format(start);
-        find('description').textContent = `${data.contest.name}. Tên người thi được che thông tin nhận dạng. Không công bố số điện thoại.`;
+        find('description').textContent = `${data.contest.name}. Tên người thi được che thông tin nhận dạng. Số điện thoại được ẩn 4 số cuối.`;
         if (data.status === 'pending') {
           status.textContent = 'Ban tổ chức chưa công bố kết quả cuộc thi này.';
           return;
@@ -47,15 +47,23 @@ export function initCompetitionResults(page) {
           if (!Array.isArray(draw.winners)) throw new Error('INVALID_WINNERS');
           for (const winner of draw.winners) {
             if (typeof winner.fullName !== 'string' || !Number.isFinite(winner.score)) throw new Error('INVALID_WINNER');
-            winners.push(winner);
+            winners.push({ ...winner, prize: typeof draw.prizeName === 'string' && draw.prizeName.trim() ? draw.prizeName : (typeof draw.prizeCode === 'string' && draw.prizeCode.trim() ? draw.prizeCode : 'Chưa có tên giải') });
           }
         }
         const rows = document.createDocumentFragment();
-        winners.forEach((winner, index) => {
+        winners.forEach(winner => {
           const row = document.createElement('tr');
-          for (const value of [index + 1, winner.fullName, winner.score]) {
+          for (const [index, value] of [winner.prize, typeof winner.phone === 'string' ? winner.phone : '', winner.fullName].entries()) {
             const cell = document.createElement('td');
-            cell.textContent = String(value);
+            if (index === 0) {
+              const badge = document.createElement('span');
+              badge.className = 'result-prize';
+              badge.textContent = String(value);
+              cell.append(badge);
+            } else {
+              cell.className = index === 1 ? 'result-phone' : 'result-name';
+              cell.textContent = String(value);
+            }
             row.append(cell);
           }
           rows.append(row);
