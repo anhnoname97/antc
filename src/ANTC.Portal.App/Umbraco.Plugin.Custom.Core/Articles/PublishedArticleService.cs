@@ -3,7 +3,7 @@ using System.Globalization;
 namespace Umbraco.Plugin.Custom.Core.Articles;
 
 public sealed class PublishedArticleService(IArticleContentSource source, TimeProvider clock,
-    ArticleHtmlSanitizer sanitizer) : IPublishedArticleService
+    ArticleHtmlSanitizer sanitizer, IArticleSearchIndex searchIndex) : IPublishedArticleService
 {
     private static readonly StringComparer VietnameseTitles = StringComparer.Create(CultureInfo.GetCultureInfo("vi-VN"), true);
 
@@ -40,7 +40,7 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
     {
         ArgumentNullException.ThrowIfNull(query);
         if (query.Validate().Count > 0) throw new ArgumentException("Tham số danh sách bài viết không hợp lệ.", nameof(query));
-        ArticleLibrary library = source.Read(includeBodies: query.SearchTerm is not null);
+        ArticleLibrary library = source.Read();
         ArticleCategoryContent? selected = query.CategoryId is { } id
             ? library.Categories.FirstOrDefault(x => x.Category.Id == id) : null;
         if (query.CategoryId is not null && selected is null) return null;
@@ -49,12 +49,14 @@ public sealed class PublishedArticleService(IArticleContentSource source, TimePr
         IEnumerable<ArticleCategoryContent> categories = (selected is null ? library.Categories : [selected])
             .Where(x => categoryQuery.Matches(x.Category));
         if (query.SearchTerm is { } term)
+        {
+            IReadOnlySet<Guid> matches = searchIndex.Find(term);
             categories = categories.Select(category => category with
             {
-                Articles = category.Articles.Where(article => ArticleSearchText.Contains(article.Card.Title, term)
-                    || ArticleSearchText.Contains(article.Card.Summary, term)
-                    || ArticleSearchText.Contains(ArticleSearchText.PlainHtml(article.BodyHtml), term)).ToArray()
+                Articles = category.Category.Seo?.HideFromSearch == true ? [] : category.Articles
+                    .Where(article => matches.Contains(article.Card.Id) && !article.Seo.HideFromSearch).ToArray()
             });
+        }
         IEnumerable<ArticleListItem> articles = categories.SelectMany(category => category.Articles
             .Select(article => new ArticleListItem(Card(article, library.ReviewAfterDays, today), category.Category)));
         if (query.ShowOnHome is { } home) articles = articles.Where(x => x.ShowOnHome == home);

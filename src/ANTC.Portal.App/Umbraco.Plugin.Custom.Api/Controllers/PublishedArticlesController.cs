@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Umbraco.Plugin.Custom.Api.Models;
 using Umbraco.Plugin.Custom.Core.Articles;
@@ -56,6 +57,7 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
     [ProducesResponseType<ArticlePage>(200)]
     [ProducesResponseType<ApiErrorResponse>(400)]
     [ProducesResponseType<ApiErrorResponse>(404)]
+    [ProducesResponseType<ApiErrorResponse>(503)]
     public IActionResult List(Guid? categoryId = null, string? search = null, string? label = null,
         DateOnly? updatedFrom = null, DateOnly? updatedTo = null, string? reviewStatus = null, bool? isDraft = null,
         int page = 1, int pageSize = ArticlePage.DefaultPageSize, string? sort = null,
@@ -66,8 +68,17 @@ public sealed class PublishedArticlesController(IPublishedArticleService article
             showOnHome, section, categoryRole, isField, hasImage, sourceAgency, excludeIds);
         var fields = query.Validate();
         if (fields.Count > 0) return BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Tham số danh sách không hợp lệ.", fields)));
-        ArticlePage? result = articles.List(query);
-        return result is null ? NotFound(new ApiErrorResponse(new ApiError("NOT_FOUND", "Không tìm thấy danh mục bài viết."))) : Ok(result);
+        try
+        {
+            ArticlePage? result = articles.List(query);
+            return result is null ? NotFound(new ApiErrorResponse(new ApiError("NOT_FOUND", "Không tìm thấy danh mục bài viết."))) : Ok(result);
+        }
+        catch (ArticleSearchUnavailableException error)
+        {
+            Response.Headers.RetryAfter = "5";
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new ApiErrorResponse(new ApiError("SEARCH_UNAVAILABLE", error.Message)));
+        }
     }
 
     [HttpGet("articles/{id:guid}")]
