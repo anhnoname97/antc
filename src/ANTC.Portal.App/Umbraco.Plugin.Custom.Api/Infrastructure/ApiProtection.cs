@@ -90,6 +90,9 @@ public static class ApiProtection
             return ($"finalize:{ip}", 20, TimeSpan.FromHours(1));
         if (HttpMethods.IsPost(c.Request.Method) && path == "/api/v1/questions")
             return ($"questions:{ip}", 5, TimeSpan.FromHours(1));
+        // Dang nhap thanh vien quay so: han che do mat khau theo IP.
+        if (HttpMethods.IsPost(c.Request.Method) && path == "/quay-so/dang-nhap")
+            return ($"draw-login:{ip}", 10, TimeSpan.FromMinutes(15));
         return null;
     }
 }
