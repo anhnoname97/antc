@@ -28,11 +28,17 @@ public sealed partial class ContestAdminService
             .Select(e => e with { SubmittedAt = e.SubmittedAt is { } at ? AsUtc(at) : null }).ToList();
     }
 
+    /// <summary>Nguoi du dieu kien (da gop theo so dien thoai) co diem >= minScore; dung chung quy tac chon nguoi voi quay so.</summary>
+    public async Task<IReadOnlyList<DrawCandidateSnapshot>> EligibleCandidatesAsync(long contestId, int minScore, bool excludePrevious, CancellationToken ct) =>
+        (await DrawCandidatesAsync(contestId, excludePrevious, ct)).Where(e => e.Score >= minScore).ToList();
+
     public async Task<DrawPreviewDto> PreviewDrawAsync(PreviewDrawRequest request, CancellationToken ct)
     {
         if (request.ContestId <= 0 || request.MinScore < 0)
             throw new ContestAdminValidationException(new Dictionary<string, string> { ["minScore"] = "Chọn cuộc thi hợp lệ và ngưỡng điểm không âm." });
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        ContestPrizeDto? prize = null;
+        if (request.PrizeId is not null) prize = await RequirePrizeAsync(request.ContestId, request.PrizeId, ct);
         var candidates = await DrawCandidatesAsync(request.ContestId, request.ExcludePrevious, ct);
         int suggestion = candidates.Count == 0 ? 0 : candidates.Max(e => e.Score);
         int minimum = request.MinScore ?? suggestion;
@@ -44,7 +50,7 @@ public sealed partial class ContestAdminService
             .Select(e => new DrawCandidateAdminDto(e.Code, e.FullName, e.Phone, e.Score, e.SubmittedAt)).ToList();
         return new(suggestion, minimum, eligible.Count, candidates.Count,
             candidates.GroupBy(e => e.Score).OrderByDescending(g => g.Key).Select(g => new DrawScoreCount(g.Key, g.Count())).ToList(),
-            new PagedResult<DrawCandidateAdminDto>(rows, page, size, eligible.Count, (int)Math.Ceiling(eligible.Count / (double)size)));
+            new PagedResult<DrawCandidateAdminDto>(rows, page, size, eligible.Count, (int)Math.Ceiling(eligible.Count / (double)size)), prize);
     }
 
     public async Task<DrawAdminDto> CreateDrawAsync(SaveDrawRequest request, string actor, CancellationToken ct)
@@ -61,11 +67,14 @@ public sealed partial class ContestAdminService
             if (previous is not null)
             {
                 if (previous.ContestId != request.ContestId || previous.MinScore != request.MinScore || previous.WinnersRequested != request.WinnersRequested
-                    || previous.ExcludePrevious != request.ExcludePrevious || previous.Note != NullIfEmpty(request.Note) || previous.CreatedBy != NormalizeActor(actor))
+                    || previous.ExcludePrevious != request.ExcludePrevious || previous.Note != NullIfEmpty(request.Note) || previous.CreatedBy != NormalizeActor(actor) || previous.PrizeId != request.PrizeId)
                     throw new ContestAdminConflictException("DRAW_REQUEST_CHANGED", "Mã yêu cầu đã được dùng cho một lần quay khác. Hãy tải lại lịch sử.");
                 return MapDraw(previous);
             }
         }
+        var prize = await RequirePrizeAsync(request.ContestId!.Value, request.PrizeId, ct);
+        if (request.WinnersRequested > prize.Remaining)
+            throw new ContestAdminConflictException("PRIZE_QUOTA_EXCEEDED", $"Giải “{prize.Name}” chỉ còn {prize.Remaining}/{prize.Quantity} suất; không thể quay {request.WinnersRequested} người.");
         var candidates = (await DrawCandidatesAsync(request.ContestId!.Value, request.ExcludePrevious, ct))
             .Where(e => e.Score >= request.MinScore).ToList();
         if (request.WinnersRequested > candidates.Count)
@@ -77,6 +86,7 @@ public sealed partial class ContestAdminService
             MinScore = request.MinScore, WinnersRequested = request.WinnersRequested, EligibleCount = candidates.Count,
             ExcludePrevious = request.ExcludePrevious, Note = NullIfEmpty(request.Note), RequestId = request.RequestId,
             EligibleSnapshotJson = JsonSerializer.Serialize(candidates),
+            PrizeId = prize.PrizeId, PrizeCode = prize.Code, PrizeName = prize.Name,
         };
         foreach (var person in CryptographicLottery.Select(candidates, request.WinnersRequested))
             draw.Winners.Add(new DrawWinner { Rank = draw.Winners.Count + 1, EntryId = person.EntryId, Code = person.Code,
@@ -85,6 +95,16 @@ public sealed partial class ContestAdminService
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         return (await GetDrawAsync(draw.Id, ct))!;
+    }
+
+    private async Task<ContestPrizeDto> RequirePrizeAsync(long contestId, long? prizeId, CancellationToken ct)
+    {
+        if (prizeId is null or <= 0)
+            throw new ContestAdminValidationException(new Dictionary<string, string> { ["prizeId"] = "Phải chọn giải thưởng đã được cấu hình cho cuộc thi." });
+        var prize = (await ContestPrizesAsync(contestId, ct)).SingleOrDefault(p => p.PrizeId == prizeId);
+        if (prize is null) throw new ContestAdminConflictException("PRIZE_NOT_IN_CONTEST", "Giải thưởng không được cấu hình cho cuộc thi này.");
+        if (!prize.IsActive) throw new ContestAdminConflictException("PRIZE_INACTIVE", "Giải thưởng đã ngừng sử dụng.");
+        return prize;
     }
 
     public async Task<IReadOnlyList<DrawCandidateSnapshot>?> ExportDrawAsync(long id, bool winners, CancellationToken ct)

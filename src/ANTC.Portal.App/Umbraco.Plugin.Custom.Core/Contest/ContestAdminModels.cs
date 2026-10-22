@@ -34,7 +34,8 @@ public sealed record ContestCampaignAdminDto(
     decimal ReadTimerFactor = 1m,
     string? FocusArea = null,
     int EntryCount = 0,
-    long Revision = 1);
+    long Revision = 1,
+    IReadOnlyList<ContestPrizeDto>? Prizes = null);
 
 public sealed record SaveContestTopicRequest(int TopicId, IReadOnlyList<string>? QuestionCodes);
 
@@ -49,7 +50,8 @@ public sealed record SaveContestCampaignRequest(
     int SubmitGraceHours = 24,
     decimal ReadTimerFactor = 1m,
     string? FocusArea = null,
-    long? ExpectedRevision = null);
+    long? ExpectedRevision = null,
+    IReadOnlyList<SaveContestPrizeRequest>? Prizes = null);
 
 public sealed record ContestEntryAdminDto(
     long Id,
@@ -89,7 +91,8 @@ public sealed record DrawAdminDto(
     long? ContestId = null,
     string? ContestName = null,
     bool HasEligibleSnapshot = false,
-    bool EligibleSnapshotRedacted = false);
+    bool EligibleSnapshotRedacted = false,
+    long? PrizeId = null, string? PrizeCode = null, string? PrizeName = null);
 
 public sealed record SaveDrawRequest(
     int MinScore,
@@ -97,12 +100,20 @@ public sealed record SaveDrawRequest(
     bool ExcludePrevious = true,
     string? Note = null,
     long? ContestId = null,
-    Guid? RequestId = null);
+    Guid? RequestId = null,
+    long? PrizeId = null);
 
-public sealed record PreviewDrawRequest(long ContestId, int? MinScore = null, bool ExcludePrevious = true, int Page = 1, int PageSize = 20);
+public sealed record PreviewDrawRequest(long ContestId, int? MinScore = null, bool ExcludePrevious = true, int Page = 1, int PageSize = 20, long? PrizeId = null);
 public sealed record DrawScoreCount(int Score, int Count);
 public sealed record DrawPreviewDto(int SuggestedMinScore, int MinScore, int EligibleCount, int TotalCandidates, IReadOnlyList<DrawScoreCount> Scores,
-    PagedResult<DrawCandidateAdminDto>? Candidates = null);
+    PagedResult<DrawCandidateAdminDto>? Candidates = null,
+    ContestPrizeDto? Prize = null);
+
+public sealed record SavePrizeRequest(string? Code, string? Name, string? Description, bool IsActive = true, int SortOrder = 0, long? ExpectedRevision = null);
+public sealed record PrizeAdminDto(long Id, string Code, string Name, string? Description, bool IsActive, int SortOrder, DateTime CreatedAt, DateTime UpdatedAt, long Revision, int ContestCount);
+public sealed record SaveContestPrizeRequest(long PrizeId, int Quantity, long? PrizeMoney = null);
+public sealed record SaveContestPrizesRequest(IReadOnlyList<SaveContestPrizeRequest>? Prizes, long? ExpectedRevision = null);
+public sealed record ContestPrizeDto(long PrizeId, string Code, string Name, string? Description, int Quantity, int Awarded, int Remaining, bool IsActive, int SortOrder, long PrizeMoney = 0);
 public sealed record DrawCandidateAdminDto(string Code, string FullName, string Phone, int Score, DateTime? SubmittedAt);
 public sealed record DrawCandidateSnapshot(long EntryId, string Code, string FullName, string Phone, int Score, DateTime? SubmittedAt);
 

@@ -339,12 +339,18 @@ public class ContestAttemptService : IContestAttemptService
                 return SubmitResult.Fail(new("CONTEST_CLOSED", "Cuộc thi đã hết hạn nộp bài."));
             }
 
-            // Có ít nhất một đáp án là được nộp; câu bỏ trống không có dòng và không được tính đúng.
+            // Chỉ chốt bài khi mọi mã câu trong đề của cuộc thi đều có đáp án.
             int total = contest.QuestionCount;
+            rows = rows.Where(r => contest.QuestionCodes.Contains(r.QuestionCode)).ToList();
             if (rows.Count == 0)
             {
-                return SubmitResult.Fail(new("NOTHING_TO_SUBMIT", "Bạn cần trả lời ít nhất một câu trước khi nộp bài."));
+                return SubmitResult.Fail(new("NOTHING_TO_SUBMIT", "Bạn chưa trả lời câu nào. Vui lòng hoàn thành toàn bộ đề trước khi nộp bài."));
             }
+
+            var answeredCodes = rows.Select(r => r.QuestionCode).ToHashSet(StringComparer.Ordinal);
+            int missing = contest.QuestionCodes.Count(code => !answeredCodes.Contains(code));
+            if (total == 0 || missing > 0)
+                return SubmitResult.Fail(new("INCOMPLETE_ANSWERS", $"Bạn cần trả lời hết các câu hỏi trước khi nộp bài. Còn {missing}/{total} câu chưa trả lời."));
 
             if (current.Mode == EntryModes.Anon && contact is not null)
             {

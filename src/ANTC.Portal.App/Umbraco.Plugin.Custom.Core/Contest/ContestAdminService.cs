@@ -7,6 +7,12 @@ namespace Umbraco.Plugin.Custom.Core.Contest;
 
 public interface IContestAdminService
 {
+    Task<PagedResult<PrizeAdminDto>> SearchPrizesAsync(string? search, bool? isActive, int page, int pageSize, CancellationToken ct);
+    Task<PrizeAdminDto?> GetPrizeAsync(long id, CancellationToken ct);
+    Task<PrizeAdminDto?> SavePrizeAsync(long? id, SavePrizeRequest request, CancellationToken ct);
+    Task<bool> DeletePrizeAsync(long id, CancellationToken ct);
+    Task<IReadOnlyList<ContestPrizeDto>> ContestPrizesAsync(long contestId, CancellationToken ct);
+    Task<ContestCampaignAdminDto?> SaveContestPrizesAsync(long id, SaveContestPrizesRequest request, CancellationToken ct);
     Task<PagedResult<ContestCampaignAdminDto>> SearchCampaignsAsync(
         string? search, bool? isActive, int page, int pageSize, CancellationToken ct);
     Task<ContestCampaignAdminDto?> GetCampaignAsync(long id, CancellationToken ct);
@@ -21,6 +27,7 @@ public interface IContestAdminService
     Task<DrawAdminDto?> GetDrawAsync(long id, CancellationToken ct);
     Task<DrawAdminDto> CreateDrawAsync(SaveDrawRequest request, string actor, CancellationToken ct);
     Task<DrawPreviewDto> PreviewDrawAsync(PreviewDrawRequest request, CancellationToken ct);
+    Task<IReadOnlyList<DrawCandidateSnapshot>> EligibleCandidatesAsync(long contestId, int minScore, bool excludePrevious, CancellationToken ct);
     Task<IReadOnlyList<DrawCandidateSnapshot>?> ExportDrawAsync(long id, bool winners, CancellationToken ct);
     Task<DrawAdminDto?> UpdateDrawAsync(long id, SaveDrawRequest request, CancellationToken ct);
     Task<bool> DeleteDrawAsync(long id, CancellationToken ct);
@@ -59,7 +66,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
             .Include(x => x.Topics).Include(x => x.Questions).AsSplitQuery().SingleOrDefaultAsync(x => x.Id == id, ct);
         if (campaign is null) return null;
         int entryCount = await db.Entries.CountAsync(x => x.ContestId == id, ct);
-        return MapCampaign(campaign, await BuildQuestionTreeAsync(campaign, ct), entryCount);
+        return MapCampaign(campaign, await BuildQuestionTreeAsync(campaign, ct), entryCount) with { Prizes = await ContestPrizesAsync(id, ct) };
     }
 
     public async Task<IReadOnlyList<ContestTopicTreeItemDto>> GetQuestionTreeAsync(long? contestId, CancellationToken ct)
@@ -80,6 +87,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
         var campaign = new ContestCampaign { CreatedAt = now, Revision = 1,
             BankVersion = await CurrentBankVersionAsync(ct) };
         ApplyCampaign(campaign, request, validated, now);
+        await ApplyPrizesAsync(campaign, request.Prizes, ct);
         db.ContestCampaigns.Add(campaign);
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
@@ -90,7 +98,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
     public async Task<ContestCampaignAdminDto?> UpdateCampaignAsync(long id, SaveContestCampaignRequest request, CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
-        ContestCampaign? campaign = await db.ContestCampaigns.Include(x => x.Topics).Include(x => x.Questions)
+        ContestCampaign? campaign = await db.ContestCampaigns.Include(x => x.Topics).Include(x => x.Questions).Include(x => x.Prizes)
             .AsSplitQuery()
             .SingleOrDefaultAsync(x => x.Id == id, ct);
         if (campaign is null) return null;
@@ -99,6 +107,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
         bool started = campaign.StartAt <= UtcNow();
         if (started && IsOnlyActivationChange(campaign, request))
         {
+            await ApplyPrizesAsync(campaign, request.Prizes, ct);
             campaign.IsActive = request.IsActive;
             campaign.UpdatedAt = UtcNow();
             campaign.Revision++;
@@ -108,7 +117,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
             return (await GetCampaignAsync(id, ct))!;
         }
         if (started)
-            throw new ContestAdminConflictException("CONTEST_LOCKED", "Cuộc thi đã bắt đầu hoặc đã có lượt dự thi; chỉ được thay đổi trạng thái sử dụng.");
+            throw new ContestAdminConflictException("CONTEST_LOCKED", "Cuộc thi đã bắt đầu; chỉ được thay đổi trạng thái sử dụng và cấu hình giải thưởng, không được đổi lịch hoặc bộ đề.");
         ValidatedCampaign validated = await ValidateCampaignAsync(request, ct);
         await EnsureScheduleAvailableAsync(validated, id, ct);
         if (DeckChanged(campaign, validated))
@@ -119,6 +128,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
         campaign.BankVersion = await CurrentBankVersionAsync(ct);
         campaign.Revision++;
         ApplyCampaign(campaign, request, validated, UtcNow());
+        await ApplyPrizesAsync(campaign, request.Prizes, ct);
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         bank?.Reload();
@@ -176,6 +186,8 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
             string term = search.Trim().ToLower();
             query = query.Where(x => x.CreatedBy.ToLower().Contains(term) ||
                 (x.Note != null && x.Note.ToLower().Contains(term)) ||
+                (x.PrizeName != null && x.PrizeName.ToLower().Contains(term)) ||
+                (x.PrizeCode != null && x.PrizeCode.ToLower().Contains(term)) ||
                 (x.Contest != null && x.Contest.Name.ToLower().Contains(term)));
         }
 
@@ -362,7 +374,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
         x.ExcludePrevious, x.Note, x.Winners.OrderBy(w => w.Rank)
             .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, w.Phone, w.Score)).ToList(),
         x.ContestId, x.Contest?.Name, x.EligibleSnapshotJson is not null,
-        x.EligibleSnapshotJson?.Contains("\"Phone\":\"\"", StringComparison.Ordinal) == true);
+        x.EligibleSnapshotJson?.Contains("\"Phone\":\"\"", StringComparison.Ordinal) == true, x.PrizeId, x.PrizeCode, x.PrizeName);
 
     private static (int Page, int PageSize) NormalizePaging(int page, int pageSize) =>
         (Math.Max(1, page), Math.Clamp(pageSize, 1, 100));

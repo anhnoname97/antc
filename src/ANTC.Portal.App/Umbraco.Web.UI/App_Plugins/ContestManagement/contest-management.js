@@ -2,7 +2,7 @@ import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { UmbLitElement } from "@umbraco-cms/backoffice/lit-element";
 import { css, html } from "@umbraco-cms/backoffice/external/lit";
-import { contestStylesText } from './contest-theme.js';
+import { contestStyles, contestStylesText } from './contest-theme.js';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import './contest-reports.js';
 import './contest-draws.js';
@@ -49,9 +49,31 @@ class AdminPage extends UmbElementMixin(HTMLElement) {
     } catch { return false; }
   }
   async run(action, success) {
+    if (this.saving) return;
+    this.saving = true;
+    const editor = this.shadowRoot.querySelector('dialog[open]');
+    const buttons = editor ? [...editor.querySelectorAll('button')].map(button => [button, button.disabled]) : [];
+    const preventClose = event => event.preventDefault();
+    editor?.addEventListener('cancel', preventClose);
+    buttons.forEach(([button]) => { button.disabled = true; });
+    editor?.querySelector('[data-save-error]')?.remove();
     this.error = "";
-    try { await action(); this.message = success; setTimeout(() => { this.message = ""; this.render(); }, 3500); }
-    catch (error) { this.error = `${error.message}${Object.values(error.fields || {}).length ? ` ${Object.values(error.fields).join(" ")}` : ""}`; }
+    try { await action(); this.message = success; setTimeout(() => { this.message = ""; if (!this.shadowRoot.querySelector('dialog[open]')) this.render(); }, 3500); }
+    catch (error) {
+      this.error = `${error.message}${Object.values(error.fields || {}).length ? ` ${Object.values(error.fields).join(" ")}` : ""}`;
+      if (editor?.open && editor.isConnected) {
+        const notice = document.createElement('div');
+        notice.className = 'notice error'; notice.dataset.saveError = ''; notice.setAttribute('role', 'alert'); notice.tabIndex = -1;
+        notice.textContent = this.error;
+        editor.querySelector('header').after(notice); notice.focus();
+        return; // Giữ nguyên DOM, dữ liệu, lựa chọn cây và trạng thái mở của form.
+      }
+    }
+    finally {
+      this.saving = false;
+      editor?.removeEventListener('cancel', preventClose);
+      buttons.forEach(([button, disabled]) => { button.disabled = disabled; });
+    }
     this.render();
   }
   shell(content) {
@@ -165,14 +187,24 @@ class ContestPage extends AdminPage {
   async openCampaign(item = null) {
     const dialog = this.shadowRoot.querySelector("#editor");
     const tree = item?.topics || await this.request("/campaigns/question-tree");
+    const selectedPrizes = new Map((item?.prizes || []).map(p => [p.prizeId, p]));
+    const prizeOptions = []; let prizePage = 1, prizeResult;
+    do { prizeResult = await this.request(`/prizes?page=${prizePage++}&pageSize=100`); prizeOptions.push(...prizeResult.items); } while (prizePage <= prizeResult.totalPages);
+    const prizeHtml = `<details class="contest-prize-picker"><summary>Chọn giải thưởng và số lượng <span data-prize-count>${selectedPrizes.size} đã chọn</span></summary><p class="muted">Danh mục dùng chung; số lượng đặt riêng cho cuộc thi này. Tạo loại giải tại menu Giải thưởng. Không cấu hình giải thì không thể quay thưởng.</p><input type="search" data-prize-search placeholder="Tìm mã hoặc tên giải…" aria-label="Tìm giải để chọn"><div class="contest-prize-options">${prizeOptions.filter(p => p.isActive || selectedPrizes.has(p.id)).map(p => { const selected = selectedPrizes.get(p.id); return `<div class="contest-prize-option" data-prize-option="${p.id}" data-prize-text="${esc(`${p.code} ${p.name}`.toLowerCase())}"><label class="check"><input type="checkbox" data-prize="${p.id}" ${selected ? 'checked' : ''} ${selected?.awarded ? 'disabled' : ''}> <strong>${esc(p.code)} — ${esc(p.name)}</strong>${!p.isActive ? ' (Ngừng dùng)' : ''}</label><label>Số lượng<input type="number" data-prize-quantity="${p.id}" min="${Math.max(1, selected?.awarded || 0)}" max="1000" required value="${selected?.quantity || 1}" ${selected ? '' : 'disabled'}></label><label>Tiền thưởng/suất (VNĐ)<input type="number" data-prize-money="${p.id}" min="0" max="9007199254740991" step="1" required value="${selected?.prizeMoney ?? 0}" ${selected ? '' : 'disabled'}></label><small>Đã trao: ${selected?.awarded || 0} · ${esc(p.description || '')}</small></div>`; }).join('') || '<p>Chưa có giải đang dùng. Hãy tạo giải thưởng trước.</p>'}</div>${item?.id ? '<button type="button" data-save-prizes class="secondary">Lưu riêng cấu hình giải thưởng</button>' : ''}</details>`;
     const localValue = value => { if (!value) return ""; const d = new Date(value); const offset = d.getTimezoneOffset(); return new Date(d.getTime() - offset * 60000).toISOString().slice(0, 16); };
     const treeHtml = tree.map(topic => `<details class="tree-topic" data-topic-node="${topic.id}"><summary><span class="tree-caret" aria-hidden="true">›</span><label><input type="checkbox" data-topic="${topic.id}" ${topic.isSelected ? "checked" : ""} ${topic.isActive ? "" : "disabled"}> <strong>${topic.id} — ${esc(topic.title)}</strong></label><span class="tree-count">${topic.questions.filter(x => x.isSelected).length}/${topic.questions.length} câu</span>${topic.isActive ? "" : `<em>Ngừng dùng</em>`}</summary><div class="tree-questions">${topic.questions.map(question => `<label class="tree-question ${question.isActive ? "" : "inactive"}"><input type="checkbox" data-question="${esc(question.code)}" ${question.isSelected ? "checked" : ""} ${topic.isActive && question.isActive ? "" : "disabled"}> <span class="mono">${esc(question.code)}</span><span>${esc(question.question)}</span>${question.isActive ? "" : `<em>Ngừng dùng</em>`}</label>`).join("") || `<p class="empty-tree">Chuyên đề chưa có câu hỏi.</p>`}</div></details>`).join("");
-    dialog.innerHTML = `<form method="dialog" id="form"><header><div><h2>${item ? "Cập nhật" : "Tạo"} cuộc thi</h2><p>Chọn chuyên đề và câu hỏi. Thời gian diễn ra không được trùng với cuộc thi khác, kể cả cuộc thi ngừng sử dụng.</p></div><button type="button" data-close class="close" aria-label="Đóng">×</button></header><div class="form-grid"><label class="wide">Tên cuộc thi<span>*</span><input name="name" minlength="2" maxlength="200" required value="${esc(item?.name)}"></label><label class="wide">Mô tả<textarea name="description" maxlength="2000" rows="3">${esc(item?.description)}</textarea></label><label>Bắt đầu<span>*</span><input name="startAt" type="datetime-local" required value="${localValue(item?.startAt)}"></label><label>Kết thúc<span>*</span><input name="endAt" type="datetime-local" required value="${localValue(item?.endAt)}"></label><label>Số lượt tối đa<span>*</span><input name="maxAttempts" type="number" min="1" max="1000" required value="${item?.maxAttempts ?? 2}"></label><label>Gia hạn nộp bài (giờ)<span>*</span><input name="submitGraceHours" type="number" min="0" max="168" required value="${item?.submitGraceHours ?? 24}"></label><label>Hệ số thời gian đọc<span>*</span><input name="readTimerFactor" type="number" min="0" max="5" step="0.1" required value="${item?.readTimerFactor ?? 1}"></label><label>Lĩnh vực <small>Chữ thường không dấu, số, gạch ngang hoặc gạch dưới</small><input name="focusArea" maxlength="50" pattern="[a-z0-9_\-]{1,50}" value="${esc(item?.focusArea)}"></label><label class="check"><input name="active" type="checkbox" ${item?.isActive !== false ? "checked" : ""}> Đang sử dụng</label>${item?.entryCount ? `<p class="wide">Cuộc thi đã có ${item.entryCount} lượt dự thi: không thể đổi bộ đề hoặc xóa cuộc thi.</p>` : ""}</div><div class="tree-heading"><div><h3>Chuyên đề và câu hỏi<span>*</span></h3><p>Click vào chuyên đề để xem danh sách câu hỏi; checkbox chuyên đề chọn hoặc bỏ chọn toàn bộ câu hỏi con.</p></div><button type="button" id="expand-tree">Mở tất cả</button></div><div class="contest-tree">${treeHtml || `<p class="empty">Chưa có chuyên đề trong ngân hàng câu hỏi.</p>`}</div><footer><button type="button" data-close>Hủy</button><button type="submit" class="primary">Lưu cuộc thi</button></footer></form>`;
+    dialog.innerHTML = `<form method="dialog" id="form"><header><div><h2>${item ? "Cập nhật" : "Tạo"} cuộc thi</h2><p>Chọn chuyên đề và câu hỏi. Thời gian diễn ra không được trùng với cuộc thi khác, kể cả cuộc thi ngừng sử dụng.</p></div><button type="button" data-close class="close" aria-label="Đóng">×</button></header><div class="form-grid"><label class="wide">Tên cuộc thi<span>*</span><input name="name" minlength="2" maxlength="200" required value="${esc(item?.name)}"></label><label class="wide">Mô tả<textarea name="description" maxlength="2000" rows="3">${esc(item?.description)}</textarea></label><label>Bắt đầu<span>*</span><input name="startAt" type="datetime-local" required value="${localValue(item?.startAt)}"></label><label>Kết thúc<span>*</span><input name="endAt" type="datetime-local" required value="${localValue(item?.endAt)}"></label><label>Số lượt tối đa<span>*</span><input name="maxAttempts" type="number" min="1" max="1000" required value="${item?.maxAttempts ?? 2}"></label><label>Gia hạn nộp bài (giờ)<span>*</span><input name="submitGraceHours" type="number" min="0" max="168" required value="${item?.submitGraceHours ?? 24}"></label><label>Hệ số thời gian đọc<span>*</span><input name="readTimerFactor" type="number" min="0" max="5" step="0.1" required value="${item?.readTimerFactor ?? 1}"></label><label>Lĩnh vực <small>Chữ thường không dấu, số, gạch ngang hoặc gạch dưới</small><input name="focusArea" maxlength="50" pattern="[a-z0-9_\-]{1,50}" value="${esc(item?.focusArea)}"></label><label class="check"><input name="active" type="checkbox" ${item?.isActive !== false ? "checked" : ""}> Đang sử dụng</label>${item?.entryCount ? `<p class="wide">Cuộc thi đã có ${item.entryCount} lượt dự thi: không thể đổi bộ đề hoặc xóa cuộc thi.</p>` : ""}</div>${prizeHtml}<div class="tree-heading"><div><h3>Chuyên đề và câu hỏi<span>*</span></h3><p>Click vào chuyên đề để xem danh sách câu hỏi; checkbox chuyên đề chọn hoặc bỏ chọn toàn bộ câu hỏi con.</p></div><button type="button" id="expand-tree">Mở tất cả</button></div><div class="contest-tree">${treeHtml || `<p class="empty">Chưa có chuyên đề trong ngân hàng câu hỏi.</p>`}</div><footer><button type="button" data-close>Hủy</button><button type="submit" class="primary">Lưu cuộc thi</button></footer></form>`;
     const updateTopicState = node => { const parent = node.querySelector("[data-topic]"); const children = [...node.querySelectorAll("[data-question]")]; const checked = children.filter(x => x.checked).length; parent.checked = children.length > 0 && checked === children.length; parent.indeterminate = checked > 0 && checked < children.length; node.querySelector(".tree-count").textContent = `${checked}/${children.length} câu`; };
+    dialog.querySelectorAll('[data-prize]').forEach(box => box.addEventListener('change', () => {
+      dialog.querySelector(`[data-prize-quantity="${box.dataset.prize}"]`).disabled = !box.checked; dialog.querySelector(`[data-prize-money="${box.dataset.prize}"]`).disabled = !box.checked;
+      dialog.querySelector('[data-prize-count]').textContent = `${dialog.querySelectorAll('[data-prize]:checked').length} đã chọn`;
+    }));
+    dialog.querySelector('[data-prize-search]')?.addEventListener('input', e => dialog.querySelectorAll('[data-prize-option]').forEach(row => { row.hidden = !row.dataset.prizeText.includes(e.target.value.trim().toLowerCase()); }));
     dialog.querySelectorAll("[data-topic-node]").forEach(node => { updateTopicState(node); node.querySelector("[data-topic]").addEventListener("change", e => { node.querySelectorAll("[data-question]:not(:disabled)").forEach(x => x.checked = e.currentTarget.checked); updateTopicState(node); }); node.querySelectorAll("[data-question]").forEach(x => x.addEventListener("change", () => updateTopicState(node))); });
+    dialog.querySelector('[data-save-prizes]')?.addEventListener('click', () => this.run(async () => { const prizes = [...dialog.querySelectorAll('[data-prize]:checked')].map(box => ({ prizeId: Number(box.dataset.prize), quantity: Number(dialog.querySelector(`[data-prize-quantity="${box.dataset.prize}"]`).value), prizeMoney: Number(dialog.querySelector(`[data-prize-money="${box.dataset.prize}"]`).value) })); await this.request(`/campaigns/${item.id}/prizes`, { method: 'PUT', body: JSON.stringify({ prizes, expectedRevision: item.revision }) }); dialog.close(); await this.load(); }, 'Đã cập nhật giải thưởng, không thay đổi lịch hoặc bộ đề.'));
     dialog.querySelector("#expand-tree")?.addEventListener("click", e => { const nodes = [...dialog.querySelectorAll("details")]; const open = nodes.some(x => !x.open); nodes.forEach(x => x.open = open); e.currentTarget.textContent = open ? "Thu gọn tất cả" : "Mở tất cả"; });
     dialog.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => dialog.close()));
-    dialog.querySelector("#form").addEventListener("submit", e => { e.preventDefault(); const d = new FormData(e.currentTarget); const topics = [...dialog.querySelectorAll("[data-topic-node]")].map(node => ({ topicId: Number(node.dataset.topicNode), questionCodes: [...node.querySelectorAll("[data-question]:checked:not(:disabled)")].map(x => x.dataset.question) })).filter(x => x.questionCodes.length); const instant = (field, stored, second) => { const typed = d.get(field); if (stored && typed === localValue(stored)) return stored; const t = new Date(typed); t.setSeconds(second, 0); return t.toISOString(); }; const payload = { name: d.get("name"), description: d.get("description") || null, startAt: instant("startAt", item?.startAt, 0), endAt: instant("endAt", item?.endAt, 59), maxAttempts: Number(d.get("maxAttempts")), submitGraceHours: Number(d.get("submitGraceHours")), readTimerFactor: Number(d.get("readTimerFactor")), focusArea: d.get("focusArea")?.trim() || null, isActive: d.get("active") === "on", topics, expectedRevision: item?.revision ?? null }; this.run(async () => { await this.request(item ? `/campaigns/${item.id}` : "/campaigns", { method: item ? "PUT" : "POST", body: JSON.stringify(payload) }); dialog.close(); await this.load(); }, item ? "Đã cập nhật cuộc thi." : "Đã tạo cuộc thi."); });
+    dialog.querySelector("#form").addEventListener("submit", e => { e.preventDefault(); const d = new FormData(e.currentTarget); const topics = [...dialog.querySelectorAll("[data-topic-node]")].map(node => ({ topicId: Number(node.dataset.topicNode), questionCodes: [...node.querySelectorAll("[data-question]:checked:not(:disabled)")].map(x => x.dataset.question) })).filter(x => x.questionCodes.length); const instant = (field, stored, second) => { const typed = d.get(field); if (stored && typed === localValue(stored)) return stored; const t = new Date(typed); t.setSeconds(second, 0); return t.toISOString(); }; const payload = { name: d.get("name"), description: d.get("description") || null, startAt: instant("startAt", item?.startAt, 0), endAt: instant("endAt", item?.endAt, 59), maxAttempts: Number(d.get("maxAttempts")), submitGraceHours: Number(d.get("submitGraceHours")), readTimerFactor: Number(d.get("readTimerFactor")), focusArea: d.get("focusArea")?.trim() || null, isActive: d.get("active") === "on", topics, prizes: [...dialog.querySelectorAll('[data-prize]:checked')].map(box => ({ prizeId: Number(box.dataset.prize), quantity: Number(dialog.querySelector(`[data-prize-quantity="${box.dataset.prize}"]`).value), prizeMoney: Number(dialog.querySelector(`[data-prize-money="${box.dataset.prize}"]`).value) })), expectedRevision: item?.revision ?? null }; this.run(async () => { await this.request(item ? `/campaigns/${item.id}` : "/campaigns", { method: item ? "PUT" : "POST", body: JSON.stringify(payload) }); dialog.close(); await this.load(); }, item ? "Đã cập nhật cuộc thi." : "Đã tạo cuộc thi."); });
     dialog.showModal();
   }
   async removeCampaign(id) { if (!await this.confirmDelete("Xóa cuộc thi và toàn bộ cấu hình chuyên đề/câu hỏi đã chọn?")) return; await this.run(async () => { await this.request(`/campaigns/${id}`, { method: "DELETE" }); await this.load(); }, "Đã xóa cuộc thi."); }
@@ -196,7 +228,22 @@ class ContestManagementLitView extends UmbLitElement {
 class QuestionsLitView extends ContestBankView {}
 class TopicsLitView extends ContestManagementLitView { constructor() { super(); this.view = "topics"; } }
 class QuestionBankLitView extends QuestionsLitView {}
-class ContestLitView extends ContestManagementLitView { constructor() { super(); this.view = "contest"; } }
+class ContestLitView extends UmbLitElement {
+  static properties = { _tab: { state: true }, _visited: { state: true } };
+  static styles = contestStyles;
+  constructor() { super(); this._tab = 'campaigns'; this._visited = new Set(['campaigns']); }
+  _selectTab(key) { this._visited.add(key); this._tab = key; }
+  render() {
+    const tabs = [['campaigns', 'Danh sách cuộc thi'], ['entries', 'Lượt dự thi'], ['draws', 'Lần quay số']];
+    return html`<umb-body-layout main-no-padding><div class="page">
+      <header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>Cuộc thi</h1><p class="page-description">Quản lý cuộc thi, lượt dự thi và quay thưởng ngay tại đây.</p></div></header>
+      <div class="toolbar"><div class="tabs" role="tablist" aria-label="Quản lý cuộc thi">${tabs.map(([key, label]) => html`<button id=${`contest-tab-${key}`} role="tab" class=${this._tab === key ? 'primary' : ''} aria-selected=${this._tab === key} aria-controls=${`contest-panel-${key}`} @click=${() => this._selectTab(key)}>${label}</button>`)}</div></div>
+      <div id="contest-panel-campaigns" role="tabpanel" aria-labelledby="contest-tab-campaigns" ?hidden=${this._tab !== 'campaigns'}><antc-contest-table embedded></antc-contest-table></div>
+      <div id="contest-panel-entries" role="tabpanel" aria-labelledby="contest-tab-entries" ?hidden=${this._tab !== 'entries'}>${this._visited.has('entries') ? html`<antc-contest-entries-report-view embedded></antc-contest-entries-report-view>` : ''}</div>
+      <div id="contest-panel-draws" role="tabpanel" aria-labelledby="contest-tab-draws" ?hidden=${this._tab !== 'draws'}>${this._visited.has('draws') ? html`<antc-contest-draws-view embedded></antc-contest-draws-view>` : ''}</div>
+    </div></umb-body-layout>`;
+  }
+}
 
 if (!customElements.get("antc-contest-topics-table")) customElements.define("antc-contest-topics-table", TopicsPage);
 if (!customElements.get("antc-contest-questions-table")) customElements.define("antc-contest-questions-table", QuestionsPage);

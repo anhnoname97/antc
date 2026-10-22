@@ -1,0 +1,70 @@
+@model Umbraco.Plugin.Custom.Api.Controllers.DrawPanelModel
+@{
+    Layout = "~/Views/QuaySo/_QuaySoLayout.cshtml";
+    ViewData["Title"] = "Quay số · " + Model.ContestName;
+    ViewData["Bare"] = true;
+    ViewData["BodyClass"] = "qd mode-control";
+}
+<div class="qd-root ctl" data-mode="control" data-contest-id="@Model.ContestId" data-api="/api/v1/quay-so" data-home="/quay-so"
+     data-stage-url="/quay-so/@Model.ContestId/trinh-chieu">
+<header class="c-top">
+<span class="t"><small>BAN TỔ CHỨC · ĐIỀU KHIỂN</small><b>Quay số trúng thưởng · <span class="cName">@Model.ContestName</span></b></span>
+<span class="conn" id="conn"><i></i><span id="connT">Chưa mở màn hình trình chiếu</span></span>
+<span class="r">
+<button class="tb pri" id="bOpen" type="button">Mở màn hình trình chiếu ↗</button>
+<button class="tb" id="bPrint" type="button">In biên bản</button>
+<a class="tb" href="/quay-so">Thoát ✕</a>
+</span>
+</header>
+<div class="c-main">
+<div class="col">
+<section class="card"><h2>Đang phát trên màn hình lớn <span>Xem trước, giống hệt màn hình trình chiếu</span></h2>
+<div class="preview" id="preview"></div>
+<button class="go" id="go" type="button" disabled>QUAY<small id="goSub">Đang tải dữ liệu…</small></button>
+<div class="spin-msg" id="spinMsg" role="alert" hidden>
+<span id="spinMsgT"></span>
+<button class="tb" id="bRetry" type="button" hidden>Thử lại</button>
+<a class="tb" id="msgLogin" href="/quay-so/dang-nhap" hidden>Đăng nhập lại</a>
+</div>
+<div class="pzs pzs-gap" id="pzs" role="group" aria-label="Chọn giải"></div>
+<div class="scenes" role="group" aria-label="Cảnh trên màn hình">
+<button class="sc" type="button" data-scene="idle"><b>1 · Màn chờ</b>Giới thiệu, số liệu, mã kiểm chứng</button>
+<button class="sc" type="button" data-scene="draw"><b>2 · Quay số</b>Ô số và người trúng</button>
+<button class="sc" type="button" data-scene="summary"><b>3 · Bảng kết quả</b>Toàn bộ người trúng</button>
+</div>
+<p class="hint">Phím tắt: <kbd>Space</kbd> quay · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> đổi cảnh · <kbd>←</kbd><kbd>→</kbd> đổi giải. Phím tắt cũng dùng được ngay trên màn hình trình chiếu (dùng một máy).</p>
+</section>
+<section class="card"><h2>Danh sách người trúng <span>Số điện thoại đã được che</span></h2>
+<div class="tblwrap"><table class="tbl"><thead><tr><th>Giờ</th><th>Giải</th><th>Mã</th><th>Người trúng</th></tr></thead><tbody id="tb"></tbody></table></div>
+</section>
+</div>
+<div class="col">
+<section class="card"><h2>Danh sách đã chốt</h2>
+<div class="stats">
+<div class="st"><b id="cPart">0</b><span>người dự thi</span></div>
+<div class="st g"><b id="cOk">0</b><span id="cOkLb">đạt điểm</span></div>
+<div class="st"><b id="cLeft">0</b><span>còn trong vòng quay</span></div>
+<div class="st"><b id="cWon">0/0</b><span>giải đã quay</span></div>
+</div>
+<div class="opt thr">
+<label for="minScore">Ngưỡng điểm<small id="minScoreHint">Chỉ sửa được khi chưa có người trúng</small></label>
+<input class="num" id="minScore" type="number" min="0" step="1" inputmode="numeric" disabled>
+</div>
+<p class="proof proof-mt">Mã kiểm chứng (SHA-256 danh sách mã dự thi đạt ngưỡng): <code class="hashT">…</code></p>
+</section>
+<section class="card"><h2>Hiển thị</h2>
+<div class="opts">
+<div class="opt"><span>Nhãn “TRỰC TIẾP”<small>Bật khi đang phát trực tiếp</small></span><button class="sw" type="button" role="switch" aria-checked="false" data-opt="live" aria-label="Nhãn trực tiếp"></button></div>
+<div class="opt"><span>Dải thông điệp chống lừa đảo<small>Chạy luân phiên ở chân màn hình</small></span><button class="sw" type="button" role="switch" aria-checked="true" data-opt="ticker" aria-label="Dải thông điệp"></button></div>
+<div class="opt"><span>Nền trong suốt (ghép OBS)<small>Dùng khi đưa màn hình vào phần mềm phát trực tiếp</small></span><button class="sw" type="button" role="switch" aria-checked="false" data-opt="transparent" aria-label="Nền trong suốt"></button></div>
+</div>
+</section>
+</div>
+</div>
+<p class="note">Màn hình trình chiếu nhận lệnh từ bảng điều khiển này khi cả hai mở trên cùng một máy, cùng trình duyệt. Mỗi lần bấm QUAY tạo một lần quay thật, hiện trong tab Lần quay số của backoffice và không thể hủy.</p>
+</div>
+@await Html.PartialAsync("~/Views/QuaySo/_Stage.cshtml")
+<div id="print" class="print-area"></div>
+@section Scripts {
+    <script src="~/assets/js/quay-so.js" asp-append-version="true"></script>
+}

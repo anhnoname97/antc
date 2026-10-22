@@ -1,0 +1,38 @@
+@{
+    Layout = null;
+    var title = ViewData["Title"] as string ?? "Quay số";
+    // Man dieu khien va man trinh chieu tu ve toan bo trang, khong dung thanh dau trang chung.
+    bool bare = ViewData["Bare"] is true;
+    string bodyClass = "qs-body" + (ViewData["BodyClass"] is string extra ? " " + extra : "");
+}
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>@title — Quay số antoantaichinh.vn</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="~/assets/css/fonts.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/tokens.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/base.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/quay-so.css" asp-append-version="true">
+</head>
+<body class="@bodyClass">
+    @if (!bare)
+    {
+        <header class="qs-header">
+            <span class="qs-brand">Quay số trúng thưởng · Ban tổ chức</span>
+            @RenderSection("HeaderRight", required: false)
+        </header>
+        <main class="qs-main" id="noi-dung">
+            @RenderBody()
+        </main>
+    }
+    else
+    {
+        @RenderBody()
+    }
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

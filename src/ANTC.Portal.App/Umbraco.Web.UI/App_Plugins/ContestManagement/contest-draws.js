@@ -18,17 +18,28 @@ export class ContestDrawsView extends UmbLitElement {
         _count: { state: true }, _note: { state: true }, _exclude: { state: true }, _winnerPage: { state: true }, _scorePage: { state: true },
         _spinning: { state: true }, _countdown: { state: true }, _celebrate: { state: true },
         _historySize: { state: true }, _candidateSize: { state: true }, _scoreSize: { state: true }, _winnerSize: { state: true },
+        _prizes: { state: true }, _prizeId: { state: true },
     };
     static styles = contestStyles;
     constructor() {
         super(); this._options = []; this._history = null; this._busy = true; this._error = '';
         this._contestId = ''; this._minScore = ''; this._count = '1'; this._note = ''; this._exclude = true;
+        this._prizes = []; this._prizeId = '';
         this._page = 1; this._search = ''; this._winnerPage = 1; this._scorePage = 1; this._invalidate();
         this._historySize = 50; this._candidateSize = 50; this._scoreSize = 50; this._winnerSize = 50;
         this._spinning = false; this._countdown = 0; this._celebrate = false;
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._load(); } });
     }
     _invalidate() { this._previewData = null; this._requestId = crypto.randomUUID(); }
+    get _selectedPrize() { return this._prizes.find(p => String(p.prizeId) === this._prizeId); }
+    async _selectContest(event) {
+        if (this._busy) return;
+        this._contestId = event.target.value; this._minScore = ''; this._prizeId = ''; this._prizes = []; this._invalidate();
+        if (!this._contestId) return;
+        this._busy = true; this._error = '';
+        try { this._prizes = await (await this._request(`/prizes?contestId=${this._contestId}`)).json(); }
+        catch (e) { this._error = e.message; } finally { this._busy = false; }
+    }
     disconnectedCallback() {
         this._skipShow(); clearTimeout(this._celebrateTimer);
         super.disconnectedCallback();
@@ -70,25 +81,28 @@ export class ContestDrawsView extends UmbLitElement {
     }
     async _preview(event, page = 1) {
         event?.preventDefault(); if (this._busy) return;
+        if (!this._prizeId) { this._error = 'Chọn giải thưởng đã cấu hình cho cuộc thi trước khi xem trước/quay.'; return; }
         this._busy = true; this._error = '';
         try {
             const preview = await (await this._request('/preview', { method: 'POST', body: JSON.stringify({
                 contestId: Number(this._contestId), minScore: this._minScore === '' ? null : Number(this._minScore), excludePrevious: this._exclude,
                 page, pageSize: this._candidateSize,
+                prizeId: Number(this._prizeId),
             }) })).json();
             this._minScore = String(preview.minScore); this._previewData = preview; if (page === 1) this._scorePage = 1;
+            if (preview.prize) this._prizes = this._prizes.map(p => p.prizeId === preview.prize.prizeId ? preview.prize : p);
         } catch (error) { this._error = error.message; } finally { this._busy = false; }
     }
     async _draw() {
-        if (this._busy || this._spinning || !this._previewData) return;
+        if (this._busy || this._spinning || !this._previewData || !this._selectedPrize || Number(this._count) > this._selectedPrize.remaining) return;
         const requestId = this._requestId;
-        const payload = { contestId: Number(this._contestId), minScore: Number(this._minScore), winnersRequested: Number(this._count), excludePrevious: this._exclude, note: this._note, requestId };
+        const payload = { contestId: Number(this._contestId), prizeId: Number(this._prizeId), minScore: Number(this._minScore), winnersRequested: Number(this._count), excludePrevious: this._exclude, note: this._note, requestId };
         this._busy = true; this._error = '';
         try {
             try {
                 await umbOpenModal(this, UMB_CONFIRM_MODAL, { data: {
                     headline: 'Xác nhận quay số?',
-                    content: `Giải: ${this._note || 'Không ghi tên'}. Chọn ${payload.winnersRequested} người, điểm tối thiểu ${payload.minScore}. Danh sách xem trước có ${this._previewData.eligibleCount} người; máy chủ sẽ kiểm tra lại tại thời điểm quay. Lần quay đã lưu không thể sửa hoặc xóa.`,
+                    content: `Giải: ${this._selectedPrize.name} (${this._selectedPrize.code}), còn ${this._selectedPrize.remaining}/${this._selectedPrize.quantity} suất. Chọn ${payload.winnersRequested} người, điểm tối thiểu ${payload.minScore}. Danh sách xem trước có ${this._previewData.eligibleCount} người; máy chủ sẽ kiểm tra lại cả ứng viên lẫn số suất tại thời điểm quay. Lần quay đã lưu không thể sửa hoặc xóa.`,
                     confirmLabel: 'Xác nhận quay', cancelLabel: 'Hủy', color: 'positive',
                 } });
             } catch { return; }
@@ -106,6 +120,7 @@ export class ContestDrawsView extends UmbLitElement {
             if (this.isConnected) this._celebrateTimer = setTimeout(() => { this._celebrate = false; }, 5000);
             this._winnerPage = 1; this._previewData = null; this._requestId = crypto.randomUUID();
             this._page = 1; await this._historyData();
+            this._prizes = await (await this._request(`/prizes?contestId=${payload.contestId}`)).json();
             await this.updateComplete; if (this.isConnected) this.renderRoot.querySelector('#draw-result')?.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         } catch (error) { this._error = error.message; } finally { this._skipShow(); this._spinning = false; this._busy = false; }
     }
@@ -130,12 +145,14 @@ export class ContestDrawsView extends UmbLitElement {
     _form() {
         return html`<section><h2>Thiết lập lần quay mới</h2><p class="muted">Mỗi số điện thoại có một suất: lấy điểm cao nhất, bằng điểm lấy lượt nộp sớm nhất.</p>
             <form @submit=${this._preview}><div class="draw-fields">
-                <label>Cuộc thi <span class="required">*</span><select name="contestId" required ?disabled=${this._busy} @change=${e => { this._contestId = e.target.value; this._minScore = ''; this._invalidate(); }}><option value="">Chọn cuộc thi</option>${this._options.map(c => html`<option value=${c.id} .selected=${this._contestId === String(c.id)}>${c.name}</option>`)}</select></label>
+                <label>Cuộc thi <span class="required">*</span><select name="contestId" required ?disabled=${this._busy} @change=${this._selectContest}><option value="">Chọn cuộc thi</option>${this._options.map(c => html`<option value=${c.id} .selected=${this._contestId === String(c.id)}>${c.name}</option>`)}</select></label>
+                <label>Giải thưởng <span class="required">*</span><select name="prizeId" required ?disabled=${this._busy || !this._contestId} .value=${this._prizeId} @change=${e => { this._prizeId = e.target.value; this._count = String(Math.max(1, this._selectedPrize?.remaining || 1)); this._invalidate(); }}><option value="">Chọn giải đã cấu hình</option>${this._prizes.map(p => html`<option value=${p.prizeId} ?disabled=${!p.isActive || p.remaining <= 0} .selected=${String(p.prizeId) === this._prizeId}>${p.name} (${p.code}) — còn ${p.remaining}/${p.quantity}</option>`)}</select></label>
                 <label>Điểm tối thiểu<input name="minScore" type="number" min="0" step="1" placeholder="Để trống để gợi ý điểm cao nhất" .value=${this._minScore} ?disabled=${this._busy} @input=${e => { this._minScore = e.target.value; this._invalidate(); }}></label>
-                <label>Số người trúng <span class="required">*</span><input name="winners" type="number" min="1" max="1000" required .value=${this._count} ?disabled=${this._busy} @input=${e => { this._count = e.target.value; this._invalidate(); }}></label>
-                <label>Ghi chú / tên giải<input name="note" maxlength="200" .value=${this._note} ?disabled=${this._busy} @input=${e => { this._note = e.target.value; this._invalidate(); }}></label>
+                <label>Số người trúng <span class="required">*</span><input name="winners" type="number" min="1" max=${Math.min(1000, this._selectedPrize?.remaining || 1000)} required .value=${this._count} ?disabled=${this._busy} @input=${e => { this._count = e.target.value; this._invalidate(); }}></label>
+                <label>Ghi chú lần quay<input name="note" maxlength="200" .value=${this._note} ?disabled=${this._busy} @input=${e => { this._note = e.target.value; this._invalidate(); }}></label>
             </div><label class="check"><input name="exclude" type="checkbox" .checked=${this._exclude} ?disabled=${this._busy} @change=${e => { this._exclude = e.target.checked; this._invalidate(); }}>Loại số điện thoại đã trúng ở các lần quay trước trong cuộc thi này</label>
-            <div class="actions"><button type="submit" class="secondary" ?disabled=${this._busy || !this._contestId}>Xem trước</button><button type="button" class="primary" ?disabled=${this._busy || !this._previewData || !Number.isInteger(Number(this._count)) || Number(this._count) < 1 || Number(this._count) > 1000 || Number(this._count) > this._previewData.eligibleCount} @click=${this._draw}>Quay</button></div></form>
+            <div class="actions"><button type="submit" class="secondary" ?disabled=${this._busy || !this._contestId || !this._prizeId}>Xem trước</button><button type="button" class="primary" ?disabled=${this._busy || !this._previewData || !Number.isInteger(Number(this._count)) || Number(this._count) < 1 || Number(this._count) > 1000 || !this._selectedPrize || Number(this._count) > (this._selectedPrize?.remaining || 0) || Number(this._count) > this._previewData.eligibleCount} @click=${this._draw}>Quay</button></div></form>
+            ${this._contestId && !this._prizes.length ? html`<p class="notice error">Cuộc thi chưa có giải thưởng. Mở sửa cuộc thi để chọn giải và số lượng trước khi quay.</p>` : nothing}${this._selectedPrize ? html`<p class="muted">${this._selectedPrize.name}: tổng ${this._selectedPrize.quantity} suất · đã trao ${this._selectedPrize.awarded} · còn ${this._selectedPrize.remaining}.</p>` : nothing}
             ${this._previewData ? this._previewView() : nothing}</section>`;
     }
     _previewView() {
@@ -155,7 +172,7 @@ export class ContestDrawsView extends UmbLitElement {
         const p = paginate(d.winners, { page: this._winnerPage, size: this._winnerSize }, 50);
         return html`<section id="draw-result" aria-label="Kết quả quay số">
             ${this._celebrate ? html`<div class="draw-celebration" role="status"><div class="draw-confetti" aria-hidden="true">${Array.from({ length: 28 }, (_, i) => html`<i style=${`--i:${i};--x:${(i * 37) % 100}%;--h:${(i * 47) % 360}`}></i>`)}</div><span aria-hidden="true">✦</span><strong>Chúc mừng ${d.winners.length} người trúng giải!</strong><p>Kết quả chính thức đã được máy chủ lưu.</p></div>` : nothing}
-            <div class="panel-heading"><div><div class="eyebrow">Kết quả quay #${d.id}</div><h2>${d.note || 'Danh sách trúng giải'}</h2><p class="muted">${d.contestName || 'Dữ liệu cũ'} · ${date(d.createdAt)} · ${d.winners.length}/${d.eligibleCount} người</p></div><button class="presentation-button" @click=${async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await this.renderRoot.querySelector('#draw-result').requestFullscreen(); } catch { this._error = 'Trình duyệt không hỗ trợ toàn màn hình. Bạn có thể dùng phím F11.'; } }}>Trình chiếu / thoát</button></div>
+            <div class="panel-heading"><div><div class="eyebrow">Kết quả quay #${d.id}</div><h2>${d.prizeName || d.note || 'Danh sách trúng giải'}</h2><p class="muted">${d.contestName || 'Dữ liệu cũ'} · ${date(d.createdAt)} · ${d.winners.length}/${d.eligibleCount} người</p></div><button class="presentation-button" @click=${async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await this.renderRoot.querySelector('#draw-result').requestFullscreen(); } catch { this._error = 'Trình duyệt không hỗ trợ toàn màn hình. Bạn có thể dùng phím F11.'; } }}>Trình chiếu / thoát</button></div>
             <div class="scroll"><table class="winners-table"><thead><tr><th>Thứ tự</th><th>Mã dự thi</th><th>Họ tên</th><th>Điện thoại</th><th>Điểm</th></tr></thead><tbody>${p.items.map(w => html`<tr><td>${w.rank}</td><td class="mono">${w.code}</td><td><strong>${w.fullName}</strong></td><td>${w.phone}</td><td>${w.score}</td></tr>`)}</tbody></table></div>
             <nav class="pager" aria-label="Phân trang người trúng">${pageSizeSelect(this._winnerSize, size => { this._winnerSize = size; this._winnerPage = 1; }, this._busy, 'Số dòng người trúng')}<button ?disabled=${p.page <= 1} @click=${() => { this._winnerPage = p.page - 1; }}>← Trước</button><span>Trang ${p.page}/${p.pages}</span><button ?disabled=${p.page >= p.pages} @click=${() => { this._winnerPage = p.page + 1; }}>Sau →</button></nav>
             <div class="actions export-actions"><button ?disabled=${this._busy} @click=${() => this._export(d.id, 'winners')}>Xuất người trúng CSV</button><button ?disabled=${this._busy || !d.hasEligibleSnapshot} @click=${() => this._export(d.id, 'eligible')}>Xuất đủ điều kiện CSV</button></div>
@@ -171,7 +188,7 @@ export class ContestDrawsView extends UmbLitElement {
             ${this._resultView()}
             <section><h2>Lịch sử quay số</h2><form class="filters" @submit=${async e => { e.preventDefault(); if (this._busy) return; this._search = new FormData(e.currentTarget).get('search').trim(); this._page = 1; await this._historyPage(0); }}><input name="search" ?disabled=${this._busy} aria-label="Tìm lần quay" placeholder="Tìm người tạo hoặc tên giải…"><button ?disabled=${this._busy}>Tìm kiếm</button></form>
                 <p class="summary">${h?.totalItems || 0} lần quay · ${h?.pageSize || this._historySize} dòng mỗi trang · Không sửa hoặc xóa lịch sử</p>
-                <div class="table-wrap"><table><thead><tr><th>Lần quay</th><th>Cuộc thi / giải</th><th>Thời điểm</th><th>Điểm tối thiểu</th><th>Đủ điều kiện</th><th>Trúng</th><th>Loại đã trúng</th><th>Thao tác</th></tr></thead><tbody>${(h?.items || []).map(d => html`<tr><td>#${d.id}</td><td><strong>${d.contestName || 'Dữ liệu cũ'}</strong><small class="block">${d.note || '—'}</small></td><td>${date(d.createdAt)}</td><td>${d.minScore}</td><td>${d.eligibleCount}</td><td>${d.winners.length}</td><td>${d.excludePrevious ? 'Có' : 'Không'}</td><td><button ?disabled=${this._busy} @click=${() => this._view(d.id)}>Xem kết quả #${d.id}</button></td></tr>`)}</tbody></table></div>${!h?.items.length ? html`<p class="empty-state">Chưa có lần quay phù hợp.</p>` : nothing}
+                <div class="table-wrap"><table><thead><tr><th>Lần quay</th><th>Cuộc thi / giải</th><th>Thời điểm</th><th>Điểm tối thiểu</th><th>Đủ điều kiện</th><th>Trúng</th><th>Loại đã trúng</th><th>Thao tác</th></tr></thead><tbody>${(h?.items || []).map(d => html`<tr><td>#${d.id}</td><td><strong>${d.contestName || 'Dữ liệu cũ'}</strong><small class="block">${d.prizeName || 'Lần quay cũ chưa gắn giải'}${d.note ? ` · ${d.note}` : ''}</small></td><td>${date(d.createdAt)}</td><td>${d.minScore}</td><td>${d.eligibleCount}</td><td>${d.winners.length}</td><td>${d.excludePrevious ? 'Có' : 'Không'}</td><td><button ?disabled=${this._busy} @click=${() => this._view(d.id)}>Xem kết quả #${d.id}</button></td></tr>`)}</tbody></table></div>${!h?.items.length ? html`<p class="empty-state">Chưa có lần quay phù hợp.</p>` : nothing}
                 <nav class="pager" aria-label="Phân trang lịch sử">${pageSizeSelect(this._historySize, size => { this._historySize = size; this._page = 1; this._historyPage(0); }, this._busy, 'Số dòng lịch sử quay')}<button ?disabled=${this._busy || !h || h.page <= 1} @click=${() => this._historyPage(-1)}>← Trước</button><span>Trang ${h?.page || 1}/${h?.totalPages || 1}</span><button ?disabled=${this._busy || !h || h.page >= h.totalPages} @click=${() => this._historyPage(1)}>Sau →</button></nav>
             </section></div>`;
         return this.embedded ? content : html`<umb-body-layout main-no-padding>${content}</umb-body-layout>`;

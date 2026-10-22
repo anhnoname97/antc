@@ -1,0 +1,16 @@
+@model Umbraco.Plugin.Custom.Api.Controllers.DrawPanelModel
+@{
+    Layout = "~/Views/QuaySo/_QuaySoLayout.cshtml";
+    ViewData["Title"] = "Trình chiếu · " + Model.ContestName;
+    ViewData["Bare"] = true;
+    ViewData["BodyClass"] = "qd mode-stage";
+}
+<div class="qd-root" data-mode="stage" data-contest-id="@Model.ContestId" data-api="/api/v1/quay-so" data-home="/quay-so"
+     data-stage-url="/quay-so/@Model.ContestId/trinh-chieu">
+    <div class="stage-wrap big" id="bigWrap"></div>
+    <p class="qd-status" id="stageStatus" role="status" hidden></p>
+</div>
+@await Html.PartialAsync("~/Views/QuaySo/_Stage.cshtml")
+@section Scripts {
+    <script src="~/assets/js/quay-so.js" asp-append-version="true"></script>
+}

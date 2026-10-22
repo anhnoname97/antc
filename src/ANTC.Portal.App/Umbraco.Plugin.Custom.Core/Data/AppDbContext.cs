@@ -25,6 +25,8 @@ public class AppDbContext : DbContext
     public DbSet<Entry> Entries => Set<Entry>();
     public DbSet<EntryAnswer> EntryAnswers => Set<EntryAnswer>();
     public DbSet<Draw> Draws => Set<Draw>();
+    public DbSet<Prize> Prizes => Set<Prize>();
+    public DbSet<ContestPrize> ContestPrizes => Set<ContestPrize>();
     public DbSet<DrawWinner> DrawWinners => Set<DrawWinner>();
     public DbSet<QuestionSubmission> QuestionSubmissions => Set<QuestionSubmission>();
     public DbSet<QuestionRetentionPolicy> QuestionRetentionPolicies => Set<QuestionRetentionPolicy>();
@@ -95,11 +97,31 @@ public class AppDbContext : DbContext
             e.ToTable("draw");
             e.Property(x => x.CreatedBy).HasMaxLength(100);
             e.Property(x => x.Note).HasMaxLength(200);
+            e.Property(x => x.PrizeCode).HasMaxLength(30);
+            e.Property(x => x.PrizeName).HasMaxLength(150);
+            e.HasOne(x => x.PrizeAllocation).WithMany(x => x.Draws)
+                .HasForeignKey(x => new { x.ContestId, x.PrizeId }).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.RequestId).IsUnique();
             e.HasIndex(x => x.ContestId);
             e.HasOne(x => x.Contest).WithMany(x => x.Draws).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
         });
 
+        b.Entity<Prize>(e =>
+        {
+            e.ToTable("prize");
+            e.Property(x => x.Code).HasMaxLength(30);
+            e.HasIndex(x => x.Code).IsUnique();
+            e.Property(x => x.Name).HasMaxLength(150);
+            e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.Revision).IsConcurrencyToken();
+        });
+        b.Entity<ContestPrize>(e =>
+        {
+            e.ToTable("contest_prize", table => table.HasCheckConstraint("CK_contest_prize_quantity", "quantity BETWEEN 1 AND 1000"));
+            e.HasKey(x => new { x.ContestId, x.PrizeId });
+            e.HasOne(x => x.Contest).WithMany(x => x.Prizes).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Prize).WithMany(x => x.Contests).HasForeignKey(x => x.PrizeId).OnDelete(DeleteBehavior.Restrict);
+        });
         b.Entity<DrawWinner>(e =>
         {
             e.ToTable("draw_winner");
