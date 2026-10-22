@@ -5,6 +5,7 @@ using Umbraco.Plugin.Custom.Api.Infrastructure;
 using Antc.Deployment;
 using Microsoft.AspNetCore.DataProtection;
 using Antc.Infrastructure;
+using Antc.Web;
 
 // Offline command: no Umbraco host, no migrations and no service is started during backup.
 if (args.FirstOrDefault() == "--deployment-backup")
@@ -31,7 +32,6 @@ if (builder.Environment.IsDevelopment())
 // Environment and explicit CLI values always override local JSON.
 builder.Configuration.AddEnvironmentVariables().AddCommandLine(args);
 builder.Services.AddWindowsService();
-builder.Services.AddPublicErrorPages(builder.Configuration);
 builder.Services.AddAntcApiProtection(builder.Configuration);
 builder.Services.AddAdministrationIpAllowlist(builder.Configuration, builder.Environment);
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationMiddlewareResultHandler,
@@ -61,7 +61,7 @@ await DeploymentOperations.ImportStructureAsync(app);
 // IP thật phải được xác định trước khi chia hạn mức và băm IP của lượt thi/câu hỏi.
 app.UseForwardedHeaders();
 app.UsePublicSitePerformance();
-app.UsePublicErrorPages();
+app.UseWebsiteErrorPages(app.Environment);
 app.UseMiddleware<ApiBoundaryMiddleware>();
 app.UseMiddleware<DeploymentTrafficGateMiddleware>();
 app.UseMiddleware<AdministrationIpAllowlistMiddleware>();

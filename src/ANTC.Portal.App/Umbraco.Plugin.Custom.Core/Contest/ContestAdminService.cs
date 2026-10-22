@@ -27,6 +27,7 @@ public interface IContestAdminService
     Task<DrawAdminDto?> GetDrawAsync(long id, CancellationToken ct);
     Task<DrawAdminDto> CreateDrawAsync(SaveDrawRequest request, string actor, CancellationToken ct);
     Task<DrawPreviewDto> PreviewDrawAsync(PreviewDrawRequest request, CancellationToken ct);
+    Task<IReadOnlyList<DrawCandidateSnapshot>> EligibleCandidatesAsync(long contestId, int minScore, bool excludePrevious, CancellationToken ct);
     Task<IReadOnlyList<DrawCandidateSnapshot>?> ExportDrawAsync(long id, bool winners, CancellationToken ct);
     Task<DrawAdminDto?> UpdateDrawAsync(long id, SaveDrawRequest request, CancellationToken ct);
     Task<bool> DeleteDrawAsync(long id, CancellationToken ct);

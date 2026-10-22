@@ -7,6 +7,35 @@ document.querySelectorAll('[data-website-check]').forEach(check => {
   };
   close();
   check.classList.add('is-interactive');
+  // Anchor point 4 to its actual row on small screens instead of desktop percentages.
+  const searchPoint = check.querySelector('[data-hotspot-number="4"]');
+  const search = check.querySelector('.website-check__search');
+  const badge = search?.querySelector('b');
+  const diagram = check.querySelector('.website-check__diagram');
+  if (searchPoint && search && badge && diagram) {
+    const compact = matchMedia('(max-width: 1100px)');
+    const original = { left: searchPoint.style.left, top: searchPoint.style.top };
+    const positionSearchPoint = () => {
+      if (!compact.matches) {
+        Object.assign(searchPoint.style, original);
+        return;
+      }
+      const diagramBox = diagram.getBoundingClientRect();
+      const searchBox = search.getBoundingClientRect();
+      const badgeBox = badge.getBoundingClientRect();
+      searchPoint.style.left = `${searchBox.left - diagramBox.left + searchPoint.offsetWidth / 2}px`;
+      searchPoint.style.top = `${badgeBox.top - diagramBox.top + badgeBox.height / 2}px`;
+    };
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(positionSearchPoint);
+      [diagram, search, badge].forEach(element => observer.observe(element));
+    } else {
+      window.addEventListener('resize', positionSearchPoint, { passive: true });
+    }
+    compact.addEventListener('change', positionSearchPoint);
+    document.fonts.ready.then(positionSearchPoint);
+    positionSearchPoint();
+  }
   buttons.forEach(button => button.addEventListener('click', () => {
     const open = button.getAttribute('aria-expanded') !== 'true';
     close();

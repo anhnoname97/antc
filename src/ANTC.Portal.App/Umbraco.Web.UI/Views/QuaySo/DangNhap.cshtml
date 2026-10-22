@@ -1,0 +1,21 @@
+@model Umbraco.Plugin.Custom.Api.Controllers.DrawLoginModel
+@{
+    Layout = "~/Views/QuaySo/_QuaySoLayout.cshtml";
+    ViewData["Title"] = "Đăng nhập";
+}
+<section class="qs-card">
+    <h1 class="qs-title">Đăng nhập quay số</h1>
+    <p class="qs-lead">Dành cho thành viên Ban tổ chức quay số.</p>
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+        <p class="qs-alert" role="alert">@Model.Error</p>
+    }
+    <form method="post" action="/quay-so/dang-nhap" asp-antiforgery="true" class="qs-form">
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl">
+        <label class="qs-label" for="qs-user">Tên đăng nhập / Email</label>
+        <input class="qs-input" id="qs-user" name="UserName" type="text" value="@Model.UserName" autocomplete="username" required autofocus>
+        <label class="qs-label" for="qs-pass">Mật khẩu</label>
+        <input class="qs-input" id="qs-pass" name="Password" type="password" autocomplete="current-password" required>
+        <button class="qs-btn" type="submit">Đăng nhập</button>
+    </form>
+</section>

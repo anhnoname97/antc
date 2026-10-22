@@ -1,6 +1,6 @@
 // Trang trí Hero độc lập với dữ liệu nội dung và các block triển khai tiếp theo.
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const mobile = matchMedia('(max-width: 759px)');
+const mobile = matchMedia('(max-width: 1100px)');
 const saveData = navigator.connection?.saveData === true;
 
 document.querySelectorAll('[data-site-sections]').forEach(section => {
@@ -9,7 +9,7 @@ document.querySelectorAll('[data-site-sections]').forEach(section => {
   if (!timeline) return;
   const cards = items.map(item => item.querySelector('.site-sections__card'));
   const children = cards.map(card => [...card.children]);
-  const wide = matchMedia('(min-width: 901px)');
+  const wide = matchMedia('(min-width: 1101px)');
   const clamp = value => Math.max(0, Math.min(1, value));
   const easeOut = value => 1 - (1 - value) ** 3;
   const backOut = value => 1 + 3 * (value - 1) ** 3 + 2 * (value - 1) ** 2;
@@ -67,7 +67,7 @@ document.querySelectorAll('[data-site-sections]').forEach(section => {
     if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
     animationFrame = undefined;
     previousFrameTime = undefined;
-    enabled = section.closest('.home-section')?.dataset.heroMotion === 'true' && !reducedMotion.matches;
+    enabled = wide.matches && section.closest('.home-section')?.dataset.heroMotion === 'true' && !reducedMotion.matches;
     section.classList.toggle('has-scroll-animation', enabled);
     current = targets();
     paint(current);
@@ -84,11 +84,12 @@ document.querySelectorAll('[data-site-sections]').forEach(section => {
 const heroIntroStarts = new WeakMap();
 document.querySelectorAll('.home-section--hero').forEach(hero => {
   const configure = () => {
-    const animate = hero.dataset.heroMotion === 'true' && !reducedMotion.matches;
+    const animate = hero.dataset.heroMotion === 'true' && !reducedMotion.matches && !mobile.matches;
     if (animate && !hero.classList.contains('hero-intro-animated')) heroIntroStarts.set(hero, performance.now());
     hero.classList.toggle('hero-intro-animated', animate);
   };
   reducedMotion.addEventListener('change', configure);
+  mobile.addEventListener('change', configure);
   configure();
 });
 

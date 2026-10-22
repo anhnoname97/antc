@@ -38,8 +38,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Trang loi may chu doc tu file, hoat dong khong can render Razor hay doc CMS. -->
-    <Content Include="ErrorPages\**\*.html" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <!-- Cau hinh rieng tung may, khong dua vao ban publish -->
     <Content Update="appsettings.Local.json" CopyToPublishDirectory="Never" />
     <Content Update="appsettings.Local.template.json;App_Data\**;umbraco\Data\**;umbraco\Logs\**;umbraco\models\**;wwwroot\media\**" CopyToPublishDirectory="Never" />

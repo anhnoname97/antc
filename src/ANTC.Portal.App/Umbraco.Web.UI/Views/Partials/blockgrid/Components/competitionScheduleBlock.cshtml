@@ -24,8 +24,8 @@
         </div>
         @if (schedule.Count > 0)
         {
-            <div class="sched" style="--schedule-count:@schedule.Count;--schedule-progress:@(progress.ToString("0.###", CultureInfo.InvariantCulture))%" data-schedule-progress="@progress.ToString("0.###", CultureInfo.InvariantCulture)">
-                <span class="sched-line" aria-hidden="true"></span><span class="sched-fill" aria-hidden="true"></span>
+            <div class="sched" data-schedule-progress="@progress.ToString("0.###", CultureInfo.InvariantCulture)">
+                <span class="sched-line" aria-hidden="true"></span><svg class="sched-fill" width="@(progress.ToString("0.###", CultureInfo.InvariantCulture))%" height="2" aria-hidden="true"><rect width="100%" height="2" /></svg>
                 <ol class="sched-track">
                     @foreach (var item in schedule)
                     {

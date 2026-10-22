@@ -2,7 +2,7 @@ import { blockCopy } from './block-copy.js';
 // Nop bai, gan thong tin du thuong cho luot an danh, man ket qua luot thi (FE-29).
 // exam.js goi: panelHtml (thanh nop bai o danh sach / man Xong chuyen de), attachButtonHtml (cot ben), resultHtml (man ket qua),
 // wire (mo hop thoai khi bam nut). Trang thai lay tu contest-store.js; hop thoai la <dialog id="sdlg"> trong contestSubmissionBlock.cshtml.
-import { state, submit, attachContact, topicProgress } from './contest-store.js';
+import { state, submit, attachContact, topicProgress, pendingCount } from './contest-store.js';
 import { checkContact } from './phone.js';
 import { esc, eyebrowHtml } from '../quiz/quiz-ui.js';
 
@@ -38,6 +38,7 @@ let busy = false;
 let opener = null;
 let notice = ''; // thong bao tu may chu (vd NOTHING_TO_SUBMIT), hien tren thanh nop bai cho toi khi tien do doi hoac doi luot
 let noticeAt = null; // so cau da tra loi luc thong bao hien lan dau; doi so nay (tra loi them) thi bo thong bao
+let currentTopics = () => [];
 let expired = false; // da nhan CONTEST_CLOSED o API-04/05: het han nop
 
 export function setup(handlers) {
@@ -75,12 +76,23 @@ function submitExpired() {
 
 const inEntry = () => !state.practice && !!state.entry && state.status !== 'submitted';
 
+// Chi mo nop bai khi tat ca chuyen de/cau hoi cua luot da hoan thanh va luu len may chu.
+function readyToSubmit(topics) {
+  const plan = state.topics.length ? state.topics : topics;
+  const { total, complete } = counts(plan);
+  return inEntry() && state.synced && complete && !submitExpired()
+    && (state.total == null || Number(state.total) === total)
+    && pendingCount() === 0 && ![...state.answers.values()].some(answer => answer.pending);
+}
+
+
 // ---- HTML ----
 
 // Thanh nop bai o dau danh sach chuyen de va man Xong chuyen de
 export function panelHtml(topics) {
   if (!inEntry()) return '';
-  const { total, answered, complete } = counts(topics);
+  const { total, answered, complete } = counts(state.topics.length ? state.topics : topics);
+  if (!complete) return '';
   if (notice) {
     if (noticeAt === null) noticeAt = answered;
     else if (noticeAt !== answered) notice = ''; // tien do doi thi thong bao cu khong con dung
@@ -89,10 +101,8 @@ export function panelHtml(topics) {
   if (submitExpired()) {
     return o + box('warn', '<b>Đã hết hạn nộp bài.</b> Bạn vẫn xem lại được ngân hàng câu hỏi ở chế độ luyện tập.');
   }
-  if (answered === 0) {
-    return o + box('soft', `<b>Đã trả lời 0 / ${total} câu.</b> Trả lời ít nhất một câu để nộp bài.`);
-  }
-  const progress = complete ? `Bạn đã trả lời hết ${total} câu.` : `Bạn đã trả lời ${answered} / ${total} câu. Câu chưa trả lời không được tính đúng.`;
+  if (!readyToSubmit(topics)) return '';
+  const progress = `Bạn đã trả lời hết ${total} câu và hoàn thành toàn bộ chuyên đề.`;
   return o + `<div class="infobox infobox--ok submitbar"><p><b>${progress}</b> Nộp bài để chốt kết quả. Nộp rồi thì không làm tiếp được trong lượt này.</p>`
     + '<button type="button" class="qnav f" data-submit-open>Nộp bài dự thi</button></div>';
 }
@@ -179,7 +189,7 @@ function correctCount() {
 }
 
 function openDialog(k, trigger, topics) {
-  if (!dlg || !state.entry) return;
+  if (!dlg || !state.entry || (k === 'submit' && !readyToSubmit(topics))) return;
   kind = k;
   opener = trigger;
   showErr('');
@@ -267,6 +277,11 @@ function handleError(err, contact) {
 
 async function onOk() {
   if (busy || !state.entry) return;
+  if (kind === 'submit' && !readyToSubmit(currentTopics())) {
+    closeDialog();
+    deps?.onIncomplete('Bạn cần hoàn thành toàn bộ câu hỏi và chuyên đề, đồng thời lưu hết đáp án trước khi nộp bài.');
+    return;
+  }
   let contact;
   if (kind === 'attach' || wantEl.checked) {
     const r = checkContact({
@@ -319,6 +334,7 @@ if (dlg) {
 
 // Bam nut mo hop thoai trong vung examView / cot ben. getTopics: danh sach chuyen de dang dung (de tom tat so cau)
 export function wire(root, getTopics) {
+  currentTopics = getTopics;
   root.addEventListener('click', (e) => {
     const sub = e.target.closest('[data-submit-open]');
     if (sub) {

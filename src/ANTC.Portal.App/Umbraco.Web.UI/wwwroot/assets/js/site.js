@@ -50,6 +50,33 @@ if (header) {
   // Hero mới có thể khai báo data-header-hero để dùng header trong suốt.
   header.dataset.overlay = String(hasHero && !hero.matches('.page-hero'));
 
+  const menuButton = header.querySelector('[data-site-menu]');
+  const navigation = header.querySelector('#site-header-nav');
+  const mobileHeader = matchMedia('(max-width: 1100px)');
+  if (menuButton && navigation) {
+    header.classList.add('has-mobile-menu');
+    const setMenuOpen = (open, restoreFocus = false) => {
+      header.classList.toggle('is-menu-open', open);
+      menuButton.setAttribute('aria-expanded', String(open));
+      menuButton.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu');
+      if (restoreFocus) menuButton.focus({ preventScroll: true });
+    };
+    menuButton.addEventListener('click', () => setMenuOpen(menuButton.getAttribute('aria-expanded') !== 'true'));
+    navigation.addEventListener('click', event => {
+      if (event.target.closest('a')) setMenuOpen(false);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && header.classList.contains('is-menu-open')) setMenuOpen(false, true);
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!header.contains(event.target)) setMenuOpen(false);
+    });
+    document.addEventListener('focusin', event => {
+      if (!header.contains(event.target)) setMenuOpen(false);
+    });
+    mobileHeader.addEventListener('change', () => setMenuOpen(false));
+  }
+
   const updateHeader = () => {
     const threshold = hasHero ? Math.max(0, hero.getBoundingClientRect().bottom + window.scrollY - header.offsetHeight - 12) : 16;
     header.classList.toggle('is-scrolled', window.scrollY >= threshold);

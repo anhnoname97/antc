@@ -9,6 +9,6 @@
     <ol><li><a href="@(home?.Url() ?? "/")">Trang chủ</a></li>
         @if (inFraud && fraud is not null) { <li><a href="@fraud.Url()">Thủ đoạn</a></li> }
         @if (category?.ContentType.Alias == "articleList") { <li><a href="@category.Url()">@category.Name</a></li> }
-        <li aria-current="page">@Model.Name</li>
+        <li aria-current="page">@(Model.ContentType.Alias == "article" ? "Bài viết" : Model.Name)</li>
     </ol>
 </nav>
