@@ -10,16 +10,18 @@ public class ContestCampaignAdminServiceTests
     public async Task PrizeMoney_RoundTripsValidatesAndOldClientDoesNotClearIt()
     {
         await using TestDatabase test = await TestDatabase.CreateAsync();
-        var prize=(await test.Service.SavePrizeAsync(null,new("MONEY","Giải tiền",null,PrizeMoney:1500000),default))!;
-        Assert.Equal(1500000,prize.PrizeMoney);
-        Assert.Equal(1500000,(await test.Service.SearchPrizesAsync(null,null,1,50,default)).Items.Single().PrizeMoney);
-        await test.Service.SavePrizeAsync(prize.Id,new(prize.Code,prize.Name,null),default);
-        Assert.Equal(1500000,(await test.Service.GetPrizeAsync(prize.Id,default))!.PrizeMoney);
-        await test.Service.SavePrizeAsync(prize.Id,new(prize.Code,prize.Name,null,PrizeMoney:0),default);
-        Assert.Equal(0,(await test.Service.GetPrizeAsync(prize.Id,default))!.PrizeMoney);
-        var error=await Assert.ThrowsAsync<ContestAdminValidationException>(()=>test.Service.SavePrizeAsync(prize.Id,new(prize.Code,prize.Name,null,PrizeMoney:-1),default));
+        var prize=(await test.Service.SavePrizeAsync(null,new("MONEY","Giải tiền",null),default))!;
+        var first=await test.Service.CreateCampaignAsync(Schedule(10,15) with { Prizes=[new(prize.Id,1,1500000)] },default);
+        var second=await test.Service.CreateCampaignAsync(Schedule(16,20) with { Prizes=[new(prize.Id,2,2500000)] },default);
+        Assert.Equal(1500000,Assert.Single(first.Prizes!).PrizeMoney);
+        Assert.Equal(2500000,Assert.Single(second.Prizes!).PrizeMoney);
+        await test.Service.SaveContestPrizesAsync(first.Id,new([new(prize.Id,3)]),default);
+        Assert.Equal(1500000,Assert.Single(await test.Service.ContestPrizesAsync(first.Id,default)).PrizeMoney);
+        await test.Service.SaveContestPrizesAsync(first.Id,new([new(prize.Id,3,0)]),default);
+        Assert.Equal(0,Assert.Single(await test.Service.ContestPrizesAsync(first.Id,default)).PrizeMoney);
+        var error=await Assert.ThrowsAsync<ContestAdminValidationException>(()=>test.Service.SaveContestPrizesAsync(first.Id,new([new(prize.Id,3,-1)]),default));
         Assert.Contains("prizeMoney",error.Fields.Keys);
-        await Assert.ThrowsAsync<ContestAdminValidationException>(()=>test.Service.SavePrizeAsync(prize.Id,new(prize.Code,prize.Name,null,PrizeMoney:9007199254740992),default));
+        await Assert.ThrowsAsync<ContestAdminValidationException>(()=>test.Service.SaveContestPrizesAsync(first.Id,new([new(prize.Id,3,9007199254740992)]),default));
     }
     [Fact]
     public async Task CreateCampaign_SavesPrizeSelectionsWithIndependentQuantities()

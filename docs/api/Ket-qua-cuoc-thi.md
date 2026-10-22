@@ -49,7 +49,7 @@ Ví dụ phản hồi đã công bố:
           "rank": 1,
           "code": "AD-ABCDEF",
           "fullName": "Nguyễn *** An",
-          "phone": "091****678",
+          "phone": "091234****",
           "score": 200
         }
       ]
@@ -81,7 +81,7 @@ Mọi thời gian UTC ISO-8601 có hậu tố `Z`. `Cache-Control: no-store` gi�
 
 ### Bảo vệ thông tin
 
-Điện thoại được che `091****678`. Tên từ ba từ trở lên hiển thị từ đầu + `***` + từ cuối; tên hai từ chỉ giữ từ đầu (`Trần ***`), tên một từ trả `***`. Không có tên đầy đủ, điện thoại đầy đủ, đơn vị, token, IP, ID lượt nội bộ, ghi chú hoặc người thực hiện quay trong phản hồi công khai. Bảng snapshot công khai cũng chỉ lưu các trường cá nhân đã che.
+Điện thoại người trúng trong `draws[].winners[]` che **bốn số cuối**, ví dụ `091234****`. Snapshot cũ đã che giữa được che tiếp bốn ký tự cuối khi trả API (ví dụ `091*******`), không khôi phục chữ số đã ẩn và không cần công bố lại. Bảng xếp hạng vẫn che kiểu `091****678`; backoffice vẫn giữ đầy đủ số. Tên từ ba từ trở lên hiển thị từ đầu + `***` + từ cuối; tên hai từ chỉ giữ từ đầu (`Trần ***`), tên một từ trả `***`. Không có tên đầy đủ, điện thoại đầy đủ, đơn vị, token, IP, ID lượt nội bộ, ghi chú hoặc người thực hiện quay trong phản hồi công khai. Bảng snapshot công khai cũng chỉ lưu các trường cá nhân đã che.
 
 ## 2. Quản trị công bố/gỡ công bố
 

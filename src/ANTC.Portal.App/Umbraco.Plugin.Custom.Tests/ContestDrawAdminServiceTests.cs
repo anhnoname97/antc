@@ -9,6 +9,23 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class ContestDrawAdminServiceTests
 {
     [Fact]
+    public async Task MoneyMigration_CopiesExistingPrizeMoneyIntoEachContestAllocation()
+    {
+        await using var connection=new SqliteConnection("Data Source=:memory:");await connection.OpenAsync();
+        await using var db=new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options);
+        var migrator=db.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>();
+        await migrator.MigrateAsync(db.Database.GetMigrations().Single(m=>m.EndsWith("_PrizeMoney")));
+        var prize=new Prize { Code="MIGRATE",Name="Giải cũ" };
+        var a=new ContestCampaign { Name="A" };var b=new ContestCampaign { Name="B" };
+        db.Prizes.Add(prize);db.ContestCampaigns.AddRange(a,b);await db.SaveChangesAsync();
+        await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE prize SET prize_money=1500000 WHERE id={prize.Id}");
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO contest_prize(contest_id,prize_id,quantity,sort_order) VALUES({a.Id},{prize.Id},1,0),({b.Id},{prize.Id},2,0)");
+        await db.Database.MigrateAsync();db.ChangeTracker.Clear();
+        var allocations=await db.ContestPrizes.ToListAsync();
+        Assert.Equal(2,allocations.Count);Assert.All(allocations,p=>Assert.Equal(1500000,p.PrizeMoney));
+        Assert.Equal(3,allocations.Sum(p=>p.Quantity));Assert.Single(await db.Prizes.ToListAsync());
+    }
+    [Fact]
     public async Task PrizeQuota_PartialDrawsRetryAndExhaustion_DoNotOverAward()
     {
         await using var f=await Fixture.Create();

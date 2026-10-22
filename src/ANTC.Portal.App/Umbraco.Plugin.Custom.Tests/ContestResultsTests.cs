@@ -13,6 +13,30 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public sealed class ContestResultsTests
 {
+    [Theory]
+    [InlineData("0912345678", "091234****")]
+    [InlineData("091234****", "091234****")]
+    [InlineData("091****678", "091*******")]
+    [InlineData("", "***")]
+    public void WinnerPhone_HidesLastFourIncludingLegacyMasks(string phone, string expected)
+        => Assert.Equal(expected, ContestResultsService.MaskWinnerPhone(phone));
+
+    [Fact]
+    public async Task LegacyPublishedWinner_IsRemaskedWithoutRepublishingOrChangingLeaderboard()
+    {
+        await using var f=await ContestReportingTests.Fixture.CreateAsync();
+        var service=Service(f.Db,new Clock());
+        var draw=new Draw { ContestId=f.ContestId, CreatedAt=new Clock().Now, Winners=[new DrawWinner { EntryId=1, Rank=1, Code="AD-TST001", FullName="Nguyễn Văn An", Phone="0912345678", Score=2 }] };
+        f.Db.Draws.Add(draw);await f.Db.SaveChangesAsync();
+        await service.SetPublicationAsync(f.ContestId,new(true,[draw.Id],0),Actor,default);
+        var publication=await f.Db.ContestPublishedResults.SingleAsync();
+        publication.SnapshotJson=publication.SnapshotJson.Replace("091234****","091****678");
+        await f.Db.SaveChangesAsync();
+        var response=(await service.GetAsync(f.ContestId,1,50,default))!;
+        Assert.Equal("091*******",Assert.Single(Assert.Single(response.Draws).Winners).Phone);
+        Assert.Equal(publication.Revision,response.Version);
+        Assert.Equal("091****678",Assert.Single(response.Leaderboard.Items).Phone);
+    }
     private sealed class Clock : TimeProvider
     {
         public DateTime Now=ContestReportingTests.Fixture.Now.AddDays(12);
@@ -44,7 +68,7 @@ public sealed class ContestResultsTests
         var result=(await service.GetAsync(f.ContestId,1,20,default))!;
         Assert.Equal("published",result.Status);Assert.Equal(1,result.Leaderboard.Total); // Two entries share one phone: best score wins.
         var winner=Assert.Single(Assert.Single(result.Draws).Winners);
-        Assert.Equal("091****678",winner.Phone);Assert.Equal("Nguyễn *** An",winner.FullName);
+        Assert.Equal("091234****",winner.Phone);Assert.Equal("Nguyễn *** An",winner.FullName);
         var rank=Assert.Single(result.Leaderboard.Items);Assert.Equal(2,rank.Score);Assert.Equal(1,rank.Rank);Assert.Equal("AD-TST001",rank.Code);
         string json=JsonSerializer.Serialize(result);
         foreach(string secret in new[]{"0912345678","Nguyễn Văn An","TokenHash","IpHash","Private note","Never return actor","EntryId","PublishedByKey"})Assert.DoesNotContain(secret,json);

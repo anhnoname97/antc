@@ -1,7 +1,7 @@
 {
   "$schema": "../../umbraco-package-schema.json",
   "name": "ANTC Contest Management",
-    "version": "1.14.3",
+    "version": "1.14.4",
   "allowPublicAccess": true,
   "extensions": [
     { "type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.Prizes", "name": "Contest Prizes", "weight": 110,

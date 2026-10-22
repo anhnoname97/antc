@@ -16,11 +16,11 @@ public sealed partial class ContestAdminService
         if (isActive is not null) query = query.Where(p => p.IsActive == isActive);
         int count = await query.CountAsync(ct);
         var items = await query.OrderBy(p => p.SortOrder).ThenBy(p => p.Id).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(p => new PrizeAdminDto(p.Id, p.Code, p.Name, p.Description, p.IsActive, p.SortOrder, p.CreatedAt, p.UpdatedAt, p.Revision, p.Contests.Count, p.PrizeMoney)).ToListAsync(ct);
+            .Select(p => new PrizeAdminDto(p.Id, p.Code, p.Name, p.Description, p.IsActive, p.SortOrder, p.CreatedAt, p.UpdatedAt, p.Revision, p.Contests.Count)).ToListAsync(ct);
         return Page(items, page, pageSize, count);
     }
     public async Task<PrizeAdminDto?> GetPrizeAsync(long id, CancellationToken ct) => await db.Prizes.AsNoTracking().Where(p => p.Id == id)
-        .Select(p => new PrizeAdminDto(p.Id, p.Code, p.Name, p.Description, p.IsActive, p.SortOrder, p.CreatedAt, p.UpdatedAt, p.Revision, p.Contests.Count, p.PrizeMoney)).SingleOrDefaultAsync(ct);
+        .Select(p => new PrizeAdminDto(p.Id, p.Code, p.Name, p.Description, p.IsActive, p.SortOrder, p.CreatedAt, p.UpdatedAt, p.Revision, p.Contests.Count)).SingleOrDefaultAsync(ct);
 
     public async Task<PrizeAdminDto?> SavePrizeAsync(long? id, SavePrizeRequest request, CancellationToken ct)
     {
@@ -30,7 +30,6 @@ public sealed partial class ContestAdminService
         if (name.Length is < 2 or > 150) fields["name"] = "Tên giải phải có 2–150 ký tự.";
         if (request.Description?.Trim().Length > 2000) fields["description"] = "Mô tả tối đa 2.000 ký tự.";
         if (request.SortOrder < 0) fields["sortOrder"] = "Thứ tự không được âm.";
-        if (request.PrizeMoney is < 0 or > 9007199254740991L) fields["prizeMoney"] = "Tiền thưởng phải là số nguyên VNĐ từ 0 đến 9.007.199.254.740.991.";
         if (fields.Count > 0) throw new ContestAdminValidationException(fields);
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         var prize = id is null ? new Prize { CreatedAt = UtcNow() } : await db.Prizes.SingleOrDefaultAsync(p => p.Id == id, ct);
@@ -41,7 +40,6 @@ public sealed partial class ContestAdminService
             throw new ContestAdminConflictException("PRIZE_CODE_EXISTS", "Mã giải đã tồn tại.");
         prize.Code = code; prize.Name = name; prize.Description = NullIfEmpty(request.Description); prize.IsActive = request.IsActive; prize.SortOrder = request.SortOrder; prize.UpdatedAt = UtcNow();
         if (id is null) db.Prizes.Add(prize); else prize.Revision++;
-        if (request.PrizeMoney is { } money) prize.PrizeMoney = money;
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         return await GetPrizeAsync(prize.Id, ct);
     }
@@ -60,7 +58,7 @@ public sealed partial class ContestAdminService
         var allocations = await db.ContestPrizes.AsNoTracking().Include(p => p.Prize).Where(p => p.ContestId == contestId).OrderBy(p => p.SortOrder).ThenBy(p => p.PrizeId).ToListAsync(ct);
         var counts = await AwardedAsync(contestId, ct);
         return allocations.Select(p => new ContestPrizeDto(p.PrizeId, p.Prize!.Code, p.Prize.Name, p.Prize.Description, p.Quantity,
-            counts.GetValueOrDefault(p.PrizeId), Math.Max(0, p.Quantity - counts.GetValueOrDefault(p.PrizeId)), p.Prize.IsActive, p.SortOrder)).ToList();
+            counts.GetValueOrDefault(p.PrizeId), Math.Max(0, p.Quantity - counts.GetValueOrDefault(p.PrizeId)), p.Prize.IsActive, p.SortOrder, p.PrizeMoney)).ToList();
     }
     private Task<Dictionary<long, int>> AwardedAsync(long contestId, CancellationToken ct) => db.DrawWinners
         .Where(w => w.Draw!.ContestId == contestId && w.Draw.PrizeId != null).GroupBy(w => w.Draw!.PrizeId!.Value)
@@ -69,6 +67,8 @@ public sealed partial class ContestAdminService
     private async Task ApplyPrizesAsync(ContestCampaign campaign, IReadOnlyList<SaveContestPrizeRequest>? requests, CancellationToken ct)
     {
         if (requests is null) return; // Old clients may update other fields without clearing allocations.
+        if (requests.Any(p => p.PrizeMoney is < 0 or > 9007199254740991L))
+            throw new ContestAdminValidationException(new Dictionary<string, string> { ["prizeMoney"] = "Tiền thưởng mỗi suất phải là số nguyên VNĐ từ 0 đến 9.007.199.254.740.991." });
         if (requests.Count > 100 || requests.Select(p => p.PrizeId).Distinct().Count() != requests.Count || requests.Any(p => p.PrizeId <= 0 || p.Quantity is < 1 or > 1000))
             throw new ContestAdminValidationException(new Dictionary<string, string> { ["prizes"] = "Chọn tối đa 100 loại giải, không trùng; số lượng mỗi loại từ 1 đến 1.000." });
         var ids = requests.Select(p => p.PrizeId).ToArray();
@@ -85,6 +85,7 @@ public sealed partial class ContestAdminService
             var request = requests[i]; var allocation = campaign.Prizes.SingleOrDefault(p => p.PrizeId == request.PrizeId);
             if (allocation is null) { allocation = new ContestPrize { PrizeId = request.PrizeId }; campaign.Prizes.Add(allocation); }
             allocation.Quantity = request.Quantity; allocation.SortOrder = i;
+            if (request.PrizeMoney is { } money) allocation.PrizeMoney = money;
         }
     }
     public async Task<ContestCampaignAdminDto?> SaveContestPrizesAsync(long id, SaveContestPrizesRequest request, CancellationToken ct)
