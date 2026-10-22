@@ -647,6 +647,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("name");
 
+                    b.Property<long>("PrizeMoney")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("prize_money");
+
                     b.Property<long>("Revision")
                         .IsConcurrencyToken()
                         .HasColumnType("INTEGER")

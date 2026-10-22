@@ -20,6 +20,8 @@ Mỗi loại giải cho phép số lượng 1–1.000, tối đa 100 loại mỗ
 
 ## API quản trị
 
+Danh mục giải có thêm `prizeMoney`: số nguyên VNĐ cho **một suất giải**, không âm (tối đa 9.007.199.254.740.991 để truyền JSON chính xác trên trình duyệt). Mặc định 0 cho dữ liệu cũ/giải không có tiền. API tạo/sửa nhận trường này, API danh sách/chi tiết trả trường này. Bỏ trường khi cập nhật giữ giá trị cũ; gửi 0 để đặt lại. Số lượng giải, quan hệ với cuộc thi và kết quả quay cũ không thay đổi.
+
 Các API yêu cầu đăng nhập và quyền quản trị hiện có, không cung cấp thao tác ghi công khai.
 
 - `GET /api/v1/admin/contest/prizes?search=&isActive=&page=1&pageSize=50`

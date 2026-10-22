@@ -109,8 +109,8 @@ public sealed record DrawPreviewDto(int SuggestedMinScore, int MinScore, int Eli
     PagedResult<DrawCandidateAdminDto>? Candidates = null,
     ContestPrizeDto? Prize = null);
 
-public sealed record SavePrizeRequest(string? Code, string? Name, string? Description, bool IsActive = true, int SortOrder = 0, long? ExpectedRevision = null);
-public sealed record PrizeAdminDto(long Id, string Code, string Name, string? Description, bool IsActive, int SortOrder, DateTime CreatedAt, DateTime UpdatedAt, long Revision, int ContestCount);
+public sealed record SavePrizeRequest(string? Code, string? Name, string? Description, bool IsActive = true, int SortOrder = 0, long? ExpectedRevision = null, long? PrizeMoney = null);
+public sealed record PrizeAdminDto(long Id, string Code, string Name, string? Description, bool IsActive, int SortOrder, DateTime CreatedAt, DateTime UpdatedAt, long Revision, int ContestCount, long PrizeMoney = 0);
 public sealed record SaveContestPrizeRequest(long PrizeId, int Quantity);
 public sealed record SaveContestPrizesRequest(IReadOnlyList<SaveContestPrizeRequest>? Prizes, long? ExpectedRevision = null);
 public sealed record ContestPrizeDto(long PrizeId, string Code, string Name, string? Description, int Quantity, int Awarded, int Remaining, bool IsActive, int SortOrder);
