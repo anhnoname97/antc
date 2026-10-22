@@ -220,7 +220,7 @@ public sealed class ContestAdministrationFullHostTests
             var published=await anonymous.GetFromJsonAsync<JsonElement>(publicPath);
             Assert.Equal("published",published.GetProperty("status").GetString());
             Assert.Equal(entryCode,published.GetProperty("leaderboard").GetProperty("items")[0].GetProperty("code").GetString());
-            Assert.Equal("091****678",published.GetProperty("draws")[0].GetProperty("winners")[0].GetProperty("phone").GetString());
+            Assert.Equal("091234****",published.GetProperty("draws")[0].GetProperty("winners")[0].GetProperty("phone").GetString());
             Assert.DoesNotContain("0912345678",published.GetRawText());
             Assert.Equal(HttpStatusCode.OK,(await client.PutAsJsonAsync(publication,new{isPublished=false,expectedRevision=1})).StatusCode);
             Assert.Equal("pending",(await anonymous.GetFromJsonAsync<JsonElement>(publicPath)).GetProperty("status").GetString());

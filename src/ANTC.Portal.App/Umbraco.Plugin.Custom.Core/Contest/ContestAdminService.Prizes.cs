@@ -58,7 +58,7 @@ public sealed partial class ContestAdminService
         var allocations = await db.ContestPrizes.AsNoTracking().Include(p => p.Prize).Where(p => p.ContestId == contestId).OrderBy(p => p.SortOrder).ThenBy(p => p.PrizeId).ToListAsync(ct);
         var counts = await AwardedAsync(contestId, ct);
         return allocations.Select(p => new ContestPrizeDto(p.PrizeId, p.Prize!.Code, p.Prize.Name, p.Prize.Description, p.Quantity,
-            counts.GetValueOrDefault(p.PrizeId), Math.Max(0, p.Quantity - counts.GetValueOrDefault(p.PrizeId)), p.Prize.IsActive, p.SortOrder)).ToList();
+            counts.GetValueOrDefault(p.PrizeId), Math.Max(0, p.Quantity - counts.GetValueOrDefault(p.PrizeId)), p.Prize.IsActive, p.SortOrder, p.PrizeMoney)).ToList();
     }
     private Task<Dictionary<long, int>> AwardedAsync(long contestId, CancellationToken ct) => db.DrawWinners
         .Where(w => w.Draw!.ContestId == contestId && w.Draw.PrizeId != null).GroupBy(w => w.Draw!.PrizeId!.Value)
@@ -67,6 +67,8 @@ public sealed partial class ContestAdminService
     private async Task ApplyPrizesAsync(ContestCampaign campaign, IReadOnlyList<SaveContestPrizeRequest>? requests, CancellationToken ct)
     {
         if (requests is null) return; // Old clients may update other fields without clearing allocations.
+        if (requests.Any(p => p.PrizeMoney is < 0 or > 9007199254740991L))
+            throw new ContestAdminValidationException(new Dictionary<string, string> { ["prizeMoney"] = "Tiền thưởng mỗi suất phải là số nguyên VNĐ từ 0 đến 9.007.199.254.740.991." });
         if (requests.Count > 100 || requests.Select(p => p.PrizeId).Distinct().Count() != requests.Count || requests.Any(p => p.PrizeId <= 0 || p.Quantity is < 1 or > 1000))
             throw new ContestAdminValidationException(new Dictionary<string, string> { ["prizes"] = "Chọn tối đa 100 loại giải, không trùng; số lượng mỗi loại từ 1 đến 1.000." });
         var ids = requests.Select(p => p.PrizeId).ToArray();
@@ -83,6 +85,7 @@ public sealed partial class ContestAdminService
             var request = requests[i]; var allocation = campaign.Prizes.SingleOrDefault(p => p.PrizeId == request.PrizeId);
             if (allocation is null) { allocation = new ContestPrize { PrizeId = request.PrizeId }; campaign.Prizes.Add(allocation); }
             allocation.Quantity = request.Quantity; allocation.SortOrder = i;
+            if (request.PrizeMoney is { } money) allocation.PrizeMoney = money;
         }
     }
     public async Task<ContestCampaignAdminDto?> SaveContestPrizesAsync(long id, SaveContestPrizesRequest request, CancellationToken ct)

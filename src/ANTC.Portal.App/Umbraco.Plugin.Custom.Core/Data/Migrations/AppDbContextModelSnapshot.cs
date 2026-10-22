@@ -137,6 +137,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("prize_id");
 
+                    b.Property<long>("PrizeMoney")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("prize_money");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER")
                         .HasColumnName("quantity");
