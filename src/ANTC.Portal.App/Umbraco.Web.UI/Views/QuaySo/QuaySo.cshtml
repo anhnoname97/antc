@@ -64,6 +64,14 @@
 <p class="note">Màn hình trình chiếu nhận lệnh từ bảng điều khiển này khi cả hai mở trên cùng một máy, cùng trình duyệt. Mỗi lần bấm QUAY tạo một lần quay thật, hiện trong tab Lần quay số của backoffice và không thể hủy.</p>
 </div>
 @await Html.PartialAsync("~/Views/QuaySo/_Stage.cshtml")
+@* Hop xac nhan huy ket qua theo ban dung v2. API /api/v1/quay-so chua co thao tac huy nen hop nay CHUA noi voi nut nao va khong co nut mo no; cho API huy. *@
+<dialog id="dlg"><form method="dialog">
+<h3>Hủy kết quả này?</h3>
+<p id="dlgP"></p>
+<label for="why" class="sr">Lý do</label>
+<select id="why"><option>Người trúng không liên hệ được trong thời hạn</option><option>Thông tin dự thi không hợp lệ khi xác minh</option><option>Người trúng từ chối nhận giải</option><option>Lý do khác (ghi vào biên bản)</option></select>
+<div class="row"><button class="btn ghost" value="cancel">Giữ kết quả</button><button class="btn amber" value="ok">Hủy kết quả</button></div>
+</form></dialog>
 <div id="print" class="print-area"></div>
 @section Scripts {
     <script src="~/assets/js/quay-so.js" asp-append-version="true"></script>

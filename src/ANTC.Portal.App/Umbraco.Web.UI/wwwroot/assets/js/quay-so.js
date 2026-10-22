@@ -142,8 +142,24 @@
     for (var i = 0; i < PRIZES.length; i++) if (PRIZES[i].prizeId === id) return i;
     return 0;
   }
-  function medalClass(id) { return 'm-p' + (prizeIndex(id) % 4 + 1); }
-  function medalText(p) { return (p.code || '').slice(0, 3).toUpperCase(); }
+  // Hang giai suy tu ten: 1 Nhat, 2 Nhi, 3 Ba, 4 Khuyen khich; khong khop thi tra 0
+  function prizeRank(p) {
+    var n = ((p && p.name) || '').toLowerCase();
+    if (n.indexOf('nhất') >= 0) return 1;
+    if (n.indexOf('nhì') >= 0) return 2;
+    if (n.indexOf('khuyến khích') >= 0) return 4;
+    if (/(^|\s)ba(\s|$)/.test(n)) return 3;
+    return 0;
+  }
+  function medalClass(id) {
+    var r = prizeRank(prizeById(id));
+    return 'm-p' + (r || prizeIndex(id) % 4 + 1);
+  }
+  function medalText(p) {
+    var r = prizeRank(p);
+    return r === 4 ? 'KK' : r ? String(r) : (p.code || '').slice(0, 3).toUpperCase();
+  }
+  function shortPrize(name) { return String(name || '').replace('Giải ', ''); }
   function winnersOf(id) { return D ? D.winners.filter(function (w) { return w.prizeId === id; }) : []; }
   function lastWin() {
     var ws = winnersOf(S.cur);
@@ -453,7 +469,7 @@
       b.setAttribute('aria-pressed', String(S.cur === q.prizeId));
       b.appendChild(el('span', 'medal ' + medalClass(q.prizeId), medalText(q)));
       var t = el('span');
-      t.appendChild(el('b', null, q.name));
+      t.appendChild(el('b', null, shortPrize(q.name)));
       t.appendChild(el('span', null, q.awarded + ' / ' + q.quantity + (done ? ' · xong' : '')));
       b.appendChild(t);
       b.addEventListener('click', function () { setPrize(q.prizeId); });
@@ -486,7 +502,7 @@
       D.winners.slice().reverse().forEach(function (w) {
         var tr = el('tr');
         tr.appendChild(el('td', null, fmtTime(w.createdAt)));
-        tr.appendChild(el('td', null, w.prizeName || ''));
+        tr.appendChild(el('td', null, shortPrize(w.prizeName)));
         tr.appendChild(el('td', 'no', w.code));
         var who = el('td');
         who.appendChild(document.createTextNode(w.name));
@@ -608,20 +624,20 @@
     area.appendChild(el('p', null, 'Ngày quay: ' + fmtDate(new Date())));
 
     var table = el('table'), head = el('tr');
-    ['#', 'Giờ', 'Giải', 'Mã', 'Họ tên', 'Điện thoại'].forEach(function (t) { head.appendChild(el('th', null, t)); });
+    ['#', 'Giờ', 'Giải', 'Mã', 'Họ tên', 'Điện thoại', 'Ghi chú'].forEach(function (t) { head.appendChild(el('th', null, t)); });
     var thead = el('thead');
     thead.appendChild(head);
     table.appendChild(thead);
     var body = el('tbody');
     if (!D.winners.length) {
       var tr0 = el('tr'), td0 = el('td', null, 'Chưa có kết quả');
-      td0.colSpan = 6;
+      td0.colSpan = 7;
       tr0.appendChild(td0);
       body.appendChild(tr0);
     }
     D.winners.forEach(function (w, i) {
       var tr = el('tr');
-      [i + 1, fmtTime(w.createdAt), w.prizeName || '', w.code, w.name, w.phone].forEach(function (t) { tr.appendChild(el('td', null, String(t))); });
+      [i + 1, fmtTime(w.createdAt), w.prizeName || '', w.code, w.name, w.phone, 'Hợp lệ'].forEach(function (t) { tr.appendChild(el('td', null, String(t))); });
       body.appendChild(tr);
     });
     table.appendChild(body);

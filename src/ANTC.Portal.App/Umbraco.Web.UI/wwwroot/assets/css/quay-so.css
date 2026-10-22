@@ -1326,6 +1326,10 @@
   color: var(--qd-ink-2);
 }
 
+.qd .pzb .m-p4 {
+  font-size: 0.6875rem;
+}
+
 .qd .pzb.done {
   opacity: 0.55;
 }
@@ -1555,6 +1559,95 @@
   }
 }
 
+/* 390px: dau trang xep doc, nhom nut rong het khung */
+@media (max-width: 640px) {
+  .qd .c-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .qd .c-top .r {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .qd .c-main {
+    padding: 12px;
+  }
+
+  .qd .tblwrap {
+    overflow-x: auto;
+  }
+
+  .qd .scenes .sc {
+    flex: 1 1 calc(50% - 4px);
+  }
+}
+
+/* Hop xac nhan huy ket qua (chua noi voi thao tac nao, cho API huy) */
+.qd .sr {
+  position: absolute;
+  left: -9999px;
+}
+
+.qd dialog {
+  width: min(460px, 92vw);
+  padding: 24px;
+  color: var(--qd-ink);
+  background: #A3101A;
+  border: 1px solid var(--qd-line);
+  border-radius: 18px;
+}
+
+.qd dialog::backdrop {
+  background: #000a;
+}
+
+.qd dialog h3 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.qd dialog p {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: var(--qd-ink-2);
+}
+
+.qd dialog select {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--qd-ink);
+  background: var(--qd-red-4);
+  border: 1px solid #ffffff33;
+  border-radius: 10px;
+}
+
+.qd dialog .row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.qd .btn {
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 40px;
+}
+
+.qd .btn.ghost {
+  border: 1px solid #ffffff40;
+}
+
+.qd .btn.amber {
+  color: var(--qd-on-gold);
+  background: var(--qd-amber);
+}
+
 /* Ban in bien ban */
 .qd .print-area {
   display: none;
@@ -1567,6 +1660,7 @@
   }
 
   .qd .qd-root,
+  .qd dialog,
   .qd .stage-wrap {
     display: none !important;
   }
