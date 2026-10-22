@@ -1,5 +1,7 @@
 /* Khu vuc /quay-so: giao dien rieng, chi dung bien trong tokens.css */
 .qs-body {
+  --qs-gold: #F5C242; /* vang nhan cua chu de quay so, tokens.css chua co */
+  --qs-gold-600: #D9A21B;
   margin: 0;
   min-height: 100vh;
   display: flex;
@@ -11,8 +13,14 @@
 }
 
 .qs-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 16px var(--gutter);
-  background: var(--c-brand);
+  background: linear-gradient(90deg, var(--c-brand-900), var(--c-brand));
+  border-bottom: 3px solid var(--qs-gold);
   color: var(--c-on-brand);
 }
 
@@ -100,4 +108,197 @@
   background: var(--c-tint);
   border: 1px solid var(--c-tint-border);
   border-radius: var(--radius);
+}
+
+/* Danh sach cuoc thi da ket thuc */
+.qs-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qs-user-name {
+  font-weight: 700;
+  color: var(--qs-gold);
+}
+
+.qs-btn-ghost {
+  padding: 8px 16px;
+  color: var(--c-on-brand);
+  background: transparent;
+  border: 1px solid var(--c-on-brand-muted);
+}
+
+.qs-btn-ghost:hover {
+  background: var(--c-brand-600);
+}
+
+.qs-list {
+  width: 100%;
+  max-width: var(--container);
+}
+
+.qs-list .qs-title {
+  margin-bottom: 24px;
+  font-size: var(--fs-h2-card);
+}
+
+.qs-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--c-text-3);
+  background: var(--c-bg);
+  border: 1px dashed var(--c-border-input);
+  border-radius: var(--radius-lg);
+}
+
+.qs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--c-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.qs-table th,
+.qs-table td {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.qs-table th {
+  font-size: var(--fs-small);
+  color: var(--c-brand);
+  background: var(--c-tint);
+}
+
+.qs-cell-name {
+  font-weight: 700;
+}
+
+.qs-cell-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.qs-list .qs-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: var(--c-brand-900);
+  background: linear-gradient(180deg, var(--qs-gold), var(--qs-gold-600));
+}
+
+.qs-list .qs-btn:hover {
+  background: var(--qs-gold);
+}
+
+.qs-list .qs-btn-disabled,
+.qs-list .qs-btn-disabled:hover {
+  color: var(--c-lock-text);
+  background: var(--c-disabled);
+  cursor: not-allowed;
+}
+
+.qs-hint {
+  font-size: var(--fs-eyebrow);
+  color: var(--c-text-4);
+}
+
+.qs-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--c-text-3);
+  background: var(--c-bg-soft-2);
+  border-radius: var(--radius-sm);
+}
+
+.qs-badge-dang-quay {
+  color: var(--c-brand);
+  background: var(--c-tint);
+}
+
+.qs-badge-da-quay-xong {
+  color: var(--c-ok);
+  background: var(--c-ok-bg);
+}
+
+.qs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .qs-main {
+    padding: 24px var(--gutter);
+  }
+
+  .qs-table,
+  .qs-table tbody,
+  .qs-table tr,
+  .qs-table td {
+    display: block;
+  }
+
+  .qs-table {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .qs-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .qs-table tr {
+    margin-bottom: 16px;
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .qs-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: right;
+  }
+
+  .qs-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: var(--fs-small);
+    font-weight: 400;
+    color: var(--c-text-3);
+    text-align: left;
+  }
+
+  .qs-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .qs-table .qs-cell-action {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .qs-table .qs-cell-action::before {
+    content: none;
+  }
 }

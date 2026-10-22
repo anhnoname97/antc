@@ -1,12 +1,69 @@
-@model string
+@using Umbraco.Plugin.Custom.Core.Contest
+@model Umbraco.Plugin.Custom.Api.Controllers.DrawIndexModel
 @{
     Layout = "~/Views/QuaySo/_QuaySoLayout.cshtml";
     ViewData["Title"] = "Quay số";
+    var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+    string Local(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), vietnam).ToString("dd/MM/yyyy HH:mm");
+    string StatusText(string status) => status switch
+    {
+        PortalDrawStatuses.NoPrize => "Chưa có giải",
+        PortalDrawStatuses.NotDrawn => "Chưa quay",
+        PortalDrawStatuses.InProgress => "Đang quay",
+        PortalDrawStatuses.Completed => "Đã quay xong",
+        _ => status
+    };
 }
-<section class="qs-card">
-    <h1 class="qs-title">Xin chào @Model</h1>
-    <p class="qs-lead">Bạn đã đăng nhập với tư cách thành viên Ban tổ chức quay số.</p>
-    <form method="post" action="/quay-so/dang-xuat" asp-antiforgery="true">
-        <button class="qs-btn" type="submit">Đăng xuất</button>
-    </form>
+@section HeaderRight {
+    <div class="qs-user">
+        <span class="qs-user-name">@Model.MemberName</span>
+        <form method="post" action="/quay-so/dang-xuat" asp-antiforgery="true">
+            <button class="qs-btn qs-btn-ghost" type="submit">Đăng xuất</button>
+        </form>
+    </div>
+}
+<section class="qs-list">
+    <h1 class="qs-title">Cuộc thi đã kết thúc</h1>
+    @if (Model.Contests.Count == 0)
+    {
+        <p class="qs-empty">Chưa có cuộc thi nào kết thúc.</p>
+    }
+    else
+    {
+        <table class="qs-table">
+            <thead>
+                <tr>
+                    <th scope="col">Tên cuộc thi</th>
+                    <th scope="col">Thời gian</th>
+                    <th scope="col">Lượt đã nộp</th>
+                    <th scope="col">Giải</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col"><span class="qs-sr-only">Thao tác</span></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var c in Model.Contests)
+            {
+                <tr>
+                    <td class="qs-cell-name" data-label="Tên cuộc thi">@c.Name</td>
+                    <td data-label="Thời gian">@Local(c.StartAt) – @Local(c.EndAt)</td>
+                    <td data-label="Lượt đã nộp">@c.SubmittedCount</td>
+                    <td data-label="Giải">@c.PrizeAwarded/@c.PrizeQuantity</td>
+                    <td data-label="Trạng thái"><span class="qs-badge qs-badge-@c.Status">@StatusText(c.Status)</span></td>
+                    <td class="qs-cell-action">
+                        @if (c.Status == PortalDrawStatuses.NoPrize)
+                        {
+                            <span class="qs-btn qs-btn-disabled" aria-disabled="true" title="Cấu hình giải trong backoffice trước">Quay số</span>
+                            <span class="qs-hint">Cấu hình giải trong backoffice trước</span>
+                        }
+                        else
+                        {
+                            <a class="qs-btn" href="/quay-so/@c.Id">@(c.Status == PortalDrawStatuses.Completed ? "Xem kết quả" : "Quay số")</a>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
 </section>

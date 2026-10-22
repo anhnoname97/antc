@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Web.Common.Security;
 using Umbraco.Plugin.Custom.Core.Administration;
+using Umbraco.Plugin.Custom.Core.Contest;
 
 namespace Umbraco.Plugin.Custom.Api.Controllers;
 
@@ -17,6 +18,8 @@ public sealed class DrawLoginModel
     public string? ReturnUrl { get; set; }
     public string? Error { get; set; }
 }
+
+public sealed record DrawIndexModel(string MemberName, IReadOnlyList<PortalDrawContestSummary> Contests);
 
 /// <summary>Chi cho phep returnUrl noi bo nam trong khu vuc /quay-so.</summary>
 public static class DrawReturnUrl
@@ -68,18 +71,19 @@ public abstract class DrawPortalControllerBase(IAuthorizationService authorizati
 /// <summary>Khu vuc quay so danh cho thanh vien Ban to chuc quay so (MVC, tra view).</summary>
 [Route("quay-so")]
 public sealed class DrawPortalController(IAuthorizationService authorization, IMemberManager members,
-    IMemberSignInManager signIn) : DrawPortalControllerBase(authorization, members)
+    IMemberSignInManager signIn, PortalDrawService draws) : DrawPortalControllerBase(authorization, members)
 {
     private const string GenericLoginError = "Tên đăng nhập hoặc mật khẩu không đúng.";
     private const string NoPermissionError = "Tài khoản không có quyền quay số";
     private readonly IMemberManager members = members;
 
     [HttpGet("")]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
         var (denied, member) = await RequireDrawMemberAsync();
         if (denied is not null) return denied;
-        return View(ViewRoot + "Index.cshtml", member?.Name ?? member?.UserName ?? "");
+        var contests = await draws.ListFinishedAsync(ct);
+        return View(ViewRoot + "Index.cshtml", new DrawIndexModel(member?.Name ?? member?.UserName ?? "", contests));
     }
 
     [HttpGet("dang-nhap")]
