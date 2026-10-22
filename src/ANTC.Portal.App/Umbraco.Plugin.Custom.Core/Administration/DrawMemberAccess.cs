@@ -36,7 +36,7 @@ public sealed class DrawMemberComposer : IComposer
         builder.Services.Configure<AuthorizationOptions>(options => options.AddPolicy(DrawMemberAccess.Policy,
             policy => policy.AddAuthenticationSchemes(IdentityConstants.ApplicationScheme)
                 .RequireAuthenticatedUser().AddRequirements(new DrawMemberRequirement())));
-        builder.Services.AddSingleton<IAuthorizationHandler, DrawMemberAuthorizationHandler>();
+        builder.Services.AddScoped<IAuthorizationHandler, DrawMemberAuthorizationHandler>();
     }
 }
 
