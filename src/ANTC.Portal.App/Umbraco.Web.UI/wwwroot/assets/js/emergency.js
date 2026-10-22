@@ -1,5 +1,5 @@
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-const lite = matchMedia('(max-width: 759px)');
+const lite = matchMedia('(max-width: 1100px)');
 document.querySelectorAll('[data-warning-signs]').forEach(block => {
   const inputs = [...block.querySelectorAll('input[type=checkbox]')];
   const box = block.querySelector('.stopbox');
@@ -9,7 +9,7 @@ document.querySelectorAll('[data-warning-signs]').forEach(block => {
     box.classList.toggle('hit', count > 0);
     block.querySelector('[data-warning-title]').textContent = count ? block.dataset.hitTitle.replace('{count}', count) : block.dataset.idleTitle;
     block.querySelector('[data-warning-text]').textContent = count ? block.dataset.hitText : block.dataset.idleText;
-    if (animate && count && !reduced.matches && block.closest('[data-hero-motion]')?.dataset.heroMotion === 'true') {
+    if (animate && count && !reduced.matches && !lite.matches && block.closest('[data-hero-motion]')?.dataset.heroMotion === 'true') {
       pulse?.cancel();
       pulse = box.animate([{ transform: 'scale(.97)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'cubic-bezier(.34,1.56,.64,1)' });
     }
@@ -114,7 +114,7 @@ document.querySelectorAll('[data-emergency-page]').forEach(page => {
     if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
     animationFrame = undefined;
     previousFrameTime = undefined;
-    enabled = !reduced.matches;
+    enabled = !reduced.matches && !lite.matches;
     sections.forEach(section => section.classList.toggle('is-emergency-animated', enabled && section.dataset.heroMotion === 'true'));
     page.classList.toggle('emergency-motion-lite', lite.matches || navigator.connection?.saveData === true);
     page.classList.add('is-emergency-measuring');

@@ -21,9 +21,9 @@ function setupMotion() {
   if (!page || !gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
   const media = gsap.matchMedia();
-  media.add({ motion: '(prefers-reduced-motion: no-preference)', desktop: '(min-width: 901px)', rotate: '(min-width: 760px)' }, context => {
+  media.add({ motion: '(prefers-reduced-motion: no-preference)', desktop: '(min-width: 1101px)', rotate: '(min-width: 1101px)' }, context => {
     const { motion, desktop, rotate } = context.conditions;
-    if (!motion) return;
+    if (!motion || !desktop) return;
     const enabled = element => element.closest('[data-hero-motion]')?.dataset.heroMotion === 'true';
     const q = selector => [...page.querySelectorAll(selector)].filter(enabled);
     const hero = page.querySelector('.ph');
