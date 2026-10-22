@@ -2,11 +2,11 @@
 @using Umbraco.Cms.Core.Models
 @using Umbraco.Plugin.Custom.Core.Contest
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
-@inject ICurrentContestService CurrentContests
+@inject ContestPromotionService Promotions
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
-    var contest = await CurrentContests.GetAsync(Context.RequestAborted);
+    var contest = await Promotions.GetAsync(Context.RequestAborted);
     var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
     DateTime Local(DateTime date) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(date, DateTimeKind.Utc), vietnam);
     var start = contest is null ? (DateTime?)null : Local(contest.StartAt);
@@ -41,8 +41,10 @@
             <p class="eyebrow">@T("eyebrowPrefix")</p>
             <h1 id="@id"><span class="line"><span data-line>@T("emptyTitle")</span></span></h1>
         }
+        @if (contest is not null && Promotions.IsUpcoming(contest)) { <p class="lead">Cuộc thi sắp diễn ra, đăng ký mở từ @start?.ToString("d/M/yyyy").</p> }
+        <p class="contest-safety-note">@ContestPromotionService.SafetyNotice</p>
         <div class="ph-links">
-            @if (contest is not null && c.Value<Link>("primaryLink") is { } primary)
+            @if (contest is not null && !Promotions.IsUpcoming(contest) && c.Value<Link>("primaryLink") is { } primary)
             {
                 <a class="btn btn-red" href="/cuoc-thi/lam-bai/?c=@contest.Id" target="@primary.Target">@primary.Name <span aria-hidden="true">⟶</span></a>
             }

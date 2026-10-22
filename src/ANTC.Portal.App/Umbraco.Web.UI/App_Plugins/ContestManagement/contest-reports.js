@@ -1,6 +1,7 @@
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { contestStyles } from './contest-theme.js';
+import { pageSizeSelect } from './contest-page-size.js';
 import { paginate } from './contest-pagination.js';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
@@ -15,12 +16,13 @@ const descriptions = { dashboard: 'Theo dõi mức độ tham gia, kết quả v
 
 export class ContestReportsView extends UmbLitElement {
     static properties = {
+        embedded: { type: Boolean, reflect: true },
         _data: { state: true }, _options: { state: true }, _busy: { state: true }, _error: { state: true },
         _detail: { state: true }, _state: { state: true }, _draws: { state: true }, _selected: { state: true }, _message: { state: true },
         _pagination: { state: true },
     };
     constructor(view = 'dashboard') {
-        super(); this.view = view; this.filters = { sort: 'created_desc', page: '1' };
+        super(); this.view = view; this.filters = { sort: 'created_desc', page: '1', pageSize: '50' };
         this._options = { contests: [], topics: [] }; this._busy = true; this._error = ''; this._message = '';
         this._data = null; this._detail = null; this._state = null; this._draws = []; this._selected = []; this._sequence = 0; this._pagination = {};
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._load(); } });
@@ -47,7 +49,7 @@ export class ContestReportsView extends UmbLitElement {
         return '?' + query;
     }
     async _load() {
-        this._pagination = {};
+        this._pagination = Object.fromEntries(Object.entries(this._pagination).map(([key, state]) => [key, { page: 1, size: state.size }]));
         const sequence = ++this._sequence; this._busy = true; this._error = ''; this._message = ''; this._data = null;
         try {
             const options = await (await this._request('/options' + (this.filters.contestId ? '?contestId=' + encodeURIComponent(this.filters.contestId) : ''))).json();
@@ -71,7 +73,7 @@ export class ContestReportsView extends UmbLitElement {
     _filter(event) {
         event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget));
         if ((values.contestId || '') !== (this.filters.contestId || '')) delete values.topicId;
-        this.filters = { ...values, page: '1' }; this._load();
+        this.filters = { ...values, page: '1', pageSize: this.filters.pageSize || '50' }; this._load();
     }
     _page(delta) { this.filters.page = String(Number(this.filters.page || 1) + delta); this._load(); }
     _slice(items, key, defaultSize = 50) { return paginate(items, this._pagination[key], defaultSize); }
@@ -79,7 +81,7 @@ export class ContestReportsView extends UmbLitElement {
     _pager(key, p, label) {
         return html`<nav class="local-pager" aria-label=${`Phân trang ${label}`} data-pagination=${key}>
             <span class="page-range">${p.start}–${p.end} / ${p.total} dòng</span>
-            <label>Số dòng<select aria-label=${`Số dòng ${label}`} ?disabled=${this._busy} @change=${e => this._localPage(key, 1, Number(e.target.value))}>${[10, 20, 50, 100].map(n => html`<option value=${n} .selected=${p.size === n}>${n}</option>`)}</select></label>
+            <label>Số dòng<select aria-label=${`Số dòng ${label}`} ?disabled=${this._busy} @change=${e => this._localPage(key, 1, Number(e.target.value))}>${[10, 50, 100].map(n => html`<option value=${n} .selected=${p.size === n}>${n}</option>`)}</select></label>
             <div class="page-buttons"><button aria-label=${`Trang đầu ${label}`} ?disabled=${this._busy || p.page <= 1} @click=${() => this._localPage(key, 1, p.size)}>«</button><button ?disabled=${this._busy || p.page <= 1} @click=${() => this._localPage(key, p.page - 1, p.size)}>← Trước</button>
             <span aria-live="polite">Trang ${p.page} / ${p.pages}</span><button ?disabled=${this._busy || p.page >= p.pages} @click=${() => this._localPage(key, p.page + 1, p.size)}>Sau →</button><button aria-label=${`Trang cuối ${label}`} ?disabled=${this._busy || p.page >= p.pages} @click=${() => this._localPage(key, p.pages, p.size)}>»</button></div>
         </nav>`;
@@ -123,7 +125,8 @@ export class ContestReportsView extends UmbLitElement {
         return html`<label>${label}<select name=${name}>${choices.map(([value, text]) => html`<option value=${value} .selected=${String(this.filters[name] || '') === String(value)}>${text}</option>`)}</select></label>`;
     }
     _filters() {
-        return html`<form class="filter-panel" @submit=${this._filter}>
+        const count = Object.entries(this.filters).filter(([key, value]) => !['page', 'sort', 'pageSize'].includes(key) && value !== '' && value != null).length;
+        return html`<details class="advanced-search" ?open=${this.view === 'publication'}><summary>Tìm kiếm nâng cao <span class="filter-status">${count ? `${count} điều kiện đang áp dụng` : 'Chưa áp dụng bộ lọc'}</span></summary><form class="filter-panel" @submit=${this._filter}>
             <div class="filters">
                 ${this._select('contestId', 'Cuộc thi', [['', this.view === 'publication' ? 'Chọn cuộc thi' : 'Tất cả cuộc thi'], ...this._options.contests.map(c => [c.id, c.name])])}
                 ${this.view === 'publication' ? nothing : html`
@@ -139,8 +142,8 @@ export class ContestReportsView extends UmbLitElement {
                     ${this.view === 'questions' ? this._select('topicId', 'Chuyên đề', [['', 'Tất cả'], ...this._options.topics.map(t => [t.id, `${t.id} — ${t.title}`])]) : nothing}
                 `}
             </div><div class="actions"><button class="primary" ?disabled=${this._busy}>${this.view === 'publication' ? 'Mở cuộc thi' : 'Lọc dữ liệu'}</button>
-            <button type="button" ?disabled=${this._busy} @click=${event => { event.currentTarget.form?.reset(); this.filters = { sort: 'created_desc', page: '1' }; this._load(); }}>Đặt lại</button></div>
-        </form>`;
+            <button type="button" ?disabled=${this._busy} @click=${event => { event.currentTarget.form?.reset(); this.filters = { sort: 'created_desc', page: '1', pageSize: '50' }; this._load(); }}>Đặt lại</button></div>
+        </form></details>`;
     }
     _dashboard() {
         const d = this._data, max = Math.max(1, ...d.scores.map(s => s.count));
@@ -151,11 +154,11 @@ export class ContestReportsView extends UmbLitElement {
     }
     _entries() {
         const d = this._data;
-        return html`<div class="actions"><span>${d.total} lượt — 50 dòng mỗi trang</span><button ?disabled=${this._busy} @click=${() => this._export('entries')}>Xuất danh sách CSV</button><button ?disabled=${this._busy} @click=${() => this._export('answers')}>Xuất đáp án CSV</button></div>
+        return html`<div class="actions"><span>${d.total} lượt — ${d.pageSize || 50} dòng mỗi trang</span><button ?disabled=${this._busy} @click=${() => this._export('entries')}>Xuất danh sách CSV</button><button ?disabled=${this._busy} @click=${() => this._export('answers')}>Xuất đáp án CSV</button></div>
             <div class="scroll"><table><thead><tr><th>Mã dự thi</th><th>Họ tên</th><th>Điện thoại</th><th>Đơn vị</th><th>Chế độ</th><th>Lượt thứ</th><th>Trạng thái</th><th>Đã làm</th><th>Đúng / điểm</th><th>Tạo lúc</th><th>Nộp lúc</th></tr></thead><tbody>
                 ${d.items.map(e => html`<tr><td><button class="link" ?disabled=${this._busy} @click=${event => this._open(e.id, event.currentTarget)}>${e.code}</button></td><td>${e.fullName || '—'}</td><td>${e.phone || '—'}</td><td>${e.org || '—'}</td><td><span class="badge neutral">${mode(e.mode)}</span></td><td>${e.attemptNo ?? '—'}</td><td><span class=${`badge ${e.status === 'submitted' ? 'on' : 'off'}`}>${status(e.status)}</span></td><td>${e.answered}</td><td><strong>${e.correct}</strong></td><td class="nowrap">${date(e.createdAt)}</td><td class="nowrap">${date(e.submittedAt)}</td></tr>`)}
             </tbody></table></div>${!d.items.length ? html`<p>Không có lượt thi phù hợp.</p>` : nothing}
-            <div class="actions pager"><button ?disabled=${this._busy || d.page <= 1} @click=${() => this._page(-1)}>← Trước</button><span>Trang ${d.page} / ${Math.max(1, d.pages)}</span><button ?disabled=${this._busy || d.page >= d.pages} @click=${() => this._page(1)}>Sau →</button></div>`;
+            <div class="actions pager">${pageSizeSelect(d.pageSize || 50, size => { this.filters.pageSize = String(size); this.filters.page = '1'; this._load(); }, this._busy, 'Số dòng lượt thi')}<button ?disabled=${this._busy || d.page <= 1} @click=${() => this._page(-1)}>← Trước</button><span>Trang ${d.page} / ${Math.max(1, d.pages)}</span><button ?disabled=${this._busy || d.page >= d.pages} @click=${() => this._page(1)}>Sau →</button></div>`;
     }
     _questions() {
         const questions = this._slice(this._data, 'questions');
@@ -185,11 +188,12 @@ export class ContestReportsView extends UmbLitElement {
             </tbody></table></div>${this._pager(key, questions, t.title)}</details>`; })}</div><footer class="dialog-footer"><button @click=${this._close}>Đóng</button></footer></dialog>`;
     }
     render() {
-        return html`<umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>${titles[this.view]}</h1><p class="page-description">${descriptions[this.view]}</p></div><span class="page-context">Giờ Việt Nam · UTC+7</span></header>
+        const content = html`<div class=${this.embedded ? 'embedded-page' : 'page'}>${this.embedded ? nothing : html`<header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>${titles[this.view]}</h1><p class="page-description">${descriptions[this.view]}</p></div><span class="page-context">Giờ Việt Nam · UTC+7</span></header>`}
             ${this._error ? html`<p class="error" role="alert">${this._error}</p>` : nothing}${this._message ? html`<p class="success-notice" role="status">${this._message}</p>` : nothing}
             ${this._filters()}${this._busy ? html`<p class="loading-notice" role="status">Đang xử lý…</p>` : nothing}
             ${this.view === 'publication' ? this._publication() : this._data ? this.view === 'dashboard' ? this._dashboard() : this.view === 'entries' ? this._entries() : this._questions() : nothing}
-            <p class="muted privacy-note">Dữ liệu cá nhân chỉ dành cho người được phân quyền. Việc xem chi tiết và xuất dữ liệu được ghi nhật ký.</p>${this._dialog()}</div></umb-body-layout>`;
+            <p class="muted privacy-note">Dữ liệu cá nhân chỉ dành cho người được phân quyền. Việc xem chi tiết và xuất dữ liệu được ghi nhật ký.</p>${this._dialog()}</div>`;
+        return this.embedded ? content : html`<umb-body-layout main-no-padding>${content}</umb-body-layout>`;
     }
     static styles = contestStyles;
 }

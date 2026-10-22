@@ -1,0 +1,35 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    Context.Response.StatusCode = 404;
+    var site = Model.Root();
+    var homeUrl = site.DescendantsOrSelfOfType("home").FirstOrDefault()?.Url() ?? "/";
+    var searchUrl = site.DescendantsOrSelfOfType("searchPage").FirstOrDefault()?.Url() ?? "/tim-kiem/";
+    var heading = Model.Value<string>("heading");
+    var description = Model.Value<string>("description");
+}
+@section Head {
+    <meta name="robots" content="noindex, follow">
+    <link rel="stylesheet" href="~/assets/css/not-found.css" asp-append-version="true">
+}
+<div class="not-found">
+    <div class="not-found__stage">
+    <section class="not-found__hero" aria-labelledby="not-found-title">
+        <div class="not-found__copy">
+            <p class="not-found__eyebrow"><span class="not-found__status" aria-hidden="true">404</span>Đường dẫn không tồn tại</p>
+            <h1 id="not-found-title">@(string.IsNullOrWhiteSpace(heading) ? "Không tìm thấy trang." : heading)</h1>
+            <p class="not-found__description">@(string.IsNullOrWhiteSpace(description) ? "Đường dẫn có thể đã thay đổi hoặc trang không còn tồn tại. Bạn có thể về trang chủ hoặc tìm nội dung mình cần." : description)</p>
+            <div class="not-found__actions">
+                <a class="not-found__button not-found__button--primary" href="@homeUrl">Về trang chủ <span aria-hidden="true">↗</span></a>
+                <a class="not-found__button not-found__button--secondary" href="@(searchUrl + "?scope=thu-doan")"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>Tìm kiếm thủ đoạn</a>
+            </div>
+        </div>
+        <div class="not-found__art" aria-hidden="true">
+            <div class="not-found__orbit not-found__orbit--outer"></div>
+            <div class="not-found__orbit not-found__orbit--inner"></div>
+            <span class="not-found__spark not-found__spark--one">✦</span>
+            <div class="not-found__code"><span class="not-found__digit">4</span><span class="not-found__compass"><svg viewBox="0 0 160 160" fill="none"><circle class="not-found__compass-ring" cx="80" cy="80" r="73" stroke="currentColor" stroke-width=".7" stroke-dasharray=".8 4"/><circle cx="80" cy="80" r="62" stroke="currentColor" stroke-width=".6"/><circle cx="80" cy="80" r="53" stroke="currentColor" stroke-opacity=".23" stroke-width=".6"/><path d="M80 9v12m0 118v12M9 80h12m118 0h12" stroke="currentColor" stroke-width="1"/><g class="not-found__needle"><path d="m102 47-10 45-34 21 10-45z" fill="currentColor" fill-opacity=".08" stroke="currentColor" stroke-width="1"/><path d="m102 47-22 33 12 12z" fill="currentColor"/><path d="m58 113 22-33-12-12z" fill="currentColor" fill-opacity=".22"/></g><circle cx="80" cy="80" r="4" fill="#12233b" stroke="currentColor" stroke-width="1"/></svg><span class="not-found__north">N</span></span><span class="not-found__digit">4</span></div>
+        </div>
+    </section>
+    </div>
+</div>

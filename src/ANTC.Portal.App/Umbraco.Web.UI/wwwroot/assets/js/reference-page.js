@@ -25,7 +25,6 @@ export function initReferencePage(page) {
     const updateHeader = () => header.classList.toggle('is-scrolled', scrollY > (page.querySelector('.ph, .page-hero')?.offsetHeight || 500) - 90);
     window.addEventListener('scroll', updateHeader, { passive: true });
     updateHeader();
-    document.querySelector('[data-contest-banner-close]')?.addEventListener('click', () => header.classList.add('no-bar'));
   }
   if (toggle && menu) {
     function closeMenu() { menu.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-label', 'Mở menu'); }

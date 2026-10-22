@@ -69,6 +69,11 @@ public class Draw
     public long Id { get; set; }
     /// <summary>Cuộc thi được dùng để xác định tập người đủ điều kiện.</summary>
     public long? ContestId { get; set; }
+    public long? PrizeId { get; set; }
+    /// <summary>Prize labels frozen at draw time, independent of later catalogue edits.</summary>
+    public string? PrizeCode { get; set; }
+    public string? PrizeName { get; set; }
+    public ContestPrize? PrizeAllocation { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = "";
     public int MinScore { get; set; }
@@ -76,6 +81,10 @@ public class Draw
     public int EligibleCount { get; set; }
     public bool ExcludePrevious { get; set; }
     public string? Note { get; set; }
+
+    /// <summary>Exact eligible-person snapshot. Null for legacy draws: never reconstruct from live entries.</summary>
+    public string? EligibleSnapshotJson { get; set; }
+    public Guid? RequestId { get; set; }
 
     public List<DrawWinner> Winners { get; set; } = new();
     public ContestCampaign? Contest { get; set; }
@@ -218,6 +227,33 @@ public class ContestCampaign
     public List<ContestTopic> Topics { get; set; } = new();
     public List<ContestQuestion> Questions { get; set; } = new();
     public List<Entry> Entries { get; set; } = new();
+    public List<Draw> Draws { get; set; } = new();
+    public List<ContestPrize> Prizes { get; set; } = new();
+}
+
+public class Prize
+{
+    public long Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string? Description { get; set; }
+    public bool IsActive { get; set; } = true;
+    public int SortOrder { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public long Revision { get; set; } = 1;
+    public List<ContestPrize> Contests { get; set; } = new();
+}
+
+/// <summary>Many-to-many allocation. Quantity belongs to the contest, not the catalogue.</summary>
+public class ContestPrize
+{
+    public long ContestId { get; set; }
+    public long PrizeId { get; set; }
+    public int Quantity { get; set; }
+    public int SortOrder { get; set; }
+    public ContestCampaign? Contest { get; set; }
+    public Prize? Prize { get; set; }
     public List<Draw> Draws { get; set; } = new();
 }
 

@@ -13,6 +13,7 @@
 
   <!-- Goi ben ngoai: them vao day, khong ghi Version trong csproj -->
   <ItemGroup>
+    <PackageVersion Include="ClosedXML" Version="0.105.0" />
     <PackageVersion Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
     <!-- uSync: dong bo document type, data type, template, noi dung qua file trong git. Ban 18.x di voi Umbraco 18 -->
     <PackageVersion Include="uSync" Version="18.1.5" />

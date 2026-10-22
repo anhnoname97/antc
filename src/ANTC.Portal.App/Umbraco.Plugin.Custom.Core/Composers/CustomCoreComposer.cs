@@ -63,6 +63,8 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddScoped<ContestResultsService>();
         builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestReportingService>();
         builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestAuditService>();
+        builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestPrivacyService>();
+        builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.IPrivacyFileCleanup, Umbraco.Plugin.Custom.Core.Administration.SqlitePrivacyFileCleanup>();
         builder.Services.AddScoped<IQuestionSubmissionService, QuestionSubmissionService>();
         builder.Services.AddScoped<QuestionModerationService>();
         builder.Services.AddScoped<IQuestionModerationService>(services => services.GetRequiredService<QuestionModerationService>());
@@ -71,12 +73,15 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddScoped<QuestionRetentionService>();
         builder.Services.AddHostedService<QuestionRetentionWorker>();
         builder.Services.AddScoped<ContestScheduleService>();
+        builder.Services.AddScoped<ContestPromotionService>();
         builder.Services.AddScoped<ICurrentContestService>(services => new CurrentContestService(
             services.GetRequiredService<IContestCatalog>()));
 
         // Ngan hang cau hoi giu trong bo nho
         builder.Services.AddSingleton<IQuestionBank, QuestionBank>();
         builder.Services.AddScoped<IQuizAdminService, QuizAdminService>();
+        builder.Services.AddSingleton<QuizWorkbookPreviews>();
+        builder.Services.AddScoped<QuizWorkbookService>();
 
         // Cap quyen section Backoffice cho nhom Administrators sau khi Umbraco khoi dong.
         builder.AddNotificationAsyncHandler<
