@@ -6,6 +6,26 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public class ContestCampaignAdminServiceTests
 {
+    [Fact]
+    public async Task CreateCampaign_SavesPrizeSelectionsWithIndependentQuantities()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        var first=(await test.Service.SavePrizeAsync(null,new(" first ","Giải nhất","Mô tả"),default))!;
+        var second=(await test.Service.SavePrizeAsync(null,new("SECOND","Giải nhì",null),default))!;
+        Assert.Equal("FIRST",first.Code);
+        var campaign=await test.Service.CreateCampaignAsync(Schedule(10,15) with { Prizes=[new(first.Id,1),new(second.Id,2)] },default);
+        Assert.Equal(2,campaign.Prizes!.Count);
+        Assert.Equal(2,campaign.Prizes.Single(p=>p.PrizeId==second.Id).Quantity);
+        var changed=await test.Service.SaveContestPrizesAsync(campaign.Id,new([new(second.Id,3)],campaign.Revision),default);
+        Assert.Equal(campaign.StartAt,changed!.StartAt);
+        Assert.Equal(campaign.EndAt,changed.EndAt);
+        Assert.Equal(3,Assert.Single(changed.Prizes!).Quantity);
+        Assert.Single(await test.Db.ContestQuestions.Where(q=>q.ContestId==campaign.Id).ToListAsync());
+        Assert.Equal("PRIZE_CODE_EXISTS",(await Assert.ThrowsAsync<ContestAdminConflictException>(()=>test.Service.SavePrizeAsync(null,new("first","Trùng mã",null),default))).Code);
+        await Assert.ThrowsAsync<ContestAdminValidationException>(()=>test.Service.CreateCampaignAsync(Schedule(16,20) with { Prizes=[new(long.MaxValue,1)] },default));
+        test.Db.ChangeTracker.Clear();
+        Assert.Single(await test.Db.ContestCampaigns.ToListAsync());
+    }
     [Theory]
     [InlineData(12, 18, false)] // overlaps the end
     [InlineData(8, 16, false)] // contains the existing contest

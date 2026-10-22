@@ -172,6 +172,17 @@ public sealed class ContestAdministrationFullHostTests
             string entryCode=entry.GetProperty("code").GetString()!;
             client.DefaultRequestHeaders.Add("X-Entry-Token",entry.GetProperty("token").GetString());
             Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync("/api/v1/contest/entries/me/answers",new{q=code,a=answer})).StatusCode);
+            var incomplete=await client.PostAsJsonAsync("/api/v1/contest/entries/me/submit",new{contact=new {fullName="Nguyễn Văn Kiểm Thử",phone="0912345678",consent=true}});
+            Assert.Equal(HttpStatusCode.Conflict,incomplete.StatusCode);
+            Assert.Contains("INCOMPLETE_ANSWERS",await incomplete.Content.ReadAsStringAsync());
+            // Hoàn tất phần còn lại của bộ đề trong fixture để không vượt rate limit lưu đáp án.
+            await using(var db=new SqliteConnection($"Data Source={appDb};Pooling=False"))
+            {
+                await db.OpenAsync();await using var cmd=db.CreateCommand();
+                cmd.CommandText="INSERT INTO entry_answer(entry_id,question_code,topic,chosen,is_correct,answered_at) SELECT e.id,q.question_code,q.topic_id,CASE WHEN q.answer='A' THEN 'B' ELSE 'A' END,0,$now FROM entry e JOIN contest_question q ON q.contest_id=e.contest_id WHERE e.code=$code AND q.question_code<>$first";
+                cmd.Parameters.AddWithValue("$now",DateTime.UtcNow);cmd.Parameters.AddWithValue("$code",entryCode);cmd.Parameters.AddWithValue("$first",code);
+                await cmd.ExecuteNonQueryAsync();
+            }
             var submit=await client.PostAsJsonAsync("/api/v1/contest/entries/me/submit",new{contact=new {fullName="Nguyễn Văn Kiểm Thử",phone="0912345678",consent=true}});
             Assert.Equal(HttpStatusCode.OK,submit.StatusCode);
             string list=await client.GetStringAsync(reporting+"/entries?status=submitted&scoreFrom=1");
@@ -218,7 +229,13 @@ public sealed class ContestAdministrationFullHostTests
             Assert.Equal(new byte[]{239,187,191},(await csv.Content.ReadAsByteArrayAsync())[..3]);
             Assert.Contains(entryCode,await csv.Content.ReadAsStringAsync());
             const string drawApi="/umbraco/management/api/v1/antc/contest-draws";
-            var preview=await client.PostAsJsonAsync(drawApi+"/preview",new{contestId,excludePrevious=false});
+            var prizeResponse=await client.PostAsJsonAsync("/api/v1/admin/contest/prizes",new SavePrizeRequest("TEST-FIRST","Giải nhất kiểm thử",null));
+            Assert.Equal(HttpStatusCode.OK,prizeResponse.StatusCode);
+            var testPrize=(await prizeResponse.Content.ReadFromJsonAsync<PrizeAdminDto>())!;
+            var allocation=await client.PutAsJsonAsync($"/api/v1/admin/contest/campaigns/{contestId}/prizes",
+                new SaveContestPrizesRequest([new(testPrize.Id,5)]));
+            Assert.Equal(HttpStatusCode.OK,allocation.StatusCode);
+            var preview=await client.PostAsJsonAsync(drawApi+"/preview",new{contestId,excludePrevious=false,prizeId=testPrize.Id});
             Assert.Equal(HttpStatusCode.OK,preview.StatusCode);
             var candidatePreview=(await preview.Content.ReadFromJsonAsync<DrawPreviewDto>())!;
             Assert.Equal("0912345678",Assert.Single(candidatePreview.Candidates!.Items).Phone);
@@ -228,10 +245,13 @@ public sealed class ContestAdministrationFullHostTests
                 auditCommand.CommandText="SELECT COUNT(*) FROM contest_access_audit WHERE action='view.draw.candidates'";
                 Assert.True((long)(await auditCommand.ExecuteScalarAsync())!>=1);
             }
-            var drawRequest=new SaveDrawRequest(1,1,false,"Giải kiểm thử API",contestId,Guid.NewGuid());
+            Assert.Equal(5,candidatePreview.Prize!.Remaining);
+            var drawRequest=new SaveDrawRequest(1,1,false,"Giải kiểm thử API",contestId,Guid.NewGuid(),testPrize.Id);
             var drawResponse=await client.PostAsJsonAsync(drawApi,drawRequest);
             Assert.Equal(HttpStatusCode.OK,drawResponse.StatusCode);
             var createdDraw=(await drawResponse.Content.ReadFromJsonAsync<DrawAdminDto>())!;
+            Assert.Equal(testPrize.Id,createdDraw.PrizeId);
+            Assert.Equal(testPrize.Name,createdDraw.PrizeName);
             Assert.Equal("0912345678",Assert.Single(createdDraw.Winners).Phone);
             Assert.DoesNotContain("091****678",await drawResponse.Content.ReadAsStringAsync());
             Assert.Equal(createdDraw.Id,(await (await client.PostAsJsonAsync(drawApi,drawRequest)).Content.ReadFromJsonAsync<DrawAdminDto>())!.Id);
@@ -248,6 +268,7 @@ public sealed class ContestAdministrationFullHostTests
                 browserStart.Environment["ANTC_TEST_URL"]=client.BaseAddress.ToString();
                 browserStart.Environment["ANTC_TEST_PASSWORD"]=password;
                 browserStart.Environment["ANTC_TEST_CONTEST_ID"]=contestId.ToString();
+                browserStart.Environment["ANTC_TEST_PRIZE_ID"]=testPrize.Id.ToString();
                 browserStart.Environment["ANTC_TEST_ENTRY_CODE"]=entryCode;
                 using var browser=Process.Start(browserStart)!;
                 var browserOut=browser.StandardOutput.ReadToEndAsync();var browserError=browser.StandardError.ReadToEndAsync();

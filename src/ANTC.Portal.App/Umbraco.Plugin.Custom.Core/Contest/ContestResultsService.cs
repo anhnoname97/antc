@@ -94,7 +94,7 @@ public sealed class ContestResultsService(AppDbContext db, TimeProvider clock, C
                 .OrderByDescending(e=>e.Score).ThenBy(e=>e.SubmittedAt).ThenBy(e=>e.Id)
                 .Select((e,i)=>new PublicRank(i+1,e.Code,MaskName(e.FullName??""),MaskPhone(e.Phone!),e.Score,e.Answered,Utc(e.SubmittedAt))).ToList();
             var publicDraws=draws.OrderBy(d=>d.CreatedAt).ThenBy(d=>d.Id).Select(d=>new PublicDraw(d.Id,Utc(d.CreatedAt),
-                d.Winners.OrderBy(w=>w.Rank).Select(w=>new PublicWinner(w.Rank,w.Code,MaskName(w.FullName),MaskPhone(w.Phone),w.Score)).ToList())).ToList();
+                d.Winners.OrderBy(w=>w.Rank).Select(w=>new PublicWinner(w.Rank,w.Code,MaskName(w.FullName),MaskPhone(w.Phone),w.Score)).ToList(),d.PrizeCode,d.PrizeName)).ToList();
             if (pub is null) {pub=new ContestPublishedResult{ContestId=contestId};db.ContestPublishedResults.Add(pub);}
             pub.SnapshotJson=JsonSerializer.Serialize(new ResultSnapshot(Contest(contest),ranked,publicDraws),Json);
             pub.PublishedAt=clock.GetUtcNow().UtcDateTime;
