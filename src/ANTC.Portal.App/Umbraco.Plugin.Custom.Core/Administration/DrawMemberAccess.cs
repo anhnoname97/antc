@@ -36,18 +36,21 @@ public sealed class DrawMemberComposer : IComposer
         builder.Services.Configure<AuthorizationOptions>(options => options.AddPolicy(DrawMemberAccess.Policy,
             policy => policy.AddAuthenticationSchemes(IdentityConstants.ApplicationScheme)
                 .RequireAuthenticatedUser().AddRequirements(new DrawMemberRequirement())));
-        builder.Services.AddScoped<IAuthorizationHandler, DrawMemberAuthorizationHandler>();
+        builder.Services.AddSingleton<IAuthorizationHandler, DrawMemberAuthorizationHandler>();
     }
 }
 
 public sealed class DrawMemberRequirement : IAuthorizationRequirement;
 
-public sealed class DrawMemberAuthorizationHandler(IMemberManager members) : AuthorizationHandler<DrawMemberRequirement>
+public sealed class DrawMemberAuthorizationHandler(IServiceScopeFactory scopes) : AuthorizationHandler<DrawMemberRequirement>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, DrawMemberRequirement requirement)
     {
         // Chi nhan principal cua cookie thanh vien; principal backoffice khong co identity nay.
         if (context.User.Identities.All(i => i.AuthenticationType != IdentityConstants.ApplicationScheme)) return;
+        // Handler la singleton nen khong giu IMemberManager (scoped); mo scope rieng moi lan kiem tra.
+        using IServiceScope scope = scopes.CreateScope();
+        IMemberManager members = scope.ServiceProvider.GetRequiredService<IMemberManager>();
         MemberIdentityUser? member = await members.GetUserAsync(context.User);
         if (await DrawMemberAccess.IsAllowedAsync(members, member)) context.Succeed(requirement);
     }
