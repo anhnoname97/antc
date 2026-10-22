@@ -75,6 +75,7 @@
     });
     document.addEventListener('pointerdown', event => { if (!wrapper.contains(event.target)) close(); });
     select.addEventListener('change', sync);
+    select.addEventListener('article:sync', sync);
     select.form.addEventListener('reset', () => { close(); setTimeout(sync, 0); });
     select.before(wrapper);
     wrapper.append(select, trigger, panel);
@@ -139,6 +140,7 @@
         if (event.key === 'Escape') { setOpen(false); toggle.focus({ preventScroll: true }); }
     });
     select.addEventListener('change', syncLabel);
+    select.addEventListener('article:sync', syncLabel);
     small.addEventListener('change', reset);
     syncLabel();
     reset();

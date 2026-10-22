@@ -28,7 +28,7 @@
     @if (isHero)
     {
         <div class="intro-hero__decoration" aria-hidden="true">
-            <div class="intro-hero__sky"></div>
+            <div class="intro-hero__sky">@Html.HeroImage(Umbraco.AssignedContentItem, 1)</div>
             <img class="intro-hero__drum" src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" decoding="async">
             <svg class="intro-hero__shield" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <defs><pattern id="shield-dots-@Model.ContentKey" width=".42" height=".42" patternUnits="userSpaceOnUse"><circle cx=".2" cy=".2" r=".04" fill="#b4c8e6"/></pattern></defs>

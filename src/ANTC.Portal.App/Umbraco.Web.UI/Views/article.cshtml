@@ -1,21 +1,8 @@
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using Microsoft.AspNetCore.Mvc.ViewFeatures
-@using Umbraco.Cms.Core.Models
-@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ArticleDetailPageModel>
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
-    var category = Model.Parent<IPublishedContent>();
-    var date = Model.Value<DateTime>("updatedDate");
-    if (date == default) { date = Model.UpdateDate; }
-    var image = Model.Value<MediaWithCrops>("image");
-    var body = Model.Value<IHtmlEncodedString>("body");
-    var hasBody = !string.IsNullOrWhiteSpace(body?.ToHtmlString());
-    var agency = Model.Value<string>("sourceAgency");
-    var documentNumber = Model.Value<string>("sourceDocNo");
-    var documentDate = Model.Value<DateTime>("sourceDocDate");
-    var reviewed = Model.Value<DateTime>("lastReviewedDate");
-    var related = category?.Children().Where(x => x.ContentType.Alias == "article" && x.Key != Model.Key)
-        .OrderByDescending(x => x.Value<DateTime>("updatedDate") == default ? x.UpdateDate : x.Value<DateTime>("updatedDate")).ThenBy(x => x.SortOrder).Take(3).ToList();
+    var article = Model.Article;
+    var category = article.Category;
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/articles.css" asp-append-version="true">
@@ -24,44 +11,38 @@
 <div class="article-portal article-portal--detail">
     <div class="article-wrap article-detail-top">@await Html.PartialAsync("~/Views/Partials/articles/_Breadcrumbs.cshtml", Model)</div>
     <div class="article-wrap article-detail-layout"><div class="article-main-column"><div class="article-paper">
-    <header class="article-hero article-hero--detail"><div class="article-heading">
-        @if (category?.ContentType.Alias == "articleList") { <a class="article-eyebrow" href="@category.Url()">@category.Name</a> }
-        <div class="article-labels">@await Html.PartialAsync("~/Views/Partials/articles/_Status.cshtml", Model)</div>
-        <h1>@Model.Name</h1>
-        <p class="article-meta">Cập nhật <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p>
-        @if (!string.IsNullOrWhiteSpace(Model.Value<string>("summary"))) { <p class="article-lead">@Model.Value("summary")</p> }
-    </div></header>
-    <article class="article-reading" aria-label="Nội dung bài viết">
-        @if (image is not null) { <figure class="article-cover"><img src="@image.Url()" alt="@Model.Name" fetchpriority="high"></figure> }
-        @if (reviewed != default && reviewed < DateTime.UtcNow.AddDays(-90))
-        {
-            <aside class="article-notice" aria-label="Lưu ý rà soát">Nội dung đang chờ rà soát lại. Lần rà soát gần nhất: @reviewed.ToString("dd/MM/yyyy"), đã quá 90 ngày.</aside>
-        }
-        <div class="article-body">
-            @if (hasBody) { @body }
-            else { <p>Nội dung bài viết đang được cập nhật.</p> }
-        </div>
-        @if (!string.IsNullOrWhiteSpace(Model.Value<string>("safeAction")))
-        {
-            <aside class="article-safe"><h2>Hành động an toàn</h2><p>@Model.Value("safeAction")</p></aside>
-        }
-        @if (!string.IsNullOrWhiteSpace(agency) || !string.IsNullOrWhiteSpace(documentNumber) || documentDate != default || reviewed != default)
-        {
-            <aside class="article-source" aria-label="Nguồn và rà soát"><h2>Nguồn và rà soát</h2><dl>
-                @if (!string.IsNullOrWhiteSpace(agency)) { <div><dt>Cơ quan ban hành</dt><dd>@agency</dd></div> }
-                @if (!string.IsNullOrWhiteSpace(documentNumber)) { <div><dt>Số văn bản</dt><dd>@documentNumber</dd></div> }
-                @if (documentDate != default) { <div><dt>Ngày văn bản</dt><dd>@documentDate.ToString("dd/MM/yyyy")</dd></div> }
-                @if (reviewed != default) { <div><dt>Rà soát gần nhất</dt><dd>@reviewed.ToString("dd/MM/yyyy")</dd></div> }
-            </dl></aside>
-        }
-        @if (category?.ContentType.Alias == "articleList") { <a class="article-back" href="@category.Url()">← Trở lại @category.Name</a> }
-    </article>
+        <header class="article-hero article-hero--detail"><div class="article-heading">
+            <a class="article-eyebrow" href="@category.Url">@category.Title</a>
+            <div class="article-labels">@await Html.PartialAsync("~/Views/Partials/articles/_Status.cshtml", article)</div>
+            <h1>@article.Title</h1>
+            @if (article.UpdatedDate is { } date) { <p class="article-meta">Cập nhật <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p> }
+            @if (!string.IsNullOrWhiteSpace(article.Summary)) { <p class="article-lead">@article.Summary</p> }
+        </div></header>
+        <article class="article-reading" aria-label="Nội dung bài viết">
+            @if (article.Image is { } image) { <figure class="article-cover"><img src="@image.Url" alt="@image.Alt" fetchpriority="high"></figure> }
+            @if (article.Review.IsOverdue) { <aside class="article-notice" aria-label="Lưu ý rà soát">@article.Review.Message</aside> }
+            <div class="article-body">
+                @if (!string.IsNullOrWhiteSpace(article.BodyHtml)) { @Html.Raw(article.BodyHtml) }
+                else { <p>Nội dung bài viết đang được cập nhật.</p> }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(article.SafeAction)) { <aside class="article-safe"><h2>Hành động an toàn</h2><p>@article.SafeAction</p></aside> }
+            @if (article.Source.Agency is not null || article.Source.DocumentNumber is not null || article.Source.DocumentDate is not null || article.Review.LastReviewedDate is not null)
+            {
+                <aside class="article-source" aria-label="Nguồn và rà soát"><h2>Nguồn và rà soát</h2><dl>
+                    @if (article.Source.Agency is not null) { <div><dt>Cơ quan ban hành</dt><dd>@article.Source.Agency</dd></div> }
+                    @if (article.Source.DocumentNumber is not null) { <div><dt>Số văn bản</dt><dd>@article.Source.DocumentNumber</dd></div> }
+                    @if (article.Source.DocumentDate is { } documentDate) { <div><dt>Ngày văn bản</dt><dd>@documentDate.ToString("dd/MM/yyyy")</dd></div> }
+                    @if (article.Review.LastReviewedDate is { } reviewed) { <div><dt>Rà soát gần nhất</dt><dd>@reviewed.ToString("dd/MM/yyyy")</dd></div> }
+                </dl></aside>
+            }
+            <a class="article-back" href="@category.Url">← Trở lại @category.Title</a>
+        </article>
     </div>
-    @if (related?.Any() == true)
+    @if (article.RelatedArticles.Count > 0)
     {
         <section class="article-related"><div class="article-wrap"><p class="article-eyebrow">Đọc tiếp</p><h2>Bài viết cùng danh mục</h2><div class="article-cards">
-            @foreach (var article in related) { @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", article, new ViewDataDictionary(ViewData) { ["HideReadMore"] = true }) }
+            @foreach (var related in article.RelatedArticles) { @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", new ArticleCardModel(related, category)) }
         </div></div></section>
     }
-    </div>@await Html.PartialAsync("~/Views/Partials/articles/_Explore.cshtml", Model)</div>
+    </div>@await Html.PartialAsync("~/Views/Partials/articles/_Explore.cshtml", Model.Navigation)</div>
 </div>

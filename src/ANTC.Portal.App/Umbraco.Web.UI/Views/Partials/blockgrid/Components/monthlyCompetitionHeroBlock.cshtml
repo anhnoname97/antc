@@ -19,7 +19,7 @@
     var id = $"monthly-contest-{Model.ContentKey:N}";
 }
 <section class="ph" aria-labelledby="@id">
-    <div class="ph-sky"></div>
+    <div class="ph-sky">@Html.HeroImage(Umbraco.AssignedContentItem, 4)</div>
     <svg class="ph-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
     <span class="ph-num month" aria-hidden="true">@(start?.ToString("MM"))</span>
     <div class="ph-shade"></div>

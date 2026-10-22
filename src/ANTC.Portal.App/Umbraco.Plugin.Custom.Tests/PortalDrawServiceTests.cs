@@ -73,6 +73,8 @@ public class PortalDrawServiceTests
         await using var f = await Fixture.Create();
         long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
         await f.Allocate(id, prize, 5);
+        f.Db.QuizTopics.AddRange(new QuizTopic { Id = 1, Title = "Thứ nhất", UpdatedAt = Now },
+            new QuizTopic { Id = 2, Title = "Thứ hai", UpdatedAt = Now });
         f.Db.ContestTopics.AddRange(new ContestTopic { ContestId = id, TopicId = 2, SortOrder = 1, Title = "Thứ hai" },
             new ContestTopic { ContestId = id, TopicId = 1, SortOrder = 0, Title = "Thứ nhất" });
         var a = f.Person(id, "0911111111", 10); f.Person(id, "0922222222", 10); f.Person(id, "0933333333", 7);

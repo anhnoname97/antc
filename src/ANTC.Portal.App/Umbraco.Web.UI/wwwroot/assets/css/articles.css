@@ -266,3 +266,9 @@
  .fraud-category-picker__options { left:0; right:auto; }
 }
 @media(prefers-reduced-motion:reduce) { .fraud-results-form__query { transition:none; } }
+
+.article-portal [hidden] { display:none !important; }
+.article-live { padding:12px 16px; border:1px solid var(--article-line); border-radius:8px; background:#fff; color:var(--article-navy); }
+.article-retry { margin:0 0 16px; padding:9px 16px; border:1px solid var(--article-line); border-radius:8px; background:#fff; color:var(--article-navy); cursor:pointer; font:inherit; }
+[data-article-results][aria-busy=true] .article-cards { opacity:.6; }
+[data-article-results]:focus { outline:none; }
