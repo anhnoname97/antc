@@ -61,6 +61,7 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddScoped<QuestionSubmissionService>();
         builder.Services.AddScoped<IContestAdminService, ContestAdminService>();
         builder.Services.AddScoped<ContestResultsService>();
+        builder.Services.AddScoped<PortalDrawService>();
         builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestReportingService>();
         builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestAuditService>();
         builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.Administration.ContestPrivacyService>();
