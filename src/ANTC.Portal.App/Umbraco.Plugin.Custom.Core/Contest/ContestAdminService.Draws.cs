@@ -28,6 +28,10 @@ public sealed partial class ContestAdminService
             .Select(e => e with { SubmittedAt = e.SubmittedAt is { } at ? AsUtc(at) : null }).ToList();
     }
 
+    /// <summary>Nguoi du dieu kien (da gop theo so dien thoai) co diem >= minScore; dung chung quy tac chon nguoi voi quay so.</summary>
+    public async Task<IReadOnlyList<DrawCandidateSnapshot>> EligibleCandidatesAsync(long contestId, int minScore, bool excludePrevious, CancellationToken ct) =>
+        (await DrawCandidatesAsync(contestId, excludePrevious, ct)).Where(e => e.Score >= minScore).ToList();
+
     public async Task<DrawPreviewDto> PreviewDrawAsync(PreviewDrawRequest request, CancellationToken ct)
     {
         if (request.ContestId <= 0 || request.MinScore < 0)
