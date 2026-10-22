@@ -24,6 +24,10 @@
 }
 <section class="qs-list">
     <h1 class="qs-title">Cuộc thi đã kết thúc</h1>
+    @if (Model.Notice is not null)
+    {
+        <p class="qs-alert" role="alert">@Model.Notice</p>
+    }
     @if (Model.Contests.Count == 0)
     {
         <p class="qs-empty">Chưa có cuộc thi nào kết thúc.</p>

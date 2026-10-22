@@ -19,7 +19,10 @@ public sealed class DrawLoginModel
     public string? Error { get; set; }
 }
 
-public sealed record DrawIndexModel(string MemberName, IReadOnlyList<PortalDrawContestSummary> Contests);
+public sealed record DrawIndexModel(string MemberName, IReadOnlyList<PortalDrawContestSummary> Contests, string? Notice = null);
+
+/// <summary>Du lieu cho man dieu khien va man trinh chieu; chi mang id va ten, so lieu nap qua API.</summary>
+public sealed record DrawPanelModel(long ContestId, string ContestName, string MemberName);
 
 /// <summary>Chi cho phep returnUrl noi bo nam trong khu vuc /quay-so.</summary>
 public static class DrawReturnUrl
@@ -74,16 +77,46 @@ public sealed class DrawPortalController(IAuthorizationService authorization, IM
     IMemberSignInManager signIn, PortalDrawService draws) : DrawPortalControllerBase(authorization, members)
 {
     private const string GenericLoginError = "Tên đăng nhập hoặc mật khẩu không đúng.";
+    private const string NotFinishedKey = "chua-ket-thuc";
     private const string NoPermissionError = "Tài khoản không có quyền quay số";
     private readonly IMemberManager members = members;
 
     [HttpGet("")]
-    public async Task<IActionResult> Index(CancellationToken ct)
+    public async Task<IActionResult> Index(string? thongBao, CancellationToken ct)
     {
         var (denied, member) = await RequireDrawMemberAsync();
         if (denied is not null) return denied;
         var contests = await draws.ListFinishedAsync(ct);
-        return View(ViewRoot + "Index.cshtml", new DrawIndexModel(member?.Name ?? member?.UserName ?? "", contests));
+        string? notice = thongBao == NotFinishedKey ? "Cuộc thi này chưa kết thúc nên chưa thể quay số." : null;
+        return View(ViewRoot + "Index.cshtml", new DrawIndexModel(member?.Name ?? member?.UserName ?? "", contests, notice));
+    }
+
+    /// <summary>Bang dieu khien quay so cua mot cuoc thi da ket thuc.</summary>
+    [HttpGet("{id:long}")]
+    public Task<IActionResult> Panel(long id, CancellationToken ct) => PanelViewAsync(id, "QuaySo.cshtml", ct);
+
+    /// <summary>Man trinh chieu toan man hinh; khong tu quay, chi nhan lenh tu bang dieu khien.</summary>
+    [HttpGet("{id:long}/trinh-chieu")]
+    public Task<IActionResult> Stage(long id, CancellationToken ct) => PanelViewAsync(id, "TrinhChieu.cshtml", ct);
+
+    private async Task<IActionResult> PanelViewAsync(long id, string view, CancellationToken ct)
+    {
+        var (denied, member) = await RequireDrawMemberAsync();
+        if (denied is not null) return denied;
+        try
+        {
+            var detail = await draws.GetAsync(id, null, ct);
+            return View(ViewRoot + view, new DrawPanelModel(id, detail.Contest.Name, member?.Name ?? member?.UserName ?? ""));
+        }
+        catch (PortalDrawContestNotFoundException)
+        {
+            Response.StatusCode = StatusCodes.Status404NotFound;
+            return View(ViewRoot + "KhongTimThay.cshtml");
+        }
+        catch (ContestAdminConflictException e) when (e.Code == "CONTEST_NOT_FINISHED")
+        {
+            return Redirect($"{DrawReturnUrl.Home}?thongBao={NotFinishedKey}");
+        }
     }
 
     [HttpGet("dang-nhap")]

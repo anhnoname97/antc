@@ -1,6 +1,9 @@
 @{
     Layout = null;
     var title = ViewData["Title"] as string ?? "Quay số";
+    // Man dieu khien va man trinh chieu tu ve toan bo trang, khong dung thanh dau trang chung.
+    bool bare = ViewData["Bare"] is true;
+    string bodyClass = "qs-body" + (ViewData["BodyClass"] is string extra ? " " + extra : "");
 }
 <!doctype html>
 <html lang="vi">
@@ -15,13 +18,21 @@
     <link rel="stylesheet" href="~/assets/css/base.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/quay-so.css" asp-append-version="true">
 </head>
-<body class="qs-body">
-    <header class="qs-header">
-        <span class="qs-brand">Quay số trúng thưởng · Ban tổ chức</span>
-        @RenderSection("HeaderRight", required: false)
-    </header>
-    <main class="qs-main" id="noi-dung">
+<body class="@bodyClass">
+    @if (!bare)
+    {
+        <header class="qs-header">
+            <span class="qs-brand">Quay số trúng thưởng · Ban tổ chức</span>
+            @RenderSection("HeaderRight", required: false)
+        </header>
+        <main class="qs-main" id="noi-dung">
+            @RenderBody()
+        </main>
+    }
+    else
+    {
         @RenderBody()
-    </main>
+    }
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
