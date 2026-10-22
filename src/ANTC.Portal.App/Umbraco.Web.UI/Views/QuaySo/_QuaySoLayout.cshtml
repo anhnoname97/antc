@@ -3,7 +3,8 @@
     var title = ViewData["Title"] as string ?? "Quay số";
     // Man dieu khien va man trinh chieu tu ve toan bo trang, khong dung thanh dau trang chung.
     bool bare = ViewData["Bare"] is true;
-    string bodyClass = "qs-body" + (ViewData["BodyClass"] is string extra ? " " + extra : "");
+    // Trang thuong dung theme do - vang (scope .qd); man quay tu khai bao qd trong BodyClass.
+    string bodyClass = "qs-body" + (bare ? "" : " qd") + (ViewData["BodyClass"] is string extra ? " " + extra : "");
 }
 <!doctype html>
 <html lang="vi">
@@ -21,9 +22,14 @@
 <body class="@bodyClass">
     @if (!bare)
     {
-        <header class="qs-header">
-            <span class="qs-brand">Quay số trúng thưởng · Ban tổ chức</span>
-            @RenderSection("HeaderRight", required: false)
+        <header class="c-top qs-header">
+            <div class="t">
+                <small>BAN TỔ CHỨC · QUAY SỐ</small>
+                <b>Quay số trúng thưởng</b>
+            </div>
+            <div class="r">
+                @RenderSection("HeaderRight", required: false)
+            </div>
         </header>
         <main class="qs-main" id="noi-dung">
             @RenderBody()

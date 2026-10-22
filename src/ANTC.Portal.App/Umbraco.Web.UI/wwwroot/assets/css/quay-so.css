@@ -1,236 +1,244 @@
-/* Khu vuc /quay-so: giao dien rieng, chi dung bien trong tokens.css */
+/* Khu vuc /quay-so: cac trang thuong (dang nhap, danh sach...) dung theme do - vang.
+   Bien --qd-* khai bao o scope .qd phia duoi; layout tu them lop qd cho trang khong Bare. */
 .qs-body {
-  --qs-gold: #F5C242; /* vang nhan cua chu de quay so, tokens.css chua co */
-  --qs-gold-600: #D9A21B;
   margin: 0;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--c-bg-soft);
-  color: var(--c-text);
   font-family: var(--font);
   font-size: var(--fs-body);
 }
 
-.qs-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px var(--gutter);
-  background: linear-gradient(90deg, var(--c-brand-900), var(--c-brand));
-  border-bottom: 3px solid var(--qs-gold);
-  color: var(--c-on-brand);
+/* Tien to .qd de thang selector `.qd button` (reset) ben duoi */
+.qd .c-top.qs-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
-.qs-brand {
-  font-size: var(--fs-lead);
-  font-weight: 700;
-}
-
-.qs-main {
-  flex: 1;
+.qd .qs-main {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 48px var(--gutter);
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 32px var(--gutter);
 }
 
-.qs-card {
+.qd .qs-card {
   width: 100%;
   max-width: 440px;
-  padding: 32px;
-  background: var(--c-bg);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  padding: 24px;
+  background: #ffffff14;
+  border: 1px solid #ffffff33;
+  border-radius: 16px;
 }
 
-.qs-title {
+.qd .qs-title {
   margin: 0 0 8px;
-  font-size: var(--fs-h3);
-  color: var(--c-brand);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #fff;
 }
 
-.qs-lead {
-  margin: 0 0 24px;
-  color: var(--c-text-3);
+.qd .qs-lead {
+  margin: 0 0 20px;
+  color: var(--qd-ink-2);
 }
 
-.qs-form {
+.qd .qs-form {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.qs-label {
-  font-size: var(--fs-small);
-  font-weight: 700;
-  color: var(--c-text-2);
+/* nhan muc kieu .card h2 */
+.qd .qs-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--qd-gold);
 }
 
-.qs-input {
-  padding: 12px;
+.qd .qs-input {
+  width: 100%;
+  padding: 10px 12px;
   margin-bottom: 8px;
   font: inherit;
-  border: 1px solid var(--c-border-input);
-  border-radius: var(--radius);
+  color: var(--qd-ink);
+  background: var(--qd-red-4);
+  border: 1px solid #ffffff44;
+  border-radius: 10px;
 }
 
-.qs-input:focus-visible,
-.qs-btn:focus-visible {
-  outline: 2px solid var(--c-brand-600);
-  outline-offset: 2px;
+.qd .qs-input:focus-visible,
+.qd .qs-btn:focus-visible {
+  outline: 3px solid var(--qd-focus);
+  outline-offset: 3px;
 }
 
-.qs-btn {
+/* nut chinh theo .go / .tb.pri */
+.qd .qs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 12px 24px;
   font: inherit;
   font-weight: 700;
-  color: var(--c-on-brand);
-  background: var(--c-brand);
-  border: 0;
-  border-radius: var(--radius);
+  color: var(--qd-on-gold);
+  text-decoration: none;
+  background: linear-gradient(180deg, #FFE48A, #F5B800);
+  border: 1px solid var(--qd-gold);
+  border-radius: 40px;
+  box-shadow: inset 0 -3px 0 #C98F00;
   cursor: pointer;
-  transition: background var(--ease);
 }
 
-.qs-btn:hover {
-  background: var(--c-brand-600);
+.qd .qs-btn:hover {
+  background: linear-gradient(180deg, #FFEBA6, #FFC929);
 }
 
-.qs-alert {
+/* nut phu theo .tb */
+.qd .qs-btn-ghost {
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--qd-ink);
+  background: none;
+  border-color: #ffffff33;
+  box-shadow: none;
+}
+
+.qd .qs-btn-ghost:hover {
+  background: #ffffff12;
+}
+
+.qd .qs-btn-link {
+  align-self: flex-start;
+}
+
+/* hop loi theo .spin-msg */
+.qd .qs-alert {
   margin: 0 0 16px;
-  padding: 12px;
-  font-size: var(--fs-small);
-  color: var(--c-danger-600);
-  background: var(--c-tint);
-  border: 1px solid var(--c-tint-border);
-  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  color: var(--qd-ink);
+  background: var(--qd-red-4);
+  border: 1px solid #ffffff44;
+  border-radius: 12px;
 }
 
 /* Danh sach cuoc thi da ket thuc */
-.qs-user {
+.qd .qs-user {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
 }
 
-.qs-user-name {
+.qd .qs-user-name {
   font-weight: 700;
-  color: var(--qs-gold);
+  color: var(--qd-gold);
 }
 
-.qs-btn-ghost {
-  padding: 8px 16px;
-  color: var(--c-on-brand);
-  background: transparent;
-  border: 1px solid var(--c-on-brand-muted);
-}
-
-.qs-btn-ghost:hover {
-  background: var(--c-brand-600);
-}
-
-.qs-list {
+.qd .qs-list {
   width: 100%;
-  max-width: var(--container);
 }
 
-.qs-list .qs-title {
-  margin-bottom: 24px;
-  font-size: var(--fs-h2-card);
+.qd .qs-list .qs-title {
+  margin-bottom: 20px;
+  font-size: 1.75rem;
 }
 
-.qs-empty {
-  padding: 32px;
+.qd .qs-empty {
+  padding: 24px;
   text-align: center;
-  color: var(--c-text-3);
-  background: var(--c-bg);
-  border: 1px dashed var(--c-border-input);
-  border-radius: var(--radius-lg);
+  color: var(--qd-ink-3);
+  border: 1px dashed #ffffff44;
+  border-radius: 16px;
 }
 
-.qs-table {
+.qd .qs-table {
   width: 100%;
+  font-size: 0.84rem;
   border-collapse: collapse;
-  background: var(--c-bg);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  background: #ffffff14;
+  border: 1px solid #ffffff33;
+  border-radius: 16px;
   overflow: hidden;
 }
 
-.qs-table th,
-.qs-table td {
-  padding: 14px 16px;
+.qd .qs-table th {
+  padding: 10px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--qd-ink-3);
+  border-bottom: 1px solid var(--qd-line);
+}
+
+.qd .qs-table td {
+  padding: 12px;
   text-align: left;
   vertical-align: middle;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid #ffffff10;
 }
 
-.qs-table th {
-  font-size: var(--fs-small);
-  color: var(--c-brand);
-  background: var(--c-tint);
-}
-
-.qs-cell-name {
+.qd .qs-cell-name {
   font-weight: 700;
 }
 
-.qs-cell-action {
+.qd .qs-cell-action {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
 }
 
-.qs-list .qs-btn {
-  display: inline-block;
-  padding: 10px 20px;
-  text-decoration: none;
-  color: var(--c-brand-900);
-  background: linear-gradient(180deg, var(--qs-gold), var(--qs-gold-600));
+.qd .qs-list .qs-btn {
+  padding: 8px 18px;
+  font-size: 0.875rem;
 }
 
-.qs-list .qs-btn:hover {
-  background: var(--qs-gold);
-}
-
-.qs-list .qs-btn-disabled,
-.qs-list .qs-btn-disabled:hover {
-  color: var(--c-lock-text);
-  background: var(--c-disabled);
+.qd .qs-list .qs-btn-disabled,
+.qd .qs-list .qs-btn-disabled:hover {
+  color: #FFD9CF;
+  background: #ffffff2a;
+  border-color: transparent;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
-.qs-hint {
-  font-size: var(--fs-eyebrow);
-  color: var(--c-text-4);
+.qd .qs-hint {
+  font-size: 0.75rem;
+  color: var(--qd-ink-3);
 }
 
-.qs-badge {
+/* badge: mac dinh mo, dang quay vien vang, da quay xong xanh */
+.qd .qs-badge {
   display: inline-block;
-  padding: 4px 10px;
-  font-size: var(--fs-small);
-  font-weight: 700;
-  color: var(--c-text-3);
-  background: var(--c-bg-soft-2);
-  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--qd-ink-3);
+  border: 1px solid #ffffff33;
+  border-radius: 40px;
 }
 
-.qs-badge-dang-quay {
-  color: var(--c-brand);
-  background: var(--c-tint);
+.qd .qs-badge-dang-quay {
+  color: var(--qd-gold);
+  border-color: var(--qd-gold);
 }
 
-.qs-badge-da-quay-xong {
-  color: var(--c-ok);
-  background: var(--c-ok-bg);
+.qd .qs-badge-da-quay-xong {
+  color: var(--qd-green);
+  border-color: var(--qd-green);
 }
 
-.qs-sr-only {
+.qd .qs-sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -239,24 +247,51 @@
   white-space: nowrap;
 }
 
-@media (max-width: 640px) {
-  .qs-main {
-    padding: 24px var(--gutter);
+/* 744px: header xuong dong gon */
+@media (max-width: 760px) {
+  .qd .c-top.qs-header {
+    padding: 12px 16px;
   }
 
-  .qs-table,
-  .qs-table tbody,
-  .qs-table tr,
-  .qs-table td {
+  .qd .c-top.qs-header .r {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .qd .qs-user {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* 390px: bang thanh the, nut rong het khung */
+@media (max-width: 640px) {
+  .qd .qs-main {
+    padding: 16px 12px;
+  }
+
+  .qd .qs-card {
+    padding: 16px;
+  }
+
+  .qd .qs-card .qs-btn,
+  .qd .qs-form .qs-btn {
+    width: 100%;
+  }
+
+  .qd .qs-table,
+  .qd .qs-table tbody,
+  .qd .qs-table tr,
+  .qd .qs-table td {
     display: block;
   }
 
-  .qs-table {
+  .qd .qs-table {
     background: transparent;
-    box-shadow: none;
+    border: 0;
   }
 
-  .qs-table thead {
+  .qd .qs-table thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -264,48 +299,50 @@
     clip: rect(0 0 0 0);
   }
 
-  .qs-table tr {
-    margin-bottom: 16px;
-    background: var(--c-bg);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
+  .qd .qs-table tr {
+    margin-bottom: 12px;
+    background: #ffffff14;
+    border: 1px solid #ffffff33;
+    border-radius: 16px;
+    overflow: hidden;
   }
 
-  .qs-table td {
+  .qd .qs-table td {
     display: flex;
     justify-content: space-between;
     gap: 12px;
+    padding: 10px 12px;
     text-align: right;
   }
 
-  .qs-table td::before {
+  .qd .qs-table td::before {
     content: attr(data-label);
     flex-shrink: 0;
-    font-size: var(--fs-small);
-    font-weight: 400;
-    color: var(--c-text-3);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--qd-ink-3);
     text-align: left;
   }
 
-  .qs-table td:last-child {
+  .qd .qs-table td:last-child {
     border-bottom: 0;
   }
 
-  .qs-table .qs-cell-action {
+  .qd .qs-table .qs-cell-action {
     flex-direction: column;
     align-items: stretch;
     text-align: center;
   }
 
-  .qs-table .qs-cell-action::before {
+  .qd .qs-table .qs-cell-action::before {
     content: none;
   }
-}
 
-.qs-btn-link {
-  display: inline-block;
-  text-decoration: none;
+  .qd .qs-list .qs-btn {
+    width: 100%;
+  }
 }
 
 /* ===== Man quay so: bang dieu khien va man trinh chieu (theme do - vang) ===== */
