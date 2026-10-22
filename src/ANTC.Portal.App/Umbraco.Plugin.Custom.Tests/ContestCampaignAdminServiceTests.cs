@@ -7,6 +7,21 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class ContestCampaignAdminServiceTests
 {
     [Fact]
+    public async Task PrizeMoney_RoundTripsValidatesAndOldClientDoesNotClearIt()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        var prize=(await test.Service.SavePrizeAsync(null,new("MONEY","Giải tiền",null,PrizeMoney:1500000),default))!;
+        Assert.Equal(1500000,prize.PrizeMoney);
+        Assert.Equal(1500000,(await test.Service.SearchPrizesAsync(null,null,1,50,default)).Items.Single().PrizeMoney);
+        await test.Service.SavePrizeAsync(prize.Id,new(prize.Code,prize.Name,null),default);
+        Assert.Equal(1500000,(await test.Service.GetPrizeAsync(prize.Id,default))!.PrizeMoney);
+        await test.Service.SavePrizeAsync(prize.Id,new(prize.Code,prize.Name,null,PrizeMoney:0),default);
+        Assert.Equal(0,(await test.Service.GetPrizeAsync(prize.Id,default))!.PrizeMoney);
+        var error=await Assert.ThrowsAsync<ContestAdminValidationException>(()=>test.Service.SavePrizeAsync(prize.Id,new(prize.Code,prize.Name,null,PrizeMoney:-1),default));
+        Assert.Contains("prizeMoney",error.Fields.Keys);
+        await Assert.ThrowsAsync<ContestAdminValidationException>(()=>test.Service.SavePrizeAsync(prize.Id,new(prize.Code,prize.Name,null,PrizeMoney:9007199254740992),default));
+    }
+    [Fact]
     public async Task CreateCampaign_SavesPrizeSelectionsWithIndependentQuantities()
     {
         await using TestDatabase test = await TestDatabase.CreateAsync();
