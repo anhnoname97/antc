@@ -38,3 +38,23 @@ dotnet run --project src/ANTC.Portal.App/Tools/SeedDrawData -- --db "D:\...\App_
 ```
 
 Mặc định chỉ đọc danh sách cuộc thi; `--verify` gọi chính dịch vụ xem trước quay và kiểm tra điểm/số đáp án, không tạo lần quay. Chỉ `--apply --contest-id 1` mới chèn dữ liệu, có backup trước, một transaction và kiểm tra tính nhất quán trước commit. Chống chạy lặp nếu còn dấu lô `TEST-QUAY-50-V1`. Không chạy lệnh nạp trên production hoặc trước khi xác định chính xác CSDL đích.
+
+## Dữ liệu demo màn quay số (SeedDrawDemo)
+
+`src/ANTC.Portal.App/Tools/SeedDrawDemo` tạo trọn bộ dữ liệu demo cho `/quay-so`, không sửa `SeedDrawData` và không nằm trong `ANTC.Portal.App.slnx`. Mọi thao tác ghi đi qua `ContestAdminService` (`SavePrizeAsync`, `CreateCampaignAsync`, `CreateDrawAsync`), không chèn thẳng vào bảng cuộc thi hoặc quay số. Luôn truyền đường dẫn tuyệt đối tới `app.sqlite.db` đã có:
+
+```powershell
+# chỉ đọc: liệt kê cuộc thi
+dotnet run --project src/ANTC.Portal.App/Tools/SeedDrawDemo -- --db "D:\...\App_Data\app.sqlite.db"
+# chỉ đọc: số lượt, phân bố điểm, số người đủ điều kiện theo ngưỡng, suất đã quay/còn lại
+dotnet run --project src/ANTC.Portal.App/Tools/SeedDrawDemo -- --db "D:\...\App_Data\app.sqlite.db" --verify
+# ghi: sao lưu, tạo giải + cuộc thi + 50 lượt + quay trước
+dotnet run --project src/ANTC.Portal.App/Tools/SeedDrawDemo -- --db "D:\...\App_Data\app.sqlite.db" --apply [--predraw 2] [--start 2026-09-01T00:00:00 --end 2026-09-30T23:59:59]
+```
+
+- Tạo 4 giải `DEMO-NHAT/NHI/BA/KK` (dùng lại nếu đã có), cuộc thi **[DEMO] Cuộc thi An toàn tài chính tháng 9/2026** (1/9–30/9/2026 giờ Việt Nam, tối đa 2 lượt, gia hạn nộp 24 giờ; giải Nhất 1, Nhì 2, Ba 3, Khuyến khích 5 suất) gồm mọi chuyên đề và câu đang dùng.
+- 50 lượt đã nộp, có tên `[DEMO] ...`, đơn vị `DEMO-QUAY-50` làm dấu lô, điện thoại `0009xxxxxx`, 50 điểm khác nhau từ khoảng 98% xuống 40% số câu (nếu số câu ít thì hạ cận dưới để đủ 50 mức).
+- `--predraw N` (0..5, mặc định 2) quay trước N suất giải Khuyến khích với ngưỡng khoảng 60% số câu, ghi chú `Quay trước để demo`, người thực hiện `seed:demo`.
+- Chạy lặp an toàn: đã có lượt `DEMO-QUAY-50` hoặc cuộc thi cùng tên thì không tạo thêm; chỉ quay phần còn thiếu. Lịch trùng cuộc thi khác (`CONTEST_TIME_OVERLAP`) thì công cụ báo rõ và dừng; hãy chạy lại với `--start/--end`. Cuộc thi phải đã kết thúc (EndAt + gia hạn ≤ hiện tại) vì `/quay-so` chỉ hiện cuộc thi đã kết thúc.
+- Trước khi ghi có SQLite online backup tại `App_Data/backups/before-draw-demo-<utc>-<guid>.db`; sau khi chạy ghi manifest `DEMO-QUAY-50-demo-<utc>.json` cạnh CSDL (id giải, cuộc thi, lượt thi, lần quay, đường dẫn backup) và in JSON tóm tắt (người trúng đã che tên/điện thoại).
+- `--verify` dùng `EligibleCandidatesAsync` (cùng quy tắc chọn người với quay số) thay cho `PreviewDrawAsync`, vì dịch vụ xem trước mở transaction ghi nên không chạy được ở chế độ ReadOnly.
