@@ -1,0 +1,26 @@
+@{
+    Layout = null;
+    var title = ViewData["Title"] as string ?? "Quay số";
+}
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>@title — Quay số antoantaichinh.vn</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="~/assets/css/fonts.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/tokens.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/base.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/quay-so.css" asp-append-version="true">
+</head>
+<body class="qs-body">
+    <header class="qs-header">
+        <span class="qs-brand">antoantaichinh.vn · Quay số</span>
+    </header>
+    <main class="qs-main" id="noi-dung">
+        @RenderBody()
+    </main>
+</body>
+</html>

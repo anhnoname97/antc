@@ -1,0 +1,12 @@
+@model string
+@{
+    Layout = "~/Views/QuaySo/_QuaySoLayout.cshtml";
+    ViewData["Title"] = "Quay số";
+}
+<section class="qs-card">
+    <h1 class="qs-title">Xin chào @Model</h1>
+    <p class="qs-lead">Bạn đã đăng nhập với tư cách thành viên Ban tổ chức quay số.</p>
+    <form method="post" action="/quay-so/dang-xuat" asp-antiforgery="true">
+        <button class="qs-btn" type="submit">Đăng xuất</button>
+    </form>
+</section>

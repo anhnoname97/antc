@@ -1,0 +1,103 @@
+/* Khu vuc /quay-so: giao dien rieng, chi dung bien trong tokens.css */
+.qs-body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-bg-soft);
+  color: var(--c-text);
+  font-family: var(--font);
+  font-size: var(--fs-body);
+}
+
+.qs-header {
+  padding: 16px var(--gutter);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+.qs-brand {
+  font-size: var(--fs-lead);
+  font-weight: 700;
+}
+
+.qs-main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px var(--gutter);
+}
+
+.qs-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 32px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.qs-title {
+  margin: 0 0 8px;
+  font-size: var(--fs-h3);
+  color: var(--c-brand);
+}
+
+.qs-lead {
+  margin: 0 0 24px;
+  color: var(--c-text-3);
+}
+
+.qs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qs-label {
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--c-text-2);
+}
+
+.qs-input {
+  padding: 12px;
+  margin-bottom: 8px;
+  font: inherit;
+  border: 1px solid var(--c-border-input);
+  border-radius: var(--radius);
+}
+
+.qs-input:focus-visible,
+.qs-btn:focus-visible {
+  outline: 2px solid var(--c-brand-600);
+  outline-offset: 2px;
+}
+
+.qs-btn {
+  padding: 12px 24px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--c-on-brand);
+  background: var(--c-brand);
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--ease);
+}
+
+.qs-btn:hover {
+  background: var(--c-brand-600);
+}
+
+.qs-alert {
+  margin: 0 0 16px;
+  padding: 12px;
+  font-size: var(--fs-small);
+  color: var(--c-danger-600);
+  background: var(--c-tint);
+  border: 1px solid var(--c-tint-border);
+  border-radius: var(--radius);
+}

@@ -1,0 +1,11 @@
+@{
+    Layout = "~/Views/QuaySo/_QuaySoLayout.cshtml";
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+<section class="qs-card">
+    <h1 class="qs-title">Không có quyền truy cập</h1>
+    <p class="qs-lead">Tài khoản của bạn không thuộc nhóm Ban tổ chức quay số nên không thể vào khu vực này.</p>
+    <form method="post" action="/quay-so/dang-xuat" asp-antiforgery="true">
+        <button class="qs-btn" type="submit">Đăng xuất</button>
+    </form>
+</section>
