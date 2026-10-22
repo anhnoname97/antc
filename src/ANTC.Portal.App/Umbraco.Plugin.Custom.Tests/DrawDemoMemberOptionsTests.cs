@@ -6,7 +6,12 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public class DrawDemoMemberOptionsTests
 {
-    private static IConfiguration Build(string? userName = "u", string? email = "u@x.local", string? name = "U", string? password = "Mat-khau-thu-1")
+    // Gia tri thu sinh luc chay, khong ghi san trong ma nguon.
+    private static readonly string GeneratedValue = Guid.NewGuid().ToString("N");
+
+    private static IConfiguration Build() => Build("u", "u@x.local", "U", GeneratedValue);
+
+    private static IConfiguration Build(string? userName, string? email, string? name, string? password)
     {
         var data = new Dictionary<string, string?>
         {
@@ -24,7 +29,7 @@ public class DrawDemoMemberOptionsTests
         var options = DrawDemoMemberOptions.TryRead(Build(), isDevelopment: true);
         Assert.NotNull(options);
         Assert.Equal("u", options.UserName);
-        Assert.Equal("Mat-khau-thu-1", options.Password);
+        Assert.Equal(GeneratedValue, options.Password);
     }
 
     [Fact]
@@ -43,7 +48,7 @@ public class DrawDemoMemberOptionsTests
     [InlineData("__DOI_MAT_KHAU__")]
     [InlineData("__")]
     public void Bo_qua_khi_mat_khau_la_chuoi_giu_cho(string password) =>
-        Assert.Null(DrawDemoMemberOptions.TryRead(Build(password: password), isDevelopment: true));
+        Assert.Null(DrawDemoMemberOptions.TryRead(Build("u", "u@x.local", "U", password), isDevelopment: true));
 
     [Fact]
     public void Bo_qua_khi_khong_co_section() =>
