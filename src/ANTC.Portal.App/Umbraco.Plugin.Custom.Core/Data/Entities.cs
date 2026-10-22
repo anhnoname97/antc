@@ -233,7 +233,6 @@ public class ContestCampaign
 
 public class Prize
 {
-    public long PrizeMoney { get; set; }
     public long Id { get; set; }
     public string Code { get; set; } = "";
     public string Name { get; set; } = "";
@@ -249,6 +248,7 @@ public class Prize
 /// <summary>Many-to-many allocation. Quantity belongs to the contest, not the catalogue.</summary>
 public class ContestPrize
 {
+    public long PrizeMoney { get; set; }
     public long ContestId { get; set; }
     public long PrizeId { get; set; }
     public int Quantity { get; set; }

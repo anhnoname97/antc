@@ -20,7 +20,9 @@ Mỗi loại giải cho phép số lượng 1–1.000, tối đa 100 loại mỗ
 
 ## API quản trị
 
-Danh mục giải có thêm `prizeMoney`: số nguyên VNĐ cho **một suất giải**, không âm (tối đa 9.007.199.254.740.991 để truyền JSON chính xác trên trình duyệt). Mặc định 0 cho dữ liệu cũ/giải không có tiền. API tạo/sửa nhận trường này, API danh sách/chi tiết trả trường này. Bỏ trường khi cập nhật giữ giá trị cũ; gửi 0 để đặt lại. Số lượng giải, quan hệ với cuộc thi và kết quả quay cũ không thay đổi.
+`prizeMoney` nằm trên **liên kết giải–cuộc thi**, không nằm ở danh mục giải. Đây là số nguyên VNĐ cho một suất giải, không âm (tối đa 9.007.199.254.740.991 để truyền JSON chính xác trên trình duyệt). Cùng một loại giải có mức tiền độc lập giữa các cuộc thi. Form Cuộc thi hiển thị tiền bên cạnh số lượng của từng giải; API tạo/sửa cuộc thi và lưu riêng cấu hình nhận `prizes: [{ "prizeId": 1, "quantity": 2, "prizeMoney": 1500000 }]`. DTO giải theo cuộc thi trả thêm `prizeMoney`. Bỏ trường khi cập nhật giữ giá trị cũ; gửi 0 để đặt lại. Liên kết mới mặc định 0.
+
+Migration `MovePrizeMoneyToContest` chuyển tiền cũ từ `prize` vào từng liên kết `contest_prize` hiện có trước khi bỏ cột ở danh mục. Không thay đổi số lượng hay người trúng cũ. Danh mục giải không còn trường tiền thưởng.
 
 Các API yêu cầu đăng nhập và quyền quản trị hiện có, không cung cấp thao tác ghi công khai.
 
