@@ -23,6 +23,8 @@ public sealed class ContestDrawsController(IContestAdminService service, Contest
     }
     [HttpGet("options")]
     public async Task<IActionResult> Options(CancellationToken ct) => Ok(await reports.ContestsAsync(ct));
+    [HttpGet("prizes")]
+    public Task<IActionResult> Prizes(long contestId, CancellationToken ct) => Execute(async () => Ok(await service.ContestPrizesAsync(contestId, ct)));
     [HttpGet]
     public Task<IActionResult> History(string? search, int page = 1, int pageSize = 20, CancellationToken ct = default) =>
         Execute(async () => Ok(await service.SearchDrawsAsync(search, page, pageSize, ct)));

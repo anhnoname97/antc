@@ -9,6 +9,80 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class ContestDrawAdminServiceTests
 {
     [Fact]
+    public async Task PrizeQuota_PartialDrawsRetryAndExhaustion_DoNotOverAward()
+    {
+        await using var f=await Fixture.Create();
+        for(int i=1;i<=5;i++) f.Person($"090000000{i}",10);
+        await f.Db.SaveChangesAsync();
+        await f.Service.SaveContestPrizesAsync(f.ContestId,new([new(f.PrizeId,3)]),default);
+        var request=f.Request(0,2) with { ExcludePrevious=false };
+        var first=await f.Service.CreateDrawAsync(request,"actor",default);
+        Assert.Equal(f.PrizeId,first.PrizeId); Assert.Equal("TEST",first.PrizeCode); Assert.Equal("Giải thử",first.PrizeName);
+        Assert.Equal(1,Assert.Single(await f.Service.ContestPrizesAsync(f.ContestId,default)).Remaining);
+        Assert.Equal(first.Id,(await f.Service.CreateDrawAsync(request,"actor",default)).Id);
+        Assert.Equal("PRIZE_QUOTA_EXCEEDED",(await Assert.ThrowsAsync<ContestAdminConflictException>(()=>f.Service.CreateDrawAsync(f.Request(0,2) with { ExcludePrevious=false },"actor",default))).Code);
+        await f.Service.CreateDrawAsync(f.Request(0,1) with { ExcludePrevious=false },"actor",default);
+        Assert.Equal(0,Assert.Single(await f.Service.ContestPrizesAsync(f.ContestId,default)).Remaining);
+        Assert.Equal(3,await f.Db.DrawWinners.CountAsync()); Assert.Equal(2,await f.Db.Draws.CountAsync());
+        Assert.Equal("PRIZE_QUOTA_IN_USE",(await Assert.ThrowsAsync<ContestAdminConflictException>(()=>f.Service.SaveContestPrizesAsync(f.ContestId,new([new(f.PrizeId,2)]),default))).Code);
+        Assert.Equal(3,Assert.Single(await f.Service.ContestPrizesAsync(f.ContestId,default)).Quantity);
+    }
+    [Fact]
+    public async Task PrizeQuota_RejectsMissingUnassignedInactiveAndExcessiveConfigurations()
+    {
+        await using var f=await Fixture.Create(); f.Person("0912345678",10); await f.Db.SaveChangesAsync();
+        await Assert.ThrowsAsync<ContestAdminValidationException>(()=>f.Service.CreateDrawAsync(f.Request(0,1) with { PrizeId=null },"actor",default));
+        Assert.Equal("PRIZE_NOT_IN_CONTEST",(await Assert.ThrowsAsync<ContestAdminConflictException>(()=>f.Service.CreateDrawAsync(f.Request(0,1) with { ContestId=f.OtherId },"actor",default))).Code);
+        await Assert.ThrowsAsync<ContestAdminValidationException>(()=>f.Service.SaveContestPrizesAsync(f.ContestId,new([new(f.PrizeId,0)]),default));
+        await Assert.ThrowsAsync<ContestAdminValidationException>(()=>f.Service.SaveContestPrizesAsync(f.ContestId,new([new(f.PrizeId,1),new(f.PrizeId,2)]),default));
+        var p=(await f.Service.GetPrizeAsync(f.PrizeId,default))!;
+        await f.Service.SavePrizeAsync(p.Id,new(p.Code,p.Name,p.Description,false,p.SortOrder,p.Revision),default);
+        Assert.Equal("PRIZE_INACTIVE",(await Assert.ThrowsAsync<ContestAdminConflictException>(()=>f.Service.CreateDrawAsync(f.Request(0,1),"actor",default))).Code);
+        Assert.Empty(await f.Db.Draws.ToListAsync());
+    }
+    [Fact]
+    public async Task PrizeRelations_AreManyToManyAndHaveIndependentQuantity()
+    {
+        await using var f=await Fixture.Create();
+        await f.Service.SaveContestPrizesAsync(f.ContestId,new([new(f.PrizeId,1)]),default);
+        await f.Service.SaveContestPrizesAsync(f.OtherId,new([new(f.PrizeId,2)]),default);
+        f.Person("0912345678",10); f.Person("0987654321",10).ContestId=f.OtherId; await f.Db.SaveChangesAsync();
+        await f.Service.CreateDrawAsync(f.Request(0,1),"actor",default);
+        Assert.Equal(0,Assert.Single(await f.Service.ContestPrizesAsync(f.ContestId,default)).Remaining);
+        Assert.Equal(2,Assert.Single(await f.Service.ContestPrizesAsync(f.OtherId,default)).Remaining);
+        var second=(await f.Service.SavePrizeAsync(null,new("NHI","Giải nhì",null),default))!;
+        await f.Service.SaveContestPrizesAsync(f.OtherId,new([new(f.PrizeId,2),new(second.Id,3)]),default);
+        Assert.Equal(2,(await f.Service.ContestPrizesAsync(f.OtherId,default)).Count);
+        Assert.Equal(2,(await f.Service.GetPrizeAsync(f.PrizeId,default))!.ContestCount);
+    }
+    [Fact]
+    public async Task PrizeHistory_RetainsLabelsAndPreventsRemovingOrReducingUsedAllocation()
+    {
+        await using var f=await Fixture.Create(); f.Person("0912345678",10); await f.Db.SaveChangesAsync();
+        var draw=await f.Service.CreateDrawAsync(f.Request(0,1),"actor",default);
+        await f.Service.SavePrizeAsync(f.PrizeId,new("RENAMED","Tên giải mới",null),default);
+        Assert.Equal("TEST",(await f.Service.GetDrawAsync(draw.Id,default))!.PrizeCode);
+        Assert.Equal("Giải thử",(await f.Service.GetDrawAsync(draw.Id,default))!.PrizeName);
+        Assert.Equal("PRIZE_QUOTA_IN_USE",(await Assert.ThrowsAsync<ContestAdminConflictException>(()=>f.Service.SaveContestPrizesAsync(f.ContestId,new([]),default))).Code);
+        Assert.Equal("PRIZE_IN_USE",(await Assert.ThrowsAsync<ContestAdminConflictException>(()=>f.Service.DeletePrizeAsync(f.PrizeId,default))).Code);
+        await f.Service.SaveContestPrizesAsync(f.ContestId,new([new(f.PrizeId,1)]),default);
+        await Assert.ThrowsAsync<ContestAdminConflictException>(()=>f.Service.SaveContestPrizesAsync(f.ContestId,new([new(f.PrizeId,1)],ExpectedRevision:1),default));
+    }
+    [Fact]
+    public async Task PrizeLastSlot_ConcurrentDrawsCannotExceedQuotaEvenWhenRepeatWinnersAllowed()
+    {
+        await using var f=await Fixture.Create(); f.Person("0912345678",10); await f.Db.SaveChangesAsync();
+        await f.Service.SaveContestPrizesAsync(f.ContestId,new([new(f.PrizeId,1)]),default);
+        async Task<bool> TryDraw()
+        {
+            await using var db=f.Open(); var service=new ContestAdminService(db,TimeProvider.System);
+            try { await service.CreateDrawAsync(f.Request(0,1) with { ExcludePrevious=false },"actor",default); return true; }
+            catch(ContestAdminConflictException e) { Assert.Equal("PRIZE_QUOTA_EXCEEDED",e.Code); return false; }
+        }
+        var results=await Task.WhenAll(Task.Run(TryDraw),Task.Run(TryDraw));
+        Assert.Equal(1,results.Count(x=>x)); Assert.Equal(1,await f.Db.DrawWinners.CountAsync());
+    }
+    [Fact]
     public async Task CandidatePreview_IsPagedWithFullPhoneAndUsesExactEligibilityAndTieBreak()
     {
         await using var f = await Fixture.Create();
@@ -52,7 +126,9 @@ public class ContestDrawAdminServiceTests
         await db.SaveChangesAsync();
 
         var service = new ContestAdminService(db, TimeProvider.System);
-        DrawAdminDto result = await service.CreateDrawAsync(new SaveDrawRequest(5, 1, false, null, first.Id), "admin", default);
+        var prize = new Prize { Code="TEST", Name="Giải thử" }; db.Prizes.Add(prize); await db.SaveChangesAsync();
+        db.ContestPrizes.Add(new ContestPrize { ContestId=first.Id, PrizeId=prize.Id, Quantity=100 }); await db.SaveChangesAsync();
+        DrawAdminDto result = await service.CreateDrawAsync(new SaveDrawRequest(5, 1, false, null, first.Id, PrizeId:prize.Id), "admin", default);
 
         Assert.Equal(first.Id, result.ContestId);
         Assert.Equal("Cuộc thi A", result.ContestName);
@@ -189,6 +265,7 @@ public class ContestDrawAdminServiceTests
             await db.Database.MigrateAsync();
             var service = new ContestAdminService(db, TimeProvider.System);
             var draw = (await service.SearchDrawsAsync(null, 1, 20, default)).Items.Single();
+            Assert.Null(draw.PrizeId); Assert.Null(draw.PrizeName);
             Assert.False(draw.HasEligibleSnapshot); Assert.Equal(10, draw.EligibleCount);
             Assert.Equal("DRAW_SNAPSHOT_UNAVAILABLE", (await Assert.ThrowsAsync<ContestAdminConflictException>(() => service.ExportDrawAsync(draw.Id, false, default))).Code);
         }
@@ -203,13 +280,16 @@ public class ContestDrawAdminServiceTests
         public ContestAdminService Service => new(Db, TimeProvider.System);
         public long ContestId { get; private set; }
         public long OtherId { get; private set; }
+        public long PrizeId { get; private set; }
         public AppDbContext Open() => new(new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={path};Default Timeout=15").Options);
         public static async Task<Fixture> Create()
         {
             var f = new Fixture(); f.Db = f.Open(); await f.Db.Database.EnsureCreatedAsync();
             var a = new ContestCampaign { Name = "Cuộc thi A", StartAt = DateTime.UtcNow.AddDays(-2), EndAt = DateTime.UtcNow.AddDays(-1) };
             var b = new ContestCampaign { Name = "Cuộc thi B", StartAt = DateTime.UtcNow.AddDays(-4), EndAt = DateTime.UtcNow.AddDays(-3) };
-            f.Db.ContestCampaigns.AddRange(a, b); await f.Db.SaveChangesAsync(); f.ContestId = a.Id; f.OtherId = b.Id; return f;
+            f.Db.ContestCampaigns.AddRange(a, b); await f.Db.SaveChangesAsync(); f.ContestId = a.Id; f.OtherId = b.Id;
+            var prize = new Prize { Code="TEST", Name="Giải thử" }; f.Db.Prizes.Add(prize); await f.Db.SaveChangesAsync(); f.PrizeId=prize.Id;
+            f.Db.ContestPrizes.Add(new ContestPrize { ContestId=a.Id, PrizeId=prize.Id, Quantity=100 }); await f.Db.SaveChangesAsync(); return f;
         }
         public Entry Person(string? phone, int score, int minutes = 0)
         {
@@ -218,7 +298,7 @@ public class ContestDrawAdminServiceTests
                 CreatedAt = new DateTime(2026, 10, 1), SubmittedAt = new DateTime(2026, 10, 2).AddMinutes(minutes) };
             Db.Entries.Add(e); return e;
         }
-        public SaveDrawRequest Request(int score, int count) => new(score, count, true, "Giải thử", ContestId, Guid.NewGuid());
+        public SaveDrawRequest Request(int score, int count) => new(score, count, true, "Giải thử", ContestId, Guid.NewGuid(), PrizeId);
         public async ValueTask DisposeAsync() { await Db.DisposeAsync(); SqliteConnection.ClearAllPools(); File.Delete(path); }
     }
 

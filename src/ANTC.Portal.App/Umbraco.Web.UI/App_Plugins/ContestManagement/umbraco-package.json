@@ -1,9 +1,14 @@
 {
   "$schema": "../../umbraco-package-schema.json",
   "name": "ANTC Contest Management",
-  "version": "1.13.0",
+    "version": "1.14.2",
   "allowPublicAccess": true,
   "extensions": [
+    { "type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.Prizes", "name": "Contest Prizes", "weight": 110,
+      "meta": { "label": "Giải thưởng", "icon": "icon-medal", "menus": ["Antc.Menu.ContestManagement"], "href": "section/contest-management/prizes" } },
+    { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.Prizes", "name": "Contest Prizes Route",
+      "elementName": "antc-contest-prizes-view", "element": "/App_Plugins/ContestManagement/contest-prizes.js", "meta": { "path": "prizes" },
+      "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.Bank", "name": "Question Bank Route",
       "elementName": "antc-contest-questions-view", "element": "/App_Plugins/ContestManagement/contest-management.js", "meta": { "path": "bank" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
