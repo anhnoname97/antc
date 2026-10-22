@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -42,12 +43,15 @@ public sealed class DrawMemberComposer : IComposer
 
 public sealed class DrawMemberRequirement : IAuthorizationRequirement;
 
-public sealed class DrawMemberAuthorizationHandler(IMemberManager members) : AuthorizationHandler<DrawMemberRequirement>
+public sealed class DrawMemberAuthorizationHandler(IHttpContextAccessor http) : AuthorizationHandler<DrawMemberRequirement>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, DrawMemberRequirement requirement)
     {
         // Chi nhan principal cua cookie thanh vien; principal backoffice khong co identity nay.
         if (context.User.Identities.All(i => i.AuthenticationType != IdentityConstants.ApplicationScheme)) return;
+        // Authorization handlers are singletons; resolve the member manager from the current request scope.
+        if (http.HttpContext is not { } request) return;
+        var members = request.RequestServices.GetRequiredService<IMemberManager>();
         MemberIdentityUser? member = await members.GetUserAsync(context.User);
         if (await DrawMemberAccess.IsAllowedAsync(members, member)) context.Succeed(requirement);
     }
