@@ -289,8 +289,10 @@
 
     var grid = e.querySelector('.sum-grid');
     clear(grid);
-    PRIZES.forEach(function (q) {
-      var box = el('div', 'sg' + (q.quantity >= 6 ? ' kk' : ''));
+    // Giai Khuyen khich nhan dien theo ten (khong khop ten thi dung so luong >= 6) va xep cuoi, chiem ca hang
+    function isKk(q) { var r = prizeRank(q); return r ? r === 4 : q.quantity >= 6; }
+    PRIZES.filter(function (q) { return !isKk(q); }).concat(PRIZES.filter(isKk)).forEach(function (q) {
+      var box = el('div', 'sg' + (isKk(q) ? ' kk' : ''));
       var h3 = el('h3');
       h3.appendChild(el('span', 'medal ' + medalClass(q.prizeId), medalText(q)));
       h3.appendChild(document.createTextNode(q.name));

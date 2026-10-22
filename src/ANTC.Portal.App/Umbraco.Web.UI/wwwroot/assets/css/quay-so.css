@@ -1001,7 +1001,7 @@
 }
 
 .qd .sg.kk ul {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .qd .sg.kk li {
@@ -1109,9 +1109,12 @@
   margin: 0;
   padding: 12px 20px;
   font-size: var(--fs-body);
+  font-weight: 600;
   color: var(--qd-on-gold);
   background: var(--qd-gold);
+  border: 2px solid #FFF2B0;
   border-radius: var(--radius);
+  box-shadow: 0 10px 30px #7A070E88;
   transform: translateX(-50%);
 }
 
