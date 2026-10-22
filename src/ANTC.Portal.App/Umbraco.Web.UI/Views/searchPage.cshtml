@@ -59,6 +59,7 @@
 @section Head {
     <meta name="robots" content="noindex, follow">
     <link rel="stylesheet" href="~/assets/css/articles.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/search-responsive.css" asp-append-version="true">
 }
 <div class="article-portal article-portal--search">
     <header class="fraud-search-hero"><div class="article-wrap">
@@ -76,6 +77,8 @@
     </div></header>
     <div class="article-wrap fraud-results-layout">
         <aside class="fraud-results-sidebar"><p class="article-side-label">Danh mục bài viết</p>
+            <button class="fraud-results-sidebar__toggle" type="button" aria-expanded="true" aria-controls="fraud-filter-panel" data-search-filters-toggle><span>@(categories.FirstOrDefault(x => x.Key == categoryKey)?.Name ?? "Tất cả")</span><b>@filtered.Count</b></button>
+            <div id="fraud-filter-panel">
             <nav class="fraud-result-filters" id="fraud-result-filters" data-category-limit="8" aria-label="Lọc kết quả theo danh mục"><a href="@ResultUrl(null)" class="@(categoryKey is null ? "is-active" : null)" aria-current="@(categoryKey is null ? "true" : null)"><span>Tất cả</span><b>@matches.Count</b></a>
             @foreach (var category in categories)
             {
@@ -83,6 +86,7 @@
                 <a href="@ResultUrl(category.Key)" class="@(categoryKey == category.Key ? "is-active" : null)" aria-current="@(categoryKey == category.Key ? "true" : null)"><span>@category.Name</span><b>@count</b></a>
             }
             </nav>
+            </div>
         </aside>
         <section class="fraud-results-content" aria-label="Kết quả tìm kiếm">
             @if (privateNumber)

@@ -1,4 +1,4 @@
-const desktop = matchMedia('(min-width: 901px)');
+const desktop = matchMedia('(min-width: 1101px)');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 document.querySelectorAll('[data-story]').forEach(story => {
   const chapters = [...story.querySelectorAll('[data-story-chapter]')];
@@ -88,7 +88,7 @@ document.querySelectorAll('[data-story]').forEach(story => {
     if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
     animationFrame = undefined;
     previousFrameTime = undefined;
-    enhanced = desktop.matches && !reduced.matches && innerHeight >= 760
+    enhanced = desktop.matches && !reduced.matches
       && story.closest('[data-hero-motion]')?.dataset.heroMotion === 'true';
     story.classList.toggle('is-enhanced', enhanced);
     stage.hidden = !enhanced;

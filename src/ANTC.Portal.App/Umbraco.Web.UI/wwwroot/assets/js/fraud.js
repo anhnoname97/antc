@@ -22,5 +22,5 @@ if (page) {
   markMotion(page, '.ph-drum img, .next-drum img', 'data-motion-rotate');
   markMotion(page, '[data-fraud-methods]', 'data-motion-methods');
   markMotion(page, '.next', 'data-rvs');
-  initMotion(page);
+  initMotion(page, { desktopOnly: true });
 }

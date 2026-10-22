@@ -16,7 +16,7 @@
 .website-check__page{padding:40px 36px 34px;display:grid;grid-template-columns:140px minmax(0,1fr);gap:18px 26px}
 .website-check__logo{grid-row:span 4;width:140px;height:140px;border-radius:20px;background:#14233b;display:grid;place-items:center;color:#e3c88f}
 .website-check__page>span{height:14px;border-radius:5px;background:#eceef2}.website-check__page>span:first-of-type{height:22px;width:70%;background:#dde1e8}.website-check__page>span:last-of-type{width:60%}
-.website-check__search{padding-left:30px;grid-column:1/-1;border-top:1px solid #eceef2;padding-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.875rem;color:#6b7280}
+.website-check__search{padding-left:14px;grid-column:1/-1;border-top:1px solid #eceef2;padding-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.875rem;color:#6b7280}
 .website-check__search b{background:#1b1f27;color:#fff;border-radius:4px;padding:2px 8px;font-size:.75rem}
 .website-check__hotspot{display:none;position:absolute;width:48px;height:48px;transform:translate(-50%,-50%);border:0;border-radius:50%;place-items:center;padding:0;background:none;cursor:pointer;z-index:2}
 .is-interactive .website-check__hotspot{display:grid}

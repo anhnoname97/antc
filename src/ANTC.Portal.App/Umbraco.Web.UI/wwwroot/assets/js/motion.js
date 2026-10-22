@@ -12,7 +12,7 @@ export function refreshMotion() {
 export function markMotion(root, selector, attribute) {
   for (const element of root.querySelectorAll(selector)) element.setAttribute(attribute, '');
 }
-export function initMotion(root = document) {
+export function initMotion(root = document, { desktopOnly = false } = {}) {
   if (active.has(root) || pending.has(root)) { refreshMotion(); return; }
   pending.add(root);
   // Cac adapter danh dau xong trong cung luot truoc khi doc data-.
@@ -26,8 +26,8 @@ export function initMotion(root = document) {
     const select = selector => [...root.querySelectorAll(selector)].filter(el => el.closest('[data-hero-motion]')?.dataset.heroMotion !== 'false');
     const setup = () => {
       media.revert();
-      media.add({ motion: '(prefers-reduced-motion: no-preference)', desktop: '(min-width: 901px)', full: '(min-width: 760px)' }, context => {
-        if (!context.conditions.motion) return;
+      media.add({ motion: '(prefers-reduced-motion: no-preference)', desktop: '(min-width: 901px)', full: '(min-width: 760px)', pageWidth: desktopOnly ? '(min-width: 1101px)' : '(min-width: 0px)' }, context => {
+        if (!context.conditions.motion || !context.conditions.pageWidth) return;
         const light = !context.conditions.full || connection?.saveData;
         const cleanup = [];
         const reveal = (targets, trigger, from = {}, options = {}) => {
