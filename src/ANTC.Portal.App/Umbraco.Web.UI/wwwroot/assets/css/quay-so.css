@@ -478,6 +478,7 @@
 .qd .st-logo {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 16px;
 }
 
@@ -506,8 +507,12 @@
 }
 
 .qd .st-mid {
+  min-width: 0;
   margin-left: auto;
+  overflow: hidden;
   font-size: 1.5rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   text-align: right;
   color: var(--qd-ink-2);
   text-shadow: 0 2px 0 #A3101A55;
@@ -520,6 +525,8 @@
 
 .qd .live {
   display: none;
+  flex-shrink: 0;
+  white-space: nowrap;
   align-items: center;
   gap: 10px;
   margin-left: 20px;
@@ -596,6 +603,18 @@
 .qd .idle h1 em {
   font-style: normal;
   color: var(--qd-gold);
+}
+
+/* Ten cuoc thi dai: nho chu, toi da hai dong de khong day bang so lieu ra khoi man */
+.qd .idle h1.long em {
+  display: -webkit-box;
+  max-width: 1600px;
+  margin: 0 auto;
+  overflow: hidden;
+  font-size: 4.75rem;
+  line-height: 1.12;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .qd .idle p {
@@ -818,9 +837,10 @@
 .qd .dg:nth-child(6) .strip.rolling { animation-duration: 0.72s; }
 .qd .dg:nth-child(7) .strip.rolling { animation-duration: 0.9s; }
 
-/* 32 ky tu x 260px */
+/* 32 ky tu x 260px, bo qua o cho dau dai */
 @keyframes qd-roll {
-  to { transform: translateY(-8320px); }
+  from { transform: translateY(-260px); }
+  to { transform: translateY(-8580px); }
 }
 
 .qd .rays {
@@ -976,7 +996,11 @@
   display: flex;
   align-items: baseline;
   gap: 16px;
+  min-width: 0;
+  overflow: hidden;
   font-size: 1.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .qd .sg li b {

@@ -216,6 +216,8 @@
     for (var d = 0; d < DIGITS; d++) {
       var cell = el('div', 'dg');
       var strip = el('div', 'strip');
+      // O dau dai la ky tu cho: chua quay hoac ma khong dung dang thi dung o day, khong hien chu A gia
+      strip.appendChild(el('span', 'blank', '–'));
       for (var l = 0; l < LOOPS; l++) {
         for (var x = 0; x < ALPHA.length; x++) strip.appendChild(el('span', null, ALPHA.charAt(x)));
       }
@@ -260,10 +262,13 @@
     e.classList.toggle('hide-ticker', !S.opt.ticker);
     if (!D) return;
 
-    var topics = D.contest.topics.join(', ');
+    // Ban dung chi co mot chuyen de; cuoc thi nhieu chuyen de thi chi ghi so luong de man chieu khong tran chu
+    var tps = D.contest.topics;
     this.text('.cName', D.contest.name);
-    this.text('.cTopic', topics);
-    e.querySelectorAll('.topicWrap').forEach(function (x) { x.hidden = !topics; });
+    this.text('.cTopic', tps.length === 1 ? tps[0] : tps.length + ' chuyên đề');
+    e.querySelectorAll('.topicLb').forEach(function (x) { x.hidden = tps.length !== 1; });
+    e.querySelectorAll('.topicWrap').forEach(function (x) { x.hidden = !tps.length; });
+    e.querySelector('.idle h1').classList.toggle('long', D.contest.name.length > 28);
     this.text('.vParticipants', D.participants);
     this.text('.vOk', D.qualified);
     this.text('.vOkLb', 'người ' + minScoreText());
@@ -302,8 +307,7 @@
       ws2.forEach(function (w) {
         var li = el('li');
         li.appendChild(el('b', null, w.code));
-        li.appendChild(document.createTextNode(w.name + ' '));
-        li.appendChild(el('span', null, w.phone));
+        li.appendChild(document.createTextNode(w.name));
         ul.appendChild(li);
       });
       for (var k = ws2.length; k < q.quantity; k++) ul.appendChild(el('li', 'empty', 'Chưa quay'));
@@ -364,7 +368,7 @@
     this.reels.forEach(function (r, i) {
       r.el.classList.remove('rolling');
       if (!chars) { self.setPos(r, 0, false); setTimeout(fin, 0); return; }
-      var target = ALPHA.indexOf(chars.charAt(i));
+      var target = 1 + ALPHA.indexOf(chars.charAt(i));
       if (R) { self.setPos(r, target, false); fin(); return; }
       self.setPos(r, 0, false);
       r.el.getBoundingClientRect();
@@ -376,7 +380,7 @@
   Stage.prototype.settle = function (w) {
     var self = this;
     var chars = w && CODE_RE.test(w.code) ? w.code.slice(PREFIX.length) : null;
-    this.reels.forEach(function (r, i) { self.setPos(r, chars ? ALPHA.indexOf(chars.charAt(i)) : 0, false); });
+    this.reels.forEach(function (r, i) { self.setPos(r, chars ? 1 + ALPHA.indexOf(chars.charAt(i)) : 0, false); });
     if (w) this.showWinner(w); else this.showWait();
   };
 
