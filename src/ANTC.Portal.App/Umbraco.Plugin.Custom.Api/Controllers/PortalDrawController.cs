@@ -12,6 +12,8 @@ public sealed record PortalSpinRequest(long? PrizeId, int? MinScore, Guid? Reque
 
 public sealed record PortalCancelRequest(string? ReasonCode, string? ReasonText);
 
+public sealed record PortalDisplayRequest(bool? ShowLiveBadge, bool? ShowAntiScamTicker, bool? TransparentBackground);
+
 /// <summary>API quay so cho thanh vien Ban to chuc quay so (cookie thanh vien). Moi phan hoi deu che ten va so dien thoai.</summary>
 [ApiController]
 [Route("api/v1/quay-so")]
@@ -62,6 +64,26 @@ public sealed class PortalDrawController(PortalDrawService service, IMemberManag
         var member = await members.GetCurrentMemberAsync();
         if (member is null) return Unauthorized(Error("UNAUTHORIZED", "Vui lòng đăng nhập khu vực quay số."));
         return Ok(await service.CancelWinnerAsync(id, drawId, rank, request.ReasonCode, request.ReasonText, member.UserName!, member.Key, ct));
+    });
+
+    /// <summary>Quay số portal: đọc tùy chọn hiển thị của cuộc thi; chưa lưu thì trả mặc định.</summary>
+    [HttpGet("contests/{id:long}/display")]
+    public Task<IActionResult> GetDisplay(long id, CancellationToken ct) => Execute(async () => Ok(await service.GetDisplayAsync(id, ct)));
+
+    /// <summary>Quay số portal: lưu tùy chọn hiển thị của cuộc thi; phải gửi đủ ba trường.</summary>
+    [HttpPut("contests/{id:long}/display")]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> SaveDisplay(long id, [FromBody] PortalDisplayRequest request, CancellationToken ct) => Execute(async () =>
+    {
+        var fields = new Dictionary<string, string>();
+        if (request.ShowLiveBadge is null) fields["showLiveBadge"] = "Phải gửi giá trị showLiveBadge.";
+        if (request.ShowAntiScamTicker is null) fields["showAntiScamTicker"] = "Phải gửi giá trị showAntiScamTicker.";
+        if (request.TransparentBackground is null) fields["transparentBackground"] = "Phải gửi giá trị transparentBackground.";
+        if (fields.Count > 0) throw new ContestAdminValidationException(fields);
+        var member = await members.GetCurrentMemberAsync();
+        if (member is null) return Unauthorized(Error("UNAUTHORIZED", "Vui lòng đăng nhập khu vực quay số."));
+        return Ok(await service.SaveDisplayAsync(id,
+            new(request.ShowLiveBadge!.Value, request.ShowAntiScamTicker!.Value, request.TransparentBackground!.Value), member.UserName!, ct));
     });
 
     private async Task<IActionResult> Execute(Func<Task<IActionResult>> action)

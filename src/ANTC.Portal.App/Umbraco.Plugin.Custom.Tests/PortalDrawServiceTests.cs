@@ -256,6 +256,48 @@ public class PortalDrawServiceTests
         Assert.Equal(Umbraco.Plugin.Custom.Core.Administration.DrawMemberAccess.Policy, authorize.Policy);
     }
 
+    [Fact]
+    public async Task Display_DefaultsWhenNotSaved()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out _); await f.Db.SaveChangesAsync();
+        var expected = new PortalDrawDisplay(true, true, false);
+        Assert.Equal(expected, await f.Portal.GetDisplayAsync(id, default));
+        Assert.Equal(expected, (await f.Portal.GetAsync(id, null, default)).Display);
+    }
+
+    [Fact]
+    public async Task Display_SaveThenReadBack_SecondSaveUpdatesSameRow()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out _); await f.Db.SaveChangesAsync();
+        var first = new PortalDrawDisplay(false, false, true);
+        Assert.Equal(first, await f.Portal.SaveDisplayAsync(id, first, "thanh-vien", default));
+        Assert.Equal(first, await f.Portal.GetDisplayAsync(id, default));
+        Assert.Equal(first, (await f.Portal.GetAsync(id, null, default)).Display);
+        var second = new PortalDrawDisplay(true, false, false);
+        await f.Portal.SaveDisplayAsync(id, second, "nguoi-khac", default);
+        Assert.Equal(second, await f.Portal.GetDisplayAsync(id, default));
+        var row = await f.Db.ContestDrawDisplays.SingleAsync();
+        Assert.Equal(1, await f.Db.ContestDrawDisplays.CountAsync());
+        Assert.Equal("nguoi-khac", row.UpdatedBy); Assert.Equal(Now, row.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task Display_UnknownContestIsNotFound()
+    {
+        await using var f = await Fixture.Create();
+        await Assert.ThrowsAsync<PortalDrawContestNotFoundException>(() => f.Portal.GetDisplayAsync(9999, default));
+        await Assert.ThrowsAsync<PortalDrawContestNotFoundException>(() => f.Portal.SaveDisplayAsync(9999, new(true, true, false), "x", default));
+    }
+
+    [Fact]
+    public void SaveDisplayAction_RequiresAntiForgery()
+    {
+        var action = typeof(Umbraco.Plugin.Custom.Api.Controllers.PortalDrawController).GetMethod("SaveDisplay")!;
+        Assert.NotNull(action.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute), true).SingleOrDefault());
+    }
+
     private sealed class FixedTime(DateTime utc) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => new(utc, TimeSpan.Zero);

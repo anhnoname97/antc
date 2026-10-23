@@ -50,7 +50,34 @@ public sealed class PortalDrawService(AppDbContext db, IContestAdminService admi
             .OrderBy(t => t.SortOrder).Select(t => t.Title).ToListAsync(ct);
         return new(new(contest.Id, contest.Name, Utc(contest.StartAt), Utc(contest.EndAt), topics),
             prizes.Select(MapPrize).ToList(), suggested, applied, everyone.Count, qualified.Count, remaining,
-            ListHash(qualified.Select(e => e.Code)), await WinnersAsync(contestId, ct));
+            ListHash(qualified.Select(e => e.Code)), await WinnersAsync(contestId, ct), await ReadDisplayAsync(contestId, ct));
+    }
+
+    /// <summary>Tuy chon hien thi cua cuoc thi; chua luu thi tra mac dinh (true, true, false).</summary>
+    public async Task<PortalDrawDisplay> GetDisplayAsync(long contestId, CancellationToken ct)
+    {
+        await RequireFinishedAsync(contestId, ct);
+        return await ReadDisplayAsync(contestId, ct);
+    }
+
+    public async Task<PortalDrawDisplay> SaveDisplayAsync(long contestId, PortalDrawDisplay value, string memberUserName, CancellationToken ct)
+    {
+        await RequireFinishedAsync(contestId, ct);
+        ContestDrawDisplay? row = await db.ContestDrawDisplays.SingleOrDefaultAsync(d => d.ContestId == contestId, ct);
+        if (row is null) db.ContestDrawDisplays.Add(row = new ContestDrawDisplay { ContestId = contestId });
+        row.ShowLiveBadge = value.ShowLiveBadge;
+        row.ShowAntiScamTicker = value.ShowAntiScamTicker;
+        row.TransparentBackground = value.TransparentBackground;
+        row.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
+        row.UpdatedBy = memberUserName;
+        await db.SaveChangesAsync(ct);
+        return new(row.ShowLiveBadge, row.ShowAntiScamTicker, row.TransparentBackground);
+    }
+
+    private async Task<PortalDrawDisplay> ReadDisplayAsync(long contestId, CancellationToken ct)
+    {
+        ContestDrawDisplay? row = await db.ContestDrawDisplays.AsNoTracking().SingleOrDefaultAsync(d => d.ContestId == contestId, ct);
+        return row is null ? new(true, true, false) : new(row.ShowLiveBadge, row.ShowAntiScamTicker, row.TransparentBackground);
     }
 
     public async Task<PortalDrawSpinResult> SpinAsync(long contestId, long prizeId, int minScore, Guid requestId, string actor, CancellationToken ct)

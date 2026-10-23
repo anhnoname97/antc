@@ -50,7 +50,11 @@ public sealed record PortalDrawDetail(
     int Qualified,
     int RemainingInPool,
     string ListHash,
-    IReadOnlyList<PortalDrawWinner> Winners);
+    IReadOnlyList<PortalDrawWinner> Winners,
+    PortalDrawDisplay Display);
+
+/// <summary>Tuy chon hien thi man hinh quay so cua mot cuoc thi.</summary>
+public sealed record PortalDrawDisplay(bool ShowLiveBadge, bool ShowAntiScamTicker, bool TransparentBackground);
 
 public sealed record PortalDrawSpinPerson(string Code, string Name, string Phone, int Score);
 
