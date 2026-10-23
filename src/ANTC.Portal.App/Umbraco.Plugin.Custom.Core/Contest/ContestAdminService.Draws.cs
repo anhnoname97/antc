@@ -108,6 +108,19 @@ public sealed partial class ContestAdminService
         return prize;
     }
 
+    public async Task<IReadOnlyList<DrawWinnerExportRow>?> ExportDrawWinnersAsync(long id, CancellationToken ct)
+    {
+        var draw = await db.Draws.AsNoTracking().Include(d => d.Winners).SingleOrDefaultAsync(d => d.Id == id, ct);
+        if (draw is null) return null;
+        var submitted = draw.EligibleSnapshotJson is null ? new Dictionary<long, DateTime?>()
+            : (JsonSerializer.Deserialize<List<DrawCandidateSnapshot>>(draw.EligibleSnapshotJson) ?? [])
+                .ToDictionary(p => p.EntryId, p => p.SubmittedAt);
+        return draw.Winners.OrderBy(w => w.Rank)
+            .Select(w => new DrawWinnerExportRow(w.Code, w.FullName, w.Phone, w.Score,
+                w.EntryId is { } entryId ? submitted.GetValueOrDefault(entryId) : null,
+                w.CancelledAt is { } at ? AsUtc(at) : null, w.CancelReasonText)).ToList();
+    }
+
     public async Task<IReadOnlyList<DrawCandidateSnapshot>?> ExportDrawAsync(long id, bool winners, CancellationToken ct)
     {
         var draw = await db.Draws.AsNoTracking().Include(d => d.Winners).SingleOrDefaultAsync(d => d.Id == id, ct);

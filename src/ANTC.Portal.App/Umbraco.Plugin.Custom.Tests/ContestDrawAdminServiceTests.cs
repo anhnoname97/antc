@@ -225,6 +225,26 @@ public class ContestDrawAdminServiceTests
         Assert.Equal("DRAW_IMMUTABLE", (await Assert.ThrowsAsync<ContestAdminConflictException>(() => service.DeleteDrawAsync(draw.Id, default))).Code);
     }
 
+    [Fact]
+    public async Task CancelledWinner_StaysInHistoryAndWinnerExport_ButNotInEligibleExport()
+    {
+        await using var f = await Fixture.Create();
+        f.Person("0912345678", 10); await f.Db.SaveChangesAsync();
+        var draw = await f.Service.CreateDrawAsync(f.Request(0, 1), "actor", default);
+        var cancelledAt = new DateTime(2026, 10, 1, 3, 0, 0, DateTimeKind.Utc);
+        var row = await f.Db.DrawWinners.SingleAsync();
+        row.CancelledAt = cancelledAt; row.CancelReasonText = "Sai thông tin"; await f.Db.SaveChangesAsync();
+        var eligibleBefore = (await f.Service.ExportDrawAsync(draw.Id, false, default))!;
+
+        var history = (await f.Service.GetDrawAsync(draw.Id, default))!;
+        var dto = Assert.Single(history.Winners);
+        Assert.Equal(cancelledAt, dto.CancelledAt); Assert.Equal("Sai thông tin", dto.CancelReason);
+        var export = Assert.Single((await f.Service.ExportDrawWinnersAsync(draw.Id, default))!);
+        Assert.Equal("0912345678", export.Phone); Assert.Equal(cancelledAt, export.CancelledAt); Assert.Equal("Sai thông tin", export.CancelReason);
+        Assert.Equal(eligibleBefore, (await f.Service.ExportDrawAsync(draw.Id, false, default))!);
+        Assert.Null(await f.Service.ExportDrawWinnersAsync(draw.Id + 100, default));
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

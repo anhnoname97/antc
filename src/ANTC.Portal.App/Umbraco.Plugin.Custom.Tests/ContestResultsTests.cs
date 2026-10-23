@@ -79,6 +79,21 @@ public sealed class ContestResultsTests
         Assert.DoesNotContain("0912345678",(await f.Db.ContestPublishedResults.SingleAsync()).SnapshotJson);
     }
 
+    [Fact] public async Task CancelledWinner_DoesNotBlockPublication_AndIsOmittedFromSnapshot()
+    {
+        await using var f=await ContestReportingTests.Fixture.CreateAsync();var clock=new Clock();var service=Service(f.Db,clock);
+        var draw=new Draw {ContestId=f.ContestId,CreatedAt=clock.Now,Winners=[
+            new DrawWinner {EntryId=1,Rank=1,Code="AD-TST001",FullName="Nguyễn Văn An",Phone="0912345678",Score=2},
+            new DrawWinner {EntryId=3,Rank=2,Code="AD-CANCEL9",FullName="Người Bị Hủy",Phone="",Score=0,CancelledAt=clock.Now,CancelReasonText="Không hợp lệ"}]};
+        f.Db.Draws.Add(draw);await f.Db.SaveChangesAsync();
+        var state=await service.SetPublicationAsync(f.ContestId,new(true,[draw.Id],0),Actor,default);
+        Assert.True(state!.IsPublished);
+        var result=(await service.GetAsync(f.ContestId,1,20,default))!;
+        var winner=Assert.Single(Assert.Single(result.Draws).Winners);
+        Assert.Equal("AD-TST001",winner.Code);Assert.Equal(1,winner.Rank);
+        Assert.DoesNotContain("AD-CANCEL9",(await f.Db.ContestPublishedResults.SingleAsync()).SnapshotJson);
+    }
+
     [Fact] public async Task Ranking_TiesDeterministic_BestPerPhone_ExcludesAnonymousUnfinishedAndInvalidPhones_Paginates()
     {
         await using var f=await ContestReportingTests.Fixture.CreateAsync();var service=Service(f.Db,new Clock());
