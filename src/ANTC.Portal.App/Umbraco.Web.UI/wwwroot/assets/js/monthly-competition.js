@@ -13,5 +13,10 @@ if (page) {
   markMotion(page, '.sched', 'data-motion-schedule');
   markMotion(page, '.safe ul', 'data-rvs');
   markMotion(page, '.safe ul', 'data-motion-once');
+  // Lich dai: cuon ngang de cuoc dang dien ra (hoac sap toi) nam giua khung nhin.
+  for (const sched of page.querySelectorAll('.sched-scroll')) {
+    const target = sched.querySelector('.mo.now') || sched.querySelector('.mo.soon');
+    if (target) sched.scrollLeft = Math.max(0, target.offsetLeft - (sched.clientWidth - target.offsetWidth) / 2);
+  }
   initMotion(page);
 }
