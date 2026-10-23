@@ -124,9 +124,14 @@
   var PRIZES = [];       // giai theo sortOrder
   var spinning = false;  // dang cho ket qua / dang chay hieu ung
   var pending = null;    // { requestId, prizeId, minScore } cua lan bam chua ro ket qua
+  var savingOpt = false; // dang gui PUT tuy chon hien thi
 
   function applyDetail(d) {
     D = d;
+    // Tuy chon hien thi luu theo cuoc thi trong CSDL; dang luu do thi giu gia tri vua bam
+    if (d.display && !savingOpt) {
+      S.opt = { live: !!d.display.showLiveBadge, ticker: !!d.display.showAntiScamTicker, transparent: !!d.display.transparentBackground };
+    }
     PRIZES = d.prizes.slice().sort(function (a, b) { return a.sortOrder - b.sortOrder || a.prizeId - b.prizeId; });
     var cur = prizeById(S.cur);
     if (!cur) {
@@ -160,7 +165,8 @@
     return r === 4 ? 'KK' : r ? String(r) : (p.code || '').slice(0, 3).toUpperCase();
   }
   function shortPrize(name) { return String(name || '').replace('Giải ', ''); }
-  function winnersOf(id) { return D ? D.winners.filter(function (w) { return w.prizeId === id; }) : []; }
+  // Nguoi da bi huy chi con trong bang dieu khien va bien ban, khong hien tren man chieu
+  function winnersOf(id) { return D ? D.winners.filter(function (w) { return w.prizeId === id && !w.cancelled; }) : []; }
   function lastWin() {
     var ws = winnersOf(S.cur);
     return ws.length ? ws[ws.length - 1] : null;
@@ -501,20 +507,34 @@
     clear(tb);
     if (!D.winners.length) {
       var tr0 = el('tr'), td0 = el('td', 'empty', 'Chưa có kết quả');
-      td0.colSpan = 4;
+      td0.colSpan = 5;
       tr0.appendChild(td0);
       tb.appendChild(tr0);
     } else {
       D.winners.slice().reverse().forEach(function (w) {
-        var tr = el('tr');
+        var tr = el('tr', w.cancelled ? 'cancelled' : null);
         tr.appendChild(el('td', null, fmtTime(w.createdAt)));
         tr.appendChild(el('td', null, shortPrize(w.prizeName)));
         tr.appendChild(el('td', 'no', w.code));
         var who = el('td');
-        who.appendChild(document.createTextNode(w.name));
+        who.appendChild(el('span', 'nm', w.name));
         who.appendChild(el('br'));
         who.appendChild(el('small', 'dim', w.phone));
+        if (w.cancelled) {
+          who.appendChild(el('br'));
+          who.appendChild(el('small', 'why', 'Đã hủy' + (w.cancelReason ? ': ' + w.cancelReason : '')));
+        }
         tr.appendChild(who);
+        var act = el('td', 'act');
+        if (!w.cancelled) {
+          var b = el('button', 'tb sm', 'Hủy…');
+          b.type = 'button';
+          b.disabled = spinning || !!pending;
+          b.setAttribute('aria-label', 'Hủy kết quả ' + w.code);
+          b.addEventListener('click', function () { openCancel(w); });
+          act.appendChild(b);
+        }
+        tr.appendChild(act);
         tb.appendChild(tr);
       });
     }
@@ -574,16 +594,16 @@
     applyAll({ type: 'spin-fail' });
     if (!unknown && err.status === 409) reload();
   }
-  function post(job) {
+  // Gui lenh ghi (spin, huy, luu tuy chon) kem token antiforgery moi
+  function send(path, method, body) {
     return request('/antiforgery', { cache: 'no-store' }).then(function (tok) {
       var headers = { 'Content-Type': 'application/json' };
       headers[tok.headerName] = tok.requestToken;
-      return request('/contests/' + encodeURIComponent(ID) + '/spin', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ prizeId: job.prizeId, minScore: job.minScore, requestId: job.requestId })
-      });
+      return request('/contests/' + encodeURIComponent(ID) + path, { method: method, headers: headers, body: JSON.stringify(body) });
     });
+  }
+  function post(job) {
+    return send('/spin', 'POST', { prizeId: job.prizeId, minScore: job.minScore, requestId: job.requestId });
   }
   function startSpin() {
     if (MODE !== 'control') return;
@@ -643,13 +663,64 @@
     }
     D.winners.forEach(function (w, i) {
       var tr = el('tr');
-      [i + 1, fmtTime(w.createdAt), w.prizeName || '', w.code, w.name, w.phone, 'Hợp lệ'].forEach(function (t) { tr.appendChild(el('td', null, String(t))); });
+      var note = w.cancelled ? 'Đã hủy' + (w.cancelReason ? ': ' + w.cancelReason : '') : 'Hợp lệ';
+      if (w.cancelled) tr.className = 'cancelled';
+      [i + 1, fmtTime(w.createdAt), w.prizeName || '', w.code, w.name, w.phone, note].forEach(function (t) { tr.appendChild(el('td', null, String(t))); });
       body.appendChild(tr);
     });
     table.appendChild(body);
     area.appendChild(table);
     area.appendChild(el('p', 'sign', 'Đại diện Ban tổ chức · Đại diện cơ quan chứng kiến · Thư ký'));
     window.print();
+  }
+
+  /* ---------- huy ket qua ---------- */
+  var cancelling = null;   // nguoi trung dang mo hop huy
+  function syncWhy() {
+    // Khong dung required: bong bao cua trinh duyet hien tieng Anh, kiem tra o confirmCancel
+    $('whyText').hidden = $('why').value !== 'khac';
+  }
+  function dlgError(text) {
+    $('dlgErr').hidden = !text;
+    $('dlgErr').textContent = text || '';
+  }
+  function openCancel(w) {
+    if (spinning || pending) return;
+    cancelling = w;
+    $('dlgP').textContent = 'Mã ' + w.code + ' (' + w.name + ', ' + (w.prizeName || 'giải') + ') sẽ bị gạch trong biên bản và không vào vòng quay nữa. Suất giải này được quay lại cho người khác.';
+    $('why').selectedIndex = 0;
+    $('whyText').value = '';
+    syncWhy();
+    dlgError('');
+    $('dlgOk').disabled = false;
+    $('dlg').showModal();
+  }
+  function confirmCancel() {
+    var w = cancelling;
+    if (!w) return;
+    var code = $('why').value, text = $('whyText').value.trim();
+    if (code === 'khac' && !text) { dlgError('Hãy ghi lý do để đưa vào biên bản.'); $('whyText').focus(); return; }
+    $('dlgOk').disabled = true;
+    dlgError('');
+    send('/winners/' + encodeURIComponent(w.drawId) + '/' + encodeURIComponent(w.rank) + '/cancel', 'POST',
+      { reasonCode: code, reasonText: code === 'khac' ? text : null })
+      .then(function () {
+        cancelling = null;
+        $('dlg').close();
+        setMsg('');
+        publish({ type: 'refresh' });
+        reload();
+      }, function (err) {
+        $('dlgOk').disabled = false;
+        if (err instanceof ApiError && err.status === 409) {
+          dlgError('Kết quả này đã được hủy trước đó.');
+          reload();
+        } else if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          dlgError('Phiên đăng nhập đã hết hạn hoặc tài khoản không có quyền. Hãy đăng nhập lại.');
+        } else {
+          dlgError(errorMessage(err));
+        }
+      });
   }
 
   /* ---------- gan su kien ---------- */
@@ -659,10 +730,31 @@
     $('bRetry').addEventListener('click', startSpin);
     document.querySelectorAll('.sw').forEach(function (s) {
       s.addEventListener('click', function () {
+        if (savingOpt) return;
+        var before = { live: S.opt.live, ticker: S.opt.ticker, transparent: S.opt.transparent };
         S.opt[s.dataset.opt] = !S.opt[s.dataset.opt];
         publish({ type: 'opt' });
         applyAll(null);
+        savingOpt = true;
+        send('/display', 'PUT', { showLiveBadge: S.opt.live, showAntiScamTicker: S.opt.ticker, transparentBackground: S.opt.transparent })
+          .then(function () { savingOpt = false; }, function (err) {
+            // Khong luu duoc thi tra cong tac ve nhu cu de man hinh khop voi CSDL
+            savingOpt = false;
+            S.opt = before;
+            publish({ type: 'opt' });
+            applyAll(null);
+            setMsg(err instanceof ApiError && (err.status === 401 || err.status === 403)
+              ? 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.'
+              : 'Chưa lưu được tùy chọn hiển thị' + (err && err.message ? ': ' + err.message : '') + '.', { login: err && (err.status === 401 || err.status === 403) });
+          });
       });
+    });
+    $('why').addEventListener('change', syncWhy);
+    $('dlgF').addEventListener('submit', function (e) {
+      var sub = e.submitter;
+      if (!sub || sub.value !== 'ok') return;   // "Giu ket qua": de hop tu dong
+      e.preventDefault();
+      confirmCancel();
     });
     $('bOpen').addEventListener('click', function () {
       window.open(STAGE_URL, 'antc-quay-so-stage', 'popup=yes,width=1280,height=720');

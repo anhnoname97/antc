@@ -35,7 +35,7 @@
 <p class="hint">Phím tắt: <kbd>Space</kbd> quay · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> đổi cảnh · <kbd>←</kbd><kbd>→</kbd> đổi giải. Phím tắt cũng dùng được ngay trên màn hình trình chiếu (dùng một máy).</p>
 </section>
 <section class="card"><h2>Danh sách người trúng <span>Số điện thoại đã được che</span></h2>
-<div class="tblwrap"><table class="tbl"><thead><tr><th>Giờ</th><th>Giải</th><th>Mã</th><th>Người trúng</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="tblwrap"><table class="tbl"><thead><tr><th>Giờ</th><th>Giải</th><th>Mã</th><th>Người trúng</th><th><span class="sr">Thao tác</span></th></tr></thead><tbody id="tb"></tbody></table></div>
 </section>
 </div>
 <div class="col">
@@ -61,16 +61,19 @@
 </section>
 </div>
 </div>
-<p class="note">Màn hình trình chiếu nhận lệnh từ bảng điều khiển này khi cả hai mở trên cùng một máy, cùng trình duyệt. Mỗi lần bấm QUAY tạo một lần quay thật, hiện trong tab Lần quay số của backoffice và không thể hủy.</p>
+<p class="note">Màn hình trình chiếu nhận lệnh từ bảng điều khiển này khi cả hai mở trên cùng một máy, cùng trình duyệt. Mỗi lần bấm QUAY tạo một lần quay thật, hiện trong tab Lần quay số của backoffice. Hủy một kết quả thì người đó bị gạch trong biên bản kèm lý do, suất giải được quay lại cho người khác.</p>
 </div>
 @await Html.PartialAsync("~/Views/QuaySo/_Stage.cshtml")
-@* Hop xac nhan huy ket qua theo ban dung v2. API /api/v1/quay-so chua co thao tac huy nen hop nay CHUA noi voi nut nao va khong co nut mo no; cho API huy. *@
-<dialog id="dlg"><form method="dialog">
+@* Hop xac nhan huy ket qua theo ban dung v2; gui POST .../winners/{drawId}/{rank}/cancel *@
+<dialog id="dlg"><form method="dialog" id="dlgF">
 <h3>Hủy kết quả này?</h3>
 <p id="dlgP"></p>
 <label for="why" class="sr">Lý do</label>
-<select id="why"><option>Người trúng không liên hệ được trong thời hạn</option><option>Thông tin dự thi không hợp lệ khi xác minh</option><option>Người trúng từ chối nhận giải</option><option>Lý do khác (ghi vào biên bản)</option></select>
-<div class="row"><button class="btn ghost" value="cancel">Giữ kết quả</button><button class="btn amber" value="ok">Hủy kết quả</button></div>
+<select id="why"><option value="khong-lien-he-duoc">Người trúng không liên hệ được trong thời hạn</option><option value="thong-tin-khong-hop-le">Thông tin dự thi không hợp lệ khi xác minh</option><option value="tu-choi-nhan-giai">Người trúng từ chối nhận giải</option><option value="khac">Lý do khác (ghi vào biên bản)</option></select>
+<label for="whyText" class="sr">Lý do khác</label>
+<textarea id="whyText" rows="3" maxlength="500" placeholder="Ghi rõ lý do để đưa vào biên bản" hidden></textarea>
+<p class="dlg-err" id="dlgErr" role="alert" hidden></p>
+<div class="row"><button class="btn ghost" value="cancel" formnovalidate>Giữ kết quả</button><button class="btn amber" id="dlgOk" value="ok">Hủy kết quả</button></div>
 </form></dialog>
 <div id="print" class="print-area"></div>
 @section Scripts {

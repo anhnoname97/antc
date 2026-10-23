@@ -1568,6 +1568,28 @@
   color: var(--qd-ink-3);
 }
 
+.qd .tbl td.act {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.qd .tb.sm {
+  padding: 4px 12px;
+  font-size: 0.78rem;
+}
+
+/* Ket qua da huy: gach ma va ten, giu lai trong bang kem ly do */
+.qd .tbl tr.cancelled td.no,
+.qd .tbl tr.cancelled .nm {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.qd .tbl .why {
+  color: var(--qd-amber);
+}
+
 .qd .note {
   margin: 0;
   padding: 0 24px 18px;
@@ -1611,7 +1633,7 @@
   }
 }
 
-/* Hop xac nhan huy ket qua (chua noi voi thao tac nao, cho API huy) */
+/* Hop xac nhan huy ket qua */
 .qd .sr {
   position: absolute;
   left: -9999px;
@@ -1639,6 +1661,25 @@
   margin: 0 0 14px;
   font-size: 0.9rem;
   color: var(--qd-ink-2);
+}
+
+.qd dialog textarea {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--qd-ink);
+  background: var(--qd-red-4);
+  border: 1px solid #ffffff33;
+  border-radius: 10px;
+  resize: vertical;
+}
+
+.qd dialog .dlg-err {
+  color: #FFE070;
+  font-weight: 600;
 }
 
 .qd dialog select {
