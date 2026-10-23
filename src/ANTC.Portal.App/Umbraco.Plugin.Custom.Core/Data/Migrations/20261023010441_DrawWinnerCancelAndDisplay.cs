@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Umbraco.Plugin.Custom.Core.DataMigrations
+namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 {
     /// <inheritdoc />
     public partial class DrawWinnerCancelAndDisplay : Migration

@@ -8,7 +8,7 @@ using Umbraco.Plugin.Custom.Core.Data;
 
 #nullable disable
 
-namespace Umbraco.Plugin.Custom.Core.DataMigrations
+namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20261023010441_DrawWinnerCancelAndDisplay")]
