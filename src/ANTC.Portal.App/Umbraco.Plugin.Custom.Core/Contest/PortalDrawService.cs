@@ -43,14 +43,34 @@ public sealed class PortalDrawService(AppDbContext db, IContestAdminService admi
         // Nguong goi y tinh tren toan bo nguoi du thi (khong loai nguoi da trung) de khong tut sau moi luot quay.
         var everyone = await admin.EligibleCandidatesAsync(contestId, 0, false, ct);
         int suggested = everyone.Count == 0 ? 0 : everyone.Max(e => e.Score);
-        int applied = minScore ?? suggested;
+        // Cuoc thi da co luot quay thi nguong bi chot theo luot quay; tham so minScore tren query bi bo qua.
+        var (locked, warning) = await LockedThresholdAsync(contestId, ct);
+        int applied = locked ?? minScore ?? suggested;
         var qualified = everyone.Where(e => e.Score >= applied).ToList();
         int remaining = (await admin.EligibleCandidatesAsync(contestId, applied, true, ct)).Count;
         var topics = await db.ContestTopics.AsNoTracking().Where(t => t.ContestId == contestId)
             .OrderBy(t => t.SortOrder).Select(t => t.Title).ToListAsync(ct);
         return new(new(contest.Id, contest.Name, Utc(contest.StartAt), Utc(contest.EndAt), topics),
             prizes.Select(MapPrize).ToList(), suggested, applied, everyone.Count, qualified.Count, remaining,
-            ListHash(qualified.Select(e => e.Code)), await WinnersAsync(contestId, ct), await ReadDisplayAsync(contestId, ct));
+            ListHash(qualified.Select(e => e.Code)), await WinnersAsync(contestId, ct), await ReadDisplayAsync(contestId, ct),
+            locked is not null, warning);
+    }
+
+    /// <summary>
+    /// Nguong da chot theo cac luot quay cua cuoc thi. Tinh moi Draw cua cuoc thi, ke ca Draw co nguoi trung da bi huy
+    /// va Draw tao tu backoffice, vi giao dien khoa o nguong khi con nguoi trong danh sach winners (ke ca nguoi bi huy).
+    /// Chua quay: (null, null). Cac luot cung nguong: (nguong, null). Lech nhau: (nguong cua luot moi nhat, canh bao).
+    /// </summary>
+    private async Task<(int? MinScore, string? Warning)> LockedThresholdAsync(long contestId, CancellationToken ct)
+    {
+        var rows = await db.Draws.AsNoTracking().Where(d => d.ContestId == contestId)
+            .Select(d => new { d.MinScore, d.CreatedAt, d.Id }).ToListAsync(ct);
+        if (rows.Count == 0) return (null, null);
+        // Sap o bo nho de khong phu thuoc cach SQLite so sanh thoi gian.
+        int latest = rows.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id).First().MinScore;
+        int[] distinct = rows.Select(r => r.MinScore).Distinct().Order().ToArray();
+        if (distinct.Length == 1) return (latest, null);
+        return (latest, $"Các lượt quay trước dùng ngưỡng khác nhau ({string.Join(", ", distinct)} điểm); đang áp dụng ngưỡng của lượt quay mới nhất: {latest} điểm.");
     }
 
     /// <summary>Tuy chon hien thi cua cuoc thi; chua luu thi tra mac dinh (true, true, false).</summary>
@@ -83,6 +103,13 @@ public sealed class PortalDrawService(AppDbContext db, IContestAdminService admi
     public async Task<PortalDrawSpinResult> SpinAsync(long contestId, long prizeId, int minScore, Guid requestId, string actor, CancellationToken ct)
     {
         await RequireFinishedAsync(contestId, ct);
+        // Thu lai cung requestId thi de CreateDrawAsync tra ket qua cu, khong kiem tra nguong.
+        bool retry = await db.Draws.AsNoTracking().AnyAsync(d => d.RequestId == requestId, ct);
+        if (!retry && (await LockedThresholdAsync(contestId, ct)).MinScore is { } locked && locked != minScore)
+            throw new ContestAdminValidationException(new Dictionary<string, string>
+            {
+                ["minScore"] = $"Cuộc thi đã quay với ngưỡng {locked} điểm; các lượt quay sau phải dùng đúng ngưỡng này.",
+            });
         DrawAdminDto draw = await admin.CreateDrawAsync(
             new SaveDrawRequest(minScore, 1, ExcludePrevious: true, Note: SpinNote, ContestId: contestId, RequestId: requestId, PrizeId: prizeId), actor, ct);
         var prize = (await admin.ContestPrizesAsync(contestId, ct)).Single(p => p.PrizeId == prizeId);

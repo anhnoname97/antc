@@ -153,6 +153,90 @@ public class PortalDrawServiceTests
         Assert.Equal(1, await f.Db.Draws.CountAsync()); Assert.Equal(1, await f.Db.DrawWinners.CountAsync());
     }
 
+    [Fact]
+    public async Task Get_LocksThresholdToExistingDraw_IgnoringQueryMinScore()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 3);
+        f.Person(id, "0911111111", 10); f.Person(id, "0922222222", 8); f.Person(id, "0933333333", 6);
+        await f.Db.SaveChangesAsync();
+        await f.Portal.SpinAsync(id, prize, 6, Guid.NewGuid(), "member:x", default);
+        foreach (int? query in new int?[] { null, 10 })
+        {
+            var detail = await f.Portal.GetAsync(id, query, default);
+            Assert.Equal(6, detail.MinScore); Assert.True(detail.MinScoreLocked); Assert.Null(detail.MinScoreWarning);
+            Assert.Equal(10, detail.SuggestedMinScore); Assert.True(detail.RemainingInPool > 0);
+        }
+    }
+
+    [Fact]
+    public async Task Spin_RejectsDifferentThresholdAfterFirstDraw_ButAcceptsSame()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 3);
+        f.Person(id, "0911111111", 10); f.Person(id, "0922222222", 8); f.Person(id, "0933333333", 6);
+        await f.Db.SaveChangesAsync();
+        await f.Portal.SpinAsync(id, prize, 6, Guid.NewGuid(), "member:x", default);
+        var ex = await Assert.ThrowsAsync<ContestAdminValidationException>(() => f.Portal.SpinAsync(id, prize, 10, Guid.NewGuid(), "member:x", default));
+        Assert.Contains("minScore", ex.Fields.Keys);
+        Assert.Equal(1, await f.Db.Draws.CountAsync());
+        await f.Portal.SpinAsync(id, prize, 6, Guid.NewGuid(), "member:x", default);
+        Assert.Equal(2, await f.Db.Draws.CountAsync());
+    }
+
+    [Fact]
+    public async Task Get_MixedDrawThresholds_UsesLatestDrawAndWarns()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out _); await f.Db.SaveChangesAsync();
+        f.Person(id, "0911111111", 10); f.Person(id, "0922222222", 8);
+        f.Db.Draws.Add(new Draw { ContestId = id, CreatedAt = Now.AddHours(-5), CreatedBy = "x", MinScore = 8, WinnersRequested = 1,
+            Winners = { new DrawWinner { Rank = 1, Code = "C1", FullName = "A", Phone = "0911111111", Score = 8 } } });
+        f.Db.Draws.Add(new Draw { ContestId = id, CreatedAt = Now.AddHours(-1), CreatedBy = "x", MinScore = 10, WinnersRequested = 1,
+            Winners = { new DrawWinner { Rank = 1, Code = "C2", FullName = "B", Phone = "0922222222", Score = 10 } } });
+        await f.Db.SaveChangesAsync();
+        var detail = await f.Portal.GetAsync(id, 0, default);
+        Assert.Equal(10, detail.MinScore); Assert.True(detail.MinScoreLocked);
+        Assert.NotNull(detail.MinScoreWarning); Assert.Contains("8, 10", detail.MinScoreWarning);
+    }
+
+    [Fact]
+    public async Task Get_NoDrawYet_IsNotLocked()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out _); await f.Db.SaveChangesAsync();
+        f.Person(id, "0911111111", 10); f.Person(id, "0922222222", 7); await f.Db.SaveChangesAsync();
+        var detail = await f.Portal.GetAsync(id, 7, default);
+        Assert.False(detail.MinScoreLocked); Assert.Null(detail.MinScoreWarning); Assert.Equal(7, detail.MinScore);
+    }
+
+    [Fact]
+    public async Task Get_ThresholdStaysLocked_AfterAllWinnersCancelled()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 1); f.Person(id, "0911111111", 10); f.Person(id, "0922222222", 6); await f.Db.SaveChangesAsync();
+        var spin = await f.Portal.SpinAsync(id, prize, 6, Guid.NewGuid(), "member:x", default);
+        await Cancel(f, id, spin.DrawId);
+        var detail = await f.Portal.GetAsync(id, null, default);
+        Assert.True(detail.MinScoreLocked); Assert.Equal(6, detail.MinScore);
+    }
+
+    [Fact]
+    public async Task Spin_RetrySameRequestIdWithSameThreshold_ReturnsSameDraw()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 2); f.Person(id, "0911111111", 8); f.Person(id, "0922222222", 6); await f.Db.SaveChangesAsync();
+        Guid request = Guid.NewGuid();
+        var first = await f.Portal.SpinAsync(id, prize, 6, request, "member:x", default);
+        var retry = await f.Portal.SpinAsync(id, prize, 6, request, "member:x", default);
+        Assert.Equal(first.DrawId, retry.DrawId);
+        Assert.Equal(1, await f.Db.Draws.CountAsync());
+    }
+
     private static Task<PortalDrawCancelResult> Cancel(Fixture f, long contestId, long drawId, int rank = 1, string? code = "tu-choi-nhan-giai", string? text = null) =>
         f.Portal.CancelWinnerAsync(contestId, drawId, rank, code, text, "thanh-vien", Guid.NewGuid(), default);
 

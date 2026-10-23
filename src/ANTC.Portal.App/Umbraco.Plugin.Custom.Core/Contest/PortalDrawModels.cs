@@ -51,7 +51,9 @@ public sealed record PortalDrawDetail(
     int RemainingInPool,
     string ListHash,
     IReadOnlyList<PortalDrawWinner> Winners,
-    PortalDrawDisplay Display);
+    PortalDrawDisplay Display,
+    bool MinScoreLocked,
+    string? MinScoreWarning);
 
 /// <summary>Tuy chon hien thi man hinh quay so cua mot cuoc thi.</summary>
 public sealed record PortalDrawDisplay(bool ShowLiveBadge, bool ShowAntiScamTicker, bool TransparentBackground);
