@@ -18,7 +18,28 @@ public sealed record PortalDrawPrize(long PrizeId, string Code, string Name, int
 
 /// <summary>Nguoi trung da che ten va so dien thoai.</summary>
 public sealed record PortalDrawWinner(
-    long DrawId, DateTime CreatedAt, long? PrizeId, string? PrizeCode, string? PrizeName, string Code, string Name, string Phone, int Score);
+    long DrawId, DateTime CreatedAt, long? PrizeId, string? PrizeCode, string? PrizeName, string Code, string Name, string Phone, int Score,
+    int Rank, bool Cancelled, DateTime? CancelledAt, string? CancelledBy, string? CancelReason);
+
+public sealed record PortalDrawCancelResult(PortalDrawWinner Winner, PortalDrawPrize? Prize);
+
+/// <summary>Ma ly do huy ket qua trung; ba ma dau co nhan co dinh.</summary>
+public static class PortalDrawCancelReasons
+{
+    public const string Unreachable = "khong-lien-he-duoc";
+    public const string InvalidInfo = "thong-tin-khong-hop-le";
+    public const string Declined = "tu-choi-nhan-giai";
+    public const string Other = "khac";
+
+    public static readonly IReadOnlyDictionary<string, string> Labels = new Dictionary<string, string>
+    {
+        [Unreachable] = "Người trúng không liên hệ được trong thời hạn",
+        [InvalidInfo] = "Thông tin dự thi không hợp lệ khi xác minh",
+        [Declined] = "Người trúng từ chối nhận giải",
+    };
+
+    public static bool IsValid(string? code) => code == Other || (code != null && Labels.ContainsKey(code));
+}
 
 public sealed record PortalDrawDetail(
     PortalDrawContestInfo Contest,
@@ -39,4 +60,9 @@ public sealed record PortalDrawSpinResult(
 public sealed class PortalDrawContestNotFoundException() : Exception("Không tìm thấy cuộc thi.")
 {
     public string Code => "CONTEST_NOT_FOUND";
+}
+
+public sealed class PortalDrawWinnerNotFoundException() : Exception("Không tìm thấy kết quả trúng.")
+{
+    public string Code => "WINNER_NOT_FOUND";
 }

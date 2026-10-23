@@ -1,6 +1,8 @@
+using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Umbraco.Plugin.Custom.Core.Administration;
 using Umbraco.Plugin.Custom.Core.Data;
 
 namespace Umbraco.Plugin.Custom.Core.Contest;
@@ -9,7 +11,7 @@ namespace Umbraco.Plugin.Custom.Core.Contest;
 /// Quay so tren portal cho thanh vien Ban to chuc. Khong co thuat toan rieng: chon nguoi, kiem tra suat giai
 /// va ghi ket qua deu do IContestAdminService thuc hien. Moi ket qua tra ra deu da che ten va so dien thoai.
 /// </summary>
-public sealed class PortalDrawService(AppDbContext db, IContestAdminService admin, TimeProvider timeProvider)
+public sealed class PortalDrawService(AppDbContext db, IContestAdminService admin, ContestAuditService audit, TimeProvider timeProvider)
 {
     private const string SpinNote = "Quay trên portal";
 
@@ -63,6 +65,36 @@ public sealed class PortalDrawService(AppDbContext db, IContestAdminService admi
             new(winner.Code, ContestResultsService.MaskName(winner.FullName), ContestResultsService.MaskPhone(winner.Phone), winner.Score), remaining);
     }
 
+    /// <summary>Huy mot ket qua trung co ly do: tra suat giai, ghi audit cung transaction. Nguoi bi huy van bi loai khoi cac lan quay sau.</summary>
+    public async Task<PortalDrawCancelResult> CancelWinnerAsync(long contestId, long drawId, int rank, string? reasonCode, string? reasonText,
+        string memberUserName, Guid memberKey, CancellationToken ct)
+    {
+        string text = (reasonText ?? "").Trim();
+        var fields = new Dictionary<string, string>();
+        if (!PortalDrawCancelReasons.IsValid(reasonCode)) fields["reasonCode"] = "Lý do hủy không hợp lệ.";
+        else if (reasonCode == PortalDrawCancelReasons.Other && text.Length == 0) fields["reasonText"] = "Phải ghi lý do khi chọn Lý do khác.";
+        if (text.Length > 500) fields["reasonText"] = "Lý do không được dài quá 500 ký tự.";
+        if (fields.Count > 0) throw new ContestAdminValidationException(fields);
+
+        await RequireFinishedAsync(contestId, ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        DrawWinner winner = await db.DrawWinners.Include(w => w.Draw).SingleOrDefaultAsync(w => w.DrawId == drawId && w.Rank == rank, ct)
+            ?? throw new PortalDrawWinnerNotFoundException();
+        if (winner.Draw!.ContestId != contestId) throw new PortalDrawWinnerNotFoundException();
+        if (winner.CancelledAt != null) throw new ContestAdminConflictException("WINNER_ALREADY_CANCELLED", "Kết quả này đã bị hủy trước đó.");
+        winner.CancelledAt = timeProvider.GetUtcNow().UtcDateTime;
+        winner.CancelledBy = memberUserName;
+        winner.CancelReasonCode = reasonCode;
+        winner.CancelReasonText = PortalDrawCancelReasons.Labels.TryGetValue(reasonCode!, out string? label) ? label : text;
+        await audit.RecordAsync(memberKey, "draw.cancel", new { ContestId = contestId, DrawId = drawId, Rank = rank, ReasonCode = reasonCode }, winner.Code, ct);
+        await transaction.CommitAsync(ct);
+
+        PortalDrawPrize? prize = null;
+        if (winner.Draw.PrizeId is { } prizeId)
+            prize = (await admin.ContestPrizesAsync(contestId, ct)).Where(p => p.PrizeId == prizeId).Select(MapPrize).SingleOrDefault();
+        return new(MapWinner(winner, winner.Draw.CreatedAt, winner.Draw.PrizeId, winner.Draw.PrizeCode, winner.Draw.PrizeName), prize);
+    }
+
     /// <summary>Ma hash cua danh sach ma du thi: sap xep ordinal, noi bang xuong dong, SHA-256 dang hex.</summary>
     public static string ListHash(IEnumerable<string> codes)
     {
@@ -73,13 +105,16 @@ public sealed class PortalDrawService(AppDbContext db, IContestAdminService admi
 
     private async Task<List<PortalDrawWinner>> WinnersAsync(long contestId, CancellationToken ct)
     {
-        var rows = await db.DrawWinners.AsNoTracking().Where(w => w.Draw!.ContestId == contestId)
-            .Select(w => new { w.DrawId, w.Draw!.CreatedAt, w.Draw.PrizeId, w.Draw.PrizeCode, w.Draw.PrizeName, w.Rank, w.Code, w.FullName, w.Phone, w.Score })
-            .ToListAsync(ct);
-        return rows.OrderBy(w => w.CreatedAt).ThenBy(w => w.DrawId).ThenBy(w => w.Rank)
-            .Select(w => new PortalDrawWinner(w.DrawId, Utc(w.CreatedAt), w.PrizeId, w.PrizeCode, w.PrizeName, w.Code,
-                ContestResultsService.MaskName(w.FullName), ContestResultsService.MaskPhone(w.Phone), w.Score)).ToList();
+        var rows = await db.DrawWinners.AsNoTracking().Include(w => w.Draw).Where(w => w.Draw!.ContestId == contestId).ToListAsync(ct);
+        return rows.OrderBy(w => w.Draw!.CreatedAt).ThenBy(w => w.DrawId).ThenBy(w => w.Rank)
+            .Select(w => MapWinner(w, w.Draw!.CreatedAt, w.Draw.PrizeId, w.Draw.PrizeCode, w.Draw.PrizeName)).ToList();
     }
+
+    // Luon che ten va so dien thoai; nguoi bi huy van nam trong danh sach.
+    private static PortalDrawWinner MapWinner(DrawWinner w, DateTime createdAt, long? prizeId, string? prizeCode, string? prizeName) =>
+        new(w.DrawId, Utc(createdAt), prizeId, prizeCode, prizeName, w.Code,
+            ContestResultsService.MaskName(w.FullName), ContestResultsService.MaskPhone(w.Phone), w.Score,
+            w.Rank, w.CancelledAt != null, w.CancelledAt is { } at ? Utc(at) : null, w.CancelledBy, w.CancelReasonText);
 
     private async Task<ContestCampaign> RequireFinishedAsync(long contestId, CancellationToken ct)
     {

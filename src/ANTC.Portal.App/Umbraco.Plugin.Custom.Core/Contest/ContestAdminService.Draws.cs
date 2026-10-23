@@ -15,6 +15,7 @@ public sealed partial class ContestAdminService
     {
         if (!await db.ContestCampaigns.AnyAsync(x => x.Id == contestId, ct))
             throw new ContestAdminValidationException(new Dictionary<string, string> { ["contestId"] = "Cuộc thi không tồn tại." });
+        // Co y tinh ca nguoi da bi huy: so dien thoai cua ho van bi loai de khong quay vao lai duoc.
         var previous = excludePrevious
             ? (await db.DrawWinners.AsNoTracking().Where(w => w.Draw!.ContestId == contestId).Select(w => w.Phone).Distinct().ToListAsync(ct)).ToHashSet(StringComparer.Ordinal)
             : new HashSet<string>(StringComparer.Ordinal);

@@ -10,6 +10,8 @@ namespace Umbraco.Plugin.Custom.Api.Controllers;
 
 public sealed record PortalSpinRequest(long? PrizeId, int? MinScore, Guid? RequestId);
 
+public sealed record PortalCancelRequest(string? ReasonCode, string? ReasonText);
+
 /// <summary>API quay so cho thanh vien Ban to chuc quay so (cookie thanh vien). Moi phan hoi deu che ten va so dien thoai.</summary>
 [ApiController]
 [Route("api/v1/quay-so")]
@@ -52,6 +54,16 @@ public sealed class PortalDrawController(PortalDrawService service, IMemberManag
         return Ok(await service.SpinAsync(id, request.PrizeId!.Value, request.MinScore!.Value, request.RequestId!.Value, "member:" + member.Key, ct));
     });
 
+    /// <summary>Quay số portal: hủy một kết quả trúng có lý do; trả lại suất giải nhưng người bị hủy không quay vào lại được.</summary>
+    [HttpPost("contests/{id:long}/winners/{drawId:long}/{rank:int}/cancel")]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> Cancel(long id, long drawId, int rank, [FromBody] PortalCancelRequest request, CancellationToken ct) => Execute(async () =>
+    {
+        var member = await members.GetCurrentMemberAsync();
+        if (member is null) return Unauthorized(Error("UNAUTHORIZED", "Vui lòng đăng nhập khu vực quay số."));
+        return Ok(await service.CancelWinnerAsync(id, drawId, rank, request.ReasonCode, request.ReasonText, member.UserName!, member.Key, ct));
+    });
+
     private async Task<IActionResult> Execute(Func<Task<IActionResult>> action)
     {
         Response.Headers.CacheControl = "no-store";
@@ -59,6 +71,7 @@ public sealed class PortalDrawController(PortalDrawService service, IMemberManag
         catch (ContestAdminValidationException e) { return BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", e.Message, e.Fields))); }
         catch (ContestAdminConflictException e) { return Conflict(Error(e.Code, e.Message)); }
         catch (PortalDrawContestNotFoundException e) { return NotFound(Error(e.Code, e.Message)); }
+        catch (PortalDrawWinnerNotFoundException e) { return NotFound(Error(e.Code, e.Message)); }
     }
 
     private static ApiErrorResponse Error(string code, string message) => new(new ApiError(code, message));

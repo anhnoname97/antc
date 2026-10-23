@@ -153,6 +153,109 @@ public class PortalDrawServiceTests
         Assert.Equal(1, await f.Db.Draws.CountAsync()); Assert.Equal(1, await f.Db.DrawWinners.CountAsync());
     }
 
+    private static Task<PortalDrawCancelResult> Cancel(Fixture f, long contestId, long drawId, int rank = 1, string? code = "tu-choi-nhan-giai", string? text = null) =>
+        f.Portal.CancelWinnerAsync(contestId, drawId, rank, code, text, "thanh-vien", Guid.NewGuid(), default);
+
+    [Fact]
+    public async Task Cancel_ReturnsQuota_AndAllowsSpinAgain()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 1); f.Person(id, "0911111111", 5); f.Person(id, "0922222222", 5); await f.Db.SaveChangesAsync();
+        var spin = await f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default);
+        Assert.Equal(0, spin.Prize.Remaining);
+        var result = await Cancel(f, id, spin.DrawId);
+        Assert.Equal((0, 1), (result.Prize!.Awarded, result.Prize.Remaining));
+        var prizes = await f.Portal.GetAsync(id, 0, default);
+        Assert.Equal((0, 1), (prizes.Prizes.Single().Awarded, prizes.Prizes.Single().Remaining));
+        var again = await f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default);
+        Assert.NotEqual(spin.Winner.Code, again.Winner.Code);
+    }
+
+    [Fact]
+    public async Task Cancel_SecondTimeConflicts()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 1); f.Person(id, "0911111111", 5); await f.Db.SaveChangesAsync();
+        var spin = await f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default);
+        await Cancel(f, id, spin.DrawId);
+        var ex = await Assert.ThrowsAsync<ContestAdminConflictException>(() => Cancel(f, id, spin.DrawId));
+        Assert.Equal("WINNER_ALREADY_CANCELLED", ex.Code);
+    }
+
+    [Fact]
+    public async Task Cancel_ValidatesReasonFields()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 1); f.Person(id, "0911111111", 5); await f.Db.SaveChangesAsync();
+        var spin = await f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default);
+        foreach (string? blank in new[] { null, "", "   " })
+            Assert.Contains("reasonText", (await Assert.ThrowsAsync<ContestAdminValidationException>(() => Cancel(f, id, spin.DrawId, 1, "khac", blank))).Fields.Keys);
+        Assert.Contains("reasonCode", (await Assert.ThrowsAsync<ContestAdminValidationException>(() => Cancel(f, id, spin.DrawId, 1, "la"))).Fields.Keys);
+        Assert.Contains("reasonText", (await Assert.ThrowsAsync<ContestAdminValidationException>(() => Cancel(f, id, spin.DrawId, 1, "khac", new string('a', 501)))).Fields.Keys);
+        Assert.Null((await f.Db.DrawWinners.SingleAsync()).CancelledAt);
+    }
+
+    [Fact]
+    public async Task Cancel_CancelledPersonNeverDrawnAgain()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 2); f.Person(id, "0911111111", 5); f.Person(id, "0922222222", 5); await f.Db.SaveChangesAsync();
+        var s1 = await f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default);
+        Assert.Equal(1, s1.RemainingInPool);
+        await Cancel(f, id, s1.DrawId);
+        Assert.Equal(1, (await f.Portal.GetAsync(id, 0, default)).RemainingInPool);
+        var s2 = await f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default);
+        Assert.NotEqual(s1.Winner.Code, s2.Winner.Code);
+        var ex = await Assert.ThrowsAsync<ContestAdminConflictException>(() => f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default));
+        Assert.Equal("DRAW_INSUFFICIENT_CANDIDATES", ex.Code);
+    }
+
+    [Fact]
+    public async Task Get_ReturnsCancelledWinnerWithLabel_StillMasked_AndWritesAudit()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 1); f.Person(id, "0912345678", 5).FullName = "Nguyễn Văn An"; await f.Db.SaveChangesAsync();
+        var spin = await f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default);
+        await Cancel(f, id, spin.DrawId, 1, "khong-lien-he-duoc", "bỏ qua");
+        var detail = await f.Portal.GetAsync(id, null, default);
+        var w = Assert.Single(detail.Winners);
+        Assert.True(w.Cancelled); Assert.Equal(1, w.Rank); Assert.Equal("thanh-vien", w.CancelledBy);
+        Assert.Equal("Người trúng không liên hệ được trong thời hạn", w.CancelReason);
+        Assert.Equal(Now, w.CancelledAt); Assert.Equal(DateTimeKind.Utc, w.CancelledAt!.Value.Kind);
+        string json = JsonSerializer.Serialize(detail);
+        Assert.DoesNotContain("0912345678", json); Assert.DoesNotContain("Nguyễn Văn An", json);
+        Assert.Equal(1, await f.Db.ContestAccessAudits.CountAsync(a => a.Action == "draw.cancel"));
+    }
+
+    [Fact]
+    public async Task Cancel_OtherReasonStoresTrimmedText_AndUnknownWinnerIsNotFound()
+    {
+        await using var f = await Fixture.Create();
+        long id = f.Contest("A", Now.AddDays(-2), 0, out long prize); long other = f.Contest("B", Now.AddDays(-2), 0, out _); await f.Db.SaveChangesAsync();
+        await f.Allocate(id, prize, 1); f.Person(id, "0911111111", 5); await f.Db.SaveChangesAsync();
+        var spin = await f.Portal.SpinAsync(id, prize, 0, Guid.NewGuid(), "member:x", default);
+        await Assert.ThrowsAsync<PortalDrawWinnerNotFoundException>(() => Cancel(f, other, spin.DrawId));
+        await Assert.ThrowsAsync<PortalDrawWinnerNotFoundException>(() => Cancel(f, id, spin.DrawId, 9));
+        await Assert.ThrowsAsync<PortalDrawWinnerNotFoundException>(() => Cancel(f, id, 9999));
+        await Cancel(f, id, spin.DrawId, 1, "khac", "  Lý do riêng  ");
+        Assert.Equal("Lý do riêng", (await f.Db.DrawWinners.SingleAsync()).CancelReasonText);
+    }
+
+    [Fact]
+    public void CancelAction_RequiresAntiForgeryAndControllerRequiresMemberPolicy()
+    {
+        var type = typeof(Umbraco.Plugin.Custom.Api.Controllers.PortalDrawController);
+        var action = type.GetMethod("Cancel")!;
+        Assert.NotNull(action.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute), true).SingleOrDefault());
+        var authorize = (Microsoft.AspNetCore.Authorization.AuthorizeAttribute)type.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true).Single();
+        Assert.Equal(Umbraco.Plugin.Custom.Core.Administration.DrawMemberAccess.Policy, authorize.Policy);
+    }
+
     private sealed class FixedTime(DateTime utc) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => new(utc, TimeSpan.Zero);
@@ -171,7 +274,8 @@ public class PortalDrawServiceTests
             f.Db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(f.connection).Options);
             await f.Db.Database.MigrateAsync();
             var time = new FixedTime(Now);
-            f.Portal = new PortalDrawService(f.Db, new ContestAdminService(f.Db, time), time);
+            f.Portal = new PortalDrawService(f.Db, new ContestAdminService(f.Db, time),
+                new Umbraco.Plugin.Custom.Core.Administration.ContestAuditService(f.Db, new Microsoft.AspNetCore.DataProtection.EphemeralDataProtectionProvider(), time), time);
             return f;
         }
 
