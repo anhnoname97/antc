@@ -1,11 +1,11 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/quiz.css" asp-append-version="true">
 }
-@await Html.PartialAsync("_QuizDemo")
+@await Html.PartialAsync("_QuizDemo", Model)
 @section Scripts {
     <script type="module" src="~/assets/js/quiz-sample.js" asp-append-version="true"></script>
 }

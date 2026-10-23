@@ -1,28 +1,19 @@
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using Umbraco.Cms.Core.Models
+@model ArticleCardModel
 @{
-    var image = Model.Value<MediaWithCrops>("image");
-    var date = Model.Value<DateTime>("updatedDate");
-    if (date == default) { date = Model.UpdateDate; }
-    var category = Model.Parent<IPublishedContent>();
+    var article = Model.Article;
 }
-<article class="article-card">
+<article class="article-card" data-article-id="@article.Id">
     <div class="article-card__art" aria-hidden="true">
-        @if (image is not null) { <img class="article-card__image" src="@image.Url()" alt="" loading="lazy" width="400" height="300"> }
-        else
-        {
-            <span class="article-card__orbit"></span><span class="article-card__field-icon">@await Html.PartialAsync("~/Views/Partials/articles/_FieldIcon.cshtml", category?.Name ?? "")</span><span class="article-card__art-label">NHẬN DIỆN THỦ ĐOẠN</span>
-        }
+        <img class="article-card__image" data-card-image src="@article.Image?.Url" alt="" loading="lazy" width="400" height="300" hidden="@(article.Image is null)">
+        <span class="article-card__orbit" data-card-placeholder hidden="@(article.Image is not null)"></span>
+        <span class="article-card__field-icon" data-card-icon data-card-placeholder hidden="@(article.Image is not null)">@await Html.PartialAsync("~/Views/Partials/articles/_FieldIcon.cshtml", Model.Category?.Title ?? "")</span>
+        <span class="article-card__art-label" data-card-art-label data-card-placeholder hidden="@(article.Image is not null)">@(Model.Category?.Role == "Chính sách" ? "VĂN BẢN CHÍNH SÁCH" : "NHẬN DIỆN THỦ ĐOẠN")</span>
     </div>
     <div class="article-card__copy">
-        @if (ViewData["ShowCategory"] is true && category is not null) { <p class="article-card__category">@category.Name</p> }
-        <div class="article-labels">@await Html.PartialAsync("~/Views/Partials/articles/_Status.cshtml", Model)</div>
-        <p class="article-meta">Cập nhật <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p>
-        <h2><a href="@Model.Url()">@Model.Name</a></h2>
-        @if (!string.IsNullOrWhiteSpace(Model.Value<string>("summary"))) { <p class="article-card__summary">@Model.Value("summary")</p> }
-        @if (ViewData["HideReadMore"] is not true)
-        {
-            <span class="article-card__read" aria-hidden="true">Đọc bài viết <span>↗</span></span>
-        }
+        <p class="article-card__category" data-card-category hidden="@(!Model.ShowCategory)">@Model.Category?.Title</p>
+        <div class="article-labels">@await Html.PartialAsync("~/Views/Partials/articles/_Status.cshtml", article)</div>
+        <p class="article-meta"><span data-card-date-label hidden="@(article.UpdatedDate is null)">Cập nhật </span><time data-card-date datetime="@article.UpdatedDate?.ToString("yyyy-MM-dd")" hidden="@(article.UpdatedDate is null)">@article.UpdatedDate?.ToString("dd/MM/yyyy")</time><span data-card-date-empty hidden="@(article.UpdatedDate is not null)">Chưa cập nhật ngày</span></p>
+        <h2><a data-card-link href="@article.Url">@article.Title</a></h2>
+        <p class="article-card__summary" data-card-summary hidden="@(string.IsNullOrWhiteSpace(article.Summary))">@article.Summary</p>
     </div>
 </article>

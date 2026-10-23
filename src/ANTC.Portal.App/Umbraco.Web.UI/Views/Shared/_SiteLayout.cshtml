@@ -4,7 +4,8 @@
     var contestStyle = Model.ContentType.Alias is "thiPage" or "hoiDapPage" or "thiThangPage" or "cuocThiLamBaiPage";
     var site = Model.Root();
     var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
-    var description = Model.Value<string>("seoDescription");
+    var articleSeo = (Model as ArticlePageModel)?.ArticleSeo;
+    var description = articleSeo?.Description ?? Model.Value<string>("seoDescription");
     if (string.IsNullOrWhiteSpace(description) && (Model.ContentType.Alias is "article" or "articleList"))
     {
         description = Model.Value<string>("summary");
@@ -16,7 +17,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @if (!string.IsNullOrWhiteSpace(description)) { <meta name="description" content="@description"> }
-    <title>@(Model.Value<string>("seoTitle") is { Length: > 0 } t ? t : Model.Name) — @siteName</title>
+    <title>@(articleSeo?.Title ?? (Model.Value<string>("seoTitle") is { Length: > 0 } t ? t : Model.Name)) — @siteName</title>
+    @if (articleSeo?.HideFromSearch == true) { <meta name="robots" content="noindex, follow"> }
     <script>try { var scale = localStorage.getItem('at_font_scale'); document.documentElement.dataset.fontScale = ['0', '1', '2'].includes(scale) ? scale : '0'; } catch (e) { document.documentElement.dataset.fontScale = '0'; }</script>
     <script>try { if (sessionStorage.getItem('at_contest_announcement') === 'hidden') document.documentElement.dataset.contestAnnouncementHidden = 'true'; } catch (e) { }</script>
     <link rel="stylesheet" href="~/assets/css/contest-announcement.css" asp-append-version="true">
@@ -27,6 +29,7 @@
     <link rel="stylesheet" href="~/assets/css/components.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/header.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/footer.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/hero-images.css" asp-append-version="true">
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body class="@(contestStyle ? "contest-site" : null)">

@@ -11,8 +11,10 @@ internal static class ArticleSearchText
     public static bool Contains(string value, string term) =>
         Fold(value).Contains(Fold(term), StringComparison.Ordinal);
 
-    // Bộ lọc bài viết hoạt động độc lập với chỉ mục tìm kiếm toàn trang.
-    private static string Fold(string text)
+    public static string[] Terms(string text) => Regex.Matches(Fold(text), @"[\p{L}\p{Nd}]+")
+        .Select(x => x.Value).Distinct(StringComparer.Ordinal).ToArray();
+
+    public static string Fold(string text)
     {
         var result = new StringBuilder();
         foreach (char c in text.Normalize(NormalizationForm.FormD))
