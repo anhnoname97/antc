@@ -187,7 +187,7 @@ public class PortalDrawServiceTests
     }
 
     [Fact]
-    public async Task Get_MixedDrawThresholds_UsesLatestDrawAndWarns()
+    public async Task Get_MixedDrawThresholds_UsesFirstDrawAndWarns()
     {
         await using var f = await Fixture.Create();
         long id = f.Contest("A", Now.AddDays(-2), 0, out _); await f.Db.SaveChangesAsync();
@@ -198,7 +198,8 @@ public class PortalDrawServiceTests
             Winners = { new DrawWinner { Rank = 1, Code = "C2", FullName = "B", Phone = "0922222222", Score = 10 } } });
         await f.Db.SaveChangesAsync();
         var detail = await f.Portal.GetAsync(id, 0, default);
-        Assert.Equal(10, detail.MinScore); Assert.True(detail.MinScoreLocked);
+        // Danh sach chot o luot quay dau tien; luot sau lech nguong la do loi cu, khong duoc keo nguong theo
+        Assert.Equal(8, detail.MinScore); Assert.True(detail.MinScoreLocked);
         Assert.NotNull(detail.MinScoreWarning); Assert.Contains("8, 10", detail.MinScoreWarning);
     }
 

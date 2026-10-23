@@ -501,7 +501,8 @@
     var ms = $('minScore'), locked = D.winners.length > 0 || spinning || !!pending;
     if (document.activeElement !== ms) ms.value = D.minScore;
     ms.disabled = locked;
-    $('minScoreHint').textContent = D.winners.length > 0 ? 'Đã có người trúng nên không sửa được' : 'Chỉ sửa được khi chưa có người trúng';
+    $('minScoreHint').textContent = D.minScoreWarning ||
+      (D.winners.length > 0 ? 'Đã có người trúng nên không sửa được' : 'Chỉ sửa được khi chưa có người trúng');
 
     var tb = $('tb');
     clear(tb);

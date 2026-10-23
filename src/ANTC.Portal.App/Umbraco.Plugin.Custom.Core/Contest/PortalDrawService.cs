@@ -59,7 +59,8 @@ public sealed class PortalDrawService(AppDbContext db, IContestAdminService admi
     /// <summary>
     /// Nguong da chot theo cac luot quay cua cuoc thi. Tinh moi Draw cua cuoc thi, ke ca Draw co nguoi trung da bi huy
     /// va Draw tao tu backoffice, vi giao dien khoa o nguong khi con nguoi trong danh sach winners (ke ca nguoi bi huy).
-    /// Chua quay: (null, null). Cac luot cung nguong: (nguong, null). Lech nhau: (nguong cua luot moi nhat, canh bao).
+    /// Chua quay: (null, null). Cac luot cung nguong: (nguong, null). Lech nhau: (nguong cua luot dau tien, canh bao):
+    /// danh sach du dieu kien chot o luot quay dau, luot sau lech nguong la du lieu sai cua ban cu.
     /// </summary>
     private async Task<(int? MinScore, string? Warning)> LockedThresholdAsync(long contestId, CancellationToken ct)
     {
@@ -67,10 +68,10 @@ public sealed class PortalDrawService(AppDbContext db, IContestAdminService admi
             .Select(d => new { d.MinScore, d.CreatedAt, d.Id }).ToListAsync(ct);
         if (rows.Count == 0) return (null, null);
         // Sap o bo nho de khong phu thuoc cach SQLite so sanh thoi gian.
-        int latest = rows.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id).First().MinScore;
+        int first = rows.OrderBy(r => r.CreatedAt).ThenBy(r => r.Id).First().MinScore;
         int[] distinct = rows.Select(r => r.MinScore).Distinct().Order().ToArray();
-        if (distinct.Length == 1) return (latest, null);
-        return (latest, $"Các lượt quay trước dùng ngưỡng khác nhau ({string.Join(", ", distinct)} điểm); đang áp dụng ngưỡng của lượt quay mới nhất: {latest} điểm.");
+        if (distinct.Length == 1) return (first, null);
+        return (first, $"Các lượt quay trước dùng ngưỡng khác nhau ({string.Join(", ", distinct)} điểm); đang áp dụng ngưỡng của lượt quay đầu tiên, lúc danh sách được chốt: {first} điểm.");
     }
 
     /// <summary>Tuy chon hien thi cua cuoc thi; chua luu thi tra mac dinh (true, true, false).</summary>
