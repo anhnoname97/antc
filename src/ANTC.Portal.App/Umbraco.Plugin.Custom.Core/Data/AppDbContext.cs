@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public static string FoldText(string value) => throw new NotSupportedException("SQL only");
     public DbSet<ContestAccessAudit> ContestAccessAudits => Set<ContestAccessAudit>();
     public DbSet<ContestPublishedResult> ContestPublishedResults => Set<ContestPublishedResult>();
+    public DbSet<ContestDrawDisplay> ContestDrawDisplays => Set<ContestDrawDisplay>();
     public DbSet<PrivacyOperation> PrivacyOperations => Set<PrivacyOperation>();
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -54,6 +55,13 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.ContestId);
             e.Property(x => x.Revision).IsConcurrencyToken();
             e.HasOne(x => x.Contest).WithOne().HasForeignKey<ContestPublishedResult>(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<ContestDrawDisplay>(e =>
+        {
+            e.ToTable("contest_draw_display");
+            e.HasKey(x => x.ContestId);
+            e.Property(x => x.UpdatedBy).HasMaxLength(100);
+            e.HasOne(x => x.Contest).WithOne().HasForeignKey<ContestDrawDisplay>(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<ContestAccessAudit>(e =>
         {
@@ -129,6 +137,9 @@ public class AppDbContext : DbContext
             e.Property(x => x.Code).HasMaxLength(9);
             e.Property(x => x.FullName).HasMaxLength(100);
             e.Property(x => x.Phone).HasMaxLength(10);
+            e.Property(x => x.CancelledBy).HasMaxLength(100);
+            e.Property(x => x.CancelReasonCode).HasMaxLength(30);
+            e.Property(x => x.CancelReasonText).HasMaxLength(500);
             e.HasOne(x => x.Draw).WithMany(x => x.Winners).HasForeignKey(x => x.DrawId).OnDelete(DeleteBehavior.Cascade);
         });
 
