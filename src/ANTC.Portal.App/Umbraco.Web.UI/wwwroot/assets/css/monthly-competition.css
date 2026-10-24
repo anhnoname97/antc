@@ -126,13 +126,21 @@
 #nj-cuoc-thi-thang .mo.past .st a{color:var(--navy);font-weight:600;border-bottom:1.5px solid var(--navy)}
 #nj-cuoc-thi-thang .sched-track{list-style:none;margin:0;padding:0;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none}
 #nj-cuoc-thi-thang .schedule-note{margin:28px 0 0;font-size:0.875rem;color:var(--ink2)}
-/* Qua 10 cuoc thi: hien 10 cuoc gan nhat, cac cuoc con lai cuon ngang. */
-#nj-cuoc-thi-thang .sched-inner{position:relative}
-#nj-cuoc-thi-thang .sched-scroll{container-type:inline-size;overflow-x:auto;padding-bottom:14px;scrollbar-width:thin}
-#nj-cuoc-thi-thang .sched-scroll .sched-inner{width:max-content;min-width:100%}
-#nj-cuoc-thi-thang .sched-scroll .sched-track{grid-auto-columns:calc((100cqw - 108px) / 10)}
-
-@media(max-width:1000px){#nj-cuoc-thi-thang .sched-scroll{overflow:visible;container-type:normal}#nj-cuoc-thi-thang .sched-scroll .sched-inner{width:auto}#nj-cuoc-thi-thang .mo.far{display:none}#nj-cuoc-thi-thang .sched-track{grid-auto-flow:row;grid-template-columns:1fr;gap:0}#nj-cuoc-thi-thang .sched-line,#nj-cuoc-thi-thang .sched-fill{display:none}#nj-cuoc-thi-thang .mo{display:grid;grid-template-columns:42px minmax(0,1fr);gap:4px 16px;padding:14px 0;border-bottom:1px solid var(--line)}#nj-cuoc-thi-thang .mo .d{grid-row:span 3}#nj-cuoc-thi-thang .mo .m{margin:0}}
+/* Một hàng: desktop 6, tablet 4, mobile 2–3; kéo ngang để xem tiếp. */
+#nj-cuoc-thi-thang .sched-inner{position:relative;width:max-content;min-width:100%}
+#nj-cuoc-thi-thang .sched-scroll{--schedule-visible:6;container-type:inline-size;overflow-x:auto;overflow-y:hidden;padding-block:6px;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;cursor:grab}
+#nj-cuoc-thi-thang .sched-scroll::-webkit-scrollbar{display:none;width:0;height:0}
+#nj-cuoc-thi-thang .sched-scroll.is-dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}
+#nj-cuoc-thi-thang .sched-scroll:focus-visible{outline:2px solid var(--navy);outline-offset:4px}
+#nj-cuoc-thi-thang .sched-scroll .sched-track{grid-auto-columns:calc((100cqw - (var(--schedule-visible) - 1) * 12px) / var(--schedule-visible))}
+#nj-cuoc-thi-thang .mo{min-width:0;scroll-snap-align:start}
+#nj-cuoc-thi-thang .mo b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nj-cuoc-thi-thang .mo .m{white-space:nowrap}
+#nj-cuoc-thi-thang .mo .st{overflow-wrap:anywhere}
+#nj-cuoc-thi-thang .mo .st a{white-space:nowrap}
+@media(max-width:1024px){#nj-cuoc-thi-thang .sched-scroll{--schedule-visible:4}}
+@media(max-width:600px){#nj-cuoc-thi-thang .sched-scroll{--schedule-visible:3}}
+@media(max-width:420px){#nj-cuoc-thi-thang .sched-scroll{--schedule-visible:2}}
 
 /* Ket qua cong khai tu API cuoc thi. */
 #nj-cuoc-thi-thang .res{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:5vw;align-items:start}
