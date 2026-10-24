@@ -3,10 +3,14 @@
 @using Umbraco.Plugin.Custom.Core.Contest
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @inject ContestPromotionService Promotions
+@inject IContestAdminService ContestPrizes
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
     var contest = await Promotions.GetAsync(Context.RequestAborted);
+    var hasPrizes = contest is not null &&
+        (await ContestPrizes.ContestPrizesAsync(contest.Id, Context.RequestAborted))
+            .Any(prize => prize.IsActive && prize.Quantity > 0);
     var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
     DateTime Local(DateTime date) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(date, DateTimeKind.Utc), vietnam);
     var start = contest is null ? (DateTime?)null : Local(contest.StartAt);
@@ -32,9 +36,8 @@
             <div class="ph-meta" data-intro>
                 <span><b>@start.Value.ToString(start.Value.Year == end.Value.Year ? "d/M" : "d/M/yyyy") – @end.Value.ToString("d/M/yyyy")</b></span>
                 <span><b>@contest.QuestionCount</b> @T("questionLabel")</span>
-                @if (contest.MaxAttempts == 0) { <span>Không giới hạn lượt thi</span> }
-                else { <span>@T("attemptsPrefix") <b>@contest.MaxAttempts</b> @T("attemptsLabel")</span> }
-                @if (!string.IsNullOrWhiteSpace(T("prizeLabel"))) { <span>@T("prizeLabel")</span> }
+                @if (contest.MaxAttempts == 0) { <span><b>Không giới hạn lượt thi</b></span> } else { <span>@T("attemptsPrefix") <b>@contest.MaxAttempts</b> @T("attemptsLabel")</span> }
+                @if (hasPrizes) { <span data-contest-prize-label>@(string.IsNullOrWhiteSpace(T("prizeLabel")) ? "Có xét thưởng" : T("prizeLabel"))</span> }
             </div>
         }
         else

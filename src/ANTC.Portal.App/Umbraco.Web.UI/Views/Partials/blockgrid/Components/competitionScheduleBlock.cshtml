@@ -24,7 +24,7 @@
         </div>
         @if (schedule.Count > 0)
         {
-            <div class="sched@(schedule.Count > ContestScheduleService.VisibleCount ? " sched-scroll" : null)" data-schedule-progress="@progress.ToString("0.###", CultureInfo.InvariantCulture)">
+            <div class="sched sched-scroll" tabindex="0" role="region" aria-labelledby="@titleId" data-schedule-progress="@progress.ToString("0.###", CultureInfo.InvariantCulture)">
               <div class="sched-inner">
                 <span class="sched-line" aria-hidden="true"></span><svg class="sched-fill" width="@(progress.ToString("0.###", CultureInfo.InvariantCulture))%" height="2" aria-hidden="true"><rect width="100%" height="2" /></svg>
                 <ol class="sched-track">
@@ -32,10 +32,10 @@
                     {
                         var start = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(item.StartAt, DateTimeKind.Utc), vietnam);
                         var topic = item.Name.StartsWith("Chuyên đề:", StringComparison.OrdinalIgnoreCase) ? item.Name["Chuyên đề:".Length..].Trim() : item.Name;
-                        <li class="mo @item.State@(item.Far ? " far" : null)" aria-current="@(item.State == "now" ? "true" : null)">
+                        <li class="mo @item.State" aria-current="@(item.State == "now" ? "true" : null)">
                             <span class="d" aria-hidden="true">@start.ToString("MM")</span>
                             <span class="m">Tháng @start.ToString("M/yyyy")</span>
-                            <b>@topic</b>
+                            <b title="@topic">@topic</b>
                             <span class="st">
                                 @if (item.State == "past")
                                 {

@@ -2,7 +2,7 @@ import { blockCopy } from './block-copy.js';
 // Nop bai, gan thong tin du thuong cho luot an danh, man ket qua luot thi (FE-29).
 // exam.js goi: panelHtml (thanh nop bai o danh sach / man Xong chuyen de), attachButtonHtml (cot ben), resultHtml (man ket qua),
 // wire (mo hop thoai khi bam nut). Trang thai lay tu contest-store.js; hop thoai la <dialog id="sdlg"> trong contestSubmissionBlock.cshtml.
-import { state, submit, attachContact, topicProgress, pendingCount } from './contest-store.js';
+import { state, hasLateAnswers, restartLocalAnswers, submit, attachContact, topicProgress, pendingCount } from './contest-store.js';
 import { checkContact } from './phone.js';
 import { esc, eyebrowHtml } from '../quiz/quiz-ui.js';
 
@@ -37,7 +37,7 @@ let kind = null; // 'submit' | 'attach'
 let busy = false;
 let opener = null;
 let notice = ''; // thong bao tu may chu (vd NOTHING_TO_SUBMIT), hien tren thanh nop bai cho toi khi tien do doi hoac doi luot
-let noticeAt = null; // so cau da tra loi luc thong bao hien lan dau; doi so nay (tra loi them) thi bo thong bao
+let noticeAt = null; // so cau da tra loi khi nhan thong bao; tra loi them thi bo thong bao cu
 let currentTopics = () => [];
 let expired = false; // da nhan CONTEST_CLOSED o API-04/05: het han nop
 
@@ -54,7 +54,7 @@ export function resetSubmit() {
 
 export function setNotice(text) {
   notice = text || '';
-  noticeAt = null;
+  noticeAt = notice ? counts(state.topics).answered : null;
 }
 
 const box = (k, html) => `<div class="infobox infobox--${k}">${html}</div>`;
@@ -80,7 +80,7 @@ const inEntry = () => !state.practice && !!state.entry && state.status !== 'subm
 function readyToSubmit(topics) {
   const plan = state.topics.length ? state.topics : topics;
   const { total, complete } = counts(plan);
-  return inEntry() && state.synced && complete && !submitExpired()
+  return inEntry() && state.synced && complete && !submitExpired() && !hasLateAnswers()
     && (state.total == null || Number(state.total) === total)
     && pendingCount() === 0 && ![...state.answers.values()].some(answer => answer.pending);
 }
@@ -98,8 +98,15 @@ export function panelHtml(topics) {
     else if (noticeAt !== answered) notice = ''; // tien do doi thi thong bao cu khong con dung
   }
   let o = notice ? box('warn', esc(notice)) : '';
-  if (submitExpired()) {
-    return o + box('warn', '<b>Đã hết hạn nộp bài.</b> Bạn vẫn xem lại được ngân hàng câu hỏi ở chế độ luyện tập.');
+  // API lưu đáp án có thể báo đóng trước khi phase từ lần tải trước được cập nhật.
+  // Bài có đáp án làm sau hạn chỉ được xem lại trên thiết bị, kể cả trong thời gian gia hạn nộp.
+  if (submitExpired() || (hasLateAnswers() && (state.answeringClosed || state.contest?.phase === 'submit_only'))) {
+    return box('warn', '<b>Đã hết hạn nộp bài.</b> Bạn vẫn xem lại được ngân hàng câu hỏi ở chế độ luyện tập.');
+  }
+  if (hasLateAnswers()) {
+    const restart = state.contest?.phase === 'open'
+      ? '<button type="button" class="qnav o" data-restart-local>Làm lại phần chưa được ghi nhận để dự thi</button>' : '';
+    return box('warn', '<b>Phần bài làm này chưa được ghi nhận trên máy chủ.</b> Các đáp án này chỉ lưu trên thiết bị, không phải kết quả đã nộp. ' + restart);
   }
   if (!readyToSubmit(topics)) return '';
   const progress = `Bạn đã trả lời hết ${total} câu và hoàn thành toàn bộ chuyên đề.`;
@@ -189,7 +196,7 @@ function correctCount() {
 }
 
 function openDialog(k, trigger, topics) {
-  if (!dlg || !state.entry || (k === 'submit' && !readyToSubmit(topics))) return;
+  if (!dlg || !state.entry || (k === 'submit' && !readyToSubmit(topics) && !submitExpired())) return;
   kind = k;
   opener = trigger;
   showErr('');
@@ -214,10 +221,18 @@ function openDialog(k, trigger, topics) {
   syncFields();
   dlg.showModal();
   titleEl.focus({ preventScroll: true });
+  if (k === 'submit' && submitExpired()) showExpiredNotice();
 }
 
 function closeDialog() {
   if (dlg.open) dlg.close();
+}
+
+function showExpiredNotice() {
+  expired = true;
+  showErr('Đã hết hạn nộp bài. Bài thi chưa được nộp; bạn vẫn có thể xem lại các đáp án đã lưu.');
+  okBtn.disabled = true;
+  cancelBtn.textContent = 'Đóng';
 }
 
 // Loi tu may chu hoac mang: giu hop thoai mo de thu lai, tru khi khong con y nghia (het han, thieu cau, token)
@@ -247,14 +262,13 @@ function handleError(err, contact) {
       return;
     case 'CONTEST_CLOSED':
       const attaching = kind === 'attach';
-      closeDialog();
       if (attaching) {
+        closeDialog();
         // Chi het han gan ten, nop bai co the con (submit_only): doc lai API-02 de cot ben an nut, khong khoa nop bai
         deps.onAttached();
         return;
       }
-      expired = true;
-      deps.onClosed();
+      showExpiredNotice();
       return;
     case 'ALREADY_NAMED':
       closeDialog();
@@ -277,6 +291,10 @@ function handleError(err, contact) {
 
 async function onOk() {
   if (busy || !state.entry) return;
+  if (kind === 'submit' && submitExpired()) {
+    showExpiredNotice();
+    return;
+  }
   if (kind === 'submit' && !readyToSubmit(currentTopics())) {
     closeDialog();
     deps?.onIncomplete('Bạn cần hoàn thành toàn bộ câu hỏi và chuyên đề, đồng thời lưu hết đáp án trước khi nộp bài.');
@@ -326,6 +344,7 @@ if (dlg) {
   dlg.addEventListener('cancel', (e) => { if (busy) e.preventDefault(); });
   dlg.addEventListener('close', () => {
     kind = null;
+    if (expired) deps.onClosed();
     if (opener && opener.isConnected) opener.focus({ preventScroll: true });
     else if (deps) deps.focusFallback();
     opener = null;
@@ -336,6 +355,10 @@ if (dlg) {
 export function wire(root, getTopics) {
   currentTopics = getTopics;
   root.addEventListener('click', (e) => {
+    if (e.target.closest('[data-restart-local]')) {
+      if (restartLocalAnswers()) deps.onIncomplete('');
+      return;
+    }
     const sub = e.target.closest('[data-submit-open]');
     if (sub) {
       openDialog('submit', sub, getTopics());

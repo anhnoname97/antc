@@ -36,7 +36,7 @@
 
             <div class="infogrid">
                 <div class="infocell"><b>Thời gian diễn ra</b><span id="ctime">…</span></div>
-                <div class="infocell"><b>Ai được dự thi</b><span>Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. Mỗi số điện thoại thi tối đa <span data-max>…</span> lượt.</span></div>
+                <div class="infocell"><b>Ai được dự thi</b><span>Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. <span data-attempts-label>Mỗi số điện thoại thi tối đa … lượt</span>.</span></div>
                 <div class="infocell">
                     <b>Thể lệ và giải thưởng</b>
                     <span>@foreach (var (line, i) in rulesText.Split('\n').Select((l, i) => (l, i))) { if (i > 0) { <br /> } @line.TrimEnd('\r') }</span>
@@ -82,10 +82,10 @@
                         <label for="rgorg" class="registration-organization"><span>Trường, lớp hoặc đơn vị <span class="optional">(không bắt buộc)</span></span><input id="rgorg" class="field" type="text" autocomplete="organization" maxlength="150"></label>
                     </div>
                     <div class="pinkbox">
-                        <b>Mỗi số điện thoại thi tối đa <span data-max>…</span> lượt</b>
+                        <b><span data-attempts-label>Mỗi số điện thoại thi tối đa … lượt</span></b>
                         <ul>
                             <li>Ban Tổ chức phân biệt thí sinh bằng số điện thoại, không bằng họ tên.</li>
-                            <li>Mỗi số thi tối đa <span data-max>…</span> lượt. Lượt sau không xóa lượt trước; Ban Tổ chức lấy kết quả cao hơn.</li>
+                            <li><span data-attempts-label>Mỗi số điện thoại thi tối đa … lượt</span>. Lượt sau không xóa lượt trước; Ban Tổ chức lấy kết quả cao hơn.</li>
                             <li>Dùng đúng số bạn đang cầm máy. Ban Tổ chức không đổi số sau khi đã nộp bài.</li>
                             <li>Lượt thi gắn với trình duyệt bạn đang dùng. Đổi máy hoặc xóa dữ liệu trình duyệt thì không làm tiếp được lượt này.</li>
                         </ul>

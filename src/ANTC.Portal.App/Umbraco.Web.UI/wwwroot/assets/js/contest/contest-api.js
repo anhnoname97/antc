@@ -62,7 +62,7 @@ async function mockCreateEntry(payload, mode) {
       let attemptNo = null;
       if (payload.mode !== 'anon') {
         const used = Object.values(mockDb().entries).filter((e) => e.contestId === c.id && e.phone && e.phone === payload.phone).length;
-        if (used >= c.maxAttempts) return fail('ATTEMPT_LIMIT', `Số ${payload.phone} đã dùng hết ${c.maxAttempts} lượt của cuộc thi này.`);
+        if (Number(c.maxAttempts) > 0 && used >= c.maxAttempts) return fail('ATTEMPT_LIMIT', `Số ${payload.phone} đã dùng hết ${c.maxAttempts} lượt của cuộc thi này.`);
         attemptNo = used + 1;
       }
       const code = 'AD-' + Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -494,7 +494,7 @@ async function mockMe(path, payload, mode, token) {
     if (!c || c.consent !== true) fields.consent = 'Cần đồng ý để nhận thông tin liên hệ.';
     if (Object.keys(fields).length) return fail('VALIDATION', 'Dữ liệu chưa hợp lệ.', fields);
     const used = Object.values(db.entries).filter((e) => e !== rec && e.phone === phone && e.contestId === rec.contestId).length;
-    if (mode === 'limit' || used >= rec.maxAttempts) return fail('ATTEMPT_LIMIT', `Số ${phone} đã dùng hết ${rec.maxAttempts} lượt thi.`);
+    if (mode === 'limit' || (Number(rec.maxAttempts) > 0 && used >= rec.maxAttempts)) return fail('ATTEMPT_LIMIT', `Số ${phone} đã dùng hết ${rec.maxAttempts} lượt thi.`);
     rec.mode = 'named';
     rec.fullName = String(c.fullName).trim();
     rec.phone = phone;
