@@ -2,7 +2,7 @@ import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
-import { contestStyles } from './contest-theme.js';
+import { contestStyles } from './contest-theme.js?v=1.14.10';
 import { pageSizeSelect } from './contest-page-size.js';
 
 const API = '/umbraco/management/api/v1/antc/contest-privacy';
@@ -109,4 +109,4 @@ export class ContestPrivacyView extends UmbLitElement {
         </div></umb-body-layout>`;
     }
 }
-customElements.define('antc-contest-privacy-view', ContestPrivacyView);
+if (!customElements.get('antc-contest-privacy-view')) customElements.define('antc-contest-privacy-view', ContestPrivacyView);

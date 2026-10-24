@@ -1,6 +1,6 @@
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
-import { contestStyles } from './contest-theme.js';
+import { css, html, nothing } from '@umbraco-cms/backoffice/external/lit';
+import { contestStyles } from './contest-theme.js?v=1.14.10';
 import { pageSizeSelect } from './contest-page-size.js';
 import { paginate } from './contest-pagination.js';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
@@ -127,7 +127,20 @@ export class ContestReportsView extends UmbLitElement {
     _filters() {
         const count = Object.entries(this.filters).filter(([key, value]) => !['page', 'sort', 'pageSize'].includes(key) && value !== '' && value != null).length;
         return html`<details class="advanced-search" ?open=${this.view === 'publication'}><summary>Tìm kiếm nâng cao <span class="filter-status">${count ? `${count} điều kiện đang áp dụng` : 'Chưa áp dụng bộ lọc'}</span></summary><form class="filter-panel" @submit=${this._filter}>
-            <div class="filters">
+            <div class=${this.view === 'entries' ? 'filters entries-filters' : 'filters'}>
+                ${this.view === 'entries' ? html`
+                    <label class="wide">Mã dự thi / Họ tên / Điện thoại<input name="search" maxlength="150" .value=${this.filters.search || ''}></label>
+                    ${this._select('contestId', 'Cuộc thi', [['', 'Tất cả cuộc thi'], ...this._options.contests.map(c => [c.id, c.name])])}
+                    ${this._select('hasPhone', 'Chế độ', [['', 'Tất cả'], ['false', 'Ẩn danh'], ['true', 'Công khai']])}
+                    ${this._select('status', 'Trạng thái', [['', 'Tất cả'], ['submitted', 'Đã nộp'], ['in_progress', 'Đang thi']])}
+                    ${this._select('sort', 'Sắp xếp', [['created_desc', 'Tạo mới nhất'], ['created_asc', 'Tạo cũ nhất'], ['score_desc', 'Điểm giảm dần'], ['score_asc', 'Điểm tăng dần'], ['submitted_desc', 'Nộp mới nhất']])}
+                    <div class="entry-score-range">
+                        <label>Điểm từ<input name="scoreFrom" type="number" min="0" .value=${this.filters.scoreFrom || ''}></label>
+                        <label>Điểm đến<input name="scoreTo" type="number" min="0" .value=${this.filters.scoreTo || ''}></label>
+                    </div>
+                    <label>Tạo từ ngày (VN)<input name="from" type="date" .value=${this.filters.from || ''}></label>
+                    <label>Tạo đến ngày (VN)<input name="to" type="date" .value=${this.filters.to || ''}></label>
+                ` : html`
                 ${this._select('contestId', 'Cuộc thi', [['', this.view === 'publication' ? 'Chọn cuộc thi' : 'Tất cả cuộc thi'], ...this._options.contests.map(c => [c.id, c.name])])}
                 ${this.view === 'publication' ? nothing : html`
                     ${this._select('mode', 'Chế độ', [['', 'Tất cả'], ['named', 'Có tên'], ['anon', 'Ẩn danh']])}
@@ -140,6 +153,7 @@ export class ContestReportsView extends UmbLitElement {
                     <label class="wide">Mã dự thi / điện thoại / họ tên<input name="search" maxlength="150" .value=${this.filters.search || ''}></label>
                     ${this.view === 'entries' ? this._select('sort', 'Sắp xếp', [['created_desc', 'Tạo mới nhất'], ['created_asc', 'Tạo cũ nhất'], ['score_desc', 'Điểm giảm dần'], ['score_asc', 'Điểm tăng dần'], ['submitted_desc', 'Nộp mới nhất']]) : nothing}
                     ${this.view === 'questions' ? this._select('topicId', 'Chuyên đề', [['', 'Tất cả'], ...this._options.topics.map(t => [t.id, `${t.id} — ${t.title}`])]) : nothing}
+                `}
                 `}
             </div><div class="actions"><button class="primary" ?disabled=${this._busy}>${this.view === 'publication' ? 'Mở cuộc thi' : 'Lọc dữ liệu'}</button>
             <button type="button" ?disabled=${this._busy} @click=${event => { event.currentTarget.form?.reset(); this.filters = { sort: 'created_desc', page: '1', pageSize: '50' }; this._load(); }}>Đặt lại</button></div>
@@ -162,10 +176,10 @@ export class ContestReportsView extends UmbLitElement {
     }
     _questions() {
         const questions = this._slice(this._data, 'questions');
-        return html`<p>Tỷ lệ đúng = số đúng / lượt trả lời. Xếp tăng dần, câu chưa ai trả lời nằm cuối. Số liệu tách riêng từng cuộc thi.</p>
+        return html`<p>Tỷ lệ đúng = số đúng / lượt trả lời. Xếp tăng dần, câu chưa ai trả lời nằm cuối. Số liệu tách riêng từng cuộc thi. Nền tròn xanh đánh dấu đáp án đúng theo bộ đề cuộc thi.</p>
             <div class="actions"><button ?disabled=${this._busy} @click=${() => this._export('questions')}>Xuất thống kê CSV</button><span>${this._data.length} câu / phiên bản</span></div>
             <div class="scroll"><table><thead><tr><th>Cuộc thi</th><th>Chuyên đề</th><th>Mã câu</th><th>Nội dung</th><th>Trả lời</th><th>Đúng</th><th>Tỷ lệ đúng</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead><tbody>
-                ${questions.items.map(q => html`<tr><td>${q.contestName}</td><td>${q.topicId}</td><td>${q.code}</td><td class="question">${q.text}</td><td>${q.answered}</td><td>${q.correct}</td><td>${q.correctRate == null ? 'Chưa có' : (q.correctRate * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + '%'}</td><td>${q.a}</td><td>${q.b}</td><td>${q.c}</td><td>${q.d}</td></tr>`)}
+                ${questions.items.map(q => html`<tr><td>${q.contestName}</td><td><span class="report-topic-title" title=${q.topicTitle || 'Không còn thông tin chuyên đề'} tabindex="0">${q.topicTitle || 'Không còn thông tin chuyên đề'}</span></td><td>${q.code}</td><td class="question">${q.text}</td><td>${q.answered}</td><td>${q.correct}</td><td>${q.correctRate == null ? 'Chưa có' : (q.correctRate * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + '%'}</td>${['A', 'B', 'C', 'D'].map(key => html`<td><span class=${q.correctAnswer === key ? 'stat-answer is-correct' : 'stat-answer'} title=${`Đáp án ${key}${q.correctAnswer === key ? ' (đúng)' : ''}: ${q[key.toLowerCase()]} lượt chọn`} aria-label=${`Đáp án ${key}${q.correctAnswer === key ? ' đúng' : ''}, ${q[key.toLowerCase()]} lượt chọn`}>${q[key.toLowerCase()]}</span></td>`)}</tr>`)}
             </tbody></table></div>${this._pager('questions', questions, 'thống kê câu hỏi')}${!questions.total ? html`<p class="empty-state">Không có câu hỏi phù hợp.</p>` : nothing}`;
     }
     _publication() {
@@ -195,13 +209,31 @@ export class ContestReportsView extends UmbLitElement {
             <p class="muted privacy-note">Dữ liệu cá nhân chỉ dành cho người được phân quyền. Việc xem chi tiết và xuất dữ liệu được ghi nhật ký.</p>${this._dialog()}</div>`;
         return this.embedded ? content : html`<umb-body-layout main-no-padding>${content}</umb-body-layout>`;
     }
-    static styles = contestStyles;
+    // Keep this layout with its component, after shared breakpoint rules.
+    static styles = [contestStyles, css`
+        .report-topic-title { display: block; max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat-answer { display: inline-grid; place-items: center; min-width: 32px; aspect-ratio: 1; padding: 6px; box-sizing: border-box; line-height: 1.25; }
+        .stat-answer.is-correct { border-radius: 50%; background: var(--cm-positive, #18794e); color: #fff; font-weight: 700; }
+        .filter-panel .filters.entries-filters { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+        .filter-panel .entries-filters input, .filter-panel .entries-filters select {
+            height: 40px; min-height: 40px; box-sizing: border-box; padding-block: 8px;
+        }
+        .filter-panel .entries-filters > .entry-score-range {
+            grid-column: span 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: end; gap: 16px; min-width: 0;
+        }
+        @media (max-width: 1100px) {
+            .filter-panel .filters.entries-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+    `];
 }
 class ContestDashboardView extends ContestReportsView { constructor() { super('dashboard'); } }
 class ContestEntriesReportView extends ContestReportsView { constructor() { super('entries'); } }
 class ContestQuestionReportView extends ContestReportsView { constructor() { super('questions'); } }
 class ContestPublicationView extends ContestReportsView { constructor() { super('publication'); } }
-customElements.define('antc-contest-dashboard-view', ContestDashboardView);
-customElements.define('antc-contest-entries-report-view', ContestEntriesReportView);
-customElements.define('antc-contest-question-report-view', ContestQuestionReportView);
-customElements.define('antc-contest-publication-view', ContestPublicationView);
+// Umbraco's route loader may append a cache-buster while embedded views import the bare URL.
+// Both module identities must be safe to evaluate in the same document.
+if (!customElements.get('antc-contest-dashboard-view')) customElements.define('antc-contest-dashboard-view', ContestDashboardView);
+if (!customElements.get('antc-contest-entries-report-view')) customElements.define('antc-contest-entries-report-view', ContestEntriesReportView);
+if (!customElements.get('antc-contest-question-report-view')) customElements.define('antc-contest-question-report-view', ContestQuestionReportView);
+if (!customElements.get('antc-contest-publication-view')) customElements.define('antc-contest-publication-view', ContestPublicationView);

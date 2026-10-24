@@ -11,6 +11,20 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public sealed class ContestReportingTests
 {
+    [Fact]
+    public async Task QuestionReport_UsesContestTopicTitleAndAnswerSnapshot_NotEditedBankAnswer()
+    {
+        await using var f=await Fixture.CreateAsync();
+        var rows=await f.Reports.QuestionsAsync(new ContestReportFilter { ContestId=f.ContestId },null,default);
+        var question=Assert.Single(rows.Where(q=>q.Code=="Q1"));
+        Assert.Equal("Chuyên đề gốc",question.TopicTitle);
+        Assert.Equal("A",question.CorrectAnswer); // Ngân hàng hiện tại đã đổi đáp án thành D.
+        Assert.Equal(3,question.Answered);Assert.Equal(1,question.Correct);
+        f.Db.ContestQuestions.Remove(await f.Db.ContestQuestions.SingleAsync(q=>q.ContestId==f.ContestId && q.QuestionCode=="Q1"));
+        await f.Db.SaveChangesAsync();
+        var historical=Assert.Single((await f.Reports.QuestionsAsync(new ContestReportFilter { ContestId=f.ContestId },null,default)).Where(q=>q.Code=="Q1"));
+        Assert.Null(historical.CorrectAnswer);Assert.Equal("Chuyên đề gốc",historical.TopicTitle);
+    }
     [Theory] [InlineData(10)] [InlineData(50)] [InlineData(100)]
     public async Task EntryPageSize_ChangesSliceButNotFilterOrExport(int size)
     {

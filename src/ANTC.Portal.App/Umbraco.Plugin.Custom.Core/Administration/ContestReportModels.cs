@@ -50,7 +50,7 @@ public record DetailQuestion(string Code, int TopicId, string TopicTitle, string
 public record DetailTopic(int TopicId, string Title, int Correct, int Answered, int Total);
 public record EntryReportDetail(ReportEntry Entry, IReadOnlyList<DetailQuestion> Questions, IReadOnlyList<DetailTopic> Topics, bool HasSnapshot);
 public record QuestionReport(long? ContestId, string ContestName, string Code, int TopicId, string Text,
-    int Answered, int Correct, int A, int B, int C, int D)
+    int Answered, int Correct, int A, int B, int C, int D, string? TopicTitle = null, string? CorrectAnswer = null)
 {
     public decimal? CorrectRate => Answered == 0 ? null : (decimal)Correct / Answered;
 }

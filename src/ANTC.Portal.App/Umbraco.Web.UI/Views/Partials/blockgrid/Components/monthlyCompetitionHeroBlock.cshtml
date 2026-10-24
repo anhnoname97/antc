@@ -32,7 +32,8 @@
             <div class="ph-meta" data-intro>
                 <span><b>@start.Value.ToString(start.Value.Year == end.Value.Year ? "d/M" : "d/M/yyyy") – @end.Value.ToString("d/M/yyyy")</b></span>
                 <span><b>@contest.QuestionCount</b> @T("questionLabel")</span>
-                <span>@T("attemptsPrefix") <b>@contest.MaxAttempts</b> @T("attemptsLabel")</span>
+                @if (contest.MaxAttempts == 0) { <span>Không giới hạn lượt thi</span> }
+                else { <span>@T("attemptsPrefix") <b>@contest.MaxAttempts</b> @T("attemptsLabel")</span> }
                 @if (!string.IsNullOrWhiteSpace(T("prizeLabel"))) { <span>@T("prizeLabel")</span> }
             </div>
         }

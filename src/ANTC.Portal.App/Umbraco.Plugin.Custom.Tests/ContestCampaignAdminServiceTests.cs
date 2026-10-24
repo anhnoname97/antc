@@ -7,6 +7,21 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class ContestCampaignAdminServiceTests
 {
     [Fact]
+    public async Task MaxAttempts_ZeroAcceptedOnCreateAndUpdate_NegativeAndOverMaximumRejected()
+    {
+        await using var test=await TestDatabase.CreateAsync();
+        var created=await test.Service.CreateCampaignAsync(Schedule(10,15) with { MaxAttempts=0 },default);
+        Assert.Equal(0,created.MaxAttempts);
+        var finite=(await test.Service.UpdateCampaignAsync(created.Id,Schedule(10,15) with { MaxAttempts=2,ExpectedRevision=created.Revision },default))!;
+        var unlimited=(await test.Service.UpdateCampaignAsync(created.Id,Schedule(10,15) with { MaxAttempts=0,ExpectedRevision=finite.Revision },default))!;
+        Assert.Equal(0,unlimited.MaxAttempts);
+        foreach(int invalid in new[]{-1,1001})
+        {
+            var error=await Assert.ThrowsAsync<ContestAdminValidationException>(()=>test.Service.CreateCampaignAsync(Schedule(16,20) with { MaxAttempts=invalid },default));
+            Assert.Contains("maxAttempts",error.Fields.Keys);
+        }
+    }
+    [Fact]
     public async Task PrizeMoney_RoundTripsValidatesAndOldClientDoesNotClearIt()
     {
         await using TestDatabase test = await TestDatabase.CreateAsync();

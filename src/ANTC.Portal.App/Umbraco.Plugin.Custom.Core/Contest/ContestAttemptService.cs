@@ -388,7 +388,7 @@ public class ContestAttemptService : IContestAttemptService
         if (fields.Count > 0) return new("VALIDATION", fields.Values.First(), fields);
 
         int used = await _db.Entries.CountAsync(e => e.ContestId == contest.Id && e.Phone == phone, ct);
-        if (used >= contest.MaxAttempts)
+        if (contest.MaxAttempts > 0 && used >= contest.MaxAttempts)
             return new("ATTEMPT_LIMIT", $"Số {phone} đã dùng hết {contest.MaxAttempts} lượt của cuộc thi này.");
 
         current.Mode = EntryModes.Named;

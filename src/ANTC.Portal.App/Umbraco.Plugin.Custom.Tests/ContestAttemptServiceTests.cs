@@ -13,6 +13,31 @@ namespace Umbraco.Plugin.Custom.Tests;
 /// <summary>B8a, B8b: API-02 den API-05 theo cuoc cua luot.</summary>
 public class ContestAttemptServiceTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UnlimitedContest_ContactAndSubmitAllowMoreThanDefaultLimit(bool submit)
+    {
+        await using var f=await Fixture.CreateAsync();
+        var contest=await f.AddContestAsync(Now.AddHours(-1),Now.AddHours(1));
+        contest.MaxAttempts=0;await f.Db.SaveChangesAsync();
+        for(int i=1;i<=5;i++)
+        {
+            var entry=await f.AddEntryAsync(contest.Id);
+            await f.Service().SaveAnswerAsync(entry,"A1","A");
+            var contact=new ContactRequest("Nguyễn Văn An","0912345678",null,true);
+            if(submit) Assert.Null((await f.Service().SubmitAsync(entry,contact)).Error);
+            else
+            {
+                var result=await f.Service().AttachContactAsync(entry,contact);
+                Assert.Null(result.Error);Assert.Equal(0,result.Contact!.MaxAttempts);
+            }
+            var stored=await f.Db.Entries.AsNoTracking().SingleAsync(e=>e.Id==entry.Id);
+            Assert.Equal(i,stored.AttemptNo);
+            Assert.Equal(submit?EntryStatuses.Submitted:EntryStatuses.InProgress,stored.Status);
+        }
+        Assert.Equal(5,await f.Db.Entries.CountAsync(e=>e.Phone=="0912345678"));
+    }
     private static readonly DateTime Now = new(2026, 10, 16, 5, 0, 0, DateTimeKind.Utc);
     private sealed class Clock : TimeProvider { public override DateTimeOffset GetUtcNow() => new(Now); }
 
