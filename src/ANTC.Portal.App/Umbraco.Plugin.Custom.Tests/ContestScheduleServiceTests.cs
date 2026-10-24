@@ -31,7 +31,7 @@ public class ContestScheduleServiceTests
     }
 
     [Fact]
-    public async Task EightContestWindowIncludesCurrentAndUpcomingAcrossYearBoundary()
+    public async Task ReturnsEveryContestAndFlagsAllButTenNearestCurrentAsFar()
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");
         await connection.OpenAsync();
@@ -42,10 +42,26 @@ public class ContestScheduleServiceTests
                 StartAt = Now.AddMonths(month).AddDays(-1), EndAt = Now.AddMonths(month).AddDays(1) });
         await db.SaveChangesAsync();
         var result = await new ContestScheduleService(db, new Clock()).GetAsync();
-        Assert.Equal(8, result.Count);
-        Assert.Equal("Month -2", result[0].Name);
+        Assert.Equal(12, result.Count);
         Assert.Equal("Month 0", Assert.Single(result, x => x.State == "now").Name);
-        Assert.Equal("Month 5", result[^1].Name);
+        var near = result.Where(x => !x.Far).ToList();
+        Assert.Equal(10, near.Count);
+        Assert.Equal("Month -3", near[0].Name);
+        Assert.Equal("Month 6", near[^1].Name);
+        Assert.Equal(new[] { "Month -4", "Month 7" }, result.Where(x => x.Far).Select(x => x.Name));
         Assert.Equal(2027, result[^1].StartAt.Year);
+    }
+
+    [Fact]
+    public async Task FewContestsAreNeverFar()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options);
+        await db.Database.EnsureCreatedAsync();
+        for (var month = -2; month <= 3; month++)
+            db.ContestCampaigns.Add(new() { Name = $"Month {month}", IsActive = true, StartAt = Now.AddMonths(month).AddDays(-1), EndAt = Now.AddMonths(month).AddDays(1) });
+        await db.SaveChangesAsync();
+        Assert.All(await new ContestScheduleService(db, new Clock()).GetAsync(), x => Assert.False(x.Far));
     }
 }

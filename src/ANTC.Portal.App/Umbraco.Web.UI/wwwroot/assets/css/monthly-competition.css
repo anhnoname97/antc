@@ -114,7 +114,7 @@
 #nj-cuoc-thi-thang .sched{position:relative}
 #nj-cuoc-thi-thang .sched-track{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:12px;position:relative}
 #nj-cuoc-thi-thang .sched-line{position:absolute;left:0;right:0;top:20px;height:2px;background:var(--line)}
-#nj-cuoc-thi-thang .sched-fill{position:absolute;left:0;top:20px;height:2px;width:0;background:var(--navy)}
+#nj-cuoc-thi-thang .sched-fill{position:absolute;left:0;top:20px;height:2px;fill:var(--navy)}
 #nj-cuoc-thi-thang .mo{position:relative;display:flex;flex-direction:column;gap:8px;padding-top:0}
 #nj-cuoc-thi-thang .mo .d{width:42px;height:42px;border-radius:50%;background:var(--paper);border:2px solid var(--line);display:grid;place-items:center;font-size:0.8125rem;font-weight:700;color:#8A8F99;position:relative;z-index:1}
 #nj-cuoc-thi-thang .mo .m{font-size:0.8125rem;font-weight:600;letter-spacing:.06em;color:var(--ink2);text-transform:uppercase;margin-top:8px}
@@ -124,10 +124,15 @@
 #nj-cuoc-thi-thang .mo.now .d{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 0 0 6px var(--red-soft)}
 #nj-cuoc-thi-thang .mo.now b{color:var(--red)}#nj-cuoc-thi-thang .mo.now .st{color:var(--red);font-weight:600}
 #nj-cuoc-thi-thang .mo.past .st a{color:var(--navy);font-weight:600;border-bottom:1.5px solid var(--navy)}
-#nj-cuoc-thi-thang .sched-track{list-style:none;margin:0;padding:0;grid-template-columns:repeat(var(--schedule-count,8),minmax(0,1fr))}
+#nj-cuoc-thi-thang .sched-track{list-style:none;margin:0;padding:0;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none}
 #nj-cuoc-thi-thang .schedule-note{margin:28px 0 0;font-size:0.875rem;color:var(--ink2)}
-#nj-cuoc-thi-thang .sched-fill{width:var(--schedule-progress,0%)}
-@media(max-width:1000px){#nj-cuoc-thi-thang .sched-track{grid-template-columns:1fr;gap:0}#nj-cuoc-thi-thang .sched-line,#nj-cuoc-thi-thang .sched-fill{display:none}#nj-cuoc-thi-thang .mo{display:grid;grid-template-columns:42px minmax(0,1fr);gap:4px 16px;padding:14px 0;border-bottom:1px solid var(--line)}#nj-cuoc-thi-thang .mo .d{grid-row:span 3}#nj-cuoc-thi-thang .mo .m{margin:0}}
+/* Qua 10 cuoc thi: hien 10 cuoc gan nhat, cac cuoc con lai cuon ngang. */
+#nj-cuoc-thi-thang .sched-inner{position:relative}
+#nj-cuoc-thi-thang .sched-scroll{container-type:inline-size;overflow-x:auto;padding-bottom:14px;scrollbar-width:thin}
+#nj-cuoc-thi-thang .sched-scroll .sched-inner{width:max-content;min-width:100%}
+#nj-cuoc-thi-thang .sched-scroll .sched-track{grid-auto-columns:calc((100cqw - 108px) / 10)}
+
+@media(max-width:1000px){#nj-cuoc-thi-thang .sched-scroll{overflow:visible;container-type:normal}#nj-cuoc-thi-thang .sched-scroll .sched-inner{width:auto}#nj-cuoc-thi-thang .mo.far{display:none}#nj-cuoc-thi-thang .sched-track{grid-auto-flow:row;grid-template-columns:1fr;gap:0}#nj-cuoc-thi-thang .sched-line,#nj-cuoc-thi-thang .sched-fill{display:none}#nj-cuoc-thi-thang .mo{display:grid;grid-template-columns:42px minmax(0,1fr);gap:4px 16px;padding:14px 0;border-bottom:1px solid var(--line)}#nj-cuoc-thi-thang .mo .d{grid-row:span 3}#nj-cuoc-thi-thang .mo .m{margin:0}}
 
 /* Ket qua cong khai tu API cuoc thi. */
 #nj-cuoc-thi-thang .res{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:5vw;align-items:start}
@@ -137,7 +142,6 @@
 #nj-cuoc-thi-thang .board th{text-align:left;font-size:0.78125rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);font-weight:600;padding:12px 22px;border-bottom:1px solid var(--line)}
 #nj-cuoc-thi-thang .board td{padding:14px 22px;border-bottom:1px solid #EEE8DC}
 #nj-cuoc-thi-thang .board tr:last-child td{border-bottom:0}
-#nj-cuoc-thi-thang .board td.r{font-family:var(--heading);font-weight:600;color:var(--gold);width:56px}
 #nj-cuoc-thi-thang .res-side .stat2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
 #nj-cuoc-thi-thang .stat2 div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
 #nj-cuoc-thi-thang .stat2 b{display:block;font-family:var(--heading);font-weight:600;font-size:2.125rem;color:var(--navy);line-height:1.1}
@@ -145,11 +149,29 @@
 #nj-cuoc-thi-thang .results-section{background:#fff;border-block:1px solid var(--line)}
 #nj-cuoc-thi-thang .results-description{color:var(--ink2);margin:16px 0 0}
 #nj-cuoc-thi-thang .results-sample-tag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:40px;background:#ECF0F6;font-size:0.75rem;font-weight:600;letter-spacing:.05em;white-space:nowrap}
-#nj-cuoc-thi-thang .board table{table-layout:fixed}
-#nj-cuoc-thi-thang .board th:first-child{width:74px}
-#nj-cuoc-thi-thang .board td{overflow-wrap:anywhere}
-@media(max-width:900px){#nj-cuoc-thi-thang .res{grid-template-columns:1fr}#nj-cuoc-thi-thang .board th,#nj-cuoc-thi-thang .board td{padding:12px 14px}}
-@media(max-width:400px){#nj-cuoc-thi-thang .board table{font-size:0.875rem}#nj-cuoc-thi-thang .board-h{padding:16px 14px}#nj-cuoc-thi-thang .board th:first-child{width:56px}}
+/* Ba cot can doi, ten giai chi xuong dong tai khoang trang. */
+#nj-cuoc-thi-thang .results-table-wrap{max-height:30rem;overflow:auto;scrollbar-gutter:stable;overscroll-behavior:contain}
+#nj-cuoc-thi-thang .results-table-wrap:focus-visible{outline:2px solid var(--gold);outline-offset:-3px}
+#nj-cuoc-thi-thang .board table{table-layout:fixed;line-height:1.5}
+#nj-cuoc-thi-thang .board th{position:sticky;top:0;z-index:1;background:#F8F9FB;padding:14px 18px;letter-spacing:.055em;box-shadow:0 1px 0 var(--line)}
+#nj-cuoc-thi-thang .board th:first-child{width:32%}
+#nj-cuoc-thi-thang .board th:nth-child(2){width:34%}
+#nj-cuoc-thi-thang .board th:nth-child(3){width:34%}
+#nj-cuoc-thi-thang .board td{padding:16px 18px;vertical-align:middle;overflow-wrap:break-word;word-break:normal}
+#nj-cuoc-thi-thang .board tbody tr:nth-child(even){background:#FAFBFC}
+#nj-cuoc-thi-thang .board tbody tr:hover{background:#F8F5EE}
+#nj-cuoc-thi-thang .result-prize{display:inline-block;padding:5px 10px;border-radius:8px;background:#F5EEDC;color:#76551E;font-weight:600;font-size:.875rem;line-height:1.45;overflow-wrap:normal;word-break:normal}
+#nj-cuoc-thi-thang .result-phone{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink2)}
+#nj-cuoc-thi-thang .result-name{font-weight:500;color:var(--navy)}
+@media(max-width:900px){#nj-cuoc-thi-thang .res{grid-template-columns:1fr}}
+@media(max-width:560px){
+  #nj-cuoc-thi-thang .board table{font-size:.875rem}
+  #nj-cuoc-thi-thang .board-h{padding:16px}
+  #nj-cuoc-thi-thang .board th{font-size:.6875rem;letter-spacing:.025em;padding:12px 10px}
+  #nj-cuoc-thi-thang .board td{padding:13px 10px}
+  #nj-cuoc-thi-thang .result-prize{padding:4px 6px;font-size:.8125rem}
+  #nj-cuoc-thi-thang .results-table-wrap{max-height:27rem}
+}
 
 /* Monthly frequently asked questions. */
 #nj-cuoc-thi-thang .faq{display:grid;gap:12px;max-width:900px}

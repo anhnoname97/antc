@@ -4,6 +4,8 @@ using Microsoft.Extensions.WebEncoders;
 using Umbraco.Plugin.Custom.Api.Infrastructure;
 using Antc.Deployment;
 using Microsoft.AspNetCore.DataProtection;
+using Antc.Infrastructure;
+using Antc.Web;
 
 // Offline command: no Umbraco host, no migrations and no service is started during backup.
 if (args.FirstOrDefault() == "--deployment-backup")
@@ -48,6 +50,7 @@ builder.CreateUmbracoBuilder()
     .AddBackOffice()
     .AddWebsite()
     .AddComposers()
+    .AddPublicSitePerformance()
     .Build();
 
 WebApplication app = builder.Build();
@@ -57,6 +60,8 @@ await DeploymentOperations.ImportStructureAsync(app);
 
 // IP thật phải được xác định trước khi chia hạn mức và băm IP của lượt thi/câu hỏi.
 app.UseForwardedHeaders();
+app.UsePublicSitePerformance();
+app.UseWebsiteErrorPages(app.Environment);
 app.UseMiddleware<ApiBoundaryMiddleware>();
 app.UseMiddleware<DeploymentTrafficGateMiddleware>();
 app.UseMiddleware<AdministrationIpAllowlistMiddleware>();

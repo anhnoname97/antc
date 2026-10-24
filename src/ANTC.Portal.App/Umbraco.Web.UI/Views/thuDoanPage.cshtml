@@ -2,13 +2,31 @@
 @using Umbraco.Cms.Core.Models.Blocks
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var blocks = Model.Value<BlockGridModel>("layout");
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/home.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/fraud.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/fraud-responsive.css" asp-append-version="true">
 }
 <div id="nj-thu-doan" class="home-content fraud-content">
-    @await Html.GetBlockGridHtmlAsync(Model.Value<BlockGridModel>("layout"))
+    @if (blocks?.Any() == true)
+    {
+        @await Html.GetBlockGridHtmlAsync(blocks)
+    }
+    else
+    {
+        var introduction = Model.Root().DescendantsOrSelfOfType("fraudContent").FirstOrDefault();
+        <header class="ph" data-header-hero="true">
+            <div class="ph-sky">@Html.HeroImage(Model, 3)</div>
+            <div class="ph-shade"></div>
+            <div class="ph-copy">
+                <nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>@Model.Name</span></nav>
+                <h1><span class="line"><span data-line>@(introduction?.Value<string>("heroTitle") ?? Model.Name)</span></span></h1>
+                @if (introduction?.Value<string>("heroDescription") is { Length: > 0 } description) { <p class="lead">@description</p> }
+            </div>
+        </header>
+    }
 </div>
 @section Scripts {
     <script defer src="~/assets/js/vendor/gsap.min.js" asp-append-version="true"></script>

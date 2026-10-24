@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Website đang gián đoạn — An toàn tài chính</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/assets/css/fonts.css">
+    <style>
+        :root { color-scheme:dark; font-family:Roboto,Arial,Helvetica,sans-serif; color:#fffdf9; background:#0d192b; }
+        * { box-sizing:border-box; } body { margin:0; } a { color:inherit; text-decoration:none; } a:focus-visible { outline:3px solid #e3c88f; outline-offset:6px; }
+        .wrap { width:min(1240px,88%); margin-inline:auto; }
+        .header { background:#0a1423; }.header-inner { display:flex; align-items:center; justify-content:space-between; gap:24px; min-height:80px; }
+        .brand { display:flex; gap:12px; align-items:center; font-size:1.125rem; font-weight:700; letter-spacing:-.035em; }.brand-mark { display:grid; place-items:center; width:40px; height:40px; border:1px solid #e0e6ee; border-radius:50%; }.brand-mark svg { width:19px; height:19px; }
+        .header-home { display:flex; align-items:center; gap:16px; font-size:.8125rem; color:#c8d3e2; }.header-home span { color:#e3c88f; font-size:1.125rem; }
+        main { position:relative; overflow:hidden; isolation:isolate; background:radial-gradient(ellipse at 77% 47%,#2c496d70,transparent 56%),linear-gradient(115deg,#0b1627,#14263f 76%,#142239); }
+        main::before { content:''; position:absolute; z-index:-1; inset:0; opacity:.16; background:radial-gradient(#c8d4e5 .6px,transparent .6px); background-size:28px 28px; mask-image:linear-gradient(90deg,transparent 40%,#000); }
+        .hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); align-items:center; gap:48px; min-height:max(530px,calc(100svh - 164px)); padding-block:56px; }
+        .copy { position:relative; z-index:1; min-width:0; }.eyebrow { display:flex; align-items:center; gap:12px; margin:0 0 28px; color:#e3c88f; font-size:.6875rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase; }
+        .eyebrow span { padding:3px 8px; border:1px solid #e3c88f55; border-radius:4px; background:#e3c88f09; font-size:.625rem; letter-spacing:.08em; }
+        h1 { margin:0; max-width:14ch; font-size:clamp(2.5rem,4vw,3.75rem); font-weight:700; line-height:1.08; letter-spacing:-.045em; text-wrap:balance; }
+        .description { max-width:43ch; margin:26px 0 32px; color:#b8c6d8; font-size:1rem; line-height:1.9; }
+        .actions { display:flex; align-items:center; flex-wrap:wrap; gap:20px; }.button { display:inline-flex; justify-content:center; align-items:center; gap:12px; min-height:54px; font-size:.875rem; font-weight:700; line-height:1.5; transition:background .2s,transform .2s; }
+        .button-primary { padding:10px 12px 10px 24px; border-radius:30px; background:#e3c88f; color:#14233b; }.button-primary:hover { background:#f1dba9; transform:translateY(-2px); }
+        .button-primary span { display:grid; place-items:center; width:32px; height:32px; margin-left:10px; border-radius:50%; background:#14233b; color:#e3c88f; }.button-primary svg { width:17px; height:17px; }
+        .button-secondary { color:#e0e7ef; min-height:42px; border-bottom:1px solid #8c9bb252; font-weight:500; }.button-secondary svg { width:17px; height:17px; }.button-secondary:hover { color:#e3c88f; border-color:#e3c88f; }
+        .art { position:relative; display:grid; place-items:center; width:100%; min-width:0; height:410px; color:#e3c88f; isolation:isolate; }
+        .orbit { position:absolute; z-index:-1; left:50%; top:50%; transform:translate(-50%,-50%); width:88%; aspect-ratio:1; border:1px solid #c0d4ee12; border-radius:50%; }.orbit-inner { width:74%; border-style:dashed; border-color:#e3c88f20; animation:orbit 100s linear infinite; }
+        .code { display:flex; align-items:center; justify-content:center; width:100%; gap:0; line-height:.9; }.digit { color:#e3c88f; background:linear-gradient(140deg,#f3dfaf,#b79558); background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:clamp(8rem,18vw,17rem); font-weight:600; letter-spacing:-.06em; }
+        .reconnect { position:relative; width:32%; max-width:220px; flex-shrink:0; }.reconnect svg { display:block; width:100%; height:auto; filter:drop-shadow(0 0 20px #e3c88f0d); }
+        .repair-ring { transform-origin:80px 80px; animation:repair 18s ease-in-out infinite; }.signal { animation:signal 4s ease-in-out infinite; }
+        .spark { position:absolute; left:14%; top:12%; font-size:1.125rem; color:#e3c88f; }.art-note { position:absolute; bottom:7%; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:8px; margin:0; white-space:nowrap; color:#a5b6cc; font-size:.625rem; letter-spacing:.1em; text-transform:uppercase; }.art-note span { width:5px; height:5px; background:#e3c88f; border-radius:50%; }
+        .footer { background:#0d192b; }.footer-inner { min-height:84px; display:flex; justify-content:space-between; align-items:center; gap:20px; color:#9fb0c6; font-size:.75rem; line-height:1.7; }.footer p { margin:0; }.footer a { color:#cad5e4; }.footer a:hover { color:#e3c88f; }
+        .skip { position:absolute; left:20px; top:-100px; z-index:10; padding:12px; background:#e3c88f; color:#14233b; }.skip:focus { top:10px; }
+        @keyframes orbit { to { transform:translate(-50%,-50%) rotate(360deg); } } @keyframes repair { 0%,100% { transform:rotate(-10deg); } 45%,60% { transform:rotate(20deg); } } @keyframes signal { 0%,100% { opacity:.4; } 50% { opacity:1; } }
+        @media(max-width:960px) { .hero { grid-template-columns:minmax(0,1fr); gap:12px; min-height:0; padding-block:44px 32px; }.copy { max-width:580px; }h1 { max-width:17ch; font-size:3.25rem; }.description { margin-block:20px 24px; max-width:48ch; }.art { max-width:540px; justify-self:center; height:300px; }.digit { font-size:13rem; }.reconnect { width:38%; }.art-note { bottom:1%; } }
+        @media(max-width:540px) { .header-inner { min-height:70px; gap:12px; }.brand { font-size:1rem; gap:8px; }.brand-mark { width:34px; height:34px; }.header-home { font-size:.75rem; gap:8px; }.header-home span { display:none; }.hero { padding-top:34px; gap:4px; }h1 { font-size:2.65rem; max-width:13ch; }.eyebrow { margin-bottom:20px; font-size:.625rem; letter-spacing:.1em; }.description { font-size:.9375rem; line-height:1.8; }.button { font-size:.8125rem; }.art { height:240px; }.digit { font-size:8.5rem; }.reconnect { width:36%; }.art-note { font-size:.5rem; }.footer-inner { flex-direction:column; align-items:flex-start; gap:4px; padding-block:20px; } }
+        @media(max-width:360px) { .header-home { display:none; } }
+        @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+    </style>
+</head>
+<body>
+    <a class="skip" href="#noi-dung">Tới nội dung chính</a>
+    <header class="header"><div class="wrap header-inner"><a class="brand" href="/" aria-label="An toàn tài chính, trang chủ"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3 20 6v6c0 4-3 7-8 9-5-2-8-5-8-9V6z"/><path d="m8 12 3 3 5-6"/></svg></span>antoantaichinh.vn</a><a class="header-home" href="/">Về trang chủ <span aria-hidden="true">↗</span></a></div></header>
+    <main id="noi-dung" tabindex="-1"><section class="wrap hero" aria-labelledby="error-title">
+        <div class="copy"><p class="eyebrow"><span>500</span>Sự cố tạm thời</p><h1 id="error-title">Website đang gián đoạn.</h1><p class="description">Một sự cố đã xảy ra khi tải trang. Bạn vui lòng thử lại sau hoặc quay về trang chủ.</p><div class="actions"><a class="button button-primary" href="" id="retry">Thử lại<span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 11a8 8 0 1 0-2 6M20 4v7h-7"/></svg></span></a><a class="button button-secondary" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v11h14V9M9 20v-7h6v7"/></svg>Về trang chủ</a></div></div>
+        <div class="art" aria-hidden="true"><div class="orbit"></div><div class="orbit orbit-inner"></div><span class="spark">✦</span><div class="code"><span class="digit">5</span><span class="reconnect"><svg viewBox="0 0 160 160" fill="none"><rect x="30" y="16" width="100" height="128" rx="50" stroke="currentColor" stroke-width="1.2"/><rect x="39" y="25" width="82" height="110" rx="41" stroke="currentColor" stroke-opacity=".22" stroke-width=".7" stroke-dasharray="1 4"/><g class="repair-ring"><path d="M105 77a26 26 0 1 0-7 21" stroke="currentColor" stroke-width="1.5"/><path d="M105 58v19H86" stroke="currentColor" stroke-width="1.5"/></g><circle class="signal" cx="80" cy="80" r="4" fill="currentColor"/></svg></span><span class="digit">0</span></div><p class="art-note"><span></span>Một khoảng dừng, rồi tiếp tục.</p></div>
+    </section></main>
+    <footer class="footer"><div class="wrap footer-inner"><p>An toàn tài chính · Nhận diện để tự bảo vệ.</p><a href="/">antoantaichinh.vn <span aria-hidden="true">↗</span></a></div></footer>
+</body>
+</html>

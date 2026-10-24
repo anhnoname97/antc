@@ -51,11 +51,28 @@ public sealed class ContestDrawsController(IContestAdminService service, Contest
     public Task<IActionResult> Export(long id, string kind, CancellationToken ct) => Execute(async () =>
     {
         if (kind is not ("eligible" or "winners")) return BadRequest(new ApiErrorResponse(new ApiError("VALIDATION", "Loại xuất dữ liệu không hợp lệ.")));
-        var rows = await service.ExportDrawAsync(id, kind == "winners", ct);
+        if (kind == "winners")
+        {
+            var winners = await service.ExportDrawWinnersAsync(id, ct);
+            if (winners is null) return NotFound(Missing());
+            await audit.RecordAsync(CurrentUserKey(security), "export.draw." + kind, new { DrawId = id }, null, ct);
+            return new ContestReportCsvResult(["Mã dự thi", "Họ tên", "Số điện thoại", "Điểm", "Thời điểm nộp", "Trạng thái", "Lý do hủy"], WinnerCsvRows(winners), $"draw-{id}-{kind}");
+        }
+        var rows = await service.ExportDrawAsync(id, false, ct);
         if (rows is null) return NotFound(Missing());
         await audit.RecordAsync(CurrentUserKey(security), "export.draw." + kind, new { DrawId = id }, null, ct);
         return new ContestReportCsvResult(["Mã dự thi", "Họ tên", "Số điện thoại", "Điểm", "Thời điểm nộp"], CsvRows(rows), $"draw-{id}-{kind}");
     });
+    private static async IAsyncEnumerable<string[]> WinnerCsvRows(IReadOnlyList<DrawWinnerExportRow> rows)
+    {
+        foreach (var p in rows)
+        {
+            string reason = p.CancelledAt is { } at ? $"{p.CancelReason} ({at.ToString("O")})".Trim() : "";
+            yield return [p.Code, p.FullName, p.Phone, p.Score.ToString(System.Globalization.CultureInfo.InvariantCulture), p.SubmittedAt?.ToString("O") ?? "",
+                p.CancelledAt is null ? "Đã trúng" : "Đã hủy", reason];
+        }
+        await Task.CompletedTask;
+    }
     private static async IAsyncEnumerable<string[]> CsvRows(IReadOnlyList<DrawCandidateSnapshot> rows)
     {
         foreach (var p in rows) yield return [p.Code, p.FullName, p.Phone, p.Score.ToString(System.Globalization.CultureInfo.InvariantCulture), p.SubmittedAt?.ToString("O") ?? ""];

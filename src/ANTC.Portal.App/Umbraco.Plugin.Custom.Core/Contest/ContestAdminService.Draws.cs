@@ -15,6 +15,7 @@ public sealed partial class ContestAdminService
     {
         if (!await db.ContestCampaigns.AnyAsync(x => x.Id == contestId, ct))
             throw new ContestAdminValidationException(new Dictionary<string, string> { ["contestId"] = "Cuộc thi không tồn tại." });
+        // Co y tinh ca nguoi da bi huy: so dien thoai cua ho van bi loai de khong quay vao lai duoc.
         var previous = excludePrevious
             ? (await db.DrawWinners.AsNoTracking().Where(w => w.Draw!.ContestId == contestId).Select(w => w.Phone).Distinct().ToListAsync(ct)).ToHashSet(StringComparer.Ordinal)
             : new HashSet<string>(StringComparer.Ordinal);
@@ -27,6 +28,10 @@ public sealed partial class ContestAdminService
             .OrderBy(e => e.Phone, StringComparer.Ordinal)
             .Select(e => e with { SubmittedAt = e.SubmittedAt is { } at ? AsUtc(at) : null }).ToList();
     }
+
+    /// <summary>Nguoi du dieu kien (da gop theo so dien thoai) co diem >= minScore; dung chung quy tac chon nguoi voi quay so.</summary>
+    public async Task<IReadOnlyList<DrawCandidateSnapshot>> EligibleCandidatesAsync(long contestId, int minScore, bool excludePrevious, CancellationToken ct) =>
+        (await DrawCandidatesAsync(contestId, excludePrevious, ct)).Where(e => e.Score >= minScore).ToList();
 
     public async Task<DrawPreviewDto> PreviewDrawAsync(PreviewDrawRequest request, CancellationToken ct)
     {
@@ -101,6 +106,19 @@ public sealed partial class ContestAdminService
         if (prize is null) throw new ContestAdminConflictException("PRIZE_NOT_IN_CONTEST", "Giải thưởng không được cấu hình cho cuộc thi này.");
         if (!prize.IsActive) throw new ContestAdminConflictException("PRIZE_INACTIVE", "Giải thưởng đã ngừng sử dụng.");
         return prize;
+    }
+
+    public async Task<IReadOnlyList<DrawWinnerExportRow>?> ExportDrawWinnersAsync(long id, CancellationToken ct)
+    {
+        var draw = await db.Draws.AsNoTracking().Include(d => d.Winners).SingleOrDefaultAsync(d => d.Id == id, ct);
+        if (draw is null) return null;
+        var submitted = draw.EligibleSnapshotJson is null ? new Dictionary<long, DateTime?>()
+            : (JsonSerializer.Deserialize<List<DrawCandidateSnapshot>>(draw.EligibleSnapshotJson) ?? [])
+                .ToDictionary(p => p.EntryId, p => p.SubmittedAt);
+        return draw.Winners.OrderBy(w => w.Rank)
+            .Select(w => new DrawWinnerExportRow(w.Code, w.FullName, w.Phone, w.Score,
+                w.EntryId is { } entryId ? submitted.GetValueOrDefault(entryId) : null,
+                w.CancelledAt is { } at ? AsUtc(at) : null, w.CancelReasonText)).ToList();
     }
 
     public async Task<IReadOnlyList<DrawCandidateSnapshot>?> ExportDrawAsync(long id, bool winners, CancellationToken ct)

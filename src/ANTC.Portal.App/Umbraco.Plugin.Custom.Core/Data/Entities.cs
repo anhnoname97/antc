@@ -100,6 +100,12 @@ public class DrawWinner
     public string FullName { get; set; } = "";
     public string Phone { get; set; } = "";
     public int Score { get; set; }
+    /// <summary>Thoi diem huy nguoi trung (UTC); null nghia la con hieu luc.</summary>
+    public DateTime? CancelledAt { get; set; }
+    public string? CancelledBy { get; set; }
+    /// <summary>Ma ly do huy.</summary>
+    public string? CancelReasonCode { get; set; }
+    public string? CancelReasonText { get; set; }
 
     public Draw? Draw { get; set; }
 }

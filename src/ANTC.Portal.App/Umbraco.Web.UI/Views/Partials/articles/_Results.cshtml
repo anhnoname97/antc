@@ -1,0 +1,31 @@
+@model ArticleBrowseState
+@{
+    var result = Model.Result;
+    var current = Math.Clamp(result.Page, 1, Math.Max(1, result.TotalPages));
+}
+<div data-article-results tabindex="-1">
+    <p class="article-live" data-article-status role="status" aria-live="polite" hidden="@(Model.Error is null)">@Model.Error</p>
+    <button type="button" class="article-retry" data-article-retry hidden="@(Model.StatusCode != 503)">Thử lại</button>
+    <p class="article-filter-result" data-article-summary hidden="@(Model.Error is not null || string.IsNullOrEmpty(Model.Search))"><span data-article-total>@result.Total</span> kết quả cho “<span data-article-keyword>@Model.Search</span>”. <a data-article-clear href="@Model.ClearUrl">Xem tất cả bài viết</a></p>
+    <div class="article-cards" data-article-cards>
+        @foreach (var article in result.Items)
+        {
+            @await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", new ArticleCardModel(article, article.Category, Model.IsSearchPage))
+        }
+    </div>
+    <div class="article-empty" data-article-empty hidden="@(result.Items.Count > 0 || Model.Error is not null)">
+        <h2 data-article-empty-title>@(result.Total > 0 ? "Trang này chưa có kết quả" : string.IsNullOrEmpty(Model.Search) ? "Chưa có bài viết" : "Chưa tìm thấy bài phù hợp")</h2>
+        <p data-article-empty-text>@(result.Total > 0 ? "Bạn có thể quay về trang đầu để xem bài viết." : "Thử từ khóa khác hoặc xem lại danh mục đang chọn.")</p>
+        <a data-article-first href="@Model.PageUrl(1, Model.Query.CategoryId)" hidden="@(result.Total == 0)">Về trang đầu →</a>
+    </div>
+    <nav class="article-pagination" data-article-pagination aria-label="Phân trang bài viết" hidden="@(result.TotalPages <= 1 || Model.Error is not null)">
+        @if (result.Page > 1 && result.TotalPages > 0) { <a href="@Model.PageUrl(Math.Min(result.Page - 1, result.TotalPages), Model.Query.CategoryId)" rel="prev">← Trang trước</a> }
+        @for (var number = Math.Max(1, current - 2); number <= Math.Min(result.TotalPages, current + 2); number++)
+        {
+            if (number == result.Page) { <span aria-current="page">@number</span> }
+            else { <a href="@Model.PageUrl(number, Model.Query.CategoryId)" aria-label="Trang @number">@number</a> }
+        }
+        @if (result.Page < result.TotalPages) { <a href="@Model.PageUrl(result.Page + 1, Model.Query.CategoryId)" rel="next">Trang sau →</a> }
+    </nav>
+</div>
+<template data-article-card-template>@await Html.PartialAsync("~/Views/Partials/articles/_Card.cshtml", ArticleCardModel.Template)</template>

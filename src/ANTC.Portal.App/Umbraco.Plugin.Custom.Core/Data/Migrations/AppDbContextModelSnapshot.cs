@@ -127,6 +127,38 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.ToTable("contest", (string)null);
                 });
 
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestDrawDisplay", b =>
+                {
+                    b.Property<long>("ContestId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("contest_id");
+
+                    b.Property<bool>("ShowAntiScamTicker")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("show_anti_scam_ticker");
+
+                    b.Property<bool>("ShowLiveBadge")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("show_live_badge");
+
+                    b.Property<bool>("TransparentBackground")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("transparent_background");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("ContestId");
+
+                    b.ToTable("contest_draw_display", (string)null);
+                });
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPrize", b =>
                 {
                     b.Property<long>("ContestId")
@@ -387,6 +419,25 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Property<int>("Rank")
                         .HasColumnType("INTEGER")
                         .HasColumnName("rank");
+
+                    b.Property<string>("CancelReasonCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cancel_reason_code");
+
+                    b.Property<string>("CancelReasonText")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cancel_reason_text");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<string>("CancelledBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cancelled_by");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -1032,6 +1083,17 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("quiz_topic", (string)null);
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestDrawDisplay", b =>
+                {
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", "Contest")
+                        .WithOne()
+                        .HasForeignKey("Umbraco.Plugin.Custom.Core.Data.ContestDrawDisplay", "ContestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contest");
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPrize", b =>

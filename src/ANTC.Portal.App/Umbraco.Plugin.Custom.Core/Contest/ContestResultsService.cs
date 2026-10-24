@@ -82,9 +82,10 @@ public sealed class ContestResultsService(AppDbContext db, TimeProvider clock, C
             if (draws.Count!=drawIds.Length || draws.Any(d=>d.ContestId!=contestId))
                 throw new ContestResultsException("VALIDATION","Lần quay không tồn tại hoặc không thuộc cuộc thi này.",400);
             // Historical draws may include anonymous entries. Never silently publish those as prize winners.
-            var winnerIds=draws.SelectMany(d=>d.Winners).Where(w=>w.EntryId!=null).Select(w=>w.EntryId!.Value).Distinct().ToArray();
+            // Winners cancelled by an admin are excluded from validation and from the public snapshot.
+            var winnerIds=draws.SelectMany(d=>d.Winners).Where(w=>w.CancelledAt==null && w.EntryId!=null).Select(w=>w.EntryId!.Value).Distinct().ToArray();
             var winners=await db.Entries.AsNoTracking().Where(e=>winnerIds.Contains(e.Id)).ToDictionaryAsync(e=>e.Id,ct);
-            foreach(var w in draws.SelectMany(d=>d.Winners))
+            foreach(var w in draws.SelectMany(d=>d.Winners).Where(w=>w.CancelledAt==null))
                 if (w.EntryId is not {} id || !winners.TryGetValue(id,out var e) || e.ContestId!=contestId ||
                     e.Status!=EntryStatuses.Submitted || e.Mode!=EntryModes.Named || !PhoneValid(e.Phone) ||
                     !PhoneValid(w.Phone) || w.Phone!=e.Phone || w.Code!=e.Code || w.Score!=e.Score || string.IsNullOrWhiteSpace(w.FullName))
@@ -97,7 +98,8 @@ public sealed class ContestResultsService(AppDbContext db, TimeProvider clock, C
                 .OrderByDescending(e=>e.Score).ThenBy(e=>e.SubmittedAt).ThenBy(e=>e.Id)
                 .Select((e,i)=>new PublicRank(i+1,e.Code,MaskName(e.FullName??""),MaskPhone(e.Phone!),e.Score,e.Answered,Utc(e.SubmittedAt))).ToList();
             var publicDraws=draws.OrderBy(d=>d.CreatedAt).ThenBy(d=>d.Id).Select(d=>new PublicDraw(d.Id,Utc(d.CreatedAt),
-                d.Winners.OrderBy(w=>w.Rank).Select(w=>new PublicWinner(w.Rank,w.Code,MaskName(w.FullName),MaskWinnerPhone(w.Phone),w.Score)).ToList(),d.PrizeCode,d.PrizeName)).ToList();
+                d.Winners.Where(w=>w.CancelledAt==null).OrderBy(w=>w.Rank).Select(w=>new PublicWinner(w.Rank,w.Code,MaskName(w.FullName),MaskWinnerPhone(w.Phone),w.Score)).ToList(),d.PrizeCode,d.PrizeName))
+                .Where(d=>d.Winners.Count>0).ToList();
             if (pub is null) {pub=new ContestPublishedResult{ContestId=contestId};db.ContestPublishedResults.Add(pub);}
             pub.SnapshotJson=JsonSerializer.Serialize(new ResultSnapshot(Contest(contest),ranked,publicDraws),Json);
             pub.PublishedAt=clock.GetUtcNow().UtcDateTime;

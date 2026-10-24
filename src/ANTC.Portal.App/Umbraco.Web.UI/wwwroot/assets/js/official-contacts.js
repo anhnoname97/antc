@@ -1,5 +1,5 @@
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-const desktop = matchMedia('(min-width: 901px)');
+const desktop = matchMedia('(min-width: 1101px)');
 const clamp = value => Math.max(0, Math.min(1, value));
 document.querySelectorAll('[data-official-contacts]').forEach(block => {
   const steps = block.querySelector('[data-contact-steps]');
@@ -53,7 +53,7 @@ document.querySelectorAll('[data-official-contacts]').forEach(block => {
     if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
     animationFrame = undefined;
     previousFrameTime = undefined;
-    enabled = !reduced.matches && block.closest('[data-hero-motion]')?.dataset.heroMotion === 'true';
+    enabled = desktop.matches && !reduced.matches && block.closest('[data-hero-motion]')?.dataset.heroMotion === 'true';
     block.classList.toggle('is-animated', enabled);
     if (!enabled) block.style.removeProperty('--contact-progress');
     else {

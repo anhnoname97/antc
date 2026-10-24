@@ -6,7 +6,7 @@
     var home = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("home").FirstOrDefault()?.Url() ?? "/";
 }
 <div class="ph">
-    <div class="ph-sky"></div><img class="ph-drum" src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" aria-hidden="true"><span class="ph-num" aria-hidden="true">02</span><div class="ph-shade"></div>
+    <div class="ph-sky">@Html.HeroImage(Umbraco.AssignedContentItem, 2)</div><img class="ph-drum" src="~/assets/images/trong-dong.svg" width="1000" height="1000" alt="" aria-hidden="true"><span class="ph-num" aria-hidden="true">02</span><div class="ph-shade"></div>
     <div class="ph-copy">
         <nav class="crumb" aria-label="Vị trí"><a href="@home">Trang chủ</a><span aria-hidden="true">/</span><span>@content.Value("breadcrumbLabel")</span></nav>
         <p class="eyebrow">@content.Value("eyebrow")</p>

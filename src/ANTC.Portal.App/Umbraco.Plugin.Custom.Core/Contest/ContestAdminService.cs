@@ -27,7 +27,9 @@ public interface IContestAdminService
     Task<DrawAdminDto?> GetDrawAsync(long id, CancellationToken ct);
     Task<DrawAdminDto> CreateDrawAsync(SaveDrawRequest request, string actor, CancellationToken ct);
     Task<DrawPreviewDto> PreviewDrawAsync(PreviewDrawRequest request, CancellationToken ct);
+    Task<IReadOnlyList<DrawCandidateSnapshot>> EligibleCandidatesAsync(long contestId, int minScore, bool excludePrevious, CancellationToken ct);
     Task<IReadOnlyList<DrawCandidateSnapshot>?> ExportDrawAsync(long id, bool winners, CancellationToken ct);
+    Task<IReadOnlyList<DrawWinnerExportRow>?> ExportDrawWinnersAsync(long id, CancellationToken ct);
     Task<DrawAdminDto?> UpdateDrawAsync(long id, SaveDrawRequest request, CancellationToken ct);
     Task<bool> DeleteDrawAsync(long id, CancellationToken ct);
 }
@@ -371,7 +373,8 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
     private static DrawAdminDto MapDraw(Draw x) => new(
         x.Id, AsUtc(x.CreatedAt), x.CreatedBy, x.MinScore, x.WinnersRequested, x.EligibleCount,
         x.ExcludePrevious, x.Note, x.Winners.OrderBy(w => w.Rank)
-            .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, w.Phone, w.Score)).ToList(),
+            .Select(w => new DrawWinnerAdminDto(w.Rank, w.EntryId, w.Code, w.FullName, w.Phone, w.Score,
+                w.CancelledAt is { } cancelledAt ? AsUtc(cancelledAt) : null, w.CancelledBy, w.CancelReasonCode, w.CancelReasonText)).ToList(),
         x.ContestId, x.Contest?.Name, x.EligibleSnapshotJson is not null,
         x.EligibleSnapshotJson?.Contains("\"Phone\":\"\"", StringComparison.Ordinal) == true, x.PrizeId, x.PrizeCode, x.PrizeName);
 

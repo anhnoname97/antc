@@ -60,8 +60,9 @@ public sealed partial class ContestAdminService
         return allocations.Select(p => new ContestPrizeDto(p.PrizeId, p.Prize!.Code, p.Prize.Name, p.Prize.Description, p.Quantity,
             counts.GetValueOrDefault(p.PrizeId), Math.Max(0, p.Quantity - counts.GetValueOrDefault(p.PrizeId)), p.Prize.IsActive, p.SortOrder, p.PrizeMoney)).ToList();
     }
+    // Ket qua da huy khong con chiem suat giai.
     private Task<Dictionary<long, int>> AwardedAsync(long contestId, CancellationToken ct) => db.DrawWinners
-        .Where(w => w.Draw!.ContestId == contestId && w.Draw.PrizeId != null).GroupBy(w => w.Draw!.PrizeId!.Value)
+        .Where(w => w.Draw!.ContestId == contestId && w.Draw.PrizeId != null && w.CancelledAt == null).GroupBy(w => w.Draw!.PrizeId!.Value)
         .Select(g => new { Id = g.Key, Count = g.Count() }).ToDictionaryAsync(g => g.Id, g => g.Count, ct);
 
     private async Task ApplyPrizesAsync(ContestCampaign campaign, IReadOnlyList<SaveContestPrizeRequest>? requests, CancellationToken ct)

@@ -1,0 +1,94 @@
+/* Search adopts the shared responsive contract without changing other article pages. */
+.fraud-results-sidebar__toggle { display: none; }
+.fraud-results-sidebar__mobile-label { display: none; }
+.article-portal--search [hidden] { display: none !important; }
+@media (max-width: 1100px) {
+  .article-portal--search { font-size: var(--fs-body); line-height: 1.7; overflow-wrap: anywhere; }
+  .article-portal--search .article-wrap { width: calc(100% - var(--gutter) * 2); max-width: var(--container); }
+  .article-portal--search .fraud-search-hero { padding-block: var(--section-y); }
+  .article-portal--search .article-breadcrumbs { font-size: var(--fs-small); }
+  .article-portal--search .article-breadcrumbs ol { align-items: center; gap: var(--space-2) var(--space-3); }
+  .article-portal--search .article-breadcrumbs a { display: inline-flex; align-items: center; min-height: 44px; }
+  .article-portal--search .fraud-search-hero__row { margin-block: var(--space-5); }
+  .article-portal--search .article-eyebrow { margin-bottom: var(--space-4); gap: var(--space-3); font-size: var(--fs-eyebrow); letter-spacing: .16em; }
+  .article-portal--search .article-eyebrow::before { width: 24px; }
+  .article-portal--search .fraud-search-hero h1 { font-size: var(--fs-page-title); line-height: 1.15; }
+  .article-portal--search .fraud-results-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: stretch; }
+  .article-portal--search .fraud-results-form__query { grid-column: 1 / -1; min-height: var(--control-height); padding-left: var(--space-4); }
+  .article-portal--search .fraud-results-form__query svg { width: 20px; height: 20px; }
+  .article-portal--search .fraud-results-form input[type=search] { min-height: var(--control-height); padding: 12px 14px; font-size: var(--fs-body); line-height: 1.5; }
+  .article-portal--search .fraud-results-form select { width: 100%; min-width: 0; min-height: var(--control-height); font-size: var(--fs-body); }
+  .article-portal--search .fraud-category-picker { width: 100%; min-width: 0; }
+  .article-portal--search .fraud-category-picker__trigger { min-height: var(--control-height); padding: 12px 16px; font-size: var(--fs-body); }
+  .article-portal--search .fraud-category-picker__options { left: 0; right: auto; width: 100%; min-width: 0; max-width: 100%; max-height: min(320px, 45dvh); }
+  .article-portal--search .fraud-category-picker__options [role=option] { display: flex; align-items: center; min-height: 44px; font-size: var(--fs-small); }
+  .article-portal--search .fraud-results-form__submit { min-height: var(--control-height); padding: 12px 20px; gap: var(--space-4); font-size: var(--fs-body); line-height: 1.5; }
+  .article-portal--search .fraud-search-privacy { margin-top: var(--space-3); font-size: var(--fs-small); line-height: 1.7; }
+  .article-portal--search .fraud-results-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--layout-gap); padding-block: var(--section-y); }
+  .article-portal--search .fraud-results-sidebar { order: 0; width: 100%; min-width: 0; padding: var(--space-4) var(--space-3); }
+  .article-portal--search .fraud-results-sidebar > .article-side-label { margin: 0 10px var(--space-3); font-size: var(--fs-eyebrow); }
+  .article-portal--search .fraud-result-filters a { min-height: 44px; font-size: var(--fs-small); }
+  .article-portal--search .fraud-result-filters a > span { min-width: 0; }
+  .article-portal--search .fraud-result-filters-toggle { min-height: 44px; font-size: var(--fs-small); }
+  .article-portal--search .fraud-results-content { width: 100%; min-width: 0; }
+  .article-portal--search .article-cards { grid-auto-rows: auto; gap: var(--layout-gap); }
+  .article-portal--search .article-card { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+  .article-portal--search .article-card__art { min-height: 200px; }
+  .article-portal--search .article-card__field-icon { width: 66px; height: 66px; }
+  .article-portal--search .article-card__orbit { width: 220px; height: 220px; }
+  .article-portal--search .article-card__art-label { writing-mode: horizontal-tb; left: auto; bottom: 14px; font-size: .4375rem; }
+  .article-portal--search .article-card__copy { min-width: 0; padding: var(--card-padding); }
+  .article-portal--search .article-card__category { font-size: var(--fs-small); line-height: 1.5; margin-bottom: var(--space-2); }
+  .article-portal--search .article-meta { font-size: var(--fs-small); line-height: 1.5; }
+  .article-portal--search .article-card h2 { margin-block: var(--space-3); font-size: var(--fs-card-title); line-height: 1.35; -webkit-line-clamp: 2; line-clamp: 2; }
+  .article-portal--search .article-card__summary { font-size: var(--fs-body); line-height: 1.7; -webkit-line-clamp: 2; line-clamp: 2; }
+  .article-portal--search .article-pagination { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-6); }
+  .article-portal--search .article-pagination > :is(a, span) { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; font-size: var(--fs-small); }
+  .article-portal--search .article-empty { padding: var(--card-padding); }
+  .article-portal--search .article-empty h2 { font-size: var(--fs-card-title); line-height: 1.35; }
+  .article-portal--search .article-empty p { font-size: var(--fs-body); line-height: 1.7; }
+  .article-portal--search .article-empty a { display: inline-flex; align-items: center; min-height: 44px; }
+  .article-portal--search .fraud-result-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+  .article-portal--search .fraud-results-sidebar.has-filter-drawer > .article-side-label { margin-left: 0; }
+  .article-portal--search .fraud-results-sidebar.has-filter-drawer { padding: var(--space-4); }
+  .article-portal--search .has-filter-drawer .fraud-results-sidebar__toggle { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 48px; padding: 0; border: 0; background: none; color: var(--article-navy); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+  .fraud-results-sidebar__toggle > span { flex: 1; min-width: 0; }
+  .fraud-results-sidebar__toggle > b { padding: 2px 8px; border-radius: 6px; background: #f4efe3; color: #76521e; font-size: var(--fs-small); }
+  .fraud-results-sidebar__toggle::after { content: ''; flex: 0 0 7px; width: 7px; height: 7px; margin-right: 4px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+  .fraud-results-sidebar__toggle[aria-expanded=true]::after { transform: rotate(225deg); }
+  .article-portal--search #fraud-filter-panel:not([hidden]) { max-height: min(360px, 55dvh); overflow-y: auto; overscroll-behavior: contain; padding-top: var(--space-3); margin-top: var(--space-3); border-top: 1px solid var(--article-line); }
+}
+/* Mobile/tablet share advanced search; card layouts retain their own breakpoint. */
+.search-mobile-advanced-toggle { display: none; }
+@media (max-width: 1100px) {
+  .article-portal--search.has-mobile-advanced .fraud-results-form { grid-template-columns: minmax(0, 1fr) auto; gap: 0; padding: 4px; border-radius: 32px; background: #fff; }
+  .article-portal--search.has-mobile-advanced .fraud-results-form:focus-within { outline: 2px solid #e3c88f; outline-offset: 4px; }
+  .article-portal--search.has-mobile-advanced .fraud-results-form__query { grid-column: auto; padding-left: 12px; min-height: 48px; border: 0; border-radius: 28px; }
+  .article-portal--search.has-mobile-advanced .fraud-results-form__query:focus-within { box-shadow: none; }
+  .article-portal--search.has-mobile-advanced .fraud-results-form input[type=search] { padding-inline: 10px; }
+  .article-portal--search.has-mobile-advanced .fraud-results-form__submit { padding-inline: 16px; border-radius: 28px; font-size: var(--fs-small); }
+  .article-portal--search.has-mobile-advanced .fraud-results-form__submit span { display: none; }
+  .article-portal--search .search-mobile-advanced-toggle { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-height: 44px; margin: 8px 0 0 auto; padding: 0; border: 0; background: none; color: #e3c88f; font: inherit; font-size: var(--fs-small); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+  .search-mobile-advanced-toggle::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+  .search-mobile-advanced-toggle[aria-expanded=true]::after { transform: rotate(225deg); }
+  .article-portal--search .fraud-search-privacy { margin-top: 8px; font-size: .75rem; line-height: 1.6; }
+  .article-portal--search .search-mobile-advanced { display: grid; gap: 12px; width: calc(100% - var(--gutter) * 2); margin: 24px auto 0; padding: var(--card-padding); border: 1px solid var(--article-line); border-radius: 12px; background: #fff; box-shadow: 0 4px 16px #14233b06; }
+  .article-portal--search.has-mobile-advanced .fraud-results-form > .fraud-category-picker { display: none; }
+  .search-mobile-advanced > .article-side-label { margin: 0 0 4px; font-size: var(--fs-eyebrow); }
+  .article-portal--search .search-mobile-advanced #fraud-filter-panel:not([hidden]) { max-height: none; overflow: visible; margin: 0; padding: 0; border: 0; }
+  .article-portal--search .search-mobile-advanced .fraud-result-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .article-portal--search .search-mobile-advanced .fraud-result-filters a { min-height: 48px; padding: 12px 10px; }
+  .article-portal--search.has-mobile-advanced .fraud-results-sidebar { display: none; }
+}
+@media (max-width: 600px) {
+  .article-portal--search .fraud-search-hero .article-eyebrow { display: none; }
+  .article-portal--search .fraud-search-hero__row { margin-block: 16px 20px; }
+  .article-portal--search .search-mobile-advanced .fraud-result-filters { grid-template-columns: minmax(0, 1fr); }
+  .article-portal--search .fraud-results-layout { gap: 0; padding-top: 24px; }
+  .article-portal--search .article-cards { gap: var(--layout-gap); }
+  .article-portal--search .article-card { grid-template-columns: minmax(0, 1fr); }
+  .article-portal--search .article-card__art { min-height: 0; height: clamp(120px, 36vw, 160px); }
+  .article-portal--search .article-card h2 { -webkit-line-clamp: 3; line-clamp: 3; }
+  .article-portal--search .article-card:hover { transform: none; }
+  .article-portal--search .article-pagination { margin-top: var(--space-5); }
+}

@@ -76,7 +76,11 @@ public sealed record DrawWinnerAdminDto(
     string Code,
     string FullName,
     string Phone,
-    int Score);
+    int Score,
+    DateTime? CancelledAt = null,
+    string? CancelledBy = null,
+    string? CancelReasonCode = null,
+    string? CancelReason = null);
 
 public sealed record DrawAdminDto(
     long Id,
@@ -115,6 +119,7 @@ public sealed record SaveContestPrizeRequest(long PrizeId, int Quantity, long? P
 public sealed record SaveContestPrizesRequest(IReadOnlyList<SaveContestPrizeRequest>? Prizes, long? ExpectedRevision = null);
 public sealed record ContestPrizeDto(long PrizeId, string Code, string Name, string? Description, int Quantity, int Awarded, int Remaining, bool IsActive, int SortOrder, long PrizeMoney = 0);
 public sealed record DrawCandidateAdminDto(string Code, string FullName, string Phone, int Score, DateTime? SubmittedAt);
+public sealed record DrawWinnerExportRow(string Code, string FullName, string Phone, int Score, DateTime? SubmittedAt, DateTime? CancelledAt, string? CancelReason);
 public sealed record DrawCandidateSnapshot(long EntryId, string Code, string FullName, string Phone, int Score, DateTime? SubmittedAt);
 
 public sealed class ContestAdminValidationException(IReadOnlyDictionary<string, string> fields)

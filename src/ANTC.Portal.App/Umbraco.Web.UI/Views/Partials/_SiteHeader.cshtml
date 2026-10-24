@@ -24,6 +24,9 @@
 <header class="site-header" id="site-header" data-site-header>
     @await Html.PartialAsync("~/Views/Partials/_ContestAnnouncement.cshtml", Model)
     <div class="site-header__inner">
+        <button class="site-header__menu-toggle" type="button" data-site-menu aria-controls="site-header-nav" aria-expanded="false" aria-label="Mở menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
         <a class="site-brand" href="@homeUrl" aria-label="@(siteName + ", trang giới thiệu")">
             @if (logo is not null)
             {
@@ -39,7 +42,7 @@
                 <b>@siteName</b>
             </span>
         </a>
-        <nav class="site-header__nav" aria-label="Điều hướng chính">
+        <nav class="site-header__nav" id="site-header-nav" aria-label="Điều hướng chính">
             @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (menu?.AsEnumerable(), path, (string?)null, true))
         </nav>
         <div class="site-header__tools">

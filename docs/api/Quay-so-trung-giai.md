@@ -43,6 +43,38 @@ CSV UTF-8 BOM, bảo vệ công thức Excel, gồm mã dự thi, họ tên, đi
 
 API tạo/quản lý draw cũ vẫn dùng cùng thuật toán bảo toàn; quyền quản trị cuộc thi được yêu cầu thêm. Đáp án đúng, điểm thi và luồng công bố kết quả hiện có không thay đổi. Việc quay **không tự công bố** kết quả ra cổng thông tin.
 
+## Quay số trên portal
+
+API cho thành viên Ban tổ chức quay số, prefix `/api/v1/quay-so`, mã API "Quay số portal" (chưa có mã trong sheet "API"). Dùng lại lõi quay số: `PortalDrawService` gọi `IContestAdminService` (`EligibleCandidatesAsync`, `ContestPrizesAsync`, `CreateDrawAsync`), không có thuật toán riêng. Lần quay từ portal là một `Draw` thường (`WinnersRequested = 1`, `ExcludePrevious = true`, ghi chú "Quay trên portal", `CreatedBy = "member:<key thành viên>"`) nên hiện trong tab Lần quay số của backoffice và xuất CSV như các lần quay khác.
+
+**Quyền**: cookie thành viên (Umbraco Members) thuộc nhóm **Ban tổ chức quay số**, policy `DrawMemberAccess.Policy`. Chưa đăng nhập: 401 `UNAUTHORIZED`; không thuộc nhóm: 403 `FORBIDDEN`; đều là JSON, không chuyển hướng về trang đăng nhập. Mọi phản hồi có `Cache-Control: no-store`.
+
+**Cuộc thi đã kết thúc** = `EndAt + SubmitGraceHours <= UtcNow` (giờ từ `TimeProvider`), vì bài vẫn được nộp trong thời gian gia hạn.
+
+**Che dữ liệu**: họ tên qua `ContestResultsService.MaskName`, điện thoại qua `MaskPhone`; không phản hồi nào chứa số đầy đủ hay họ tên chưa che, và không ghi dữ liệu cá nhân ra log.
+
+| Method | Path | Mục đích |
+| --- | --- | --- |
+| GET | `/antiforgery` | `{ requestToken, headerName }` cho thao tác quay |
+| GET | `/contests` | Cuộc đã kết thúc, `EndAt` giảm dần: id, name, startAt, endAt (UTC), submittedCount, prizeQuantity, prizeAwarded, status |
+| GET | `/contests/{id}?minScore=` | Chi tiết: contest (id, name, startAt, endAt, topics), prizes, suggestedMinScore, minScore, participants, qualified, remainingInPool, listHash, winners |
+| POST | `/contests/{id}/spin` | `{ prizeId, minScore, requestId }`, cần header antiforgery → drawId, createdAt, prize, winner (code, name, phone đã che, score), remainingInPool |
+
+- `status`: `chua-co-giai` (không có giải), `chua-quay` (chưa trao suất nào), `dang-quay`, `da-quay-xong` (đã trao đủ suất).
+- `suggestedMinScore` = điểm cao nhất trong toàn bộ người dự thi (không loại người đã trúng) nên ngưỡng không tụt sau mỗi lượt; `minScore` áp dụng = tham số nếu có, ngược lại bằng gợi ý. `participants` = số người sau khi gộp theo điện thoại; `qualified` = số người đạt ngưỡng (không loại người đã trúng); `remainingInPool` = số người đạt ngưỡng sau khi loại người đã trúng.
+- `listHash` = SHA-256 hex của danh sách mã dự thi `qualified`, sắp ordinal, nối bằng `\n`.
+- `winners`: mọi người trúng của cuộc, theo `Draw.CreatedAt` rồi `Rank`.
+- `spin` thiếu hoặc rỗng `requestId`: 400 `VALIDATION`. Thử lại cùng `requestId` trả đúng `drawId` cũ.
+
+Lỗi dạng `{ "error": { "code", "message", "fields" } }`:
+
+| HTTP | code | Khi nào |
+| --- | --- | --- |
+| 400 | `VALIDATION` | Thiếu/sai `requestId`, `prizeId`, `minScore` (kèm `fields`) |
+| 404 | `CONTEST_NOT_FOUND` | Không có cuộc thi |
+| 409 | `CONTEST_NOT_FINISHED` | Chưa qua `EndAt + SubmitGraceHours` |
+| 409 | `PRIZE_QUOTA_EXCEEDED`, `DRAW_INSUFFICIENT_CANDIDATES`, `DRAW_REQUEST_CHANGED`, `PRIZE_INACTIVE`, `PRIZE_NOT_IN_CONTEST` | Giữ nguyên mã của lõi quay số |
+
 ## Migration và lịch sử cũ
 
 `DrawEligibleSnapshots` chỉ thêm hai cột nullable (`eligible_snapshot_json`, `request_id`) và unique index request_id, không xóa/đổi lịch sử cũ. Migration tự chạy theo cơ chế khởi động hiện có; sao lưu app DB theo quy trình phát hành trước khi cập nhật.
