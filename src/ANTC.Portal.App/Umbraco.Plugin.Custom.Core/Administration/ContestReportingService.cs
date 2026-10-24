@@ -140,19 +140,28 @@ public sealed class ContestReportingService
         if (f.ContestId is { } contest) snapshots = snapshots.Where(q=>q.ContestId==contest);
         if (topicId is { } selectedTopic) snapshots = snapshots.Where(q=>q.TopicId==selectedTopic);
         var definitions = await snapshots.Select(q=>new {ContestId=(long?)q.ContestId,Name=q.Contest!.Name,
-            Code=q.QuestionCode,TopicId=q.TopicId,Text=q.QuestionText}).ToListAsync(ct);
+            Code=q.QuestionCode,TopicId=q.TopicId,Text=q.QuestionText,q.Answer}).ToListAsync(ct);
+        var topicTitles = await db.ContestTopics.AsNoTracking()
+            .Where(t => f.ContestId == null || t.ContestId == f.ContestId)
+            .Select(t => new { t.ContestId, t.TopicId, t.Title }).ToListAsync(ct);
+        var titles = topicTitles.ToDictionary(t => (t.ContestId, t.TopicId), t => t.Title);
+        var currentTitles = await db.QuizTopics.AsNoTracking().ToDictionaryAsync(t => t.Id, t => t.Title, ct);
+        string TopicTitle(long? contestId, int id) => contestId is { } cid && titles.TryGetValue((cid,id),out var title) && !string.IsNullOrWhiteSpace(title)
+            ? title : currentTitles.GetValueOrDefault(id,"Không còn thông tin chuyên đề");
         var result = new List<QuestionReport>();
         var countMap = counts.ToDictionary(x=>(x.ContestId,x.Code,x.TopicId));
         foreach (var def in definitions)
         {
             countMap.Remove((def.ContestId,def.Code,def.TopicId),out var count);
             result.Add(new(def.ContestId,def.Name,def.Code,def.TopicId,def.Text,
-                count?.Answered??0,count?.Correct??0,count?.A??0,count?.B??0,count?.C??0,count?.D??0));
+                count?.Answered??0,count?.Correct??0,count?.A??0,count?.B??0,count?.C??0,count?.D??0,
+                TopicTitle(def.ContestId,def.TopicId),def.Answer));
         }
         // Include historical answers even when the source question is no longer available.
         foreach (var count in countMap.Values)
             result.Add(new(count.ContestId,count.ContestId is null?"Lượt cũ":"Không có snapshot",count.Code,count.TopicId,"",
-                count.Answered,count.Correct,count.A,count.B,count.C,count.D));
+                count.Answered,count.Correct,count.A,count.B,count.C,count.D,
+                TopicTitle(count.ContestId,count.TopicId)));
         return result.OrderBy(r=>r.CorrectRate is null).ThenBy(r=>r.CorrectRate)
             .ThenBy(r=>r.ContestId).ThenBy(r=>r.TopicId).ThenBy(r=>r.Code,StringComparer.Ordinal).ToList();
     }

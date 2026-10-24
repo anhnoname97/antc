@@ -1,24 +1,24 @@
 {
   "$schema": "../../umbraco-package-schema.json",
   "name": "ANTC Contest Management",
-    "version": "1.14.4",
+    "version": "1.14.10",
   "allowPublicAccess": true,
   "extensions": [
     { "type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.Prizes", "name": "Contest Prizes", "weight": 110,
       "meta": { "label": "Giải thưởng", "icon": "icon-medal", "menus": ["Antc.Menu.ContestManagement"], "href": "section/contest-management/prizes" } },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.Prizes", "name": "Contest Prizes Route",
-      "elementName": "antc-contest-prizes-view", "element": "/App_Plugins/ContestManagement/contest-prizes.js", "meta": { "path": "prizes" },
+      "elementName": "antc-contest-prizes-view", "element": "/App_Plugins/ContestManagement/contest-prizes.js?v=1.14.10", "meta": { "path": "prizes" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.Bank", "name": "Question Bank Route",
-      "elementName": "antc-contest-questions-view", "element": "/App_Plugins/ContestManagement/contest-management.js", "meta": { "path": "bank" },
+      "elementName": "antc-contest-questions-view", "element": "/App_Plugins/ContestManagement/contest-management.js?v=1.14.10", "meta": { "path": "bank" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
     { "type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.Privacy", "name": "Contest Privacy", "weight": 60,
       "meta": { "label": "Xóa dữ liệu cá nhân", "icon": "icon-lock", "menus": ["Antc.Menu.ContestManagement"], "href": "section/contest-management/privacy" } },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.Privacy", "name": "Contest Privacy Route",
-      "elementName": "antc-contest-privacy-view", "element": "/App_Plugins/ContestManagement/contest-privacy.js", "meta": { "path": "privacy" },
+      "elementName": "antc-contest-privacy-view", "element": "/App_Plugins/ContestManagement/contest-privacy.js?v=1.14.10", "meta": { "path": "privacy" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.Draws", "name": "Contest Draws Route",
-      "elementName": "antc-contest-draws-view", "element": "/App_Plugins/ContestManagement/contest-draws.js", "meta": { "path": "draws" },
+      "elementName": "antc-contest-draws-view", "element": "/App_Plugins/ContestManagement/contest-draws.js?v=1.14.10", "meta": { "path": "draws" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
     {
       "type": "section",
@@ -102,7 +102,7 @@
       "alias": "Antc.SectionView.ContestManagement.Questions",
       "name": "Contest Questions View",
       "elementName": "antc-contest-questions-view",
-      "element": "/App_Plugins/ContestManagement/contest-management.js",
+      "element": "/App_Plugins/ContestManagement/contest-management.js?v=1.14.10",
       "weight": 300,
       "meta": {
         "label": "Câu hỏi",
@@ -121,7 +121,7 @@
       "alias": "Antc.SectionRoute.ContestManagement.Topics",
       "name": "Contest Topics Route",
       "elementName": "antc-contest-topics-view",
-      "element": "/App_Plugins/ContestManagement/contest-management.js",
+      "element": "/App_Plugins/ContestManagement/contest-management.js?v=1.14.10",
       "meta": {
         "path": "topics"
       },
@@ -137,7 +137,7 @@
       "alias": "Antc.SectionRoute.ContestManagement.Contest",
       "name": "Contest Route",
       "elementName": "antc-contest-view",
-      "element": "/App_Plugins/ContestManagement/contest-management.js",
+      "element": "/App_Plugins/ContestManagement/contest-management.js?v=1.14.10",
       "meta": {
         "path": "contest"
       },
@@ -157,16 +157,16 @@
     { "type": "menuItem", "kind": "link", "alias": "Antc.MenuItem.ContestManagement.Publication", "name": "Contest Result Publication", "weight": 70,
       "meta": { "label": "Công bố kết quả", "icon": "icon-megaphone", "menus": ["Antc.Menu.ContestManagement"], "href": "section/contest-management/publication" } },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.Dashboard", "name": "Contest Dashboard Route",
-      "elementName": "antc-contest-dashboard-view", "element": "/App_Plugins/ContestManagement/contest-reports.js", "meta": { "path": "dashboard" },
+      "elementName": "antc-contest-dashboard-view", "element": "/App_Plugins/ContestManagement/contest-reports.js?v=1.14.10", "meta": { "path": "dashboard" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.EntriesReport", "name": "Contest Entry Reports Route",
-      "elementName": "antc-contest-entries-report-view", "element": "/App_Plugins/ContestManagement/contest-reports.js", "meta": { "path": "entries-report" },
+      "elementName": "antc-contest-entries-report-view", "element": "/App_Plugins/ContestManagement/contest-reports.js?v=1.14.10", "meta": { "path": "entries-report" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.QuestionReport", "name": "Contest Question Reports Route",
-      "elementName": "antc-contest-question-report-view", "element": "/App_Plugins/ContestManagement/contest-reports.js", "meta": { "path": "question-report" },
+      "elementName": "antc-contest-question-report-view", "element": "/App_Plugins/ContestManagement/contest-reports.js?v=1.14.10", "meta": { "path": "question-report" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] },
     { "type": "sectionRoute", "alias": "Antc.SectionRoute.ContestManagement.Publication", "name": "Contest Result Publication Route",
-      "elementName": "antc-contest-publication-view", "element": "/App_Plugins/ContestManagement/contest-reports.js", "meta": { "path": "publication" },
+      "elementName": "antc-contest-publication-view", "element": "/App_Plugins/ContestManagement/contest-reports.js?v=1.14.10", "meta": { "path": "publication" },
       "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Antc.Section.ContestManagement" }] }
   ]
 }

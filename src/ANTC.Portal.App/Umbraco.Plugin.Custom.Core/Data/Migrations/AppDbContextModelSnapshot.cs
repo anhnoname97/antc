@@ -1164,6 +1164,7 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Navigation("Topic");
                 });
 
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.Draw", b =>
                 {
                     b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", "Contest")

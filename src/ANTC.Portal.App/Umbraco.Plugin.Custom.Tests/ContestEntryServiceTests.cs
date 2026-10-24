@@ -25,8 +25,10 @@ public class ContestEntryServiceTests
         }
     }
 
-    [Fact]
-    public async Task TenConcurrentRequests_ForSamePhone_CreateExactlyTwoEntries()
+    [Theory]
+    [InlineData(2, 2)]
+    [InlineData(0, 10)]
+    public async Task TenConcurrentRequests_ForSamePhone_RespectLimitOrUnlimited(int limit, int expected)
     {
         string databasePath = Path.Combine(Path.GetTempPath(), $"antc-contest-{Guid.NewGuid():N}.db");
         try
@@ -34,7 +36,8 @@ public class ContestEntryServiceTests
             await using (AppDbContext setup = CreateDb(databasePath))
             {
                 await setup.Database.EnsureCreatedAsync();
-                setup.ContestCampaigns.Add(ActiveContest());
+                var contest=ActiveContest();contest.MaxAttempts=limit;
+                setup.ContestCampaigns.Add(contest);
                 await setup.SaveChangesAsync();
             }
 
@@ -60,10 +63,10 @@ public class ContestEntryServiceTests
             start.SetResult();
             bool[] results = await Task.WhenAll(requests);
 
-            Assert.Equal(2, results.Count(x => x));
+            Assert.Equal(expected, results.Count(x => x));
             await using AppDbContext verify = CreateDb(databasePath);
             Entry[] entries = await verify.Entries.OrderBy(x => x.AttemptNo).ToArrayAsync();
-            Assert.Equal(new int?[] { 1, 2 }, entries.Select(x => x.AttemptNo));
+            Assert.Equal(Enumerable.Range(1, expected).Select(n => (int?)n), entries.Select(x => x.AttemptNo));
         }
         finally
         {

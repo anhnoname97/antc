@@ -41,6 +41,27 @@ const path = require('node:path');
         await verifyLayout(dashboard);
         await verifyPageSizes(dashboard);
         await screenshot('dashboard');
+        // Navigate through the sidebar in the same document: page.goto hides SPA routing failures.
+        const navigationMarker = await page.evaluate(() => window.__contestNavigationMarker = crypto.randomUUID());
+        for (const [label, tag] of [
+            ['Câu hỏi', 'antc-contest-questions-view'],
+            ['Chuyên đề', 'antc-contest-topics-view'],
+            ['Cuộc thi', 'antc-contest-view'],
+            ['Giải thưởng', 'antc-contest-prizes-view'],
+            ['Lượt thi', 'antc-contest-entries-report-view'],
+            ['Thống kê câu hỏi', 'antc-contest-question-report-view'],
+            ['Công bố kết quả', 'antc-contest-publication-view'],
+            ['Xóa dữ liệu cá nhân', 'antc-contest-privacy-view'],
+            ['Tổng quan', 'antc-contest-dashboard-view'],
+            ['Câu hỏi', 'antc-contest-questions-view'],
+            ['Cuộc thi', 'antc-contest-view'],
+        ]) {
+            await page.getByRole('link', { name: label, exact: true }).click();
+            console.log('Sidebar click:', label, new URL(page.url()).pathname);
+            await page.locator(tag).waitFor({ state: 'visible', timeout: 10000 });
+            assert.equal(await page.evaluate(() => window.__contestNavigationMarker), navigationMarker, 'Sidebar must navigate without reloading the document');
+        }
+        assert.equal(errors.filter(e => /CustomElementRegistry|already been used/.test(e)).length, 0, 'No duplicate component registration during sidebar navigation');
         await page.goto(root + 'prizes');
         const prizes = page.locator('antc-contest-prizes-view');
         await prizes.getByText('TEST-FIRST', { exact: true }).waitFor({ timeout: 30000 });
@@ -78,6 +99,46 @@ const path = require('node:path');
             await entries.getByRole('combobox', { name: 'Số dòng lượt thi', exact: true }).selectOption(size);
             await page.waitForFunction(({ view, size }) => !view._busy && view._data?.pageSize === Number(size), { view: await entries.elementHandle(), size });
         }
+        await entries.locator('.advanced-search > summary').click();
+        assert.equal(await entries.locator('.entries-filters > label').first().locator('input[name="search"]').count(), 1);
+        const entryMode = entries.getByRole('combobox', { name: 'Chế độ', exact: true });
+        assert.deepEqual(await entryMode.locator('option').allTextContents(), ['Tất cả', 'Ẩn danh', 'Công khai']);
+        assert.equal(await entries.locator('select[name="mode"]').count(), 0);
+        for (const width of [1920, 1600, 1500, 1280, 1100, 900, 460]) {
+            await page.setViewportSize({ width, height: 1000 });
+            if (width === 1920) await screenshot('entries-filters-wide-1920');
+            const fromBox = await entries.locator('input[name="scoreFrom"]').boundingBox();
+            const toBox = await entries.locator('input[name="scoreTo"]').boundingBox();
+            assert.ok(Math.abs(fromBox.y - toBox.y) <= 1, 'Score range must remain on one row');
+            assert.ok(toBox.x > fromBox.x + fromBox.width, 'Score inputs must be side by side, not overlap');
+            const rangeColumns = await entries.locator('.entry-score-range').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+            assert.equal(rangeColumns, 2);
+            if (width > 1100) {
+                const searchBox = await entries.locator('input[name="search"]').boundingBox();
+                const statusBox = await entries.locator('select[name="status"]').boundingBox();
+                const sortBox = await entries.locator('select[name="sort"]').boundingBox();
+                const dateBox = await entries.locator('input[name="to"]').boundingBox();
+                assert.ok(Math.abs(searchBox.y - statusBox.y) <= 1, 'First row must align');
+                assert.ok(Math.abs(fromBox.y - sortBox.y) <= 1 && Math.abs(toBox.y - dateBox.y) <= 1, `Second row must align: ${JSON.stringify({width,fromBox,toBox,sortBox,dateBox})}`);
+            }
+            if (width === 1920) await screenshot('entries-filters-wide-1920');
+        }
+        await page.setViewportSize({ width: 1500, height: 1000 });
+        for (const value of ['false', 'true']) {
+            await entryMode.selectOption(value);
+            const [response] = await Promise.all([
+                page.waitForResponse(r => new URL(r.url()).pathname.endsWith('/contest-reports/entries') && new URL(r.url()).searchParams.get('hasPhone') === value),
+                entries.getByRole('button', { name: 'Lọc dữ liệu', exact: true }).click(),
+            ]);
+            assert.equal(response.status(), 200);
+            assert.equal(new URL(response.url()).searchParams.has('mode'), false);
+            await page.waitForFunction(view => !view._busy, await entries.elementHandle());
+            const data = await response.json();
+            assert.ok(data.items.every(row => Boolean(row.phone) === (value === 'true')));
+        }
+        await screenshot('entries-advanced-filters');
+        await entries.getByRole('button', { name: 'Đặt lại', exact: true }).click();
+        await page.waitForFunction(view => !view._busy, await entries.elementHandle());
         const [downloaded] = await Promise.all([
             page.waitForEvent('download'),
             entries.getByRole('button', { name: 'Xuất danh sách CSV', exact: true }).click(),
@@ -86,6 +147,21 @@ const path = require('node:path');
         await page.goto(root + 'question-report');
         await page.locator('antc-contest-question-report-view table tbody tr').first().waitFor({ timeout: 30000 });
         const questionReport = page.locator('antc-contest-question-report-view');
+        const reportRows = questionReport.locator('tbody tr');
+        await reportRows.first().locator('.report-topic-title').waitFor();
+        for (const row of await reportRows.all()) {
+            const topic = row.locator('.report-topic-title');
+            assert.equal(await topic.getAttribute('title'), await topic.innerText());
+            assert.ok(!/^\d+$/.test(await topic.innerText()), 'Topic column must display its title, not its ID');
+            assert.equal(await row.locator('.stat-answer.is-correct').count(), 1);
+            const style = await row.locator('.stat-answer.is-correct').evaluate(el => ({ radius: getComputedStyle(el).borderRadius, color: getComputedStyle(el).backgroundColor }));
+            assert.equal(style.radius, '50%');assert.notEqual(style.color, 'rgba(0, 0, 0, 0)');
+            const rgb = style.color.match(/\d+/g).map(Number);
+            assert.ok(rgb[1] > rgb[0] && rgb[1] > rgb[2], 'Correct-answer background must be green');
+            const circle = await row.locator('.stat-answer.is-correct').boundingBox();
+            assert.ok(Math.abs(circle.width - circle.height) <= 1, 'Correct-answer background must be a circle');
+        }
+        await screenshot('question-statistics-answers');
         const questionPager = questionReport.locator('[data-pagination="questions"]');
         assert.equal(await questionReport.locator('tbody tr').count(), 50);
         assert.equal(await questionPager.locator('select').inputValue(), '50');
@@ -167,6 +243,8 @@ const path = require('node:path');
                 await topic.locator('.tree-caret').click();
                 assert.equal(await topic.evaluate(node => node.open), true);
                 await editor.locator('input[name="name"]').fill('Giữ nguyên khi lỗi');
+                await editor.locator('input[name="maxAttempts"]').fill('0');
+                assert.equal(await editor.locator('input[name="maxAttempts"]').evaluate(el => el.checkValidity()), true);
                 await editor.locator('input[name="startAt"]').fill('2035-01-10T08:00');
                 await editor.locator('input[name="endAt"]').fill('2035-01-15T08:00');
                 await editor.locator('[data-question]').first().check();

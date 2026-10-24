@@ -3,7 +3,7 @@ import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
-import { contestStyles } from './contest-theme.js';
+import { contestStyles } from './contest-theme.js?v=1.14.10';
 import { pageSizeSelect } from './contest-page-size.js';
 import { paginate } from './contest-pagination.js';
 

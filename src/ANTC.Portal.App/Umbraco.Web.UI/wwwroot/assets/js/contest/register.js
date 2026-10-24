@@ -187,7 +187,7 @@ function contestHref(id) {
 }
 
 function cardHtml(c) {
-  const meta = `${period(c)} · ${c.questionCount} câu · ${c.topics.length} chuyên đề · tối đa ${c.maxAttempts} lượt mỗi số điện thoại`;
+  const meta = `${period(c)} · ${c.questionCount} câu · ${c.topics.length} chuyên đề · ${c.maxAttempts === 0 ? 'không giới hạn lượt thi mỗi số điện thoại' : `tối đa ${c.maxAttempts} lượt mỗi số điện thoại`}`;
   return `<li class="cpick__item"><a class="cpick__card" href="${esc(contestHref(c.id))}">`
     + `<span class="cpick__name">${esc(c.name)}</span>`
     + (c.description ? `<span class="cpick__desc">${esc(c.description)}</span>` : '')
@@ -226,7 +226,7 @@ function selectContest(c) {
   desc.textContent = c.description || '';
   desc.hidden = !c.description;
   document.getElementById('ctime').textContent = period(c);
-  const max = String(c.maxAttempts).padStart(2, '0');
+  const max = c.maxAttempts === 0 ? '∞' : String(c.maxAttempts).padStart(2, '0');
   document.querySelectorAll('[data-max]').forEach((el) => { el.textContent = max; });
 }
 

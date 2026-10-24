@@ -245,7 +245,7 @@ public sealed partial class ContestAdminService(AppDbContext db, TimeProvider ti
         if (request.EndAt == default) fields["endAt"] = "Thời gian kết thúc là bắt buộc.";
         if (request.StartAt != default && request.EndAt != default && endAt <= startAt)
             fields["endAt"] = "Thời gian kết thúc phải sau thời gian bắt đầu.";
-        if (request.MaxAttempts is < 1 or > 1000) fields["maxAttempts"] = "Số lượt tối đa phải từ 1 đến 1.000.";
+        if (request.MaxAttempts is < 0 or > 1000) fields["maxAttempts"] = "Số lượt tối đa phải từ 0 đến 1.000; nhập 0 để không giới hạn.";
         if (request.SubmitGraceHours is < 0 or > 168)
             fields["submitGraceHours"] = "Thời gian gia hạn nộp bài phải từ 0 đến 168 giờ.";
         if (request.ReadTimerFactor is < 0m or > 5m)

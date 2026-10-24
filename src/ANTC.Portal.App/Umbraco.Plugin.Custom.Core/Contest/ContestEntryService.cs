@@ -133,7 +133,7 @@ public class ContestEntryService : IContestEntryService
             {
                 int used = await _db.Entries.CountAsync(
                     e => e.ContestId == contest.Id && e.Phone == phone, ct);
-                if (used >= contest.MaxAttempts)
+                if (contest.MaxAttempts > 0 && used >= contest.MaxAttempts)
                     return CreateEntryResult.Fail(new("ATTEMPT_LIMIT",
                         $"Số {phone} đã dùng hết {contest.MaxAttempts} lượt của cuộc thi này."));
                 attemptNo = used + 1;

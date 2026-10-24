@@ -25,6 +25,26 @@ internal static class ProjectFiles
 
 public sealed class ContestBackofficeAssetsTests
 {
+    [Fact] public void ContestRouteAssetsUseExplicitReleaseVersion()
+    {
+        string plugin=Path.Combine(ProjectFiles.WebRoot,"App_Plugins","ContestManagement");
+        using var manifest=JsonDocument.Parse(File.ReadAllText(Path.Combine(plugin,"umbraco-package.json")));
+        string version=manifest.RootElement.GetProperty("version").GetString()!;
+        foreach(var extension in manifest.RootElement.GetProperty("extensions").EnumerateArray())
+            if(extension.TryGetProperty("element",out var element))
+                Assert.EndsWith("?v="+version,element.GetString());
+        Assert.Contains("import './contest-reports.js?v="+version+"';",File.ReadAllText(Path.Combine(plugin,"contest-management.js")));
+    }
+    [Fact] public void AllContestElementsGuardAgainstDuplicateRegistration()
+    {
+        string plugin=Path.Combine(ProjectFiles.WebRoot,"App_Plugins","ContestManagement");
+        foreach(string file in Directory.GetFiles(plugin,"*.js"))
+        {
+            string script=File.ReadAllText(file).Replace('"','\'');
+            foreach(System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(script,@"customElements\.define\('([^']+)'"))
+                Assert.Contains($"if (!customElements.get('{match.Groups[1].Value}'))",script);
+        }
+    }
     [Fact] public void QuestionsWorkspaceCombinesCrudAndExcel_WithoutBankMenu()
     {
         string plugin=Path.Combine(ProjectFiles.WebRoot,"App_Plugins","ContestManagement");
@@ -83,10 +103,11 @@ public sealed class ContestBackofficeAssetsTests
         string crud=File.ReadAllText(Path.Combine(plugin,"contest-management.js"));
         string reports=File.ReadAllText(Path.Combine(plugin,"contest-reports.js"));
         string theme=File.ReadAllText(Path.Combine(plugin,"contest-theme.js"));
-        Assert.Contains("from './contest-theme.js'",crud);
-        Assert.Contains("from './contest-theme.js'",reports);
+        Assert.Contains("from './contest-theme.js?v=",crud);
+        Assert.Contains("from './contest-theme.js?v=",reports);
         Assert.Contains("const styles = contestStylesText;",crud);
-        Assert.Contains("static styles = contestStyles;",reports);
+        Assert.Contains("static styles = [contestStyles, css`",reports);
+        Assert.Contains(".stat-answer.is-correct { border-radius: 50%;",reports);
         Assert.Contains(":host {",theme);
         Assert.Contains("prefers-reduced-motion",theme);
         Assert.Contains(".form-grid label>span",theme);

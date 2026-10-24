@@ -623,7 +623,7 @@ async function route(focus) {
 // Co the thi them luot: da nop co ten, con luot, cuoc con mo
 function canRetry() {
   const e = state.entry;
-  return !!e && e.mode === 'named' && Number(e.attemptNo) > 0 && Number(e.maxAttempts) > Number(e.attemptNo)
+  return !!e && e.mode === 'named' && Number(e.attemptNo) > 0 && (Number(e.maxAttempts) === 0 || Number(e.maxAttempts) > Number(e.attemptNo))
     && !!state.contest && state.contest.phase === 'open';
 }
 
