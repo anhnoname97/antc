@@ -1,0 +1,40 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "ANTC Vietnamese",
+  "version": "1.0.0",
+  "allowPublicAccess": true,
+  "extensions": [
+    {
+      "type": "backofficeEntryPoint",
+      "alias": "Antc.EntryPoint.Vietnamese",
+      "name": "Chuẩn hóa nhãn quản trị tiếng Việt",
+      "js": "/App_Plugins/AntcVietnamese/entrypoint.js?v=1.0.0"
+    },
+    {
+      "type": "localization",
+      "alias": "Antc.Localization.Vietnamese",
+      "name": "Tiếng Việt cho trang quản trị",
+      "weight": -100,
+      "js": "/App_Plugins/AntcVietnamese/vi.js?v=1.0.0",
+      "meta": { "culture": "vi" }
+    },
+    {
+      "type": "localization",
+      "alias": "Antc.Localization.VietnameseVietnam",
+      "name": "Tiếng Việt (Việt Nam) cho trang quản trị",
+      "weight": -100,
+      "js": "/App_Plugins/AntcVietnamese/vi.js?v=1.0.0",
+      "meta": { "culture": "vi-vn" }
+    },
+    {
+      "type": "dashboard",
+      "alias": "Antc.Dashboard.Welcome",
+      "name": "Hướng dẫn quản trị An toàn tài chính",
+      "overwrites": "Umb.Dashboard.UmbracoNews",
+      "element": "/App_Plugins/AntcVietnamese/welcome.js?v=1.0.0",
+      "weight": 20,
+      "meta": { "label": "Hướng dẫn quản trị" },
+      "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Content" }]
+    }
+  ]
+}

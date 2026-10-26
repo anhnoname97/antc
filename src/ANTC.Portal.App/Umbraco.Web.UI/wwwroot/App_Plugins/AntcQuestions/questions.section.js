@@ -198,7 +198,7 @@ export class AntcQuestionsSection extends UmbLitElement {
         try {
             const published = rows.filter(row => row.isPublished).length;
             const content = `Xóa ${rows.length} nội dung đã chọn? Nội dung sẽ bị gỡ khỏi danh sách và không thể khôi phục trong quản trị.`
-                + (published ? ` Có ${published} nội dung đang công bố; chúng cũng sẽ bị gỡ khỏi portal.` : '')
+                + (published ? ` Có ${published} nội dung đang công bố; chúng cũng sẽ bị gỡ khỏi trang web.` : '')
                 + ' Nếu xóa câu tổng hợp, trạng thái đã xử lý của các câu nguồn vẫn được giữ.';
             if (!await confirmAction(this, 'Xóa nội dung Hỏi – Đáp?', content, `Xóa ${rows.length} nội dung`)) return;
             this._busy = true;
@@ -265,7 +265,7 @@ export class AntcQuestionsSection extends UmbLitElement {
                     <umb-icon name="icon-download"></umb-icon><span>Xuất CSV theo bộ lọc</span>
                 </uui-button>
             <div class="page-shell">
-            <p class="page-description">Tiếp nhận từ portal hoặc tạo trực tiếp câu hỏi, kiến nghị, góp ý. Duyệt phản hồi trước khi công bố.</p>
+            <p class="page-description">Tiếp nhận từ trang web hoặc tạo trực tiếp câu hỏi, kiến nghị, góp ý. Duyệt phản hồi trước khi công bố.</p>
             ${this._error ? html`<div class="notice error" role="alert">${this._error}</div>` : nothing}
             ${this._message ? html`<div class="notice success" role="status">${this._message}</div>` : nothing}
             <uui-box headline="Danh sách nội dung">
@@ -344,7 +344,7 @@ export class AntcQuestionsSection extends UmbLitElement {
                     </tr>`)}
                     ${!this._data.items.length ? html`<tr><td colspan="8" class="empty"><div class="empty-state"><umb-icon name="icon-chat"></umb-icon>
                         <strong>${this._busy ? 'Đang tải nội dung…' : 'Chưa có nội dung phù hợp'}</strong>
-                        <p>${this._busy ? 'Vui lòng đợi trong giây lát.' : 'Nhận nội dung từ portal hoặc bấm Tạo mới để nhập trực tiếp trong quản trị.'}</p>
+                        <p>${this._busy ? 'Vui lòng đợi trong giây lát.' : 'Nhận nội dung từ trang web hoặc bấm Tạo mới để nhập trực tiếp trong quản trị.'}</p>
                     </div></td></tr>` : nothing}
                 </tbody></table></div>
                 <div class="pagination"><uui-button label="Trang trước" look="outline" ?disabled=${this._busy || this._rowDrafts.size > 0 || this._data.page <= 1} @click=${() => this._load(this._data.page - 1)}>Trước</uui-button>
