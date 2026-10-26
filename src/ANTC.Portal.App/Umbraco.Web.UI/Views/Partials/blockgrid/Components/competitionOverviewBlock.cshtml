@@ -19,11 +19,11 @@
 @if (contest is not null)
 {
 <h2 id="@id">@contest.QuestionCount câu hỏi,<br><em>@contest.Topics.Count chuyên đề</em></h2>
-<p>Mỗi câu hỏi giúp bạn nhận ra một dấu hiệu lừa đảo. @(contest.MaxAttempts == 0 ? "Không giới hạn số lượt thi mỗi số điện thoại." : $"Mỗi số điện thoại thi tối đa {contest.MaxAttempts} lượt.")</p>
+<p>Mỗi câu hỏi giúp bạn nhận ra một dấu hiệu lừa đảo. @(contest.MaxAttempts == 0 ? "Không giới hạn lượt thi cho mỗi số điện thoại." : $"Mỗi số điện thoại thi tối đa {contest.MaxAttempts} lượt.")</p>
 <div class="stats">
 <div class="stat"><b data-overview-count="@contest.QuestionCount">@contest.QuestionCount</b><span>@T("questionLabel")</span></div>
 <div class="stat"><b data-overview-count="@contest.Topics.Count">@contest.Topics.Count</b><span>@T("topicLabel")</span></div>
-<div class="stat"><b data-overview-count="@(contest.MaxAttempts == 0 ? null : contest.MaxAttempts.ToString())">@(contest.MaxAttempts == 0 ? "Không giới hạn" : contest.MaxAttempts.ToString())</b><span>@T("attemptLabel")</span></div>
+<div class="stat">@if (contest.MaxAttempts == 0) { <b aria-hidden="true">∞</b><span>Không giới hạn lượt thi</span> } else { <b data-overview-count="@contest.MaxAttempts">@contest.MaxAttempts</b><span>@T("attemptLabel")</span> }</div>
 </div>
 }
 else

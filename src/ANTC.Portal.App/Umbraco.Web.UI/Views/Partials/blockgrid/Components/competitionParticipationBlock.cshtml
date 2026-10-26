@@ -13,7 +13,9 @@
         topic = topic["Chuyên đề:".Length..].Trim();
     }
     string Description(int step) => T($"step{step}Description")
+        .Replace("trong tháng", "trong cuộc thi này")
         .Replace("{maxAttempts}", contest?.MaxAttempts == 0 ? "không giới hạn" : contest?.MaxAttempts.ToString() ?? "theo thể lệ")
+        .Replace("tối đa không giới hạn lượt", "không giới hạn lượt")
         .Replace("{topic}", topic)
         .Replace("{questionCount}", contest?.QuestionCount.ToString() ?? "Các")
         .Replace("{topicCount}", contest?.Topics.Count.ToString() ?? "các");
