@@ -32,6 +32,8 @@ if (builder.Environment.IsDevelopment())
 // Environment and explicit CLI values always override local JSON.
 builder.Configuration.AddEnvironmentVariables().AddCommandLine(args);
 builder.Services.AddWindowsService();
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
+    options.Filters.Add<BackofficeBrandingViewFilter>());
 builder.Services.AddAntcApiProtection(builder.Configuration);
 builder.Services.AddAdministrationIpAllowlist(builder.Configuration, builder.Environment);
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationMiddlewareResultHandler,
@@ -60,6 +62,7 @@ await DeploymentOperations.ImportStructureAsync(app);
 
 // IP thật phải được xác định trước khi chia hạn mức và băm IP của lượt thi/câu hỏi.
 app.UseForwardedHeaders();
+app.UseBackofficeBranding();
 app.UsePublicSitePerformance();
 app.UseWebsiteErrorPages(app.Environment);
 app.UseMiddleware<ApiBoundaryMiddleware>();

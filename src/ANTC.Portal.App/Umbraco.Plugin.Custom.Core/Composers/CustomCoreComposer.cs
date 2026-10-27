@@ -24,6 +24,9 @@ public class CustomCoreComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
     {
+        builder.AddNotificationHandler<UserSavingNotification, BackofficeUserLanguageHandler>();
+        builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, BackofficeUserLanguageHandler>();
+
         // CSDL ung dung, tach khoi CSDL cua Umbraco
         string configured = builder.Config.GetConnectionString("appDb") ?? "Data Source=App_Data/app.sqlite.db";
         builder.Services.AddDbContext<AppDbContext>((services, options) =>
