@@ -1,442 +1,744 @@
-<title>An Toàn Tài Chính · Bẫy cảm xúc</title>
+<title>An Toàn Tài Chính · Tín hiệu cảm xúc</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,800;1,900&display=swap">
 <style>
-/* Bo cuc: banner ung pho (toi, ruc) -> chieu tro (bang truot anh) -> 6 bay cam xuc (luoi mau) -> thu nhan dien -> cuoc thi (bat/tat) -> canh bao -> gioi thieu ngan.
-   Trang thanh phan: cay thu muc ben trai + noi dung ben phai. Mot giao dien sang duy nhat, mau dat ro rang. */
+/* Mockup antoantaichinh.vn huong "6 tin hieu cam xuc" (THAM - SO - GAP - TIN - THUONG - HY VONG, theo cau CD1-013 cua ngan hang cau hoi).
+   Bo cuc: anh lon + lop mau theo tin hieu; trang chu = banner ung pho -> chieu tro -> cam xuc; trang thanh phan = cay thu muc + noi dung.
+   Mot giao dien sang co chu dich (khong co che do toi). */
 :root{
-  --ink:#1B1640;         /* chu chinh, nen banner */
-  --ink-2:#4A4570;       /* chu phu */
-  --paper:#FFFBF4;       /* nen trang */
-  --card:#FFFFFF;
-  --line:#ECE6DA;
-  --sun:#FFD23F;         /* nhan manh, nut phu */
-  --alarm:#F0263C;       /* khan cap */
-  --e-fear:#F0263C;      /* so hai */
-  --e-fomo:#FF7A00;      /* so bo lo */
-  --e-gain:#12B76A;      /* mong duoc nhieu hon */
-  --e-family:#EC3E8E;    /* lo cho nguoi than */
-  --e-love:#7B5CFF;      /* can duoc quan tam */
-  --e-loss:#0097B2;      /* tiec tien da bo ra */
-  --f-display:"Baloo 2","Be Vietnam Pro",system-ui,sans-serif;
-  --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --r-lg:28px; --r-md:18px; --r-sm:12px;
-  --wrap:1200px;
+  --ink:#15123B; --ink-2:#4B4870; --ink-3:#7A769A;
+  --paper:#FFF9F1; --paper-2:#FFF1E0; --card:#FFFFFF; --line:#EDE5D8;
+  --sun:#FFD23F; --alarm:#E8173A;
+  --s-tham:#0FA968; --s-so:#E8173A; --s-gap:#FF7A00; --s-tin:#1F63F0; --s-thuong:#EE3A93; --s-hv:#7F55FF;
+  --f:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r-xl:32px; --r-lg:24px; --r-md:16px; --r-sm:10px;
+  --wrap:1240px;
+  --shadow:0 24px 50px -28px rgba(21,18,59,.45);
   color-scheme:light;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:1rem;line-height:1.55}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ink)}
-h1,h2,h3,h4{font-family:var(--f-display);line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.01em}
+html.big{font-size:118%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f);font-size:1rem;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:#fff}
+h1,h2,h3,h4{margin:0;line-height:1.08;letter-spacing:-.025em;text-wrap:balance;font-weight:800}
 p{margin:0}
 a{color:inherit}
-button{font:inherit;cursor:pointer}
-:focus-visible{outline:3px solid var(--sun);outline-offset:3px;border-radius:6px}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+img{display:block;max-width:100%}
+:focus-visible{outline:3px solid var(--s-tin);outline-offset:3px;border-radius:6px}
 .wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.eyebrow{font-weight:700;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase}
+.eyebrow::before{content:"";width:22px;height:3px;border-radius:3px;background:currentColor}
+.muted{color:var(--ink-2)}
+.small{font-size:.85rem}
+.ic{width:1.15em;height:1.15em;flex:none}
 
-/* ---------- thanh canh bao + header ---------- */
-.alertbar{background:var(--sun);color:var(--ink);font-size:.88rem}
-.alertbar .wrap{display:flex;gap:12px;align-items:center;padding-block:8px;flex-wrap:wrap}
-.alertbar b{background:var(--ink);color:var(--sun);border-radius:99px;padding:2px 10px;font-size:.72rem;letter-spacing:.08em}
-.alertbar a{font-weight:700}
-.contestbar{background:linear-gradient(90deg,var(--e-love),var(--e-family));color:#fff;font-size:.88rem}
+/* ---------- anh: duotone theo mau tin hieu ---------- */
+.ph{position:relative;overflow:hidden;background:var(--c,var(--ink));isolation:isolate}
+.ph img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.12) brightness(1.08);mix-blend-mode:multiply;transition:transform .6s ease}
+.ph.nat img{filter:none;mix-blend-mode:normal}
+a:hover .ph img,.ph:hover img{transform:scale(1.04)}
+
+/* ---------- thanh tren + header ---------- */
+.alertbar{background:var(--ink);color:#fff;font-size:.85rem}
+.alertbar .wrap{display:flex;gap:12px;align-items:center;padding-block:8px;overflow:hidden}
+.alertbar b{flex:none;background:var(--alarm);border-radius:99px;padding:2px 10px;font-size:.68rem;letter-spacing:.1em}
+.alertbar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.alertbar a{flex:none;font-weight:700;color:var(--sun);margin-left:auto}
+.contestbar{background:linear-gradient(90deg,var(--s-hv),var(--s-thuong) 60%,var(--s-gap));color:#fff;font-size:.86rem}
 .contestbar .wrap{display:flex;gap:10px;align-items:center;justify-content:center;padding-block:7px;flex-wrap:wrap;text-align:center}
-.contestbar a{font-weight:700;color:#fff}
-header.site{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--ink);color:#fff}
-header.site .wrap{display:flex;align-items:center;gap:20px;padding-block:12px;position:relative}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-weight:800;font-size:1.25rem}
-.logo i{width:38px;height:38px;border-radius:12px;background:conic-gradient(var(--e-fear),var(--e-fomo),var(--sun),var(--e-gain),var(--e-loss),var(--e-love),var(--e-family),var(--e-fear));display:grid;place-items:center}
-.logo i svg{width:20px;height:20px}
-nav.main{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
-nav.main a{text-decoration:none;font-weight:600;font-size:.92rem;padding:8px 12px;border-radius:99px;color:#E6E3FF}
-nav.main a:hover,nav.main a.on{background:rgba(255,255,255,.12);color:#fff}
-.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:99px;padding:12px 20px;font-weight:700;text-decoration:none;font-size:.95rem;white-space:nowrap}
-.btn-alarm{background:var(--alarm);color:#fff}
+.contestbar a{font-weight:800;color:#fff}
+header.site{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:rgba(255,255,255,.94);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+header.site .wrap{display:flex;align-items:center;gap:18px;padding-block:12px;position:relative}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:900;font-size:1.12rem;letter-spacing:-.02em;flex:none}
+.logo i{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:conic-gradient(from 200deg,var(--s-so),var(--s-gap),var(--sun),var(--s-tham),var(--s-tin),var(--s-hv),var(--s-thuong),var(--s-so))}
+.logo i span{width:30px;height:30px;border-radius:9px;background:#fff;display:grid;place-items:center}
+.logo small{display:block;font-size:.62rem;letter-spacing:.14em;color:var(--ink-3);font-weight:700;text-transform:uppercase;margin-top:1px}
+nav.main{display:flex;gap:2px;margin-left:auto}
+nav.main a{text-decoration:none;font-weight:700;font-size:.9rem;padding:9px 12px;border-radius:99px;color:var(--ink-2);white-space:nowrap}
+nav.main a:hover{background:var(--paper-2);color:var(--ink)}
+nav.main a.on{background:var(--ink);color:#fff}
+nav.main a.urgent{color:var(--alarm)}
+nav.main a.urgent.on{background:var(--alarm);color:#fff}
+.hd-tools{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:99px;padding:12px 20px;font-weight:800;text-decoration:none;font-size:.94rem;white-space:nowrap;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn-alarm{background:var(--alarm);color:#fff;box-shadow:0 10px 24px -12px var(--alarm)}
 .btn-sun{background:var(--sun);color:var(--ink)}
-.btn-ghost{background:transparent;color:inherit;box-shadow:inset 0 0 0 2px currentColor}
-.menu-toggle{display:none;margin-left:auto;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:12px;padding:8px 14px;font-weight:700}
-@media (max-width:980px){
-  nav.main{display:none;position:absolute;left:0;right:0;top:100%;background:var(--ink);flex-direction:column;padding:8px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+.btn-ink{background:var(--ink);color:#fff}
+.btn-white{background:#fff;color:var(--ink)}
+.btn-line{background:transparent;color:inherit;box-shadow:inset 0 0 0 2px currentColor}
+.btn-sm{padding:8px 14px;font-size:.84rem}
+.chip-btn{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:7px 12px;font-weight:800;font-size:.8rem}
+.chip-btn[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.menu-toggle{display:none;margin-left:auto;background:var(--ink);color:#fff;border:0;border-radius:12px;padding:9px 14px;font-weight:800}
+@media (max-width:1120px){
+  nav.main{display:none;position:absolute;left:0;right:0;top:100%;background:#fff;flex-direction:column;padding:8px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
   nav.main.open{display:flex}
   .menu-toggle{display:block}
-  header.site .btn-alarm{display:none}
+  .hd-tools .chip-btn{display:none}
 }
-
-/* ---------- hero ung pho ---------- */
-.hero{background:var(--ink);color:#fff;position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;right:-10%;bottom:-55%;width:70vw;max-width:900px;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(240,38,60,.45),transparent 62%)}
-.hero::after{content:"";position:absolute;left:-15%;top:-40%;width:55vw;max-width:700px;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(123,92,255,.4),transparent 62%)}
-.hero .wrap{position:relative;z-index:1;padding-block:48px 56px;display:grid;gap:32px}
-.hero-top{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center}
-.hero-top > *{min-width:0}
-.hero h1{font-size:clamp(2.4rem,5.6vw,4.6rem);font-weight:800}
-.hero h1 em{font-style:normal;color:var(--sun)}
-.hero .lead{font-size:1.15rem;color:#D9D5FF;margin-top:14px;max-width:34ch}
-.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
-.hero-art{max-width:100%}
-.hero-art svg{width:100%;height:auto;display:block}
-.sit{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.sit a{display:grid;grid-template-rows:auto 1fr;border-radius:var(--r-lg);overflow:hidden;text-decoration:none;background:#fff;color:var(--ink);transition:transform .2s}
-.sit a:hover{transform:translateY(-4px)}
-.sit .art{aspect-ratio:16/9;max-width:100%}
-.sit .art svg{width:100%;height:100%;display:block}
-.sit .txt{padding:16px 20px 20px;display:flex;flex-direction:column;gap:6px;min-width:0}
-.sit h3{font-size:1.35rem}
-.sit .go{font-weight:700;font-size:.9rem;margin-top:auto;display:flex;align-items:center;gap:6px}
-.nums{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.nums .lbl{color:#B8B3E6;font-size:.9rem;margin-right:4px}
-.num{display:flex;align-items:baseline;gap:8px;background:rgba(255,255,255,.08);border-radius:99px;padding:8px 16px}
-.num b{font-family:var(--f-display);font-size:1.5rem;line-height:1;user-select:all}
-.num span{font-size:.82rem;color:#D9D5FF}
-.num.red b{color:#FF7A88}
-@media (max-width:860px){.hero-top{grid-template-columns:1fr}.hero-art{max-width:420px}.sit{grid-template-columns:1fr}.sit a{grid-template-columns:140px 1fr;grid-template-rows:none}.sit .art{aspect-ratio:auto;height:100%}}
-@media (max-width:440px){.sit a{grid-template-columns:110px 1fr}.sit h3{font-size:1.15rem}}
+@media (max-width:520px){.hd-tools .btn-alarm{display:none}.logo small{display:none}}
 
 /* ---------- section chung ---------- */
-section.band{padding-block:72px}
-.sec-head{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;margin-bottom:28px}
-.sec-head h2{font-size:clamp(2rem,4.2vw,3.2rem);font-weight:800}
-.sec-head p{color:var(--ink-2);max-width:40ch}
+.band{padding-block:88px}
+.band.tight{padding-block:56px}
+.sec-head{display:grid;grid-template-columns:1fr minmax(0,420px);gap:24px 48px;align-items:end;margin-bottom:36px}
+.sec-head > *{min-width:0}
+.sec-head h2{font-size:clamp(2rem,4.4vw,3.5rem);margin-top:10px}
+.sec-head p{color:var(--ink-2);font-size:1.05rem}
+@media (max-width:820px){.sec-head{grid-template-columns:1fr}}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:800;border-radius:99px;padding:4px 11px;color:#fff;background:var(--c);text-decoration:none;letter-spacing:.02em;white-space:nowrap}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ---------- HERO trang chu (ung pho) ---------- */
+.hero{position:relative;color:#fff;background:var(--ink);overflow:hidden}
+.hero .bg{position:absolute;inset:0}
+.hero .bg img{width:100%;height:100%;object-fit:cover;object-position:70% 30%}
+.hero .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(21,18,59,.96) 0%,rgba(21,18,59,.86) 38%,rgba(232,23,58,.35) 75%,rgba(232,23,58,.15)),linear-gradient(0deg,rgba(21,18,59,.85),transparent 45%)}
+.hero .wrap{position:relative;padding-block:72px 40px}
+.hero h1{font-size:clamp(2.6rem,6.4vw,5.6rem);font-weight:900;max-width:12ch;letter-spacing:-.035em}
+.hero h1 em{font-style:italic;color:var(--sun)}
+.hero .lead{font-size:1.2rem;color:#E4E1FF;margin-top:18px;max-width:36ch}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.pulse{display:inline-flex;align-items:center;gap:8px;background:rgba(232,23,58,.18);color:#FFB3C0;border-radius:99px;padding:6px 14px 6px 10px;font-weight:800;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+.pulse i{width:10px;height:10px;border-radius:50%;background:var(--alarm);box-shadow:0 0 0 0 rgba(232,23,58,.7);animation:pl 1.8s infinite}
+@keyframes pl{70%{box-shadow:0 0 0 12px rgba(232,23,58,0)}100%{box-shadow:0 0 0 0 rgba(232,23,58,0)}}
+.sit{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
+.sit a{display:flex;flex-direction:column;border-radius:var(--r-lg);overflow:hidden;text-decoration:none;background:#fff;color:var(--ink);box-shadow:var(--shadow);transition:transform .2s}
+.sit a:hover{transform:translateY(-4px)}
+.sit .ph{aspect-ratio:16/8}
+.sit .txt{padding:16px 20px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+.sit .no{font-weight:900;font-size:.78rem;color:var(--c);letter-spacing:.1em}
+.sit h3{font-size:1.25rem;letter-spacing:-.015em}
+.sit .go{font-weight:800;font-size:.88rem;margin-top:auto;padding-top:6px;color:var(--c);display:flex;align-items:center;gap:6px}
+.nums{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:22px}
+.nums .lbl{color:#B9B5E8;font-size:.85rem;font-weight:700;margin-right:4px}
+.num{display:flex;align-items:baseline;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:99px;padding:8px 16px}
+.num b{font-size:1.35rem;line-height:1;font-weight:900;user-select:all}
+.num span{font-size:.8rem;color:#D9D5FF}
+.num.red{background:var(--alarm);border-color:var(--alarm)}
+.num.red span{color:#fff}
+@media (max-width:900px){.sit{grid-template-columns:1fr}.sit a{flex-direction:row}.sit .ph{aspect-ratio:auto;width:38%;flex:none}}
 
 /* ---------- chieu tro ---------- */
-.tricks{overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;-webkit-overflow-scrolling:touch}
-.tricks ol{list-style:none;margin:0;padding:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,260px);gap:16px}
-.trick{scroll-snap-align:start;background:var(--card);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column}
-.trick .art{aspect-ratio:4/3;max-width:100%}
-.trick .art svg{width:100%;height:100%;display:block}
-.trick .txt{padding:14px 18px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
-.trick .no{font-family:var(--f-display);font-weight:800;color:var(--ink-2);font-size:.9rem}
-.trick h3{font-size:1.25rem}
-.trick p{color:var(--ink-2);font-size:.9rem}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
-.chip{font-size:.75rem;font-weight:700;border-radius:99px;padding:3px 10px;color:#fff;text-decoration:none;background:var(--c)}
-.tricks-note{margin-top:16px;color:var(--ink-2);font-size:.92rem}
+.rail{overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 16px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.rail ol{list-style:none;margin:0;padding:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(250px,280px);gap:18px}
+.trick{scroll-snap-align:start;background:var(--card);border-radius:var(--r-lg);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 0 var(--line),0 18px 40px -30px rgba(21,18,59,.5)}
+.trick .ph{aspect-ratio:4/3}
+.trick .num-big{position:absolute;left:16px;bottom:8px;font-size:4.2rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-.05em;z-index:1;text-shadow:0 4px 20px rgba(0,0,0,.25)}
+.trick .txt{padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
+.trick h3{font-size:1.2rem;letter-spacing:-.015em}
+.trick p{color:var(--ink-2);font-size:.9rem;line-height:1.5}
+.trick .tags{margin-top:auto;padding-top:4px}
+.rail-ctrl{display:flex;gap:8px}
+.rail-ctrl button{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:#fff;display:grid;place-items:center}
+.want{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.want div{background:var(--card);border-radius:var(--r-md);padding:16px 18px;display:flex;gap:14px;align-items:center;border:1px solid var(--line)}
+.want b{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--ink);color:var(--sun);font-size:1.1rem;flex:none}
+.want strong{display:block;font-size:1rem;line-height:1.25}
+.want span{font-size:.8rem;color:var(--ink-2);line-height:1.35;display:block}
+@media (max-width:900px){.want{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.want{grid-template-columns:1fr}}
 
-/* ---------- bay cam xuc ---------- */
-.emo-band{background:linear-gradient(180deg,var(--paper),#FFF1DD)}
-.emo-band .sec-head h2 span{background:linear-gradient(90deg,var(--e-fear),var(--e-fomo),var(--e-family),var(--e-love));-webkit-background-clip:text;background-clip:text;color:transparent}
-.emo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.emo{position:relative;border-radius:var(--r-lg);overflow:hidden;color:#fff;text-decoration:none;display:flex;flex-direction:column;background:var(--c);transition:transform .2s}
-.emo:hover{transform:translateY(-4px) rotate(-.4deg)}
-.emo .art{aspect-ratio:16/10;max-width:100%}
-.emo .art svg{width:100%;height:100%;display:block}
-.emo .txt{padding:6px 22px 22px;display:flex;flex-direction:column;gap:10px;flex:1}
-.emo h3{font-size:1.9rem;font-weight:800}
-.bubble{background:#fff;color:var(--ink);border-radius:18px 18px 18px 4px;padding:10px 14px;font-size:.92rem;font-weight:600;position:relative}
-.emo .go{margin-top:auto;font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:6px}
-@media (max-width:900px){.emo-grid{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:560px){.emo-grid{grid-template-columns:1fr}}
-.pause{margin-top:28px;display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;background:var(--ink);color:#fff;border-radius:var(--r-lg);padding:22px 26px}
-.pause .t{font-family:var(--f-display);font-size:3rem;font-weight:800;color:var(--sun);line-height:1}
-.pause h3{font-size:1.5rem}
-.pause p{color:#D9D5FF;font-size:.95rem}
-@media (max-width:700px){.pause{grid-template-columns:1fr}.pause .btn{justify-self:start}}
+/* ---------- 6 tin hieu ---------- */
+.sig-band{background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.sig-band::before{content:"";position:absolute;width:900px;height:900px;border-radius:50%;right:-300px;top:-420px;background:radial-gradient(circle,rgba(127,85,255,.35),transparent 60%)}
+.sig-band .wrap{position:relative}
+.sig-band .sec-head p{color:#CFCBF2}
+.sig-band h2 .rainbow{background:linear-gradient(90deg,var(--s-so),var(--s-gap),var(--sun),var(--s-tham),var(--s-tin),var(--s-thuong));-webkit-background-clip:text;background-clip:text;color:transparent}
+.mosaic{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:150px;gap:14px}
+.mosaic a{position:relative;border-radius:var(--r-lg);overflow:hidden;text-decoration:none;color:#fff;display:block}
+.mosaic a .ph{position:absolute;inset:0}
+.mosaic a .cap{position:absolute;inset:auto 0 0 0;padding:18px 20px;z-index:1;background:linear-gradient(0deg,rgba(0,0,0,.35),transparent)}
+.mosaic .word{font-size:clamp(2.2rem,4.6vw,4rem);font-weight:900;letter-spacing:-.04em;line-height:.9;font-style:italic}
+.mosaic .hook{font-weight:600;font-size:.92rem;opacity:.95;margin-top:6px;max-width:30ch}
+.mosaic .idx{position:absolute;top:16px;right:18px;z-index:1;font-weight:900;font-size:.8rem;background:rgba(255,255,255,.22);border-radius:99px;padding:3px 10px}
+.m1{grid-column:span 5;grid-row:span 3}.m2{grid-column:span 4;grid-row:span 2}.m3{grid-column:span 3;grid-row:span 2}
+.m4{grid-column:span 3;grid-row:span 2}.m5{grid-column:span 4;grid-row:span 2}.m6{grid-column:span 5;grid-row:span 1}
+@media (max-width:980px){.mosaic{grid-template-columns:repeat(2,1fr);grid-auto-rows:190px}.mosaic a{grid-column:span 1!important;grid-row:span 1!important}.mosaic a:first-child{grid-column:span 2!important;grid-row:span 2!important}}
+@media (max-width:520px){.mosaic{grid-template-columns:1fr;grid-auto-rows:180px}.mosaic a:first-child{grid-column:span 1!important;grid-row:span 1!important}}
+.quote{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;margin-top:36px;padding:24px 26px;border-radius:var(--r-lg);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.quote .q{font-size:4rem;line-height:.7;font-weight:900;color:var(--sun)}
+.quote p{font-size:1.2rem;font-weight:600}
+.quote small{display:block;color:#B9B5E8;margin-top:8px;font-size:.82rem}
+.steps4{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:16px;counter-reset:s}
+.steps4 li{list-style:none;position:relative;padding:22px 22px 22px 22px;background:var(--card);color:var(--ink);counter-increment:s}
+.steps4 li:first-child{border-radius:var(--r-lg) 0 0 var(--r-lg)}
+.steps4 li:last-child{border-radius:0 var(--r-lg) var(--r-lg) 0}
+.steps4 li+li{border-left:2px dashed var(--line)}
+.steps4 li::before{content:counter(s);display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--c);color:#fff;font-weight:900;margin-bottom:10px}
+.steps4 h4{font-size:1.1rem}
+.steps4 p{font-size:.88rem;color:var(--ink-2);margin-top:4px}
+.steps4{padding:0}
+@media (max-width:860px){.steps4{grid-template-columns:1fr 1fr}.steps4 li{border-radius:0!important;border-left:0!important}.steps4 li:nth-child(1){border-radius:var(--r-lg) 0 0 0!important}.steps4 li:nth-child(2){border-radius:0 var(--r-lg) 0 0!important}.steps4 li:nth-child(3){border-radius:0 0 0 var(--r-lg)!important}.steps4 li:nth-child(4){border-radius:0 0 var(--r-lg) 0!important}.steps4 li:nth-child(n+3){border-top:2px dashed var(--line)}.steps4 li:nth-child(even){border-left:2px dashed var(--line)!important}}
+@media (max-width:480px){.steps4{grid-template-columns:1fr}.steps4 li{border-radius:0!important;border-left:0!important;border-top:2px dashed var(--line)}.steps4 li:first-child{border-radius:var(--r-lg) var(--r-lg) 0 0!important;border-top:0}.steps4 li:last-child{border-radius:0 0 var(--r-lg) var(--r-lg)!important}}
 
 /* ---------- thu nhan dien ---------- */
-.spot{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px;align-items:center}
-.spot > *{min-width:0}
-.phone{width:min(320px,100%);margin:0 auto;background:var(--ink);border-radius:40px;padding:14px;box-shadow:0 30px 60px -20px rgba(27,22,64,.45)}
-.phone .scr{background:#F2F0FA;border-radius:28px;padding:18px 14px 22px;min-height:360px;display:flex;flex-direction:column;gap:10px}
-.phone .from{font-weight:700;font-size:.85rem;text-align:center;color:var(--ink-2)}
-.phone .msg{background:#fff;border-radius:18px 18px 18px 4px;padding:12px 14px;font-size:.92rem;box-shadow:0 2px 0 var(--line);overflow-wrap:anywhere}
-.phone .msg u{color:#2563EB}
-.phone .time{font-size:.72rem;color:var(--ink-2)}
-.spot-q h2{font-size:clamp(2rem,4vw,3rem)}
-.spot-q .count{font-weight:700;color:var(--ink-2);margin-top:6px}
-.answers{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
-.answers button{border:0;border-radius:var(--r-md);padding:16px 26px;font-weight:800;font-family:var(--f-display);font-size:1.3rem}
-.a-scam{background:var(--alarm);color:#fff}
-.a-real{background:var(--e-gain);color:#fff}
-.verdict{margin-top:20px;border-radius:var(--r-md);padding:18px 20px;background:var(--card);border:2px solid var(--line)}
-.verdict h4{font-size:1.4rem}
+.spot{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:56px;align-items:center}
+.phone{width:min(330px,100%);margin:0 auto;background:var(--ink);border-radius:46px;padding:12px;box-shadow:0 40px 80px -30px rgba(21,18,59,.55);position:relative}
+.phone::before{content:"";position:absolute;top:20px;left:50%;width:90px;height:22px;border-radius:99px;background:#000;transform:translateX(-50%);z-index:2}
+.phone .scr{background:linear-gradient(180deg,#EFEDF9,#F8F6FF);border-radius:36px;padding:54px 14px 24px;min-height:430px;display:flex;flex-direction:column;gap:10px}
+.phone .from{display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:800;font-size:.85rem;color:var(--ink-2);margin-bottom:6px}
+.phone .av{width:52px;height:52px;border-radius:50%;background:var(--ink-3);display:grid;place-items:center;color:#fff;font-weight:900}
+.phone .msg{background:#fff;border-radius:20px 20px 20px 6px;padding:12px 14px;font-size:.92rem;line-height:1.5;box-shadow:0 2px 0 rgba(0,0,0,.04);overflow-wrap:anywhere}
+.phone .msg u{color:var(--s-tin)}
+.phone .msg mark{background:none;color:var(--s-so);font-weight:800}
+.phone .time{font-size:.72rem;color:var(--ink-3);padding-left:6px}
+.spot h2{font-size:clamp(2.2rem,4.4vw,3.4rem)}
+.dots{display:flex;gap:6px;margin-top:14px}
+.dots i{width:28px;height:6px;border-radius:6px;background:var(--line)}
+.dots i.on{background:var(--ink)}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:26px;max-width:460px}
+.answers button{border:0;border-radius:var(--r-md);padding:18px;font-weight:900;font-size:1.25rem;color:#fff;transition:transform .15s}
+.answers button:hover{transform:translateY(-2px)}
+.a-scam{background:var(--alarm)}
+.a-real{background:var(--s-tham)}
+.verdict{margin-top:20px;border-radius:var(--r-md);padding:20px 22px;background:var(--card);border-left:6px solid var(--c);box-shadow:var(--shadow);max-width:560px}
+.verdict h4{font-size:1.35rem}
 .verdict p{color:var(--ink-2);margin-top:6px}
-.verdict .chip{display:inline-block;margin-top:10px}
-.verdict .next{margin-top:14px}
-@media (max-width:820px){.spot{grid-template-columns:1fr}}
+.verdict .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+@media (max-width:860px){.spot{grid-template-columns:1fr;gap:32px}}
 
-/* ---------- cuoc thi ---------- */
-.contest{border-radius:var(--r-lg);overflow:hidden;display:grid;grid-template-columns:1fr 1fr;background:linear-gradient(120deg,var(--e-love),var(--e-family) 70%,var(--e-fomo));color:#fff}
-.contest > *{min-width:0}
-.contest .txt{padding:40px;display:flex;flex-direction:column;gap:14px}
-.contest h2{font-size:clamp(2rem,4vw,3.2rem);font-weight:800}
-.contest .meta{display:flex;gap:10px;flex-wrap:wrap}
-.contest .meta span{background:rgba(255,255,255,.18);border-radius:99px;padding:6px 14px;font-weight:600;font-size:.88rem}
-.contest .art svg{width:100%;height:100%;display:block}
-@media (max-width:820px){.contest{grid-template-columns:1fr}.contest .txt{padding:28px}.contest .art{max-height:260px}}
+/* ---------- banner anh (cuoc thi, gioi thieu...) ---------- */
+.promo{position:relative;border-radius:var(--r-xl);overflow:hidden;color:#fff;min-height:420px;display:flex;align-items:flex-end}
+.promo .ph{position:absolute;inset:0}
+.promo .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(21,18,59,.9),rgba(21,18,59,.55) 50%,transparent)}
+.promo .txt{position:relative;z-index:1;padding:44px;max-width:640px;display:flex;flex-direction:column;gap:14px}
+.promo h2{font-size:clamp(2rem,4.4vw,3.6rem);font-weight:900}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pills span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:99px;padding:6px 14px;font-weight:700;font-size:.85rem}
+@media (max-width:640px){.promo .txt{padding:26px}.promo{min-height:380px}}
 
-/* ---------- canh bao ---------- */
-.news{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.news article{background:var(--card);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column}
-.news .art{aspect-ratio:16/9;max-width:100%}
-.news .art svg{width:100%;height:100%;display:block}
-.news .txt{padding:16px 20px 20px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
-.news h3{font-size:1.2rem}
-.news small{color:var(--ink-2);font-size:.8rem}
-@media (max-width:900px){.news{grid-template-columns:1fr}.news article{display:grid;grid-template-columns:160px 1fr}.news .art{aspect-ratio:auto;height:100%}}
-@media (max-width:440px){.news article{grid-template-columns:1fr}.news .art{aspect-ratio:16/9;height:auto}}
+/* ---------- the anh (canh bao, bai doc, linh vuc) ---------- */
+.cards{display:grid;gap:18px}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.cards.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--card);border-radius:var(--r-lg);overflow:hidden;display:flex;flex-direction:column;text-decoration:none;box-shadow:0 1px 0 var(--line),0 18px 40px -32px rgba(21,18,59,.5)}
+.card .ph{aspect-ratio:16/9}
+.card .txt{padding:18px 20px 20px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;flex:1}
+.card h3{font-size:1.18rem;letter-spacing:-.015em}
+.card .meta{color:var(--ink-3);font-size:.8rem;margin-top:auto}
+.warn-pill{display:inline-flex;gap:6px;align-items:center;background:#FFF1D6;color:#9A5B00;border-radius:99px;padding:3px 10px;font-weight:800;font-size:.74rem}
+@media (max-width:980px){.cards.c3{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){.cards.c3,.cards.c2{grid-template-columns:1fr}}
 
-/* ---------- gioi thieu ngan + footer ---------- */
-.about{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;border-top:1px solid var(--line);padding-block:36px}
-.about p{color:var(--ink-2);max-width:60ch}
-.about b{color:var(--ink)}
-.channels{display:flex;gap:8px;flex-wrap:wrap}
-.channels span{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 14px;font-size:.85rem;font-weight:600}
-@media (max-width:820px){.about{grid-template-columns:1fr}}
-footer.site{background:var(--ink);color:#C9C5EE;font-size:.9rem}
-footer.site .wrap{padding-block:36px 84px;display:flex;gap:24px;justify-content:space-between;flex-wrap:wrap}
-footer.site b{color:#fff}
+/* ---------- hoi dap teaser + gioi thieu ngan ---------- */
+.duo{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+.duo > *{min-width:0}
+.panel{border-radius:var(--r-xl);padding:36px;display:flex;flex-direction:column;gap:14px}
+.panel.ink{background:var(--ink);color:#fff}
+.panel.sun{background:var(--sun)}
+.panel h3{font-size:clamp(1.6rem,3vw,2.3rem)}
+.panel ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.panel li{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.panel li b{flex:none;width:24px;height:24px;border-radius:50%;background:var(--alarm);color:#fff;display:grid;place-items:center;font-size:.75rem}
+@media (max-width:860px){.duo{grid-template-columns:1fr}.panel{padding:26px}}
 
-/* ---------- trang thanh phan: cay thu muc ---------- */
-.inner-hero{color:#fff;background:var(--c)}
-.inner-hero .wrap{padding-block:28px 36px;display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center}
-.inner-hero .wrap > *{min-width:0}
-.crumb{font-size:.85rem;opacity:.92;display:flex;gap:6px;flex-wrap:wrap}
-.crumb a{text-decoration:none;font-weight:600}
-.inner-hero h1{font-size:clamp(2.6rem,6vw,4.8rem);font-weight:800;margin-top:10px}
-.inner-hero .lead{font-size:1.1rem;margin-top:8px;max-width:38ch;opacity:.95}
-.inner-hero .art svg{width:100%;height:auto;display:block;border-radius:var(--r-lg);box-shadow:0 0 0 6px rgba(255,255,255,.25)}
-@media (max-width:820px){.inner-hero .wrap{grid-template-columns:1fr}.inner-hero .art{max-width:380px}}
-.layout{display:grid;grid-template-columns:280px 1fr;gap:36px;padding-block:36px 72px}
-.layout > *{min-width:0}
-.tree{position:sticky;top:84px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 10px;font-size:.92rem}
-.tree summary{list-style:none}
-.tree summary::-webkit-details-marker{display:none}
-.tree > details > summary{font-weight:800;font-family:var(--f-display);font-size:1.15rem;padding:4px 8px;cursor:pointer}
-.tree .tree-title{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:700;padding:0 8px 6px}
-.tree ul{list-style:none;margin:0 0 0 16px;padding:0 0 0 14px;border-left:2px dashed var(--line)}
-.tree li{position:relative}
-.tree li::before{content:"";position:absolute;left:-14px;top:17px;width:12px;border-top:2px dashed var(--line)}
-.tree .node{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;text-decoration:none;color:var(--ink);font-weight:600}
-.tree .node:hover{background:#F6F2EA}
-.tree .node.on{background:var(--c);color:#fff}
-.tree .dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c)}
-.tree .node.on .dot{background:#fff}
-.tree .leaf{font-weight:500;font-size:.88rem;color:var(--ink-2)}
-.tree .leaf.on{background:#F6F2EA;color:var(--ink);font-weight:700}
-.tree .root{display:flex;align-items:center;gap:8px;font-weight:800;padding:6px 8px;color:var(--ink);text-decoration:none;border-radius:10px}
-.tree .root svg{width:18px;height:18px;flex:none}
-.tree .root:hover{background:#F6F2EA}
-.tree .grp{margin-top:4px}
-@media (max-width:900px){.layout{grid-template-columns:1fr}.tree{position:static}}
-.block{margin-bottom:44px}
-.block h2{font-size:clamp(1.7rem,3vw,2.3rem);font-weight:800;margin-bottom:16px}
-.says{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 14px}
-.says .bubble{border:2px solid var(--c);font-size:1rem;padding:16px 18px;margin-bottom:12px}
-.says .bubble::after{content:"";position:absolute;left:-2px;bottom:-12px;border:6px solid transparent;border-top-color:var(--c);border-left-color:var(--c)}
-@media (max-width:760px){.says{grid-template-columns:1fr}}
-.why{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 24px}
-.why .ic{width:72px;height:72px;border-radius:22px;background:var(--c);display:grid;place-items:center}
-.why .ic svg{width:40px;height:40px}
-.why p{font-size:1.15rem;font-weight:600}
-.cure{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;counter-reset:c;padding:0;margin:0}
-.cure li{list-style:none;background:var(--card);border-radius:var(--r-md);padding:20px;border-top:6px solid var(--c);font-weight:600;counter-increment:c}
-.cure li::before{content:counter(c);display:block;font-family:var(--f-display);font-size:2.4rem;font-weight:800;color:var(--c);line-height:1;margin-bottom:6px}
-@media (max-width:760px){.cure{grid-template-columns:1fr}}
-.cases{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.case{display:grid;grid-template-columns:110px 1fr;background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;scroll-margin-top:96px;transition:box-shadow .3s}
-.case.hl{box-shadow:0 0 0 4px var(--c)}
-.case .art svg{width:100%;height:100%;display:block}
-.case .txt{padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.case h3{font-size:1.15rem}
-.case p{font-size:.88rem;color:var(--ink-2)}
-@media (max-width:640px){.cases{grid-template-columns:1fr}}
-.other-emo{display:flex;gap:10px;flex-wrap:wrap}
-.other-emo a{border-radius:99px;padding:10px 18px;color:#fff;font-weight:700;text-decoration:none;background:var(--c)}
+/* ---------- footer ---------- */
+footer.site{background:var(--ink);color:#C9C5EE;font-size:.9rem;margin-top:0}
+footer.site .wrap{padding-block:56px 96px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px}
+footer.site .wrap > *{min-width:0}
+footer.site h4{color:#fff;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+footer.site ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+footer.site a{text-decoration:none}
+footer.site a:hover{color:#fff}
+footer.site .bottom{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.12);padding-top:20px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:.8rem}
+footer.site .sponsor{margin-top:16px;padding:12px 14px;border:1px dashed rgba(255,255,255,.25);border-radius:12px;font-size:.8rem}
+@media (max-width:900px){footer.site .wrap{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){footer.site .wrap{grid-template-columns:1fr}}
 
-/* ---------- thanh mockup ---------- */
-.mock{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:50;background:#fff;color:var(--ink);border-radius:99px;box-shadow:0 10px 30px -8px rgba(27,22,64,.45);display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;font-size:.8rem;font-weight:700}
-.mock .seg{display:flex;background:#F1EEF8;border-radius:99px;padding:3px}
-.mock .seg button{border:0;background:none;border-radius:99px;padding:5px 12px;font-weight:700;font-size:.8rem;color:var(--ink-2)}
+/* ---------- trang thanh phan ---------- */
+.p-hero{position:relative;color:#fff;background:var(--c,var(--ink));overflow:hidden}
+.p-hero .ph{position:absolute;inset:0;background:var(--c,var(--ink))}
+.p-hero .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(21,18,59,.75),rgba(21,18,59,.25) 60%,transparent)}
+.p-hero.duo-tone .ph::after{background:linear-gradient(90deg,rgba(0,0,0,.35),transparent 70%)}
+.p-hero .wrap{position:relative;z-index:1;padding-block:44px 64px}
+.crumb{display:flex;gap:8px;flex-wrap:wrap;font-size:.84rem;font-weight:600;opacity:.92}
+.crumb a{text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+.p-hero h1{font-size:clamp(2.6rem,6.6vw,5.4rem);font-weight:900;margin-top:22px;max-width:14ch;letter-spacing:-.04em}
+.p-hero h1.word{font-style:italic;font-size:clamp(3.4rem,10vw,8rem);letter-spacing:-.05em}
+.p-hero .lead{font-size:1.18rem;margin-top:14px;max-width:40ch;opacity:.96}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:44px;padding-block:44px 88px}
+.tree{position:sticky;top:90px;align-self:start;max-height:calc(100vh - 110px);overflow:auto;background:var(--card);border-radius:var(--r-lg);padding:16px 10px 14px;font-size:.9rem;box-shadow:0 1px 0 var(--line),0 18px 40px -34px rgba(21,18,59,.5)}
+.tree-h{display:flex;align-items:center;gap:8px;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:800;padding:0 10px 10px}
+.tree ul{list-style:none;margin:0;padding:0}
+.tree ul ul{margin:2px 0 6px 19px;padding-left:12px;border-left:2px solid var(--line)}
+.tree ul ul li{position:relative}
+.tree ul ul li::before{content:"";position:absolute;left:-12px;top:16px;width:9px;border-top:2px solid var(--line)}
+.tree a{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:10px;text-decoration:none;color:var(--ink);font-weight:700;line-height:1.3}
+.tree a:hover{background:var(--paper-2)}
+.tree a svg{width:18px;height:18px;flex:none;color:var(--ink-3)}
+.tree a.cur{background:var(--ink);color:#fff}
+.tree a.cur svg{color:var(--sun)}
+.tree ul ul a{font-weight:600;font-size:.86rem;color:var(--ink-2);padding:5px 8px}
+.tree ul ul a.cur{background:var(--c,var(--ink));color:#fff}
+.tree .dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.tree ul ul a.cur .dot{background:#fff}
+.tree-m{display:none}
+@media (max-width:960px){
+  .layout{grid-template-columns:1fr;gap:20px;padding-top:20px}
+  .tree{display:none}
+  .tree-m{display:block;background:var(--card);border-radius:var(--r-md);box-shadow:0 1px 0 var(--line)}
+  .tree-m > summary{list-style:none;padding:14px 16px;font-weight:800;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .tree-m > summary::-webkit-details-marker{display:none}
+  .tree-m .tree{display:block;position:static;max-height:none;box-shadow:none;padding-top:0}
+}
+.sec{margin-bottom:64px;scroll-margin-top:96px}
+.sec > h2{font-size:clamp(1.8rem,3.4vw,2.6rem);margin:8px 0 18px}
+.sec > .intro{color:var(--ink-2);max-width:62ch;margin:-6px 0 20px;font-size:1.02rem}
+
+/* ung pho */
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.pick button{all:unset;cursor:pointer;display:flex;flex-direction:column;border-radius:var(--r-lg);overflow:hidden;background:#fff;box-shadow:0 1px 0 var(--line),0 18px 40px -32px rgba(21,18,59,.5);outline:3px solid transparent;transition:outline-color .2s,transform .2s}
+.pick button:hover{transform:translateY(-3px)}
+.pick button:focus-visible{outline-color:var(--s-tin)}
+.pick button[aria-pressed="true"]{outline-color:var(--c)}
+.pick .ph{aspect-ratio:16/10}
+.pick .txt{padding:14px 16px 16px;display:flex;flex-direction:column;gap:4px}
+.pick h3{font-size:1.08rem}
+.pick p{font-size:.85rem;color:var(--ink-2)}
+@media (max-width:760px){.pick{grid-template-columns:1fr}.pick button{flex-direction:row}.pick .ph{aspect-ratio:auto;width:36%;flex:none}}
+.todo{margin-top:16px;border-radius:var(--r-lg);background:var(--c);color:#fff;padding:24px 26px;display:grid;gap:12px}
+.todo h3{font-size:1.4rem}
+.todo ol{margin:0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t}
+.todo li{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.14);border-radius:12px;padding:10px 14px;font-weight:600;counter-increment:t}
+.todo li::before{content:counter(t);flex:none;width:26px;height:26px;border-radius:50%;background:#fff;color:var(--c);display:grid;place-items:center;font-weight:900;font-size:.85rem}
+.side-links{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.side-links a{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1.5px dashed #D9CFBE;border-radius:var(--r-md);padding:14px 16px;text-decoration:none;font-weight:700}
+.side-links small{display:block;font-weight:500;color:var(--ink-2)}
+@media (max-width:640px){.side-links{grid-template-columns:1fr}}
+.check{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.check ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.check label{display:flex;gap:14px;align-items:flex-start;background:#fff;border-radius:var(--r-md);padding:14px 16px;cursor:pointer;border:2px solid transparent;box-shadow:0 1px 0 var(--line);transition:border-color .15s,background .15s}
+.check input{appearance:none;flex:none;width:26px;height:26px;border-radius:8px;border:2px solid #CFC6B6;display:grid;place-items:center;margin:0;background:#fff}
+.check input:checked{background:var(--alarm);border-color:var(--alarm)}
+.check input:checked::after{content:"✕";color:#fff;font-weight:900;font-size:.85rem}
+.check label:has(input:checked){border-color:var(--alarm);background:#FFF2F4}
+.check label span b{color:var(--alarm)}
+.check .ok{font-size:.85rem;color:#0B7A4B;margin-top:4px;display:block}
+.meter{position:sticky;top:96px;border-radius:var(--r-lg);padding:22px;background:var(--ink);color:#fff;display:grid;gap:10px}
+.meter .big{font-size:3.4rem;font-weight:900;line-height:1}
+.meter.hot{background:var(--alarm)}
+@media (max-width:860px){.check{grid-template-columns:1fr}.meter{position:static}}
+.two-q{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.two-q div{background:#fff;border-radius:var(--r-lg);padding:22px;box-shadow:0 1px 0 var(--line)}
+.two-q b.n{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--s-tin);color:#fff;font-weight:900;font-size:1.2rem;margin-bottom:12px}
+.two-q p{font-size:1.05rem;font-weight:600}
+.two-q mark{background:linear-gradient(transparent 60%,#FFE58A 60%);color:inherit}
+.alert-line{margin-top:14px;border-radius:var(--r-md);background:#FFF1D6;color:#7A4700;padding:14px 18px;font-weight:700}
+@media (max-width:700px){.two-q{grid-template-columns:1fr}}
+.phonebook{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.phonebook div{border-radius:var(--r-lg);padding:22px;background:#fff;box-shadow:0 1px 0 var(--line);display:flex;flex-direction:column;gap:6px}
+.phonebook .k{font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.phonebook b{font-size:2.4rem;font-weight:900;line-height:1;letter-spacing:-.03em;user-select:all}
+.phonebook div.red{background:var(--alarm);color:#fff}
+.phonebook div.red .k{color:#FFD0D8}
+.phonebook p{font-size:.86rem}
+.phonebook div:not(.red) p{color:var(--ink-2)}
+@media (max-width:960px){.phonebook{grid-template-columns:1fr 1fr}}
+@media (max-width:460px){.phonebook{grid-template-columns:1fr}}
+.src{font-size:.8rem;color:var(--ink-3);margin-top:12px}
+
+/* tin hieu */
+.says{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.bub{position:relative;background:#fff;border-radius:22px 22px 22px 6px;padding:18px 20px;font-weight:700;font-size:1.04rem;line-height:1.45;box-shadow:0 1px 0 var(--line),0 18px 40px -32px rgba(21,18,59,.5);border-top:5px solid var(--c)}
+.bub small{display:block;font-weight:600;color:var(--ink-3);font-size:.75rem;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+@media (max-width:780px){.says{grid-template-columns:1fr}}
+.feel{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feel div{display:flex;gap:12px;align-items:center;background:var(--c);color:#fff;border-radius:var(--r-md);padding:16px 18px;font-weight:700}
+.feel div i{flex:none;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-style:normal}
+@media (max-width:780px){.feel{grid-template-columns:1fr}}
+.do3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;counter-reset:d;padding:0;margin:0}
+.do3 li{list-style:none;background:#fff;border-radius:var(--r-lg);padding:22px;font-weight:700;font-size:1.02rem;counter-increment:d;box-shadow:0 1px 0 var(--line)}
+.do3 li::before{content:"0" counter(d);display:block;font-size:2.2rem;font-weight:900;color:var(--c);line-height:1;margin-bottom:10px;letter-spacing:-.04em}
+@media (max-width:780px){.do3{grid-template-columns:1fr}}
+.cases{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.case{display:grid;grid-template-columns:130px minmax(0,1fr);background:#fff;border-radius:var(--r-md);overflow:hidden;box-shadow:0 1px 0 var(--line);text-decoration:none;scroll-margin-top:100px;outline:3px solid transparent;transition:outline-color .25s}
+.case.hl{outline-color:var(--c)}
+.case .ph{min-height:110px}
+.case .txt{padding:14px 16px;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.case h3{font-size:1.06rem}
+.case p{font-size:.85rem;color:var(--ink-2)}
+@media (max-width:700px){.cases{grid-template-columns:1fr}}
+.next-sig{display:flex;gap:10px;flex-wrap:wrap}
+.next-sig a{display:flex;align-items:center;gap:10px;border-radius:99px;padding:10px 18px 10px 10px;background:var(--c);color:#fff;font-weight:900;text-decoration:none;font-style:italic;letter-spacing:-.01em}
+.next-sig a i{width:30px;height:30px;border-radius:50%;overflow:hidden;flex:none;background:rgba(255,255,255,.3)}
+.next-sig a i img{width:100%;height:100%;object-fit:cover;filter:grayscale(1);mix-blend-mode:multiply}
+.matrix{overflow-x:auto;background:#fff;border-radius:var(--r-lg);box-shadow:0 1px 0 var(--line)}
+.matrix table{border-collapse:collapse;width:100%;min-width:720px;font-size:.9rem}
+.matrix th,.matrix td{padding:12px 14px;text-align:center;border-bottom:1px solid var(--line)}
+.matrix th:first-child,.matrix td:first-child{text-align:left;font-weight:700}
+.matrix thead th{font-weight:900;font-style:italic;color:var(--c);font-size:.95rem}
+.matrix td i{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--c)}
+.matrix tr:last-child td{border-bottom:0}
+
+/* quiz */
+.quiz{background:#fff;border-radius:var(--r-xl);padding:28px;box-shadow:0 1px 0 var(--line),0 24px 50px -36px rgba(21,18,59,.5)}
+.quiz .top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.quiz .lab{font-size:.78rem;font-weight:800;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase}
+.quiz .bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-bottom:18px}
+.quiz .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--s-hv),var(--s-thuong));transition:width .3s}
+.quiz h3{font-size:1.3rem;line-height:1.35;letter-spacing:-.01em}
+.quiz .sitn{background:var(--paper-2);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.95rem}
+.opts{display:grid;gap:10px;margin-top:18px}
+.opts button{display:flex;gap:12px;align-items:flex-start;text-align:left;border:2px solid var(--line);background:#fff;border-radius:var(--r-md);padding:13px 14px;font-weight:600;line-height:1.4;transition:border-color .15s}
+.opts button:hover:not(:disabled){border-color:var(--ink-3)}
+.opts button b{flex:none;width:28px;height:28px;border-radius:8px;background:var(--paper-2);display:grid;place-items:center;font-weight:900}
+.opts button.right{border-color:var(--s-tham);background:#EAFBF3}
+.opts button.right b{background:var(--s-tham);color:#fff}
+.opts button.wrong{border-color:var(--alarm);background:#FFF0F2}
+.opts button.wrong b{background:var(--alarm);color:#fff}
+.opts button:disabled{cursor:default}
+.explain{margin-top:14px;border-radius:var(--r-md);padding:14px 16px;font-weight:600}
+.explain.r{background:#EAFBF3;color:#0B5E3A}
+.explain.w{background:#FFF0F2;color:#8C1027}
+.quiz .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.score{text-align:center;padding:12px 0}
+.score b{display:block;font-size:4rem;font-weight:900;line-height:1;background:linear-gradient(90deg,var(--s-hv),var(--s-thuong));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* thu doan */
+.search{display:flex;gap:8px;background:#fff;border-radius:99px;padding:6px;max-width:560px;margin-top:24px;box-shadow:var(--shadow)}
+.search input{flex:1;min-width:0;border:0;background:none;padding:10px 16px;font-size:1rem;color:var(--ink);outline:none}
+.search-note{font-size:.82rem;opacity:.9;margin-top:10px;display:flex;gap:8px;align-items:center}
+.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.field{position:relative;border-radius:var(--r-lg);overflow:hidden;min-height:230px;color:#fff;text-decoration:none;display:flex;align-items:flex-end;scroll-margin-top:100px;outline:4px solid transparent;transition:outline-color .25s}
+.field.hl{outline-color:var(--sun)}
+.field .ph{position:absolute;inset:0}
+.field .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(21,18,59,.9),rgba(21,18,59,.1) 70%)}
+.field .txt{position:relative;z-index:1;padding:18px 20px;display:flex;flex-direction:column;gap:6px;width:100%}
+.field .no{font-weight:900;font-size:.8rem;opacity:.85}
+.field h3{font-size:1.3rem}
+.field .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.field .star{position:absolute;top:14px;left:14px;z-index:1;background:var(--sun);color:var(--ink);font-weight:900;font-size:.74rem;border-radius:99px;padding:4px 10px}
+@media (max-width:900px){.fields{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.fields{grid-template-columns:1fr}}
+.month-note{margin-top:16px;display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(90deg,var(--s-hv),var(--s-thuong));color:#fff;border-radius:var(--r-lg);padding:18px 22px}
+
+/* cuoc thi */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.stats div{background:#fff;border-radius:var(--r-lg);padding:22px;box-shadow:0 1px 0 var(--line)}
+.stats b{display:block;font-size:3.2rem;font-weight:900;line-height:1;letter-spacing:-.04em;color:var(--c)}
+.stats span{font-weight:700;color:var(--ink-2)}
+@media (max-width:640px){.stats{grid-template-columns:1fr}}
+.ticket{display:grid;grid-template-columns:minmax(0,1fr) 260px;border-radius:var(--r-xl);overflow:hidden;background:#fff;box-shadow:var(--shadow);margin-top:18px}
+.ticket .l{padding:28px;display:flex;flex-direction:column;gap:10px}
+.ticket .l ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+.ticket .l li{display:flex;gap:8px;font-weight:600;font-size:.94rem}
+.ticket .l li::before{content:"✓";color:var(--s-tham);font-weight:900}
+.ticket .r{position:relative;border-left:3px dashed var(--line)}
+.ticket .r .ph{position:absolute;inset:0}
+@media (max-width:700px){.ticket{grid-template-columns:1fr}.ticket .r{min-height:180px;border-left:0;border-top:3px dashed var(--line)}}
+.topics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.topics div{background:#fff;border-radius:var(--r-md);padding:16px;box-shadow:0 1px 0 var(--line);display:flex;flex-direction:column;gap:6px}
+.topics b{font-size:.74rem;letter-spacing:.12em;color:var(--ink-3)}
+.topics span{font-weight:700;line-height:1.3}
+@media (max-width:900px){.topics{grid-template-columns:1fr 1fr}}
+.form{background:#fff;border-radius:var(--r-xl);padding:26px;box-shadow:0 1px 0 var(--line);display:grid;gap:12px}
+.form label{font-weight:800}
+.form textarea,.form input[type=email]{width:100%;border:2px solid var(--line);border-radius:var(--r-md);padding:12px 14px;background:var(--paper);resize:vertical;font-size:1rem}
+.form textarea:focus,.form input[type=email]:focus{outline:none;border-color:var(--s-tin)}
+.form .hint{font-size:.84rem;color:var(--ink-3)}
+.form .warn{background:#FFF1D6;color:#7A4700;border-radius:12px;padding:12px 14px;font-weight:700;font-size:.9rem}
+.form .okmsg{background:#EAFBF3;color:#0B5E3A;border-radius:12px;padding:12px 14px;font-weight:700}
+.form .cb{display:flex;gap:10px;align-items:flex-start;font-weight:500}
+.form .cb input{margin-top:5px;accent-color:var(--ink)}
+.form .row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.form button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.share{display:flex;flex-direction:column;gap:14px;border-radius:var(--r-xl);padding:26px;background:var(--s-thuong);color:#fff}
+.share .faces{display:flex}
+.share .faces i{width:46px;height:46px;border-radius:50%;border:3px solid var(--s-thuong);margin-left:-10px;background:var(--sun);display:grid;place-items:center;color:var(--ink);font-weight:900;font-style:normal}
+.share .faces i:first-child{margin-left:0}
+.share .url{display:flex;gap:8px;background:rgba(255,255,255,.18);border-radius:99px;padding:6px 6px 6px 16px;align-items:center;justify-content:space-between}
+.share .url span{font-weight:800;user-select:all;overflow:hidden;text-overflow:ellipsis}
+.g2{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+.g2 > *{min-width:0}
+@media (max-width:860px){.g2{grid-template-columns:1fr}}
+
+/* cuoc thi thang */
+.real{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:var(--s-tham);color:#fff;border-radius:var(--r-lg);overflow:hidden}
+.real div{padding:18px;display:flex;flex-direction:column;gap:8px;font-weight:700;line-height:1.35}
+.real div+div{border-left:1px solid rgba(255,255,255,.25)}
+.real i{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--s-tham);display:grid;place-items:center;font-style:normal;font-weight:900}
+@media (max-width:900px){.real{grid-template-columns:1fr 1fr}.real div+div{border-left:0}.real div{border-top:1px solid rgba(255,255,255,.25)}}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;counter-reset:f;padding:0;margin:0}
+.flow li{list-style:none;background:#fff;border-radius:var(--r-lg);padding:22px;box-shadow:0 1px 0 var(--line);counter-increment:f;position:relative}
+.flow li::before{content:"0" counter(f);font-size:2.6rem;font-weight:900;color:var(--s-hv);display:block;line-height:1;letter-spacing:-.04em;margin-bottom:10px}
+.flow h4{font-size:1.15rem}
+.flow p{font-size:.88rem;color:var(--ink-2);margin-top:6px}
+@media (max-width:900px){.flow{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.flow{grid-template-columns:1fr}}
+.prizes{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.prize{border-radius:var(--r-lg);padding:22px;color:#fff;display:flex;flex-direction:column;gap:8px;background:var(--c)}
+.prize b{font-size:2.6rem;font-weight:900;line-height:1}
+.prize h4{font-size:1.2rem}
+.prize p{font-size:.9rem;opacity:.95}
+.prize span{margin-top:auto;font-weight:900;background:rgba(255,255,255,.2);border-radius:99px;padding:4px 12px;align-self:flex-start;font-size:.82rem}
+@media (max-width:900px){.prizes{grid-template-columns:1fr 1fr}}
+.howget{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.howget ol{margin:0;padding:22px 22px 22px 42px;background:#fff;border-radius:var(--r-lg);box-shadow:0 1px 0 var(--line);display:grid;gap:8px;font-weight:600}
+.howget .no-fee{background:var(--alarm);color:#fff;border-radius:var(--r-lg);padding:22px;font-weight:700;font-size:1.05rem;display:flex;gap:12px;align-items:flex-start}
+@media (max-width:760px){.howget{grid-template-columns:1fr}}
+.cal{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cal div{background:#fff;border-radius:var(--r-md);padding:16px;box-shadow:0 1px 0 var(--line);display:flex;flex-direction:column;gap:6px;border-top:5px solid var(--line)}
+.cal div.done{opacity:.75}
+.cal div.now{border-top-color:var(--s-thuong);box-shadow:0 0 0 2px var(--s-thuong)}
+.cal b{font-size:1.8rem;font-weight:900;line-height:1;letter-spacing:-.03em}
+.cal span{font-weight:700;line-height:1.3}
+.cal small{font-weight:700;font-size:.78rem;color:var(--ink-3)}
+.cal div.now small{color:var(--s-thuong)}
+@media (max-width:900px){.cal{grid-template-columns:1fr 1fr}}
+.result{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px}
+.result .k{display:grid;gap:14px}
+.result .k div{background:var(--ink);color:#fff;border-radius:var(--r-lg);padding:20px}
+.result .k b{font-size:2.4rem;font-weight:900;display:block;line-height:1;color:var(--sun)}
+.tbl{background:#fff;border-radius:var(--r-lg);box-shadow:0 1px 0 var(--line);overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;min-width:420px}
+.tbl th,.tbl td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--line)}
+.tbl th{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .medal{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-weight:900;color:#fff;background:var(--c)}
+@media (max-width:760px){.result{grid-template-columns:1fr}.result .k{grid-template-columns:1fr 1fr}}
+.faq{display:grid;gap:10px}
+.faq details{background:#fff;border-radius:var(--r-md);box-shadow:0 1px 0 var(--line)}
+.faq summary{list-style:none;padding:16px 18px;font-weight:800;cursor:pointer;display:flex;justify-content:space-between;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:1.4rem;line-height:1;color:var(--s-hv)}
+.faq details[open] summary::after{content:"–"}
+.faq details > div{padding:0 18px 18px;color:var(--ink-2)}
+.faq details > div a{font-weight:800;color:var(--s-tin)}
+
+/* hoi dap */
+.how3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.how3 div{background:#fff;border-radius:var(--r-lg);padding:22px;box-shadow:0 1px 0 var(--line)}
+.how3 b{display:grid;place-items:center;width:48px;height:48px;border-radius:16px;background:var(--c);color:#fff;font-weight:900;margin-bottom:12px;font-size:1.1rem}
+.how3 h4{font-size:1.15rem}
+.how3 p{font-size:.9rem;color:var(--ink-2);margin-top:4px}
+@media (max-width:760px){.how3{grid-template-columns:1fr}}
+.before{background:var(--ink);color:#fff;border-radius:var(--r-xl);padding:26px;display:flex;flex-direction:column;gap:12px}
+.before li{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.before ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.before li i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--alarm);display:grid;place-items:center;font-style:normal;font-size:.75rem;font-weight:900}
+.before li i.inf{background:var(--s-tin)}
+
+/* gioi thieu */
+.story{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center}
+.never{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.never div{background:#fff;border-radius:var(--r-md);padding:16px 18px;box-shadow:0 1px 0 var(--line);display:flex;gap:12px;align-items:flex-start;font-weight:700}
+.never i{flex:none;font-style:normal;width:28px;height:28px;border-radius:50%;background:var(--alarm);color:#fff;display:grid;place-items:center;font-weight:900;font-size:.8rem}
+@media (max-width:860px){.story{grid-template-columns:1fr}.never{grid-template-columns:1fr}}
+.who{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.who div{background:#fff;border-radius:var(--r-lg);padding:22px;box-shadow:0 1px 0 var(--line)}
+.who h4{font-size:1.1rem}
+.who p{font-size:.9rem;color:var(--ink-2);margin-top:6px}
+@media (max-width:760px){.who{grid-template-columns:1fr}}
+.urlbar{display:flex;align-items:center;gap:0;background:#fff;border-radius:99px;padding:14px 22px;font-size:clamp(1rem,2.6vw,1.5rem);font-weight:600;box-shadow:var(--shadow);overflow-x:auto;white-space:nowrap}
+.urlbar b{color:var(--s-tham);font-weight:900;background:#EAFBF3;border-radius:8px;padding:2px 6px}
+.urlbar span{color:var(--ink-3)}
+.urlq{display:grid;gap:10px;margin-top:16px}
+.urlq button{display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:left;border:2px solid var(--line);background:#fff;border-radius:var(--r-md);padding:14px 16px;font-weight:700;overflow-wrap:anywhere}
+.urlq button small{font-weight:500;color:var(--ink-3);flex:none}
+.urlq button.right{border-color:var(--s-tham);background:#EAFBF3}
+.urlq button.wrong{border-color:var(--alarm);background:#FFF0F2}
+.chan{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.chan div{background:#fff;border-radius:var(--r-lg);padding:22px;box-shadow:0 1px 0 var(--line);display:flex;flex-direction:column;gap:6px}
+.chan b{font-size:.74rem;letter-spacing:.12em;color:var(--ink-3)}
+.chan h4{font-size:1.1rem}
+.chan p{font-size:.88rem;color:var(--ink-2)}
+@media (max-width:760px){.chan{grid-template-columns:1fr}}
+.stop{border-radius:var(--r-xl);background:var(--alarm);color:#fff;padding:36px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+.stop .s{font-size:clamp(3rem,9vw,6rem);font-weight:900;font-style:italic;letter-spacing:-.05em;line-height:.9}
+.stop ol{margin:12px 0 0;padding:0;list-style:none;display:flex;gap:10px;flex-wrap:wrap}
+.stop li{background:rgba(255,255,255,.18);border-radius:99px;padding:8px 14px;font-weight:800}
+@media (max-width:700px){.stop{grid-template-columns:1fr;padding:26px}}
+.hidden-note{background:#fff;border-radius:var(--r-xl);padding:44px;text-align:center;box-shadow:var(--shadow);display:grid;gap:12px;justify-items:center}
+
+/* ---------- thanh dieu khien mockup ---------- */
+.mock{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:50;background:#fff;color:var(--ink);border-radius:99px;box-shadow:0 14px 34px -10px rgba(21,18,59,.5);display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;font-size:.76rem;font-weight:800;border:1px solid var(--line)}
+.mock .seg{display:flex;background:var(--paper-2);border-radius:99px;padding:3px}
+.mock .seg button{border:0;background:none;border-radius:99px;padding:5px 12px;font-weight:800;font-size:.76rem;color:var(--ink-2)}
 .mock .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.fab{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;width:58px;height:58px;border-radius:50%;background:var(--alarm);color:#fff;display:grid;place-items:center;font-weight:900;text-decoration:none;box-shadow:0 14px 30px -10px var(--alarm);font-size:1.05rem}
 body.no-contest .contest-only{display:none!important}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 
-<div class="alertbar"><div class="wrap"><b>CẢNH BÁO MỚI</b><span>Ứng dụng giả mạo dịch vụ công dụ người dân cài đặt.</span><a href="#canh-bao">Xem ngay</a></div></div>
-<div class="contestbar contest-only"><div class="wrap"><span>Cuộc thi tháng 10/2026 · Chuyên đề: Việc làm, làm thêm · 1/10 – 31/10</span><a href="#cuoc-thi">Tham gia</a></div></div>
+<div class="alertbar"><div class="wrap"><b>CẢNH BÁO MỚI</b><span>Ứng dụng giả mạo dịch vụ công dụ người dân cài đặt · Công an xã Thiên Lộc · 28/8/2026</span><a href="#thu-doan" data-sec="canh-bao">Xem</a></div></div>
+<div class="contestbar contest-only"><div class="wrap"><span>Cuộc thi tháng 10/2026 · Chuyên đề: Việc làm, làm thêm · 1/10 – 31/10/2026</span><a href="#cuoc-thi-thang">Tham gia →</a></div></div>
 
 <header class="site">
   <div class="wrap">
-    <a class="logo" href="#trang-chu"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></i>antoantaichinh.vn</a>
+    <a class="logo" href="#trang-chu"><i><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15123B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span></i><span>antoantaichinh.vn<small>Dừng lại · Kiểm tra · Hỏi người thân</small></span></a>
     <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mainNav">Menu</button>
-    <nav class="main" id="mainNav">
-      <a href="#ung-pho">Ứng phó khẩn cấp</a>
-      <a href="#chieu-tro">Chiêu trò</a>
-      <a href="#bay-cam-xuc" data-nav="bay">Bẫy cảm xúc</a>
-      <a href="#thu-nhan-dien">Thử nhận diện</a>
-      <a href="#cuoc-thi" class="contest-only">Cuộc thi</a>
-      <a href="#hoi-dap">Hỏi – Đáp</a>
+    <nav class="main" id="mainNav" aria-label="Chính">
+      <a href="#ung-pho" class="urgent" data-p="ung-pho">Ứng phó khẩn cấp</a>
+      <a href="#tin-hieu" data-p="tin-hieu">6 tín hiệu cảm xúc</a>
+      <a href="#thu-doan" data-p="thu-doan">Thủ đoạn</a>
+      <a href="#cuoc-thi" data-p="cuoc-thi" class="contest-only">Cuộc thi</a>
+      <a href="#hoi-dap" data-p="hoi-dap">Hỏi – Đáp</a>
+      <a href="#gioi-thieu" data-p="gioi-thieu">Giới thiệu</a>
     </nav>
-    <a class="btn btn-alarm" href="#ung-pho">Tôi vừa bị lừa</a>
+    <div class="hd-tools">
+      <button class="chip-btn" id="bigText" aria-pressed="false">A+ Chữ to</button>
+      <a class="btn btn-alarm btn-sm" href="#ung-pho">Làm ngay</a>
+    </div>
   </div>
 </header>
 
 <main id="view"></main>
 
 <footer class="site"><div class="wrap">
-  <p><b>antoantaichinh.vn</b> · Chương trình tuyên truyền an toàn tài chính</p>
-  <p>Bản mockup hướng “bẫy cảm xúc” · 27/10/2026 · Ảnh là minh họa tạm</p>
+  <div>
+    <a class="logo" href="#trang-chu" style="color:#fff"><i><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15123B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span></i>antoantaichinh.vn</a>
+    <p style="margin-top:14px">Website do Công ty ABC vận hành dưới sự định hướng, thẩm định nội dung chuyên môn của Công an xã Thiên Lộc nhưng không phải là nơi tiếp nhận tố giác, tin báo về tội phạm và không bảo chứng cho giao dịch, sản phẩm, dịch vụ hoặc đơn vị tài trợ.</p>
+    <div class="sponsor"><b style="color:#fff">ĐƠN VỊ TÀI TRỢ · Công ty XYZ</b><br>Không phải khuyến nghị hoặc bảo chứng của website hay của đơn vị thẩm định chuyên môn.</div>
+  </div>
+  <div><h4>Nội dung</h4><ul><li><a href="#ung-pho">Ứng phó khẩn cấp</a></li><li><a href="#tin-hieu">6 tín hiệu cảm xúc</a></li><li><a href="#thu-doan">Thủ đoạn</a></li><li class="contest-only"><a href="#cuoc-thi">Cuộc thi</a></li><li><a href="#hoi-dap">Hỏi – Đáp</a></li><li><a href="#gioi-thieu">Giới thiệu</a></li></ul></div>
+  <div><h4>Quy định</h4><ul><li>Tuyên bố miễn trừ trách nhiệm</li><li>Chính sách bảo vệ dữ liệu cá nhân</li><li>Chính sách tài trợ</li><li>Nguyên tắc dẫn nguồn</li><li>Cách báo lỗi và cải chính</li></ul></div>
+  <div><h4>Số cần biết</h4><ul><li><b style="color:#fff">113</b> · nguy hiểm tức thời</li><li><b style="color:#fff">156</b> · báo cuộc gọi, tin nhắn lừa đảo</li><li><b style="color:#fff">5656</b> · chỉ nhắn tin</li><li>Ngân hàng: số in sau thẻ</li></ul></div>
+  <div class="bottom"><span>© 2026 Công ty ABC · Địa chỉ duy nhất: antoantaichinh.vn</span><span>Bản mockup · ảnh minh họa từ Unsplash · 27/10/2026</span></div>
 </div></footer>
 
+<a class="fab" href="#ung-pho" data-sec="so-can-biet" aria-label="Nguy hiểm tức thời: gọi 113">113</a>
 <div class="mock" role="group" aria-label="Điều khiển bản mockup">
   <span>MOCKUP · Cuộc thi</span>
   <div class="seg"><button id="cOn" aria-pressed="true">Hiện</button><button id="cOff" aria-pressed="false">Ẩn</button></div>
 </div>
 
 <script>
-/* ===== Minh hoa SVG (thay bang anh chup / tranh ve that khi lam that) ===== */
-const C={fear:'#F0263C',fomo:'#FF7A00',gain:'#12B76A',family:'#EC3E8E',love:'#7B5CFF',loss:'#0097B2',sun:'#FFD23F',ink:'#1B1640',ink2:'#4A4570'};
-const FD='Baloo 2,sans-serif', FB='Be Vietnam Pro,sans-serif';
+const DATA={"topics": ["Những điều nền tảng và cách quyết định cho chắc", "Ký hợp đồng và cam kết dịch vụ", "Đầu tư, góp vốn và tài sản", "Vay, cho vay và bảo lãnh", "Việc làm, tuyển dụng và nhiệm vụ trực tuyến", "Mua bán, đặt cọc và dịch vụ tiêu dùng", "Cuộc gọi, tin nhắn, đường dẫn và giả mạo", "Xử lý, phục hồi và phòng lừa đảo lần hai"], "sample": [{"code": "CĐ1-013", "lab": "Nền tảng và cách quyết định", "sit": "", "q": "Sáu tín hiệu tâm lý mà kẻ lừa đảo hay lợi dụng là gì?", "opt": [["A", "THAM - SỢ - GẤP - TIN - THƯƠNG - HY VỌNG"], ["B", "THAM - LO - GẤP - TIN - GHÉT - HY VỌNG"], ["C", "THAM - SỢ - VUI - TIN - THƯƠNG - HY VỌNG"], ["D", "THAM - SỢ - GẤP - NGHI - THƯƠNG - TIẾC"]], "ans": "A", "exp": {"A": "Đúng. Sáu tín hiệu cần nhớ là THAM - SỢ - GẤP - TIN - THƯƠNG - HY VỌNG. Một câu chuyện lừa có thể đánh vào nhiều tín hiệu cùng lúc.", "B": "LO gần với SỢ, còn GHÉT không nằm trong bộ tín hiệu ghi nhớ này.", "C": "Thiếu GẤP mà lại thêm VUI. VUI không nằm trong bộ tín hiệu ghi nhớ này.", "D": "NGHI là phản ứng tự bảo vệ, còn TIẾC không nằm trong bộ tín hiệu ghi nhớ này."}}, {"code": "CĐ2-022", "lab": "Hợp đồng, dịch vụ", "sit": "", "q": "Ngoài tên dịch vụ và quyền lợi được hưởng, mình cần biết thêm điều gì trước khi ký?", "opt": [["A", "Bao giờ mình được nhận, và ai chịu trách nhiệm làm"], ["B", "Có bao nhiêu khách hàng khác đang dùng dịch vụ này"], ["C", "Tên, số điện thoại và mã nhân viên của người tư vấn"], ["D", "Dịch vụ có được quảng cáo nhiều nơi hay không"]], "ans": "A", "exp": {"A": "Đúng. Biết tên dịch vụ thôi chưa đủ. Phải biết bao giờ mình được nhận, và tên đơn vị nào đứng ra chịu trách nhiệm nếu không làm đúng.", "B": "Nhiều người dùng không phải là cam kết dành cho mình. Đông người vẫn có thể cùng gặp một vấn đề.", "C": "Nhân viên có thể nghỉ việc hoặc chuyển chỗ. Người chịu trách nhiệm là đơn vị ghi trong hợp đồng, không phải cá nhân người bán.", "D": "Quảng cáo nhiều không cho biết bên cung cấp phải làm gì cho mình."}}, {"code": "CĐ3-040", "lab": "Đầu tư, góp vốn", "sit": "", "q": "Một ứng dụng có mã giới thiệu, xếp hạng người kéo được nhiều người và trả hoa hồng nhiều tầng chủ yếu theo số người mới cùng số tiền họ nạp. Đây là dấu hiệu nào?", "opt": [["A", "Không giải thích được tiền lãi ở đâu ra"], ["B", "Được thưởng khi rủ thêm người tham gia"], ["C", "Hứa một mức lợi nhuận cố định"], ["D", "Nộp tiền thì dễ, rút tiền thì khó"]], "ans": "B", "exp": {"A": "Đây là một dấu hiệu khác. Hai dấu hiệu này hay đi cùng nhau, nhưng câu hỏi đang hỏi về hoa hồng theo tầng.", "B": "Đúng. Khi hoa hồng chủ yếu gắn với số người mới và số tiền họ nạp, thu nhập không dựa vào hàng hóa, dịch vụ hay hoạt động tạo doanh thu đã được chứng minh.", "C": "Ở đây chưa nói gì về mức lợi nhuận được hứa.", "D": "Ở đây chưa nói gì đến chuyện rút tiền."}}, {"code": "CĐ4-007", "lab": "Vay, nợ", "sit": "", "q": "Anh Nam đứng tên vay giúp bạn, còn người bạn nhận và tiêu hết số tiền. Theo giấy tờ đã ký, ai có thể phải trả nợ?", "opt": [["A", "Người bạn đã trực tiếp cầm và tiêu hết số tiền vay đó"], ["B", "Anh Nam, vì anh là người đứng tên vay trong hồ sơ"], ["C", "Người đã giới thiệu hai bên quen nhau để làm hồ sơ"], ["D", "Không ai cả, nếu hai người chỉ thỏa thuận bằng miệng"]], "ans": "B", "exp": {"A": "Người tiêu tiền có thể đã hứa trả, nhưng lời hứa đó không xóa được trách nhiệm của người đứng tên trong hồ sơ.", "B": "Đúng. Anh Nam tự nguyện đứng tên vay nên có thể phải trả theo hồ sơ, dù tiền đã giao cho bạn dùng.", "C": "Giới thiệu hai bên quen nhau không làm người đó thành người vay hay người phải trả nợ.", "D": "Thỏa thuận miệng giữa hai người không làm khoản vay ghi trong hồ sơ biến mất."}}, {"code": "CĐ5-044", "lab": "Việc làm, làm thêm", "sit": "", "q": "Một lời mời “việc nhẹ” trả công để em Hùng mở, cho mượn, cho thuê hoặc bán lại tài khoản ngân hàng; sau đó em phải giao thẻ, SIM, mã xác thực, hoặc nhận tiền rồi chuyển hộ. Em nên làm gì?", "opt": [["A", "Chỉ đưa số tài khoản thôi, còn thẻ và SIM thì giữ lại"], ["B", "Dừng; không mở, không cho thuê, không nhận chuyển tiền hộ"], ["C", "Làm thử một ngày, thấy bất thường thì khóa tài khoản"], ["D", "Làm, nếu có hợp đồng, biết người thuê và chỉ nhận khoản nhỏ"]], "ans": "B", "exp": {"A": "Chỉ đưa số tài khoản hay chỉ nhận chuyển tiền hộ thì tài khoản của em vẫn nằm trong một dòng tiền đáng ngờ.", "B": "Đúng. Tài khoản đứng tên em có thể bị dùng để nhận, chuyển hoặc che giấu tiền từ lừa đảo hay hành vi phạm pháp. Việc cho thuê/cho mượn tài khoản bị cấm; trách nhiệm hình sự về rửa tiền hoặc tội khác còn phụ thuộc hành vi, nhận thức và các yếu tố cụ thể.", "C": "Chỉ một giao dịch cũng đủ để lại hậu quả. Khóa tài khoản sau đó không xóa được giao dịch đã xảy ra.", "D": "Hợp đồng riêng với người thuê không làm cho việc cho thuê tài khoản trở nên hợp pháp, và cũng không gỡ được trách nhiệm của người đứng tên."}}, {"code": "CĐ6-005", "lab": "Mua bán, đặt cọc", "sit": "", "q": "Bạn nhận tin nhắn nói có người chuyển nhầm tiền vào tài khoản của bạn, kèm mã QR hoặc đường dẫn để “hoàn lại”. Cách làm an toàn nhất là gì?", "opt": [["A", "Chuyển lại vào tài khoản ghi trong tin nhắn, cho khỏi mang tiếng giữ tiền người ta"], ["B", "Không quét mã, không bấm đường dẫn; tự mở ứng dụng ngân hàng để xem"], ["C", "Gọi số điện thoại trong tin nhắn rồi làm theo cách hoàn tiền mà họ hướng dẫn"], ["D", "Quét mã QR để xem ai là người nhận, nhưng dừng trước bước xác nhận"]], "ans": "B", "exp": {"A": "Tài khoản trong tin nhắn có thể không phải nơi đã chuyển tiền tới. Tự chuyển lại là mình mất tiền thật, mà tiền kia có khi vẫn còn đó.", "B": "Đúng. Bạn không phải là người chủ động giao dịch với họ. Việc cần làm là tự xem tài khoản của mình và làm việc với ngân hàng qua kênh mình tự mở.", "C": "Số đó do chính người nhắn đưa ra, nên gọi vào chỉ là quay lại đúng chỗ cần tránh.", "D": "Mã QR không rõ nguồn có thể dẫn sang trang giả, hoặc đã cài sẵn một lệnh chuyển tiền. Muốn kiểm tra chuyện chuyển nhầm thì không cần quét mã nào cả."}}, {"code": "TN-44", "lab": "Cuộc gọi, tin nhắn, giả mạo", "sit": "", "q": "Yêu cầu nào là điểm phải dừng ngay, kể cả khi người liên hệ có thể là người thật?", "opt": [["A", "Đề nghị hẹn lại vào giờ hành chính để trao đổi cho kỹ hơn"], ["B", "Gửi bản mô tả và để mình tự kiểm tra bằng số hoặc ứng dụng chính thức"], ["C", "Đề nghị xác nhận đã nhận được một thông báo không chứa thông tin gì nhạy cảm"], ["D", "Yêu cầu cài công cụ điều khiển máy và đọc mã xác thực ngay lập tức"]], "ans": "D", "exp": {"A": "Hẹn lại giờ hành chính không có gì đáng ngại. Thậm chí đó còn là dấu hiệu tốt, vì họ không ép mình quyết ngay.", "B": "Đây là điều kiện thuận lợi cho mình. Người đàng hoàng thì sẵn sàng để mình đi kiểm tra.", "C": "Việc này còn tùy hoàn cảnh, nhưng nó không giao quyền hay tiền bạc gì cho ai cả.", "D": "Đúng. Cài công cụ điều khiển là giao cả điện thoại cho người khác. Đọc mã xác thực là giao luôn chìa khóa tài khoản. Gặp một trong hai là dừng, không cần biết họ là ai."}}, {"code": "CĐ8-027", "lab": "Nền tảng và cách quyết định", "sit": "", "q": "Sáu việc cần làm khi có sự cố là: 1. DỪNG NGUY CƠ (chặn cái đang nguy hiểm); 2. LIÊN HỆ CHÍNH THỨC (gọi nơi có thể khóa hoặc chặn); 3. BẢO VỆ TÀI KHOẢN (lấy lại quyền, đổi mật khẩu); 4. LƯU CHỨNG CỨ; 5. CẢNH BÁO VÀ TRÌNH BÁO; 6. THEO DÕI. Nên hiểu sáu việc này thế nào?", "opt": [["A", "Là sáu thủ tục cứng: làm xong việc này, có kết quả rồi mới được sang việc kia"], ["B", "Chỉ là gợi ý thôi, có thể bỏ qua việc gọi nơi có thể khóa hoặc chặn"], ["C", "Là khung việc cần làm khi thấy bất thường, tùy loại sự cố mà điều chỉnh"], ["D", "Là danh sách chỉ dùng đến khi đã mất tiền thật, còn lại thì không cần"]], "ans": "C", "exp": {"A": "Nhiều việc phải làm cùng lúc. Chờ xong việc này mới sang việc kia thì mất cả thời gian lẫn bằng chứng.", "B": "Liên hệ chính thức không được bỏ qua khi có dòng tiền hoặc tài khoản liên quan, nhưng không phải sự cố nào cũng gọi cùng một nơi. Cần chọn ngân hàng, ví, nền tảng, nhà mạng hoặc cơ quan phù hợp.", "C": "Đúng. Đây là khung để không bỏ sót, không phải sáu thủ tục cứng. Việc nào gấp làm trước, nhiều việc có thể làm song song và bước cô lập thiết bị chỉ dùng khi máy có nguy cơ.", "D": "Sáu bước này dùng cho mọi loại sự cố: lộ mã, mất quyền vào máy, lộ giấy tờ, bị chiếm tài khoản — chứ không riêng lúc mất tiền."}}], "sigQ": {"CĐ1-019": {"code": "CĐ1-019", "lab": "Những điều nền tảng và cách quyết định cho chắc", "sit": "", "q": "Chị P. đọc quảng cáo “sàn đầu tư cam kết lãi 3% mỗi ngày, rút vốn lúc nào cũng được” và thấy nôn nao muốn nạp thử một ít. Chị đang bị đánh vào cảm xúc nào, và việc đầu tiên nên làm là gì?", "opt": [["A", "THAM - chậm lại, chưa làm gì cả"], ["B", "SỢ - báo ngay cơ quan công an"], ["C", "TIN - hỏi lại người đăng quảng cáo cho rõ"], ["D", "GẤP - nạp thử một ít để xem sao"]], "ans": "A", "exp": {"A": "Đúng. Lời hứa lãi cao đánh vào lòng ham và sự nôn nao. Việc đầu tiên là chậm lại, chưa nạp đồng nào, rồi đi kiểm tra ở nơi khác.", "B": "Nhận sai cảm xúc: ở đây chưa có ai dọa nạt gì. Trình báo là việc cần, nhưng chưa phải bước đầu khi chưa mất gì.", "C": "Hỏi chính người đăng quảng cáo thì chỉ nghe thêm lời của người đang dụ mình. Phải tự đi tra ở nơi khác.", "D": "Sai cả cảm xúc lẫn việc làm. Nạp thử một ít chính là bước mở đầu; cho rút hay trả lãi lúc đầu chỉ là mồi."}}, "CĐ1-020": {"code": "CĐ1-020", "lab": "Những điều nền tảng và cách quyết định cho chắc", "sit": "", "q": "Nghe điện thoại của người tự xưng là cán bộ cơ quan A, chị Q. thấy mình rất sợ. Nên làm gì?", "opt": [["A", "Làm theo lời họ để chứng minh mình trong sạch, rồi kiểm tra lại sau"], ["B", "Cúp máy. Tra số điện thoại đăng công khai của cơ quan A rồi tự gọi lại"], ["C", "Giữ máy nghe hết cho rõ đầu đuôi, chưa làm gì cho tới khi họ nói xong"], ["D", "Cúp máy và không nói với ai, để cả nhà khỏi lo lắng theo"]], "ans": "B", "exp": {"A": "“Làm theo trước, kiểm tra sau” là chỗ nhiều người sập bẫy nhất. Khi tiền đã chuyển đi thì kiểm tra cũng muộn.", "B": "Đúng. Thấy mình đang sợ là lúc phải chậm lại. Cúp máy rồi tự tìm số của cơ quan đó mà gọi lại.", "C": "Nghe tiếp là ở lại trong cuộc gọi do họ dẫn dắt. Càng nghe lâu càng khó giữ bình tĩnh, mà vẫn không biết thêm họ là ai.", "D": "Cúp máy là đúng, nhưng giữ kín thì nguy hiểm. Người nhà biết chuyện sẽ giúp mình tỉnh táo hơn."}}, "CĐ2-041": {"code": "CĐ2-041", "lab": "Ký hợp đồng và cam kết dịch vụ", "sit": "", "q": "Trang đăng ký hiện đồng hồ đếm ngược: “Chỉ còn 02 phút để giữ mức giá này.” Điều gì đang diễn ra?", "opt": [["A", "Bên bán không cho mình mang văn bản về đọc"], ["B", "Mình đang bị thúc phải quyết định thật nhanh"], ["C", "Bên bán muốn mình ký trước, gửi giấy tờ sau"], ["D", "Bảng phí và điều kiện chấm dứt bị làm cho khó đọc"]], "ans": "B", "exp": {"A": "Điều khoản vẫn xem được. Chuyện ở đây là sức ép về thời gian, không phải chuyện giấu giấy tờ.", "B": "Đúng. Đồng hồ đếm ngược sinh ra để mình bấm đồng ý trước khi kịp đọc. Đó là sức ép, không phải thông tin.", "C": "Ở đây chưa ai đề nghị gửi giấy tờ bổ sung sau khi ký.", "D": "Ở đây chưa nói gì về phí hay điều kiện chấm dứt cả."}}, "CĐ1-038": {"code": "CĐ1-038", "lab": "Những điều nền tảng và cách quyết định cho chắc", "sit": "", "q": "Người gọi xưng là nhân viên ngân hàng, nói tài khoản anh V. có giao dịch lạ và yêu cầu đọc mã OTP để “khóa khẩn cấp”. Anh V. nên làm gì?", "opt": [["A", "Hoãn lại, hẹn người gọi mười phút sau gọi lại rồi mới quyết"], ["B", "Đọc mã, vì đây là việc khóa tài khoản để bảo vệ tiền của mình"], ["C", "Dừng ngay, không đọc mã; tự gọi ngân hàng bằng số chính thức"], ["D", "Hỏi thêm mã nhân viên và số hồ sơ, thấy khớp thì làm theo"]], "ans": "C", "exp": {"A": "Hoãn lại để kiểm tra là hợp lý khi chỉ có điểm chưa rõ. Nhưng ở đây họ đã đòi đọc mã OTP — đó là yêu cầu nguy hiểm, nên phải dừng ngay.", "B": "Nhân viên ngân hàng không yêu cầu khách đọc OTP để khóa tài khoản. Mã đó có thể xác nhận đăng nhập, liên kết thiết bị hoặc giao dịch.", "C": "Đúng. Không đọc hoặc gửi OTP cho bất kỳ ai. Cúp máy rồi tự gọi số sau thẻ hoặc trong ứng dụng chính thức mình chủ động mở.", "D": "Mã nhân viên và số hồ sơ do chính người gọi đưa ra không phải kiểm chứng độc lập."}}, "CĐ7-025": {"code": "CĐ7-025", "lab": "Cuộc gọi, tin nhắn, đường dẫn và giả mạo", "sit": "", "q": "Tài khoản mạng xã hội của người thân nhắn tin nhờ chuyển tiền gấp. Cách kiểm tra nào đáng tin hơn cả?", "opt": [["A", "Nhắn lại vào chính tài khoản đó để hỏi cho chắc"], ["B", "Gọi vào số đã lưu từ trước, hoặc hỏi một người thân khác"], ["C", "Bảo tài khoản đó gửi một đoạn ghi âm giọng nói để đối chiếu"], ["D", "Bảo tài khoản đó gọi video cho mình vài giây là biết ngay"]], "ans": "B", "exp": {"A": "Nếu tài khoản người thân đã bị chiếm, thì nhắn lại vào đó là đang nói chuyện với chính kẻ xấu.", "B": "Đúng. Gọi số đã lưu hoặc hỏi người thân khác là bước ra khỏi cái kênh đang bị nghi ngờ. Đó mới là kiểm tra thật.", "C": "Giọng nói bây giờ ghép được từ vài giây ghi âm cũ. Nghe đúng giọng không còn là bằng chứng nữa.", "D": "Video ngắn cũng dựng được, mà cuộc gọi vẫn nằm trong chính tài khoản đang bị nghi."}}, "CĐ1-047": {"code": "CĐ1-047", "lab": "Những điều nền tảng và cách quyết định cho chắc", "sit": "", "q": "Sau khi bị mất tiền, có người tự tìm đến hứa chắc chắn lấy lại được, chỉ cần nộp trước phí hồ sơ. Nên làm gì?", "opt": [["A", "Không chuyển thêm, dừng liên lạc; lưu tin nhắn và đến cơ quan Công an"], ["B", "Nộp phí hồ sơ trước, vì họ nắm rõ vụ việc và hứa chắc chắn lấy lại được"], ["C", "Cài ứng dụng họ gửi để tiện theo dõi tiến độ hồ sơ của mình"], ["D", "Gửi ảnh giấy tờ và số tài khoản để họ tra giúp xem tiền đi đâu"]], "ans": "A", "exp": {"A": "Đúng. Hứa chắc chắn lấy lại được mà lại đòi nộp phí trước là dấu hiệu của lừa lần hai. Không chuyển thêm, dừng liên lạc, giữ lại tin nhắn rồi mang đến cơ quan Công an.", "B": "Biết rõ vụ việc không có nghĩa là họ lấy lại được tiền. Thông tin của người bị hại thường bị chuyền tay giữa các nhóm lừa đảo.", "C": "Cài ứng dụng người lạ gửi có thể cho họ nhìn thấy màn hình hoặc điều khiển máy của mình.", "D": "Đưa ảnh giấy tờ và số tài khoản cho họ là mở đường cho một vụ lừa tiếp theo."}}}};
+const IMG='mockup-cam-xuc/anh/';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const ar='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const ph=(f,c,nat,pos)=>`<div class="ph${nat?' nat':''}" style="--c:${c||'var(--ink)'}"><img src="${IMG}${f}.jpg" alt="" loading="lazy"${pos?` style="object-position:${pos}"`:''}></div>`;
 
-function face(x,y,r,expr){
-  const skin='#FFD8A8', s=r/40;
-  let eyes,mouth,extra='';
-  const E=(dx,ry)=>`<ellipse cx="${x+dx*s}" cy="${y-6*s}" rx="${5*s}" ry="${ry*s}" fill="${C.ink}"/>`;
-  const H=cx=>`<path d="M${cx} ${y-1*s} l${-7*s} ${-7*s} a${4*s} ${4*s} 0 0 1 ${7*s} ${-5*s} a${4*s} ${4*s} 0 0 1 ${7*s} ${5*s}z" fill="${C.fear}"/>`;
-  switch(expr){
-    case 'fear': eyes=E(-13,8)+E(13,8)+`<circle cx="${x-13*s}" cy="${y-8*s}" r="${2*s}" fill="#fff"/><circle cx="${x+13*s}" cy="${y-8*s}" r="${2*s}" fill="#fff"/>`;
-      mouth=`<ellipse cx="${x}" cy="${y+16*s}" rx="${7*s}" ry="${9*s}" fill="${C.ink}"/>`;
-      extra=`<path d="M${x+30*s} ${y-30*s} q${7*s} ${12*s} 0 ${18*s} q${-7*s} ${-6*s} 0 ${-18*s}z" fill="#7FD3FF"/>`;break;
-    case 'fomo': eyes=`<circle cx="${x-13*s}" cy="${y-6*s}" r="${6*s}" fill="${C.ink}"/><circle cx="${x+13*s}" cy="${y-6*s}" r="${6*s}" fill="${C.ink}"/><circle cx="${x-10*s}" cy="${y-8*s}" r="${2*s}" fill="#fff"/><circle cx="${x+16*s}" cy="${y-8*s}" r="${2*s}" fill="#fff"/>`;
-      mouth=`<path d="M${x-12*s} ${y+14*s} q${12*s} ${-6*s} ${24*s} 0" stroke="${C.ink}" stroke-width="${4*s}" fill="none" stroke-linecap="round"/>`;break;
-    case 'gain': eyes=`<text x="${x-13*s}" y="${y-1*s}" font-size="${18*s}" font-weight="800" text-anchor="middle" fill="${C.gain}" font-family="${FD}">$</text><text x="${x+13*s}" y="${y-1*s}" font-size="${18*s}" font-weight="800" text-anchor="middle" fill="${C.gain}" font-family="${FD}">$</text>`;
-      mouth=`<path d="M${x-16*s} ${y+10*s} q${16*s} ${18*s} ${32*s} 0z" fill="${C.ink}"/>`;break;
-    case 'family': eyes=`<path d="M${x-19*s} ${y-14*s} l${12*s} ${5*s}M${x+19*s} ${y-14*s} l${-12*s} ${5*s}" stroke="${C.ink}" stroke-width="${3*s}" stroke-linecap="round"/>`+E(-13,4)+E(13,4);
-      mouth=`<path d="M${x-12*s} ${y+18*s} q${12*s} ${-10*s} ${24*s} 0" stroke="${C.ink}" stroke-width="${4*s}" fill="none" stroke-linecap="round"/>`;
-      extra=`<path d="M${x-14*s} ${y+2*s} q${-3*s} ${8*s} 0 ${10*s} q${3*s} ${-2*s} 0 ${-10*s}z" fill="#7FD3FF"/>`;break;
-    case 'love': eyes=H(x-13*s)+H(x+13*s);
-      mouth=`<path d="M${x-12*s} ${y+12*s} q${12*s} ${12*s} ${24*s} 0" stroke="${C.ink}" stroke-width="${4*s}" fill="none" stroke-linecap="round"/>`;break;
-    case 'loss': eyes=`<path d="M${x-19*s} ${y-6*s} q${6*s} ${6*s} ${12*s} 0M${x+7*s} ${y-6*s} q${6*s} ${6*s} ${12*s} 0" stroke="${C.ink}" stroke-width="${4*s}" fill="none" stroke-linecap="round"/>`;
-      mouth=`<path d="M${x-10*s} ${y+18*s} h${20*s}" stroke="${C.ink}" stroke-width="${4*s}" stroke-linecap="round"/>`;break;
-    default: eyes=E(-13,6)+E(13,6);
-      mouth=`<path d="M${x-12*s} ${y+12*s} q${12*s} ${10*s} ${24*s} 0" stroke="${C.ink}" stroke-width="${4*s}" fill="none" stroke-linecap="round"/>`;
-  }
-  const hair=`<path d="M${x-r} ${y-4*s} a${r} ${r} 0 0 1 ${2*r} 0 q${-r*.5} ${-14*s} ${-r} ${-10*s} q${-r*.6} ${-4*s} ${-r} ${10*s}z" fill="${C.ink}"/>`;
-  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${skin}"/>${hair}${eyes}${mouth}${extra}`;
-}
-function phone(x,y,w,h,inner){
-  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${w*.16}" fill="${C.ink}"/><rect x="${x+w*.07}" y="${y+h*.06}" width="${w*.86}" height="${h*.88}" rx="${w*.11}" fill="#fff"/>${inner||''}`;
-}
-function bg(c1,c2){
-  return `<rect width="400" height="250" fill="${c1}"/><circle cx="340" cy="40" r="120" fill="${c2}" opacity=".55"/><circle cx="40" cy="240" r="90" fill="#fff" opacity=".14"/><circle cx="300" cy="215" r="10" fill="#fff" opacity=".5"/><circle cx="70" cy="40" r="6" fill="#fff" opacity=".6"/>`;
-}
-const svg=(body,vb='0 0 400 250')=>`<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${body}</svg>`;
-const txt=(x,y,t,o={})=>`<text x="${x}" y="${y}" font-size="${o.s||14}" font-weight="${o.w||700}" fill="${o.c||C.ink}" text-anchor="${o.a||'middle'}" font-family="${o.f||FB}">${t}</text>`;
-
-const ART={
-  fear:()=>svg(bg(C.fear,'#FF8A5B')+phone(220,40,110,190,`<circle cx="275" cy="100" r="26" fill="${C.ink}"/><path d="M275 82l14 6v10c0 9-6 15-14 18-8-3-14-9-14-18V88z" fill="${C.sun}"/><rect x="238" y="140" width="74" height="10" rx="5" fill="${C.fear}"/><rect x="238" y="158" width="56" height="8" rx="4" fill="#ddd"/><rect x="238" y="172" width="64" height="8" rx="4" fill="#ddd"/>`)+face(130,140,62,'fear')+`<path d="M60 60l14 10M52 92h16M196 52l-8 14" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`),
-  fomo:()=>svg(bg(C.fomo,C.sun)+`<circle cx="285" cy="115" r="70" fill="#fff"/><circle cx="285" cy="115" r="58" fill="none" stroke="${C.ink}" stroke-width="8"/><path d="M285 115V78M285 115l26 16" stroke="${C.fear}" stroke-width="8" stroke-linecap="round"/><rect x="230" y="200" width="110" height="34" rx="17" fill="${C.ink}"/>`+txt(285,223,'00:14:59',{s:18,w:800,c:C.sun,f:FD})+face(120,140,60,'fomo')+`<g transform="rotate(-8 78 57)"><rect x="30" y="40" width="96" height="34" rx="10" fill="${C.ink}"/>${txt(78,64,'-90%',{s:20,w:800,c:'#fff',f:FD})}</g>`),
-  gain:()=>svg(bg(C.gain,'#B7F06A')+`<path d="M210 210l40-50 34 24 60-90" stroke="#fff" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M330 82l18-6-4 19z" fill="#fff"/>`+[0,1,2,3].map(i=>`<ellipse cx="250" cy="${218-i*12}" rx="30" ry="9" fill="${C.sun}" stroke="#C99500" stroke-width="3"/>`).join('')+face(120,135,62,'gain')+txt(300,60,'+3%/ngày',{s:30,w:800,f:FD})),
-  family:()=>svg(bg(C.family,'#FF9BC4')+phone(215,35,120,200,`<rect x="232" y="62" width="86" height="40" rx="12" fill="#F2F0FA"/>${txt(275,88,'Mẹ ơi cứu con',{s:12})}<rect x="232" y="112" width="86" height="40" rx="12" fill="${C.fear}"/>${txt(275,137,'Chuyển gấp!',{s:13,c:'#fff'})}<path d="M275 200l-16-16a10 10 0 0 1 16-12 10 10 0 0 1 16 12z" fill="${C.family}"/>`)+face(120,140,62,'family')),
-  love:()=>svg(bg(C.love,'#C4B5FF')+`<rect x="200" y="50" width="150" height="56" rx="20" fill="#fff"/>${txt(275,84,'Chúc em ngủ ngon',{s:14})}<rect x="220" y="122" width="130" height="56" rx="20" fill="${C.family}"/>${txt(285,156,'Gửi anh 50 triệu?',{s:13,c:'#fff'})}<path d="M290 228l-20-20a12 12 0 0 1 20-15 12 12 0 0 1 20 15z" fill="${C.sun}"/>`+face(120,140,62,'love')),
-  loss:()=>svg(bg(C.loss,'#7FE3F0')+`<rect x="215" y="95" width="130" height="110" rx="20" fill="${C.sun}"/><path d="M245 95V70a35 35 0 0 1 70 0v25" stroke="${C.ink}" stroke-width="14" fill="none"/><circle cx="280" cy="145" r="12" fill="${C.ink}"/><rect x="275" y="150" width="10" height="28" rx="4" fill="${C.ink}"/><rect x="198" y="26" width="160" height="34" rx="10" fill="${C.ink}"/>`+txt(278,49,'Phí mở khóa: 10%',{s:14,w:800,c:'#fff'})+face(120,140,62,'loss')),
-};
-const SIT_ART={
-  threat:()=>svg(bg(C.fear,'#FF8A5B')+face(120,140,60,'fear')+`<rect x="215" y="60" width="150" height="120" rx="18" fill="#fff"/><path d="M290 85l40 70h-80z" fill="${C.sun}" stroke="${C.ink}" stroke-width="6" stroke-linejoin="round"/><path d="M290 108v22" stroke="${C.ink}" stroke-width="7" stroke-linecap="round"/><circle cx="290" cy="142" r="4" fill="${C.ink}"/>`),
-  lost:()=>svg(bg(C.fomo,C.sun)+face(115,140,60,'loss')+phone(220,40,110,190,txt(275,110,'-20tr',{s:26,w:800,c:C.fear,f:FD})+`<rect x="240" y="130" width="70" height="10" rx="5" fill="#ddd"/><rect x="240" y="148" width="50" height="10" rx="5" fill="#ddd"/><path d="M263 172h24l-12 14z" fill="${C.fear}"/>`)),
-  invited:()=>svg(bg('#F5B800','#FFE58A')+face(115,140,60,'default')+`<rect x="210" y="55" width="160" height="70" rx="20" fill="#fff"/>${txt(290,85,'Bạn được chọn!',{s:14})}${txt(290,106,'Bấm link để nhận',{s:12,w:500,c:C.ink2})}<circle cx="290" cy="175" r="34" fill="${C.ink}"/><path d="M278 175l8 8 16-16" stroke="${C.sun}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`),
-};
-function trickArt(i,c){
-  const icons=[
-    `<circle cx="200" cy="120" r="56" fill="#fff"/><path d="M200 82l34 13v24c0 21-15 36-34 42-19-6-34-21-34-42V95z" fill="${C.ink}"/><path d="M200 100l7 14 15 2-11 10 3 15-14-7-14 7 3-15-11-10 15-2z" fill="${C.sun}"/>`,
-    `<circle cx="165" cy="120" r="44" fill="#FFD8A8"/><circle cx="240" cy="120" r="44" fill="#FFD8A8" opacity=".55" stroke="#fff" stroke-width="5" stroke-dasharray="10 8"/><path d="M121 112a44 44 0 0 1 88 0q-20-16-44-14t-44 14z" fill="${C.ink}"/>${txt(240,134,'?',{s:40,w:800,c:'#fff',f:FD})}`,
-    `<rect x="140" y="80" width="120" height="90" rx="14" fill="${C.sun}"/><rect x="128" y="64" width="144" height="30" rx="10" fill="${C.fear}"/><rect x="190" y="64" width="20" height="106" fill="${C.fear}"/><path d="M200 64c-20-30-50-10-30 0M200 64c20-30 50-10 30 0" stroke="${C.fear}" stroke-width="10" fill="none"/>`,
-    `<path d="M150 170l30-90h40l30 90z" fill="#fff"/><circle cx="200" cy="90" r="22" fill="${C.sun}"/><path d="M175 150h50" stroke="${C.ink}" stroke-width="8" stroke-linecap="round"/>${txt(200,98,'1',{s:24,w:800,f:FD})}`,
-    `<rect x="145" y="65" width="110" height="110" rx="18" fill="#fff"/><path d="M200 85l45 78h-90z" fill="${C.fear}"/><path d="M200 110v26" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="200" cy="150" r="5" fill="#fff"/>`,
-    `<rect x="150" y="100" width="100" height="80" rx="14" fill="${C.sun}"/><path d="M170 100V82a30 30 0 0 1 60 0v18" stroke="#fff" stroke-width="12" fill="none"/>${txt(200,152,'₫',{s:30,w:800,f:FD})}`,
-    `<g transform="rotate(-6 200 124)"><rect x="148" y="60" width="104" height="128" rx="10" fill="#fff"/><path d="M168 95h60M168 115h60M168 135h40" stroke="#ddd" stroke-width="8" stroke-linecap="round"/><circle cx="228" cy="162" r="24" fill="#fff" stroke="${C.fear}" stroke-width="6"/>${txt(228,169,'GIẢ',{s:16,w:800,c:C.fear,f:FD})}</g>`,
-  ];
-  return svg(`<rect width="400" height="300" fill="${c}"/><circle cx="330" cy="40" r="90" fill="#fff" opacity=".18"/><circle cx="60" cy="270" r="70" fill="#000" opacity=".06"/><g transform="translate(0 30)">${icons[i]}</g>`,'0 0 400 300');
-}
-const caseArt=(c,k)=>svg(`<rect width="120" height="120" fill="${c}"/><circle cx="96" cy="20" r="40" fill="#fff" opacity=".2"/>${face(60,66,34,k)}`,'0 0 120 120');
-function newsArt(c,label){
-  return svg(`<rect width="400" height="225" fill="${c}"/><circle cx="340" cy="30" r="110" fill="#fff" opacity=".18"/>${phone(150,25,100,180,`<rect x="168" y="60" width="64" height="64" rx="16" fill="${c}"/>${txt(200,100,label,{s:label.length>3?17:24,w:800,c:'#fff',f:FD})}<rect x="168" y="140" width="64" height="12" rx="6" fill="${C.ink}"/>`)}<path d="M290 60l40 70h-80z" fill="${C.sun}" stroke="${C.ink}" stroke-width="5" stroke-linejoin="round"/><path d="M290 82v22" stroke="${C.ink}" stroke-width="6" stroke-linecap="round"/><circle cx="290" cy="116" r="4" fill="${C.ink}"/>`,'0 0 400 225');
-}
-
-/* ===== Noi dung (bay cam xuc la de xuat, chua co trong tai lieu goc) ===== */
-const EMO=[
-  {k:'so-hai',art:'fear',c:C.fear,name:'Sợ hãi',short:'“Bạn đang bị điều tra.”',
+/* ===== 6 tin hieu (ten theo cau CD1-013; noi dung tung tin hieu la de xuat) ===== */
+const SIG=[
+  {k:'tham',w:'THAM',c:'#0FA968',img:'tin-hieu-tham',hook:'“Lãi 3% mỗi ngày, rút lúc nào cũng được.”',
+   lead:'Lời hứa lãi cao đánh vào lòng ham và sự nôn nao muốn có thêm.',
+   says:['Lãi cố định 3% mỗi ngày, rút vốn lúc nào cũng được.','Việc nhẹ tại nhà, 500.000 đồng mỗi ngày.','Chúc mừng, bạn trúng thưởng một chiếc xe máy!'],
+   feel:['Nôn nao muốn nạp thử một ít','Nhẩm tính số tiền sẽ có','Sợ người khác hưởng trước'],
+   act:['Lãi cao bất thường là rủi ro bất thường.','Chưa nạp đồng nào, đi kiểm tra ở nơi khác.','Không ai phải nộp tiền để được nhận thưởng.'],
+   cases:[['Đầu tư, góp vốn','Ứng dụng hiện lãi ảo, rút tiền thì bị giữ.','lv-4',4],['Việc làm, làm nhiệm vụ','Trả hoa hồng đơn đầu rồi bắt nạp lớn.','lv-3',3],['Trúng thưởng','Đòi phí nhận quà, phí vận chuyển.','lv-1',1],['Hàng giá rẻ bất ngờ','Giá thấp hơn hẳn thị trường, chỉ bán hôm nay.','lv-2',2]],q:'CĐ1-019'},
+  {k:'so',w:'SỢ',c:'#E8173A',img:'tin-hieu-so',hook:'“Anh đang liên quan đến một vụ rửa tiền.”',
    lead:'Họ làm bạn hoảng để bạn làm theo trước khi kịp nghĩ.',
-   says:['Anh/chị liên quan đến một vụ rửa tiền.','Tài khoản của bạn sẽ bị khóa sau 2 giờ.','Không hợp tác sẽ có lệnh bắt.'],
-   why:'Khi sợ, ta chỉ muốn thoát nhanh và bỏ qua bước kiểm tra.',
-   cure:['Cơ quan thật không làm việc qua điện thoại, Zalo.','Cúp máy. Tự gọi lại số chính thức.','Không chuyển tiền để “chứng minh trong sạch”.'],
-   cases:[['Giả công an, tòa án','Gọi video, mặc sắc phục, gửi “lệnh bắt”.'],['Dọa khóa tài khoản','Tin nhắn giả ngân hàng kèm đường link.'],['Dọa phạt nguội, cắt điện','Đòi nộp phạt ngay qua tài khoản cá nhân.'],['Dọa tung ảnh nhạy cảm','Đòi tiền để “xóa” ảnh, clip.']]},
-  {k:'so-bo-lo',art:'fomo',c:C.fomo,name:'Sợ bỏ lỡ',short:'“Chỉ còn 3 suất cuối!”',
+   says:['Anh/chị đang liên quan đến một vụ rửa tiền.','Tài khoản của bạn sẽ bị khóa sau 2 giờ.','Không hợp tác sẽ có lệnh bắt.'],
+   feel:['Tim đập nhanh, tay run','Chỉ muốn làm cho xong','Không dám kể với ai'],
+   act:['Cơ quan thật không xử lý vụ việc qua điện thoại, mạng xã hội.','Cúp máy. Tự gọi lại số chính thức.','Không chuyển tiền để “chứng minh trong sạch”.'],
+   cases:[['Giả công an, tòa án','Gọi video, mặc sắc phục, gửi “lệnh bắt”.','lv-1',1],['Dọa khóa tài khoản','Tin nhắn giả ngân hàng kèm đường link.','lv-1',1],['Dọa tung ảnh, thông tin','Đòi tiền để “xóa” ảnh, clip.','lv-1',1],['Đòi nợ kiểu khủng bố','Gọi cho người thân, dọa bêu riếu.','lv-5',5]],q:'CĐ1-020'},
+  {k:'gap',w:'GẤP',c:'#FF7A00',img:'tin-hieu-gap',hook:'“Chỉ còn 02 phút để giữ mức giá này.”',
    lead:'Đồng hồ đếm ngược khiến bạn quyết trước, nghĩ sau.',
-   says:['Chỉ còn 3 suất, hết hạn lúc 23:59.','Mã giảm 90% cho 100 người đầu.','Cả nhóm đã rút lãi, còn mỗi bạn chưa vào.'],
-   why:'Sợ thiệt hơn người khác làm ta vội vàng.',
-   cure:['Cơ hội thật vẫn còn sau 24 giờ.','Đợi một đêm, hỏi một người.','Không bấm link trong tin khuyến mãi lạ.'],
-   cases:[['Săn sale, mã giảm giá giả','Trang bán hàng giả giống hệt thật.'],['Đặt cọc hàng hiếm','Cọc trước để “giữ suất”, rồi mất liên lạc.'],['Nhóm đầu tư “kín”','Ảnh chụp lãi khủng của “thành viên”.'],['Vé, tour giá rẻ','Giá rẻ bất ngờ, chỉ bán hôm nay.']]},
-  {k:'mong-duoc-nhieu',art:'gain',c:C.gain,name:'Mong được nhiều hơn',short:'“Việc nhẹ, lương cao.”',
-   lead:'Món hời làm ta muốn tin nó là thật.',
-   says:['Làm tại nhà, 500.000 đồng mỗi ngày.','Lãi cố định 3% mỗi ngày.','Chúc mừng, bạn trúng một chiếc điện thoại!'],
-   why:'Khi đang mong, ta tự bỏ qua những điểm lạ.',
-   cure:['Lãi cao bất thường là rủi ro cao bất thường.','Không ai phải nộp tiền để được nhận tiền.','Tra tên công ty, ứng dụng ở kênh chính thức.'],
-   cases:[['Việc làm online, làm nhiệm vụ','Cho hoa hồng đơn đầu, rồi bắt nạp lớn.'],['Đầu tư tiền ảo, ngoại hối','Ứng dụng giả hiện lãi ảo.'],['Trúng thưởng','Đòi phí nhận quà, phí vận chuyển.'],['Vay dễ, không thế chấp','Đòi phí hồ sơ trước khi giải ngân.']]},
-  {k:'lo-cho-nguoi-than',art:'family',c:C.family,name:'Lo cho người thân',short:'“Mẹ ơi, con bị tai nạn.”',
-   lead:'Thương người nhà, ta hành động trước khi kịp xác minh.',
-   says:['Con bị tai nạn, chuyển gấp 20 triệu viện phí.','Cháu đang bị giữ ở trường, cần nộp tiền ngay.','Mình mượn tạm 5 triệu, tối trả nhé.'],
-   why:'Lo lắng cho người thân làm ta quên kiểm tra.',
-   cure:['Gọi trực tiếp người thân bằng số cũ.','Hỏi một câu chỉ người nhà mới biết.','Cuộc gọi video ngắn cũng có thể là giả.'],
-   cases:[['Giả người thân gặp nạn','Tai nạn, cấp cứu, bị bắt giữ.'],['Chiếm Zalo, Facebook để mượn tiền','Nhắn đúng giọng, đúng cách xưng hô.'],['Giả giáo viên, bệnh viện','Gọi báo con em cần tiền gấp.'],['Giả giọng nói, khuôn mặt','Dùng công nghệ ghép mặt, giọng.']]},
-  {k:'can-quan-tam',art:'love',c:C.love,name:'Cần được quan tâm',short:'“Em chưa gặp ai hiểu em như anh.”',
-   lead:'Họ dành cả tháng để bạn tin, rồi mới xin tiền.',
-   says:['Em chưa từng gặp ai hiểu em như anh.','Anh gửi quà về, em đóng phí hải quan giúp.','Mình cùng đầu tư để sớm về chung nhà.'],
-   why:'Đã tin ai đó, ta ngại nghi ngờ họ.',
-   cure:['Chưa gặp mặt thật thì không chuyển tiền.','Quà từ nước ngoài không đòi phí qua tài khoản cá nhân.','Kể với một người bạn tin cậy.'],
-   cases:[['Làm quen, yêu qua mạng','Hồ sơ đẹp, nói chuyện mỗi ngày.'],['Nhận quà từ nước ngoài','Giả hải quan đòi phí thông quan.'],['Rủ đầu tư cùng','“Người yêu” chỉ cách làm giàu.'],['Hội nhóm thân thiết','Nhóm hỗ trợ, rồi mời góp tiền.']]},
-  {k:'tiec-tien',art:'loss',c:C.loss,name:'Tiếc tiền đã bỏ ra',short:'“Nộp thêm 10% để rút hết.”',
-   lead:'Đã mất một ít, ta dễ bỏ thêm để gỡ lại.',
-   says:['Nộp thêm 10% phí để rút toàn bộ.','Tài khoản bị treo, đóng tiền bảo lãnh để mở.','Sai cú pháp, cần chuyển lại để hoàn tiền.'],
-   why:'Càng nộp nhiều, càng khó dừng lại.',
-   cure:['Không có “phí rút tiền” nào phải chuyển cho cá nhân.','Dừng ngay, đừng nộp thêm.','Gọi ngân hàng và báo công an.'],
-   cases:[['Phí rút tiền, phí mở khóa','Tiền “lãi” chỉ là con số trên màn hình.'],['Hứa lấy lại tiền đã bị lừa','Giả luật sư, “hacker” thu phí.'],['Hoàn tiền đơn hàng','Bắt chuyển trước để “hoàn”.'],['Nộp thuế để nhận thưởng','Thuế thật không nộp qua cá nhân.']]},
+   says:['Ưu đãi chỉ còn hôm nay, cứ ký trước đi.','Chỉ còn 02 phút để giữ mức giá này.','Chuyển ngay trong 15 phút, không thì mất suất.'],
+   feel:['Thấy phải làm ngay','Bỏ qua đọc kỹ','Ngại hỏi lại'],
+   act:['Ưu đãi thật vẫn chờ bạn đọc xong.','Đợi một đêm, hỏi một người.','Ai cản bạn hỏi người thân là đáng ngờ.'],
+   cases:[['Đặt cọc giữ suất','Cọc trước để giữ hàng, rồi mất liên lạc.','lv-2',2],['Ký hợp đồng tại chỗ','Giấy tờ “gửi sau”, ký trước đã.','lv-6',6],['Vay nhanh trong ngày','Giải ngân ngay nếu đóng phí trước.','lv-5',5],['Mã giảm giá sắp hết','Đường link khuyến mãi lạ, hết hạn trong vài phút.','lv-2',2]],q:'CĐ2-041'},
+  {k:'tin',w:'TIN',c:'#1F63F0',img:'tin-hieu-tin',hook:'“Em bên ngân hàng, anh đọc giúp em mã OTP.”',
+   lead:'Họ mượn danh người bạn tin: ngân hàng, cơ quan, người quen.',
+   says:['Em bên ngân hàng, anh đọc giúp em mã OTP nhé.','Đây là biên lai chuyển khoản, anh kiểm tra đi.','Tôi là cán bộ, đây là thẻ ngành của tôi.'],
+   feel:['Yên tâm vì có logo, giấy tờ','Không nghĩ cần kiểm tra lại','Ngại làm phật lòng người có chức vụ'],
+   act:['Logo, giấy tờ, ổ khóa đều làm giả được.','Tự tìm số chính thức và tự gọi lại.','Không ai được hỏi mã OTP của bạn.'],
+   cases:[['Giả nhân viên ngân hàng','Đòi mã OTP để “khóa khẩn cấp”.','lv-1',1],['Biên lai, website giả','Ảnh chụp chuyển khoản sửa bằng phần mềm.','lv-2',2],['Giả cán bộ cơ quan','Mời cài ứng dụng để “cập nhật hồ sơ”.','lv-1',1],['Tài khoản người quen bị chiếm','Nhắn đúng giọng, đúng cách xưng hô.','lv-1',1]],q:'CĐ1-038'},
+  {k:'thuong',w:'THƯƠNG',c:'#EE3A93',img:'tin-hieu-thuong',hook:'“Mẹ ơi, con bị tai nạn, chuyển gấp viện phí.”',
+   lead:'Thương người nhà, ta chuyển tiền trước khi kịp xác minh.',
+   says:['Mẹ ơi, con bị tai nạn, chuyển gấp viện phí.','Mình mượn tạm 5 triệu, tối trả nhé.','Giúp cháu bé đang cấp cứu, chuyển ngay vào tài khoản này.'],
+   feel:['Lo lắng, thắt lòng','Muốn giúp ngay lập tức','Thấy nghi ngờ là có lỗi'],
+   act:['Gọi lại người thân bằng số bạn vẫn lưu.','Hỏi một câu chỉ người nhà mới biết.','Tự tra số bệnh viện, tổ chức vận động.'],
+   cases:[['Giả người thân gặp nạn','Tai nạn, cấp cứu, bị giữ ở đồn.','lv-1',1],['Chiếm Zalo, Facebook mượn tiền','Tài khoản thật, người nhắn là kẻ gian.','lv-1',1],['Kêu gọi từ thiện giả','Ảnh bệnh nhi, tài khoản cá nhân.','lv-1',1],['Yêu qua mạng','Làm quen cả tháng, rồi nhờ đóng phí nhận quà.','thuong-2',1]],q:'CĐ7-025'},
+  {k:'hy-vong',w:'HY VỌNG',c:'#7F55FF',img:'tin-hieu-hy-vong',hook:'“Chắc chắn lấy lại được tiền, chỉ cần nộp phí hồ sơ.”',
+   lead:'Lúc đang cần, một lời hứa chắc chắn nghe như phao cứu sinh.',
+   says:['Chắc chắn lấy lại được tiền, chỉ cần nộp trước phí hồ sơ.','Việc làm lương cao, chỉ cần cài ứng dụng này.','Hỗ trợ vay không thế chấp, duyệt trong ngày.'],
+   feel:['Thấy có lối thoát','Muốn tin là thật','Bỏ qua điều kiện bất thường'],
+   act:['Không ai chắc chắn lấy lại được tiền đã mất.','Không nộp phí trước cho người lạ tự tìm đến.','Báo ngân hàng và công an, không qua trung gian.'],
+   cases:[['Hứa lấy lại tiền bị lừa','Giả luật sư, “hacker” thu phí trước.','lv-6',6],['Việc làm, tuyển dụng','Cài ứng dụng ngoài, cấp quyền điều khiển máy.','lv-3',3],['Vay dễ, không thế chấp','Phí hồ sơ trước khi giải ngân.','lv-5',5],['Máy chữa bệnh “thần kỳ”','“Chữa dứt điểm” trong khi giấy tờ ghi “hỗ trợ”.','lv-6',6]],q:'CĐ1-047'},
 ];
-const EBY=Object.fromEntries(EMO.map(e=>[e.k,e]));
-/* 7 cach lay tu ban dung v2 (trang Thu doan), rut gon chu */
-const TRICKS=[
-  ['Giả người có quyền','Công an, tòa án, ngân hàng.',C.fear,['so-hai']],
-  ['Giả người quen','Con cháu, bạn bè, cấp trên.',C.family,['lo-cho-nguoi-than','can-quan-tam']],
-  ['Hứa cho nhiều hơn','Lãi cao, trúng thưởng, việc nhẹ.',C.gain,['mong-duoc-nhieu','so-bo-lo']],
-  ['Cho nếm thử thật','Trả lãi vài lần đầu cho bạn tin.','#F5B800',['mong-duoc-nhieu']],
-  ['Dọa bạn sắp mất','Bị phạt, bị khóa, mất việc.',C.fomo,['so-hai','so-bo-lo']],
-  ['Giữ tiền, đòi phí','Phí rút, phí mở khóa.',C.loss,['tiec-tien']],
-  ['Đưa bằng chứng giả','Biên lai, giấy tờ, website giả.',C.love,['so-hai','mong-duoc-nhieu']],
+const SBY=Object.fromEntries(SIG.map(s=>[s.k,s]));
+const sigTag=k=>`<a class="tag" href="#tin-hieu-${k}" style="--c:${SBY[k].c}">${SBY[k].w}</a>`;
+
+/* 7 cach: chu theo ban dung v2 (trang Thu doan); gan tin hieu la de xuat */
+const CACH=[
+  ['Đóng vai người có quyền','Công an, tòa án, ngân hàng, cơ quan nhà nước, cấp trên.','cach-1',['so','tin']],
+  ['Đóng vai người quen','Chiếm tài khoản người thân, giả con cháu, làm quen lâu ngày.','cach-2',['tin','thuong']],
+  ['Hứa cho bạn được nhiều hơn','Lãi cao, hoa hồng, trúng thưởng, việc nhẹ lương cao, vay dễ.','cach-3',['tham','hy-vong']],
+  ['Cho bạn nếm thử thật','Trả hoa hồng đơn đầu, cho rút thử, cho lãi vài kỳ đầu.','cach-4',['tham','tin']],
+  ['Dọa bạn sắp mất','Dính án, bị phạt, bị khóa tài khoản, mất hàng, mất việc.','cach-5',['so','gap']],
+  ['Giữ tiền rồi đòi phí','Phí rút, phí mở khóa, tiền xác minh, tiền bảo lãnh.','cach-6',['hy-vong','gap']],
+  ['Đưa bằng chứng giả','Biên lai giả, giấy tờ giả, website giả, ứng dụng giả.','cach-7',['tin']],
+];
+const LV=[['Cuộc gọi, tin nhắn, giả mạo',7,'lv-1'],['Mua bán, đặt cọc',5,'lv-2'],['Việc làm, làm thêm',5,'lv-3'],['Đầu tư, góp vốn',5,'lv-4'],['Vay, nợ',5,'lv-5'],['Hợp đồng, dịch vụ',4,'lv-6']];
+const WANT=[['Tiền hoặc hàng','của bạn'],['Quyền vào tài khoản','điện thoại của bạn'],['Danh tính','giấy tờ, chữ ký, tên bạn đứng ra'],['Bạn làm trung gian','nhận, chuyển tiền hộ, đứng tên hộ']];
+const SITU=[
+  {k:'de-doa',t:'Có người đang đe dọa, ép buộc tôi',d:'Dọa đòi tiền, dọa tung hình ảnh hoặc thông tin.',img:'th-de-doa',c:'#E8173A',
+   todo:['Không chuyển tiền, không làm theo yêu cầu.','Giữ lại tin nhắn, số điện thoại, ảnh chụp màn hình.','Báo cơ quan Công an gần nhất. Nguy hiểm tức thời thì gọi 113.']},
+  {k:'da-mat',t:'Tiền, tài khoản hoặc giấy tờ của tôi đã có chuyện',d:'Đã đưa đi, đã mất, hoặc bị người khác dùng.',img:'th-mat-tien',c:'#FF7A00',
+   todo:['Gọi ngay ngân hàng (số in sau thẻ) để chặn giao dịch.','Đổi mật khẩu, khóa thẻ; mất SIM thì báo nhà mạng.','Trình báo Công an, mang theo bằng chứng.','Cảnh giác với người tự tìm đến hứa lấy lại tiền.']},
+  {k:'duoc-moi',t:'Tôi đang được mời, được yêu cầu làm một việc',d:'Còn kịp. Kiểm tra trước khi đưa bất cứ thứ gì.',img:'th-duoc-moi',c:'#C48A00',
+   todo:['Chưa đưa tiền, mã OTP hay giấy tờ.','Trả lời hai câu tự hỏi ở bên dưới.','Kể cho một người thân nghe trước khi quyết.']},
+];
+const SIGNS=[
+  'Bảo bạn <b>đọc hoặc gửi</b> mật khẩu, mã OTP, mã PIN, hoặc cho người khác nhìn, điều khiển màn hình.',
+  'Người khác gửi đường link và bảo bạn <b>cài ứng dụng</b>.',
+  'Bắt <b>nộp thêm phí</b> để lấy được tiền hoặc hàng đang bị giữ: phí rút tiền, phí mở khóa, tiền bảo lãnh.',
+  'Người khác bảo bạn <b>quét khuôn mặt</b> hoặc gửi ảnh giấy tờ.|Bạn tự mở ứng dụng của mình cho việc do chính bạn bắt đầu thì bình thường.',
+  'Bắt bạn <b>quyết định ngay</b>, giữ bí mật, hoặc không cho hỏi người thân.',
+  'Đề nghị bạn <b>cho mượn, cho thuê, bán hoặc mở hộ</b> tài khoản ngân hàng, ví điện tử, SIM, dù được trả tiền công.',
 ];
 const SPOT=[
-  {from:'TB-DICHVUCONG',msg:'Tài khoản định danh của bạn sẽ bị <b>khóa sau 24h</b> do chưa cập nhật. Cập nhật ngay tại: <u>dichvucong-capnhat.top</u>',scam:true,emo:'so-hai',why:'Dọa khóa tài khoản và gửi link lạ. Cơ quan nhà nước không gửi link cập nhật qua tin nhắn.'},
-  {from:'+84 9xx xxx 218',msg:'Chị ơi em là bạn của Minh. Minh đang cấp cứu ở viện, máy hết pin, chị <b>chuyển gấp 15 triệu</b> vào số này giúp em nhé.',scam:true,emo:'lo-cho-nguoi-than',why:'Đánh vào lo lắng cho người thân và bắt chuyển gấp. Hãy gọi thẳng cho người nhà hoặc bệnh viện.'},
-  {from:'NGANHANG',msg:'Ma OTP cua Quy khach la 482913, dung de xac nhan giao dich do Quy khach thuc hien. <b>Khong cung cap ma nay cho bat ky ai</b>, ke ca nhan vien ngan hang.',scam:false,emo:null,why:'Tin thật: bạn tự làm giao dịch, tin không có link và dặn không đưa mã cho ai. Nếu bạn không làm giao dịch nào, gọi ngay số in sau thẻ.'},
+  {from:'TB-DICHVUCONG',av:'DV',msg:'Tài khoản định danh của bạn sẽ bị <mark>khóa sau 24h</mark> do chưa cập nhật. Cập nhật ngay tại: <u>dichvucong-capnhat.top</u>',scam:true,sig:['so','gap'],why:'Dọa khóa tài khoản, thúc làm ngay và gửi link lạ. Cơ quan nhà nước không gửi link cập nhật qua tin nhắn.'},
+  {from:'+84 9•• ••• 218',av:'?',msg:'Chị ơi em là bạn của Minh. Minh đang cấp cứu ở viện, máy hết pin, chị <mark>chuyển gấp 15 triệu</mark> vào số này giúp em nhé.',scam:true,sig:['thuong','gap'],why:'Đánh vào lòng thương người thân và bắt chuyển gấp. Hãy gọi thẳng cho người nhà hoặc tự tra số bệnh viện.'},
+  {from:'Tuyển dụng Online',av:'TD',msg:'Việc nhẹ tại nhà, <mark>thu nhập 500k–2tr/ngày</mark>. Chỉ cần like video và làm nhiệm vụ. Nạp 200k để kích hoạt tài khoản nhận việc.',scam:true,sig:['tham','hy-vong'],why:'Hứa thu nhập cao cho việc rất nhẹ, rồi bắt nạp tiền để “kích hoạt”. Việc làm thật không thu tiền của người lao động.'},
+  {from:'NGANHANG',av:'NH',msg:'Ma OTP cua Quy khach la 482913, dung de xac nhan giao dich do Quy khach thuc hien. Khong cung cap ma nay cho bat ky ai, ke ca nhan vien ngan hang.',scam:false,sig:[],why:'Tin thật: bạn tự làm giao dịch, tin không có link và dặn không đưa mã cho ai. Nếu bạn không làm giao dịch nào, gọi ngay số in sau thẻ.'},
 ];
 
-/* ===== Ve trang ===== */
-const $=s=>document.querySelector(s);
-const arrow='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-const chip=k=>`<a class="chip" href="#bay-${k}" style="--c:${EBY[k].c}">${EBY[k].name}</a>`;
+/* ===== Cay thu muc ===== */
+const FOLDER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+const HOMEI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>';
+const TREE=[
+  {p:'ung-pho',t:'Ứng phó khẩn cấp',kids:[['chon','Chọn tình huống'],['dau-hieu','Dấu hiệu dừng lại'],['hai-cau','Hai câu tự hỏi'],['so-can-biet','Số cần biết']]},
+  {p:'tin-hieu',t:'6 tín hiệu cảm xúc',kids:SIG.map(s=>['@tin-hieu-'+s.k,s.w,s.c])},
+  {p:'thu-doan',t:'Thủ đoạn',kids:[['bon-thu','Họ muốn lấy gì'],['bay-cach','Bảy cách họ làm'],['linh-vuc','Theo lĩnh vực'],['canh-bao','Cảnh báo mới']]},
+  {p:'cuoc-thi',t:'Cuộc thi',contest:1,kids:[['thu-suc','Thử sức 8 câu'],['@cuoc-thi-thang','Cuộc thi tháng 10/2026'],['gop-y','Góp ý, chia sẻ']]},
+  {p:'hoi-dap',t:'Hỏi – Đáp',kids:[['gui','Gửi câu hỏi'],['da-tra-loi','Đã trả lời']]},
+  {p:'gioi-thieu',t:'Giới thiệu',kids:[['khong-bao-gio','Bốn việc không làm'],['dia-chi','Một địa chỉ thật'],['lien-he','Ba kênh liên hệ']]},
+];
+function treeHTML(page){
+  const group=page.startsWith('tin-hieu')?'tin-hieu':page==='cuoc-thi-thang'?'cuoc-thi':page;
+  const items=TREE.map(n=>{
+    const open=n.p===group;
+    const kids=open?`<ul>${n.kids.map(([id,t,c])=>{
+      const isPage=id.startsWith('@'), href=isPage?id.slice(1):n.p;
+      const cur=isPage&&href===page;
+      return `<li><a href="#${href}"${isPage?'':` data-sec="${id}"`} class="${cur?'cur':''}" style="${c?`--c:${c}`:''}">${c?'<span class="dot"></span>':''}${t}</a></li>`;}).join('')}</ul>`:'';
+    return `<li${n.contest?' class="contest-only"':''}><a href="#${n.p}" class="${open&&page===n.p?'cur':''}">${FOLDER}${n.t}</a>${kids}</li>`;
+  }).join('');
+  const inner=`<p class="tree-h">Cây thư mục</p><ul><li><a href="#trang-chu">${HOMEI}Trang chủ</a></li>${items}</ul>`;
+  return `<aside class="tree" aria-label="Cây thư mục">${inner}</aside><details class="tree-m"><summary>Cây thư mục <span>▾</span></summary><nav class="tree" aria-label="Cây thư mục">${inner}</nav></details>`;
+}
+function pageHero({c,img,eyebrow,title,lead,cta='',crumb,word,tone,pos}){
+  return `<section class="p-hero${tone?' duo-tone':''}" style="--c:${c}">${ph(img,c,!tone,pos)}<div class="wrap">
+    <nav class="crumb" aria-label="Đường dẫn"><a href="#trang-chu">Trang chủ</a>${crumb.map(x=>`<span>/</span>${x}`).join('')}</nav>
+    ${eyebrow?`<p class="eyebrow" style="margin-top:22px">${eyebrow}</p>`:''}
+    <h1 class="${word?'word':''}" ${eyebrow?'style="margin-top:10px"':''}>${title}</h1>
+    <p class="lead">${lead}</p>${cta?`<div class="cta">${cta}</div>`:''}</div></section>`;
+}
+const shell=(page,hero,body,c)=>`${hero}<div class="wrap layout" style="--c:${c||'var(--ink)'}">${treeHTML(page)}<div>${body}</div></div>`;
 
+/* ===== Trang chu ===== */
 function home(){
   return `
-<section class="hero" id="ung-pho">
+<section class="hero">
+  <div class="bg"><img src="${IMG}hero.jpg" alt=""></div>
   <div class="wrap">
-    <div class="hero-top">
-      <div>
-        <p class="eyebrow" style="color:var(--sun)">Ứng phó khẩn cấp</p>
-        <h1>Vừa bị dọa? Vừa chuyển tiền? <em>Dừng lại.</em></h1>
-        <p class="lead">Chọn điều đang xảy ra. Chúng tôi chỉ việc cần làm ngay.</p>
-        <div class="hero-cta"><a class="btn btn-sun" href="#tinh-huong">Chọn tình huống ${arrow}</a><a class="btn btn-alarm" href="#so-khan-cap">Nguy hiểm tức thời: 113</a></div>
-      </div>
-      <div class="hero-art">${svg(`<rect width="400" height="300" rx="36" fill="${C.fear}"/><circle cx="330" cy="50" r="120" fill="${C.fomo}" opacity=".7"/><circle cx="60" cy="280" r="80" fill="${C.love}" opacity=".7"/>${face(140,175,80,'fear')}${phone(250,50,120,210,`<rect x="268" y="80" width="84" height="44" rx="12" fill="#F2F0FA"/>${txt(310,107,'Công an đây',{s:12,w:800})}<rect x="268" y="134" width="84" height="44" rx="12" fill="${C.fear}"/>${txt(310,161,'Chuyển ngay!',{s:12,w:800,c:'#fff'})}<circle cx="310" cy="220" r="18" fill="${C.fear}"/><path d="M302 220h16" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`)}${txt(40,62,'DỪNG',{s:46,w:800,c:'#fff',a:'start',f:FD})}`,'0 0 400 300')}</div>
-    </div>
-    <div class="sit" id="tinh-huong">
-      <a href="#bay-so-hai"><div class="art">${SIT_ART.threat()}</div><div class="txt"><h3>Có người đang đe dọa tôi</h3><span class="go" style="color:var(--e-fear)">Việc cần làm ${arrow}</span></div></a>
-      <a href="#bay-tiec-tien"><div class="art">${SIT_ART.lost()}</div><div class="txt"><h3>Tôi đã chuyển tiền, mất tài khoản</h3><span class="go" style="color:#D86400">Việc cần làm ${arrow}</span></div></a>
-      <a href="#thu-nhan-dien"><div class="art">${SIT_ART.invited()}</div><div class="txt"><h3>Tôi đang được mời làm một việc</h3><span class="go" style="color:#A87700">Kiểm tra trước ${arrow}</span></div></a>
-    </div>
-    <div class="nums" id="so-khan-cap"><span class="lbl">Gọi theo thứ tự:</span>
+    <span class="pulse"><i></i>Ứng phó khẩn cấp</span>
+    <h1 style="margin-top:18px">Đang bị dọa? Vừa chuyển tiền? <em>Dừng lại.</em></h1>
+    <p class="lead">Chọn điều đang xảy ra với bạn. Chúng tôi chỉ việc cần làm ngay, không cần kể cả câu chuyện.</p>
+    <div class="cta"><a class="btn btn-sun" href="#ung-pho" data-sec="chon">Chọn tình huống ${ar}</a><a class="btn btn-line" href="#ung-pho" data-sec="dau-hieu">Tự kiểm tra 6 dấu hiệu</a></div>
+    <div class="sit">${SITU.map((s,i)=>`<a href="#ung-pho" data-sec="chon" data-pick="${i}" style="--c:${s.c}">${ph(s.img,s.c)}<div class="txt"><span class="no">TÌNH HUỐNG 0${i+1}</span><h3>${s.t}</h3><span class="go">${i<2?'Xem việc cần làm':'Kiểm tra trước'} ${ar}</span></div></a>`).join('')}</div>
+    <div class="nums"><span class="lbl">Gọi theo thứ tự</span>
       <span class="num"><b>Ngân hàng</b><span>số in sau thẻ · gọi đầu tiên</span></span>
       <span class="num red"><b>113</b><span>nguy hiểm tức thời</span></span>
       <span class="num"><b>156</b><span>báo cuộc gọi, tin nhắn lừa đảo</span></span>
@@ -445,162 +747,371 @@ function home(){
   </div>
 </section>
 
-<section class="band" id="chieu-tro">
+<section class="band">
   <div class="wrap">
-    <div class="sec-head"><h2>7 chiêu họ hay dùng</h2><p>Thủ đoạn đổi mỗi ngày. Chiêu thì chỉ có vài kiểu.</p></div>
-    <div class="tricks" tabindex="0" aria-label="Bảy chiêu, trượt ngang để xem"><ol>
-      ${TRICKS.map((t,i)=>`<li class="trick"><div class="art">${trickArt(i,t[2])}</div><div class="txt"><span class="no">Chiêu ${i+1}</span><h3>${t[0]}</h3><p>${t[1]}</p><div class="chips">${t[3].map(chip).join('')}</div></div></li>`).join('')}
-    </ol></div>
-    <p class="tricks-note">Mỗi chiêu nhắm vào một cảm xúc. Bấm nhãn màu để xem bẫy đó.</p>
+    <div class="sec-head"><div><p class="eyebrow" style="color:var(--s-gap)">Chiêu trò lừa đảo</p><h2>Thủ đoạn thì đổi mỗi ngày. Chiêu chỉ có bảy.</h2></div>
+      <div><p>Nhìn vào thứ họ muốn lấy và cách họ làm, bạn nhận ra cả thủ đoạn chưa ai đặt tên.</p><div class="rail-ctrl" style="margin-top:14px"><button data-rail="-1" aria-label="Lùi">‹</button><button data-rail="1" aria-label="Tiếp">›</button></div></div></div>
+    <div class="want">${WANT.map((w,i)=>`<div><b>${i+1}</b><p><strong>${w[0]}</strong><span>${w[1]}</span></p></div>`).join('')}</div>
+    <div class="rail" id="rail" tabindex="0" aria-label="Bảy cách, trượt ngang"><ol>${CACH.map((c,i)=>`<li class="trick"><div style="position:relative">${ph(c[2],SBY[c[3][0]].c)}<span class="num-big">0${i+1}</span></div><div class="txt"><h3>${c[0]}</h3><p>${c[1]}</p><div class="tags">${c[3].map(sigTag).join('')}</div></div></li>`).join('')}</ol></div>
+    <p class="muted small" style="margin-top:10px">Nhãn màu cho biết chiêu đó đánh vào tín hiệu cảm xúc nào. Bấm để xem.</p>
   </div>
 </section>
 
-<section class="band emo-band" id="bay-cam-xuc">
+<section class="band sig-band">
   <div class="wrap">
-    <div class="sec-head"><h2>Họ không lừa đầu óc bạn.<br><span>Họ lừa cảm xúc.</span></h2><p>Thủ đoạn thiên biến vạn hóa, nhưng chỉ nhắm vào 6 cảm xúc.</p></div>
-    <div class="emo-grid">
-      ${EMO.map(e=>`<a class="emo" href="#bay-${e.k}" style="--c:${e.c}"><div class="art">${ART[e.art]()}</div><div class="txt"><h3>${e.name}</h3><div class="bubble">${e.short}</div><span class="go">Xem bẫy này ${arrow}</span></div></a>`).join('')}
-    </div>
-    <div class="pause"><span class="t">10s</span><div><h3>Thấy tim đập nhanh? Đó là lúc phải dừng.</h3><p>Cảm xúc càng mạnh, càng cần dừng 10 giây và hỏi một người.</p></div><a class="btn btn-sun" href="#thu-nhan-dien">Thử nhận diện</a></div>
+    <div class="sec-head"><div><p class="eyebrow" style="color:var(--sun)">6 tín hiệu cảm xúc</p><h2>Họ không lừa đầu óc bạn. <span class="rainbow">Họ lừa cảm xúc.</span></h2></div>
+      <p>Mọi cú lừa đều chạm vào ít nhất một trong sáu tín hiệu. Thấy tín hiệu nào bật lên trong người, đó là lúc dừng lại.</p></div>
+    <div class="mosaic">${SIG.map((s,i)=>`<a class="m${i+1}" href="#tin-hieu-${s.k}">${ph(s.img,s.c)}<span class="idx">0${i+1}</span><div class="cap"><div class="word">${s.w}</div><p class="hook">${s.hook}</p></div></a>`).join('')}</div>
+    <div class="quote"><span class="q">“</span><div><p>Kiểu lừa thay đổi liên tục, nhưng cảm xúc bị lợi dụng thì cứ lặp lại. Nhận ra cảm xúc giúp mình dừng và kiểm tra kịp thời.</p><small>Ngân hàng câu hỏi Cuộc thi · Chuyên đề 1 · câu CĐ1-016</small></div></div>
+    <p class="eyebrow" style="color:var(--sun);margin-top:44px">Đang xúc động mà phải quyết chuyện tiền?</p>
+    <ol class="steps4" style="--c:var(--s-hv)">
+      <li><h4>Chậm lại</h4><p>Tách cảm xúc khỏi hành động. Chưa bấm, chưa chuyển.</p></li>
+      <li><h4>Kiểm tra độc lập</h4><p>Tự tìm số, tự mở website chính thức để hỏi.</p></li>
+      <li><h4>Làm rõ điều kiện</h4><p>Đòi thông tin có thể lưu lại và đối chiếu.</p></li>
+      <li><h4>Rồi mới tự quyết</h4><p>Không để ai quyết thay, không để ai giục.</p></li>
+    </ol>
+    <p class="small" style="color:#B9B5E8;margin-top:10px">Theo câu CĐ1-021 của ngân hàng câu hỏi.</p>
   </div>
 </section>
 
-<section class="band" id="thu-nhan-dien">
+<section class="band">
   <div class="wrap spot">
     <div class="phone"><div class="scr" id="spotScr"></div></div>
-    <div class="spot-q">
-      <p class="eyebrow" style="color:var(--e-love)">Thử nhận diện</p>
-      <h2>Tin này thật hay lừa?</h2>
-      <p class="count" id="spotCount"></p>
+    <div>
+      <p class="eyebrow" style="color:var(--s-hv)">Thử nhận diện</p>
+      <h2 style="margin-top:10px">Tin này thật hay lừa?</h2>
+      <p class="muted" style="margin-top:10px;max-width:44ch">Bốn tin nhắn người Việt hay nhận. Đoán xem, rồi xem nó bấm vào tín hiệu cảm xúc nào.</p>
+      <div class="dots" id="spotDots"></div>
       <div class="answers"><button class="a-scam" data-a="1">Lừa đảo</button><button class="a-real" data-a="0">Tin thật</button></div>
       <div id="spotOut" aria-live="polite"></div>
     </div>
   </div>
 </section>
 
-<section class="band contest-only" id="cuoc-thi" style="padding-top:0">
+<section class="band tight contest-only" style="padding-top:0">
   <div class="wrap">
-    <div class="contest">
-      <div class="txt">
-        <p class="eyebrow">Cuộc thi tháng 10/2026</p>
-        <h2>Việc làm, làm thêm: bạn có nhận ra bẫy?</h2>
-        <div class="meta"><span>1/10 – 31/10/2026</span><span>Miễn phí</span><span>Không hỏi mã OTP</span></div>
-        <div class="hero-cta"><a class="btn btn-sun" href="#cuoc-thi">Đăng ký dự thi ${arrow}</a><a class="btn btn-ghost" href="#cuoc-thi">Thể lệ</a></div>
-      </div>
-      <div class="art">${svg(`<circle cx="200" cy="150" r="110" fill="#fff" opacity=".18"/><path d="M150 70h100v50a50 50 0 0 1-100 0z" fill="${C.sun}"/><path d="M150 85h-28a28 28 0 0 0 28 40M250 85h28a28 28 0 0 1-28 40" stroke="${C.sun}" stroke-width="10" fill="none"/><rect x="185" y="168" width="30" height="40" fill="${C.sun}"/><rect x="155" y="205" width="90" height="22" rx="8" fill="${C.ink}"/>${txt(200,110,'10',{s:40,w:800,f:FD})}${face(80,230,34,'gain')}${face(320,230,34,'love')}`,'0 0 400 300')}</div>
+    <div class="promo">${ph('cuoc-thi-thang','var(--s-hv)',true)}<div class="txt">
+      <p class="eyebrow" style="color:var(--sun)">Cuộc thi tháng 10/2026</p>
+      <h2>Việc làm, làm thêm: bạn có nhận ra bẫy?</h2>
+      <div class="pills"><span>1/10 – 31/10/2026</span><span>200 câu</span><span>Có xét thưởng</span><span>Không hỏi mã OTP</span></div>
+      <div class="cta" style="margin-top:8px"><a class="btn btn-sun" href="#cuoc-thi-thang">Đăng ký dự thi ${ar}</a><a class="btn btn-line" href="#cuoc-thi" data-sec="thu-suc">Thử sức 8 câu</a></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="band tight">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="eyebrow" style="color:var(--alarm)">Xu hướng</p><h2>Cảnh báo mới và bài đọc</h2></div><p>Mỗi cảnh báo ghi rõ cơ quan ban hành và ngày cập nhật.</p></div>
+    <div class="cards c3">
+      <article class="card">${ph('cb-1','var(--s-so)')}<div class="txt"><div class="tags">${sigTag('tin')}${sigTag('so')}</div><h3>Ứng dụng giả mạo dịch vụ công dụ người dân cài đặt</h3><p class="meta">Công an xã Thiên Lộc · Văn bản 128/CAX · 28/8/2026</p><a class="btn btn-ink btn-sm" href="#thu-doan" data-sec="canh-bao">Đọc cảnh báo</a></div></article>
+      <article class="card">${ph('cb-2','var(--s-tham)')}<div class="txt"><div class="tags">${sigTag('tham')}</div><h3>Mời góp vốn qua ứng dụng cam kết lợi nhuận cố định</h3><span class="warn-pill">⚠ Cần kiểm chứng · Chưa có kết luận</span><p class="meta">Công an xã Thiên Lộc · Văn bản 121/CAX · 21/8/2026</p></div></article>
+      <article class="card">${ph('bai-doc-2','var(--s-hv)',true)}<div class="txt"><p class="eyebrow" style="color:var(--s-hv)">Chuỗi bài · 10 phần</p><h3>Lừa đảo: Từ cổ chí kim</h3><p class="muted small">Nhìn lại những cú lừa qua lịch sử: thủ đoạn khác, cảm xúc bị nhắm tới vẫn vậy.</p></div></article>
     </div>
   </div>
 </section>
 
-<section class="band" id="canh-bao" style="padding-top:0">
-  <div class="wrap">
-    <div class="sec-head"><h2>Cảnh báo mới</h2><p>Mỗi cảnh báo ghi rõ cơ quan ban hành và ngày cập nhật.</p></div>
-    <div class="news">
-      <article><div class="art">${newsArt(C.fear,'APP')}</div><div class="txt">${chip('so-hai')}<h3>Ứng dụng giả mạo dịch vụ công dụ người dân cài đặt</h3><small>Công an xã Thiên Lộc · 28/8/2026</small></div></article>
-      <article><div class="art">${newsArt(C.gain,'%')}</div><div class="txt">${chip('mong-duoc-nhieu')}<h3>Mời góp vốn qua ứng dụng cam kết lợi nhuận cố định</h3><small>Công an xã Thiên Lộc · 21/8/2026</small></div></article>
-      <article><div class="art">${newsArt(C.fomo,'SALE')}</div><div class="txt">${chip('so-bo-lo')}<h3>Trang bán hàng giả “xả kho” giảm 90% trong 1 giờ</h3><small>Nội dung minh họa · chờ nguồn</small></div></article>
+<section class="band tight" style="padding-top:0">
+  <div class="wrap duo">
+    <div class="panel ink">
+      <p class="eyebrow" style="color:var(--sun)">Hỏi – Đáp</p>
+      <h3>Hỏi riêng, trả lời công khai.</h3>
+      <p style="color:#CFCBF2">Gửi câu hỏi kín cho Ban biên tập. Câu trả lời được đăng công khai, đã che mọi thông tin cá nhân.</p>
+      <div class="cta" style="margin-top:6px"><a class="btn btn-sun" href="#hoi-dap" data-sec="gui">Gửi câu hỏi ${ar}</a><a class="btn btn-line" href="#hoi-dap" data-sec="da-tra-loi">Xem câu đã trả lời</a></div>
+    </div>
+    <div class="panel sun">
+      <p class="eyebrow">Chỉ một địa chỉ</p>
+      <h3>antoantaichinh.vn</h3>
+      <ul><li><b>✕</b>Không gọi điện, nhắn tin cho bạn trước</li><li><b>✕</b>Không hỏi mã OTP, mật khẩu, số thẻ</li><li><b>✕</b>Không bắt cài ứng dụng, không thu tiền</li></ul>
+      <a class="btn btn-ink" href="#gioi-thieu" style="align-self:flex-start;margin-top:6px">Về chúng tôi ${ar}</a>
     </div>
   </div>
-</section>
-
-<div class="wrap" id="hoi-dap">
-  <div class="about">
-    <p><b>antoantaichinh.vn</b> là trang chính thức duy nhất của Chương trình. Chúng tôi không bao giờ gọi điện hỏi mã OTP hay yêu cầu chuyển tiền.</p>
-    <div class="channels"><span>antoantaichinh.vn</span><span>Fanpage chính thức</span><span>Hỏi – Đáp</span></div>
-  </div>
-</div>`;
+</section>`;
 }
 
-function tree(cur){
-  const folder='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
-  return `<p class="tree-title">Cây thư mục</p>
-  <details open><summary>Bẫy cảm xúc</summary><ul>
-    ${EMO.map(e=>`<li><a class="node ${e.k===cur?'on':''}" href="#bay-${e.k}" style="--c:${e.c}"><span class="dot"></span>${e.name}</a>
-      ${e.k===cur?`<ul>${e.cases.map((c,i)=>`<li><a class="node leaf" href="#bay-${e.k}" data-leaf="${i}">${c[0]}</a></li>`).join('')}</ul>`:''}</li>`).join('')}
-  </ul></details>
-  <div class="grp"><a class="root" href="#ung-pho">${folder}Ứng phó khẩn cấp</a></div>
-  <div class="grp"><a class="root" href="#chieu-tro">${folder}7 chiêu thường gặp</a></div>
-  <div class="grp"><a class="root" href="#thu-nhan-dien">${folder}Thử nhận diện</a></div>
-  <div class="grp contest-only"><a class="root" href="#cuoc-thi">${folder}Cuộc thi tháng</a></div>
-  <div class="grp"><a class="root" href="#hoi-dap">${folder}Hỏi – Đáp</a></div>`;
+/* ===== Ung pho ===== */
+function ungPho(){
+  const hero=pageHero({c:'var(--alarm)',img:'ung-pho',crumb:['Ứng phó khẩn cấp'],eyebrow:'Khẩn cấp',title:'Ứng phó tình huống khẩn cấp',lead:'Chọn ô gần đúng nhất. Việc cần làm đi theo điều đã xảy ra, bạn không cần kể đúng câu chuyện.',cta:`<a class="btn btn-sun" href="#ung-pho" data-sec="chon">Chọn tình huống ↓</a><a class="btn btn-alarm" href="#ung-pho" data-sec="so-can-biet">Nguy hiểm tức thời: gọi 113</a>`,tone:1});
+  const body=`
+  <section class="sec" id="chon"><p class="eyebrow" style="color:var(--alarm)">Bước 1</p><h2>Điều gì đang xảy ra với bạn?</h2>
+    <div class="pick">${SITU.map((s,i)=>`<button data-pick="${i}" aria-pressed="false" style="--c:${s.c}">${ph(s.img,s.c)}<div class="txt"><h3>${s.t}</h3><p>${s.d}</p></div></button>`).join('')}</div>
+    <div id="todo" aria-live="polite"></div>
+    <div class="side-links"><a href="#ung-pho" data-sec="dau-hieu"><span>Không ô nào giống trường hợp của tôi<small>Tự kiểm tra 6 dấu hiệu</small></span>›</a><a href="#tin-hieu"><span>Hiểu vì sao mình dễ mắc<small>6 tín hiệu cảm xúc</small></span>›</a></div>
+    <p class="muted small" style="margin-top:12px">Đang giúp người thân, hay xử lý việc của cửa hàng? Chọn theo điều đã xảy ra với người đó.</p>
+  </section>
+  <section class="sec" id="dau-hieu"><p class="eyebrow" style="color:var(--alarm)">Tự kiểm tra</p><h2>Chỉ cần 1 dấu hiệu: dừng lại</h2>
+    <p class="intro">Đánh dấu những điều đang xảy ra với bạn. Đây là lời khuyên để bạn tự bảo vệ, chưa phải kết luận đã có lừa đảo.</p>
+    <div class="check"><ul>${SIGNS.map((s,i)=>{const [a,ok]=s.split('|');return `<li><label><input type="checkbox" id="sg${i}"><span>${a}${ok?`<span class="ok">✓ ${ok}</span>`:''}</span></label></li>`}).join('')}</ul>
+      <div class="meter" id="meter"><span class="eyebrow" style="color:var(--sun)">Đã đánh dấu</span><span class="big" id="mCount">0</span><p id="mText">Chạm vào dòng nào giống điều bạn đang gặp.</p></div></div>
+    <p class="src">Năm dòng đầu theo “Năm việc phải chặn ngay” của Bài đọc Chuyên đề 1. Dòng thứ sáu là phần website bổ sung.</p>
+  </section>
+  <section class="sec" id="hai-cau"><p class="eyebrow" style="color:var(--s-tin)">Không thấy dấu hiệu nào?</p><h2>Không thấy dấu hiệu không có nghĩa là an toàn</h2>
+    <p class="intro">Trước khi chuyển tiền hoặc đưa thông tin, hãy tự hỏi hai câu.</p>
+    <div class="two-q"><div><b class="n">1</b><p>Việc này do <mark>chính tôi bắt đầu</mark>, trên ứng dụng hoặc website tôi vẫn dùng từ trước, và mọi thông tin đều khớp, phải không?</p></div><div><b class="n">2</b><p>Nếu không phải, tôi đã <mark>tự liên hệ lại</mark> bằng số điện thoại hoặc địa chỉ do <mark>chính tôi</mark> tìm ra chưa?</p></div></div>
+    <p class="alert-line">⚠ Cả hai câu đều trả lời “chưa” thì chưa đưa. Qua được hai câu này cũng chưa có nghĩa là giao dịch an toàn.</p>
+  </section>
+  <section class="sec" id="so-can-biet"><p class="eyebrow" style="color:var(--alarm)">Số cần biết</p><h2>Gọi ai, theo thứ tự nào</h2>
+    <div class="phonebook"><div><span class="k">Gọi đầu tiên</span><b>Ngân hàng</b><p>Số in ở mặt sau thẻ. Gọi đầu tiên khi vừa chuyển tiền.</p></div><div class="red"><span class="k">Khẩn cấp</span><b>113</b><p>Chỉ khi có nguy hiểm tức thời hoặc cần Cảnh sát đến ngay.</p></div><div><span class="k">Gọi · Nhắn tin</span><b>156</b><p>Phản ánh cuộc gọi, tin nhắn có dấu hiệu lừa đảo. Miễn phí.</p></div><div><span class="k">Chỉ nhắn tin</span><b>5656</b><p>Phản ánh qua tin nhắn, miễn phí. Không phải số để gọi.</p></div></div>
+    <p class="src">Kiểm chứng gần nhất: 01/10/2026 · Nguồn: thông báo của cơ quan quản lý viễn thông và Công an xã Thiên Lộc</p>
+  </section>`;
+  return shell('ung-pho',hero,body,'var(--alarm)');
 }
 
-function inner(e){
-  return `
-<section class="inner-hero" style="--c:${e.c}">
-  <div class="wrap">
-    <div>
-      <nav class="crumb" aria-label="Đường dẫn"><a href="#trang-chu">Trang chủ</a>/<a href="#bay-cam-xuc">Bẫy cảm xúc</a>/<span>${e.name}</span></nav>
-      <h1>${e.name}</h1>
-      <p class="lead">${e.lead}</p>
-    </div>
-    <div class="art">${ART[e.art]()}</div>
-  </div>
-</section>
-<div class="wrap layout" style="--c:${e.c}">
-  <aside class="tree" aria-label="Cây thư mục">${tree(e.k)}</aside>
-  <div>
-    <div class="block"><h2>Họ thường nói</h2><div class="says">${e.says.map(s=>`<div class="bubble">“${s}”</div>`).join('')}</div></div>
-    <div class="block"><div class="why"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/></svg></div><p>${e.why}</p></div></div>
-    <div class="block"><h2>Làm ngay 3 việc</h2><ol class="cure">${e.cure.map(c=>`<li>${c}</li>`).join('')}</ol></div>
-    <div class="block"><h2>Thủ đoạn dùng bẫy này</h2><div class="cases">${e.cases.map((c,i)=>`<article class="case" id="case-${i}"><div class="art">${caseArt(e.c,e.art)}</div><div class="txt"><h3>${c[0]}</h3><p>${c[1]}</p></div></article>`).join('')}</div></div>
-    <div class="block"><h2>Bẫy khác</h2><div class="other-emo">${EMO.filter(x=>x!==e).map(x=>`<a href="#bay-${x.k}" style="--c:${x.c}">${x.name}</a>`).join('')}</div></div>
-  </div>
-</div>`;
+/* ===== 6 tin hieu ===== */
+function tinHieu(){
+  const hero=pageHero({c:'var(--ink)',img:'tin-hieu-hy-vong',crumb:['6 tín hiệu cảm xúc'],eyebrow:'Gốc của mọi cú lừa',title:'THAM · SỢ · GẤP · TIN · THƯƠNG · HY VỌNG',lead:'Một câu chuyện lừa có thể đánh vào nhiều tín hiệu cùng lúc. Nhớ sáu tín hiệu này dễ hơn nhớ hàng trăm thủ đoạn.'});
+  const body=`
+  <section class="sec"><div class="mosaic">${SIG.map((s,i)=>`<a class="m${i+1}" href="#tin-hieu-${s.k}">${ph(s.img,s.c)}<span class="idx">0${i+1}</span><div class="cap"><div class="word">${s.w}</div><p class="hook">${s.hook}</p></div></a>`).join('')}</div></section>
+  <section class="sec"><p class="eyebrow" style="color:var(--s-hv)">Chiêu nào, tín hiệu nào</p><h2>Bảy chiêu bấm vào sáu tín hiệu</h2>
+    <p class="intro">Mỗi hàng là một chiêu trong trang Thủ đoạn. Chấm màu cho biết chiêu đó thường đánh vào tín hiệu nào.</p>
+    <div class="matrix"><table><thead><tr><th style="color:var(--ink-3);font-style:normal">Chiêu</th>${SIG.map(s=>`<th style="--c:${s.c}">${s.w}</th>`).join('')}</tr></thead><tbody>${CACH.map(c=>`<tr><td>${c[0]}</td>${SIG.map(s=>`<td>${c[3].includes(s.k)?`<i style="--c:${s.c}" aria-label="có"></i>`:''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  </section>
+  <section class="sec"><p class="eyebrow" style="color:var(--s-hv)">Khi thấy tín hiệu bật lên</p><h2>Bốn bước để không bị cảm xúc dẫn đi</h2>
+    <ol class="steps4" style="--c:var(--s-hv);margin-top:0"><li><h4>Chậm lại</h4><p>Chưa bấm, chưa chuyển, chưa đọc mã.</p></li><li><h4>Kiểm tra độc lập</h4><p>Tự tìm số, tự mở website chính thức.</p></li><li><h4>Làm rõ điều kiện</h4><p>Đòi thông tin có thể lưu lại và đối chiếu.</p></li><li><h4>Rồi mới tự quyết</h4><p>Không để ai quyết thay hay giục bạn.</p></li></ol>
+  </section>`;
+  return shell('tin-hieu',hero,body,'var(--s-hv)');
+}
+function sigPage(s){
+  const hero=pageHero({c:s.c,img:s.img,crumb:['<a href="#tin-hieu">6 tín hiệu cảm xúc</a>',s.w],eyebrow:'Tín hiệu cảm xúc',title:s.w,lead:s.lead,word:1,tone:1});
+  const q=DATA.sigQ[s.q];
+  const body=`
+  <section class="sec"><h2>Họ thường nói</h2><div class="says">${s.says.map(x=>`<div class="bub" style="--c:${s.c}"><small>Tin nhắn · cuộc gọi</small>“${x}”</div>`).join('')}</div></section>
+  <section class="sec"><h2>Bạn sẽ thấy trong người</h2><div class="feel" style="--c:${s.c}">${s.feel.map(f=>`<div><i>!</i>${f}</div>`).join('')}</div>
+    <p class="muted" style="margin-top:12px">Cảm giác này bật lên càng mạnh, càng cần dừng lại 10 giây và hỏi một người.</p></section>
+  <section class="sec"><h2>Làm ngay 3 việc</h2><ol class="do3" style="--c:${s.c}">${s.act.map(a=>`<li>${a}</li>`).join('')}</ol></section>
+  <section class="sec"><h2>Thủ đoạn hay dùng tín hiệu này</h2><div class="cases">${s.cases.map((c,i)=>`<a class="case" href="#thu-doan" data-sec="lv${c[3]}" style="--c:${s.c}">${ph(c[2],s.c)}<div class="txt"><h3>${c[0]}</h3><p>${c[1]}</p></div></a>`).join('')}</div></section>
+  ${q?`<section class="sec"><p class="eyebrow" style="color:${s.c}">Câu hỏi luyện tập · ${s.q}</p><h2>Thử một câu từ ngân hàng câu hỏi</h2><div class="quiz" id="sigQuiz"></div></section>`:''}
+  <section class="sec"><h2>Tín hiệu khác</h2><div class="next-sig">${SIG.filter(x=>x!==s).map(x=>`<a href="#tin-hieu-${x.k}" style="--c:${x.c}"><i><img src="${IMG}${x.img}.jpg" alt=""></i>${x.w}</a>`).join('')}</div></section>`;
+  return shell('tin-hieu-'+s.k,hero,body,s.c);
 }
 
-/* ===== Thu nhan dien ===== */
+/* ===== Thu doan ===== */
+function thuDoan(){
+  const hero=pageHero({c:'var(--s-gap)',img:'thu-doan',crumb:['Thủ đoạn'],eyebrow:'Thủ đoạn',title:'Các thủ đoạn lừa đảo',lead:'Thủ đoạn đổi liên tục. Nhìn vào thứ họ muốn lấy và cách họ làm, bạn nhận ra cả thủ đoạn chưa ai đặt tên.',
+    cta:`<form class="search" id="searchF" role="search"><input id="searchI" placeholder="Ví dụ: việc làm online, đặt cọc…" aria-label="Tìm thủ đoạn"><button class="btn btn-ink btn-sm">Tìm</button></form>`});
+  const body=`
+  <p class="search-note muted" style="margin:-24px 0 36px">⚠ Đừng nhập số điện thoại, số tài khoản hay tên riêng. Website không tra cứu theo những thứ đó.</p>
+  <section class="sec" id="bon-thu"><p class="eyebrow" style="color:var(--s-gap)">Mục đích</p><h2>Họ muốn lấy một trong bốn thứ</h2><p class="intro">Mọi thủ đoạn, dù mới đến đâu, đều nhắm vào một trong bốn thứ dưới đây.</p>
+    <div class="want">${WANT.map((w,i)=>`<div><b>${i+1}</b><p><strong>${w[0]}</strong><span>${w[1]}</span></p></div>`).join('')}</div></section>
+  <section class="sec" id="bay-cach"><p class="eyebrow" style="color:var(--s-gap)">Cách làm</p><h2>Họ thường dùng một hoặc nhiều cách sau</h2>
+    <div class="cases">${CACH.map((c,i)=>`<div class="case" style="--c:${SBY[c[3][0]].c}">${ph(c[2],SBY[c[3][0]].c)}<div class="txt"><p class="eyebrow" style="color:var(--ink-3);font-size:.68rem">Cách 0${i+1}</p><h3>${c[0]}</h3><p>${c[1]}</p><div class="tags" style="margin-top:4px">${c[3].map(sigTag).join('')}</div></div></div>`).join('')}</div>
+    <p class="muted" style="margin-top:14px">Đây là những cách hay gặp, <b>không phải toàn bộ</b>. Chuyện bạn gặp không có ở đây? Hãy hỏi: người này muốn lấy thứ nào trong bốn thứ, đang dùng cách nào, và đang bấm vào tín hiệu cảm xúc nào của mình?</p></section>
+  <section class="sec" id="linh-vuc"><p class="eyebrow" style="color:var(--s-gap)">Theo lĩnh vực</p><h2>Thủ đoạn theo từng lĩnh vực</h2><p class="intro">Chọn lĩnh vực gần với việc bạn đang gặp.</p>
+    <div class="fields">${LV.map((l,i)=>`<a class="field" id="lv${i+1}" href="#thu-doan" data-sec="lv${i+1}">${ph(l[2],'var(--ink)',true)}${i===2?'<span class="star contest-only">★ Cuộc thi tháng này</span>':''}<div class="txt"><span class="no">0${i+1}</span><h3>${l[0]}</h3><div class="row"><span class="small">${l[1]} thủ đoạn</span><span>›</span></div></div></a>`).join('')}</div>
+    <div class="month-note contest-only"><div><b>Lĩnh vực “Việc làm, làm thêm” là chủ đề cuộc thi tháng 10/2026.</b><br><span class="small">Đọc xong phần này, bạn đã sẵn sàng để thi. Không thu phí, không hỏi mã OTP.</span></div><a class="btn btn-white btn-sm" href="#cuoc-thi-thang">Xem cuộc thi ${ar}</a></div></section>
+  <section class="sec" id="canh-bao"><p class="eyebrow" style="color:var(--alarm)">Xu hướng</p><h2>Xu hướng và cảnh báo mới</h2><p class="intro">Mỗi cảnh báo ghi rõ cơ quan ban hành và ngày cập nhật.</p>
+    <div class="cards c2">
+      <article class="card">${ph('cb-1','var(--s-so)')}<div class="txt"><div class="tags">${sigTag('tin')}${sigTag('so')}</div><h3>Ứng dụng giả mạo dịch vụ công dụ người dân cài đặt</h3><p class="meta">Nguồn: Công an xã Thiên Lộc · Văn bản số 128/CAX ngày 25/8/2026 · Cập nhật: 28/8/2026</p></div></article>
+      <article class="card">${ph('cb-2','var(--s-tham)')}<div class="txt"><div class="tags">${sigTag('tham')}</div><h3>Mời góp vốn qua ứng dụng cam kết lợi nhuận cố định</h3><span class="warn-pill">⚠ Cần kiểm chứng · Chưa có kết luận</span><p class="meta">Nguồn: Công an xã Thiên Lộc · Văn bản số 121/CAX ngày 18/8/2026 · Nội dung đang chờ rà soát lại</p></div></article>
+      <article class="card">${ph('bai-doc-1','var(--s-tin)',true)}<div class="txt"><p class="eyebrow" style="color:var(--s-tin)">8 bài ngắn · đọc rồi làm câu hỏi</p><h3>Bài đọc theo chuyên đề</h3></div></article>
+      <article class="card">${ph('bai-doc-2','var(--s-hv)',true)}<div class="txt"><p class="eyebrow" style="color:var(--s-hv)">10 phần · nhìn lại lịch sử</p><h3>Chuỗi bài “Lừa đảo: Từ cổ chí kim”</h3></div></article>
+    </div></section>`;
+  return shell('thu-doan',hero,body,'var(--s-gap)');
+}
+
+/* ===== Cuoc thi ===== */
+function contestHidden(page){
+  return shell(page,pageHero({c:'var(--ink)',img:'cuoc-thi',crumb:['Cuộc thi'],title:'Cuộc thi đang tạm ẩn',lead:'Ban tổ chức đã tắt mục Cuộc thi. Mục này hiện lại khi có đợt thi mới.'}),
+   `<div class="hidden-note"><h2>Chưa có đợt thi nào đang mở</h2><p class="muted">Trong lúc chờ, bạn có thể đọc về 6 tín hiệu cảm xúc hoặc các thủ đoạn theo lĩnh vực.</p><div class="cta"><a class="btn btn-ink" href="#tin-hieu">6 tín hiệu cảm xúc</a><a class="btn btn-line" href="#thu-doan">Thủ đoạn</a></div></div>`);
+}
+function cuocThi(){
+  const hero=pageHero({c:'var(--s-hv)',img:'cuoc-thi',crumb:['Cuộc thi'],eyebrow:'Cuộc thi',title:'Cuộc thi chống lừa đảo',lead:'Thi trắc nghiệm, góp ý cho Chương trình, rủ người thân cùng học.',cta:`<a class="btn btn-sun" href="#cuoc-thi-thang">Cuộc thi tháng 10/2026 ${ar}</a><a class="btn btn-line" href="#cuoc-thi" data-sec="thu-suc">Thử sức 8 câu</a>`});
+  const body=`
+  <section class="sec"><p class="eyebrow" style="color:var(--s-hv)">Cuộc thi trực tuyến</p><h2>200 câu hỏi, 8 chuyên đề</h2><p class="intro">Mỗi câu hỏi giúp bạn nhận ra một dấu hiệu lừa đảo. Mỗi số điện thoại thi tối đa 2 lượt. Giai đoạn đầu có xét thưởng.</p>
+    <div class="stats" style="--c:var(--s-hv)"><div><b>200</b><span>câu hỏi</span></div><div><b>8</b><span>chuyên đề</span></div><div><b>2</b><span>lượt thi / số điện thoại</span></div></div>
+    <div class="ticket"><div class="l"><p class="eyebrow" style="color:var(--s-thuong)">Thẻ dự thi · tháng 10/2026</p><h3 style="font-size:1.6rem">Chuyên đề: Việc làm, làm thêm</h3><p class="muted">Làm bài trên điện thoại hoặc máy tính, không cần cài ứng dụng.</p><ul><li>Không thu bất kỳ khoản phí nào</li><li>Không hỏi mật khẩu, mã OTP, số tài khoản</li><li>Chỉ thi trên antoantaichinh.vn</li></ul><a class="btn btn-ink" href="#cuoc-thi-thang" style="align-self:flex-start;margin-top:8px">Xem cuộc thi tháng 10/2026 ${ar}</a></div><div class="r">${ph('cuoc-thi-2','var(--s-thuong)')}</div></div></section>
+  <section class="sec"><h2>Tám chuyên đề</h2><div class="topics">${DATA.topics.map((t,i)=>`<div><b>CHUYÊN ĐỀ ${i+1}</b><span>${t}</span></div>`).join('')}</div></section>
+  <section class="sec" id="thu-suc"><p class="eyebrow" style="color:var(--s-hv)">Thử sức</p><h2>Thử sức: 8 câu</h2><p class="intro">Mỗi chuyên đề một câu, lấy từ bộ câu hỏi mẫu. Chọn xong là có giải thích ngay.</p><div class="quiz" id="tryQuiz"></div></section>
+  <section class="sec" id="gop-y"><div class="g2">
+    <form class="form" id="fbForm"><p class="eyebrow" style="color:var(--s-tham)">Góp ý</p><h3 style="font-size:1.6rem">Góp ý cho Chương trình</h3><p class="muted">Ẩn danh. Một câu ngắn cũng quý. Giai đoạn đầu có xét thưởng.</p><label for="fbText">Nội dung góp ý</label><textarea id="fbText" rows="4" placeholder="Viết ngắn gọn…"></textarea><p class="hint">Đừng viết mật khẩu, mã OTP, số tài khoản.</p><div class="row"><span></span><button class="btn btn-ink" id="fbBtn" disabled>Gửi góp ý ${ar}</button></div><div id="fbOut"></div></form>
+    <div class="share"><p class="eyebrow">Chia sẻ</p><h3 style="font-size:1.6rem">Chia sẻ cho người thân</h3><p>Gửi website này cho cha mẹ, ông bà qua Zalo hoặc Facebook. Người thân biết trước là cách tự bảo vệ tốt nhất.</p><div class="faces"><i>B</i><i>M</i><i>Ô</i><i>B</i></div><div class="url"><span>antoantaichinh.vn</span><button class="btn btn-white btn-sm" id="copyUrl">Sao chép</button></div></div>
+  </div></section>`;
+  return shell('cuoc-thi',hero,body,'var(--s-hv)');
+}
+function cuocThiThang(){
+  const hero=pageHero({c:'var(--s-thuong)',img:'cuoc-thi-thang',crumb:['<a href="#cuoc-thi">Cuộc thi</a>','Tháng này'],eyebrow:'Cuộc thi tháng 10/2026 · 1/10 – 31/10/2026',title:'Việc làm, làm thêm',lead:'200 câu hỏi · Tối đa 2 lượt mỗi số điện thoại · Có xét thưởng',cta:`<a class="btn btn-sun" href="#cuoc-thi-thang">Đăng ký dự thi ${ar}</a><a class="btn btn-line" href="#thu-doan" data-sec="lv3">Ôn chuyên đề trước</a>`});
+  const body=`
+  <section class="sec"><p class="eyebrow" style="color:var(--s-tham)">Cách nhận ra cuộc thi thật</p><h2>Năm điều không bao giờ đổi</h2>
+    <div class="real">${['Chỉ diễn ra trên antoantaichinh.vn','Không thu bất kỳ khoản phí nào','Không hỏi mã OTP, mật khẩu, số tài khoản','Không gọi điện, nhắn tin báo trúng thưởng','Kết quả chỉ công bố trên website'].map(x=>`<div><i>✓</i>${x}</div>`).join('')}</div></section>
+  <section class="sec"><p class="eyebrow" style="color:var(--s-hv)">Thể lệ</p><h2>Tham gia trong bốn bước</h2><p class="intro">Làm bài trên điện thoại hoặc máy tính, không cần cài ứng dụng.</p>
+    <ol class="flow"><li><h4>Đăng ký</h4><p>Nhập số điện thoại để nhận lượt thi. Mỗi số tối đa 2 lượt trong tháng.</p></li><li><h4>Ôn chuyên đề</h4><p>Đọc phần “Việc làm, làm thêm” ở mục Thủ đoạn. Không bắt buộc.</p></li><li><h4>Làm bài</h4><p>200 câu trong 8 chuyên đề, trọng tâm là chuyên đề của tháng. Lượt cao điểm hơn được tính.</p></li><li><h4>Xem kết quả</h4><p>Kết quả và danh sách đoạt giải công bố trên trang này vào đầu tháng sau.</p></li></ol></section>
+  <section class="sec"><p class="eyebrow" style="color:var(--s-gap)">Giải thưởng</p><h2>Giải thưởng tháng này</h2>
+    <div class="prizes"><div class="prize" style="--c:#E8A400"><b>1</b><h4>Giải nhất</h4><p>2.000.000 đồng và giấy chứng nhận</p><span>1 giải</span></div><div class="prize" style="--c:var(--s-hv)"><b>2</b><h4>Giải nhì</h4><p>1.000.000 đồng và giấy chứng nhận</p><span>2 giải</span></div><div class="prize" style="--c:var(--s-thuong)"><b>3</b><h4>Giải ba</h4><p>500.000 đồng và giấy chứng nhận</p><span>3 giải</span></div><div class="prize" style="--c:var(--s-tin)"><b>KK</b><h4>Khuyến khích</h4><p>Phần quà trị giá 200.000 đồng</p><span>10 giải</span></div></div>
+    <div class="howget"><ol><li>Xem danh sách đoạt giải trên trang này.</li><li>Tự liên hệ Ban tổ chức qua thư điện tử cuocthi@antoantaichinh.vn.</li><li>Mang giấy tờ tùy thân đến nhận trực tiếp tại trụ sở Công ty ABC, số 1 đường ABC, xã Thiên Lộc.</li></ol><div class="no-fee"><span style="font-size:1.6rem">⚠</span><span>Ban tổ chức không gọi điện báo trúng thưởng và không bao giờ đề nghị bạn nộp phí, thuế hay chuyển tiền để nhận giải. Ai đề nghị như vậy là kẻ gian.</span></div></div></section>
+  <section class="sec"><p class="eyebrow" style="color:var(--s-tin)">Lịch cả năm</p><h2>Mỗi tháng một chuyên đề</h2><p class="intro">Biết trước chủ đề các tháng tới để cùng người thân ôn trước.</p>
+    <div class="cal">${[['08','Tháng 8/2026','Cuộc gọi, tin nhắn, giả mạo','done'],['09','Tháng 9/2026','Mua bán, đặt cọc','done'],['10','Tháng 10/2026','Việc làm, làm thêm','now'],['11','Tháng 11/2026','Đầu tư, góp vốn',''],['12','Tháng 12/2026','Vay, nợ',''],['01','Tháng 1/2027','Hợp đồng, dịch vụ',''],['02','Tháng 2/2027','Mạng xã hội, tài khoản bị chiếm',''],['03','Tháng 3/2027','Bảo hiểm, y tế, chính sách','']].map(m=>`<div class="${m[3]}"><b>${m[0]}</b><small>${m[3]==='done'?'Đã kết thúc · Xem kết quả':m[3]==='now'?'● Đang diễn ra':'Sắp tới'}</small><span>${m[2]}</span><small>${m[1]}</small></div>`).join('')}</div>
+    <p class="src">Lịch ví dụ trong bản dựng thử. Chủ đề chính thức do Ban tổ chức công bố.</p></section>
+  <section class="sec"><p class="eyebrow" style="color:var(--s-tham)">Kết quả</p><h2>Kết quả cuộc thi tháng 9/2026</h2><p class="intro">Chuyên đề: Mua bán, đặt cọc. Danh sách chỉ hiện tên viết tắt và xã, phường. Không công bố số điện thoại.</p>
+    <div class="result"><div class="k"><div><b>12.486</b>lượt thi</div><div><b>37</b>người đạt điểm tối đa</div></div>
+      <div class="tbl"><table><thead><tr><th>Giải</th><th>Người thi</th><th>Xã, phường</th></tr></thead><tbody>${[['1','Nguyễn T. H.','Xã Thiên Lộc','#E8A400'],['2','Trần V. M.','Xã Thiên Lộc','var(--s-hv)'],['3','Lê T. N.','Phường An Phú','var(--s-thuong)'],['KK','Phạm Đ. K.','Xã Hòa Bình','var(--s-tin)']].map(r=>`<tr><td><span class="medal" style="--c:${r[3]}">${r[0]}</span></td><td><b>${r[1]}</b></td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div></div>
+    <p class="src">Số liệu mẫu.</p></section>
+  <section class="sec"><p class="eyebrow" style="color:var(--s-hv)">Hỏi nhanh</p><h2>Thắc mắc thường gặp</h2>
+    <div class="g2"><div class="faq">${[['Tôi nhận được tin nhắn báo trúng giải cuộc thi này, có thật không?','Không. Ban tổ chức không gọi điện hay nhắn tin báo trúng thưởng. Hãy tự mở antoantaichinh.vn, vào trang này để xem danh sách. Nếu tin nhắn đòi phí hay mã OTP, đó là lừa đảo.'],['Thi có mất phí không?','Không. Cuộc thi hoàn toàn miễn phí, không thu bất kỳ khoản phí, thuế hay tiền đặt cọc nào, kể cả khi nhận giải.'],['Tôi có thể thi giúp cha mẹ được không?','Bạn có thể ngồi cùng và giải thích, nhưng hãy để cha mẹ tự chọn đáp án. Mục đích là để người thân tự nhận ra dấu hiệu lừa đảo.'],['Tháng sau còn được thi tiếp không?','Có. Mỗi tháng có một cuộc thi mới với chuyên đề mới, lượt thi tính lại từ đầu.']].map((f,i)=>`<details${i===0?' open':''}><summary>${f[0]}</summary><div>${f[1]}</div></details>`).join('')}</div>
+      <form class="form" id="remindF"><h3 style="font-size:1.3rem">Nhắc tôi khi có cuộc thi tháng sau</h3><p class="hint">Chỉ gửi khi bạn tự đăng ký. Bỏ đăng ký bất cứ lúc nào.</p><label for="remindE">Thư điện tử</label><input type="email" id="remindE" placeholder="ban@vidu.vn" required><button class="btn btn-ink">Nhắc tôi</button><div id="remindOut"></div></form></div></section>`;
+  return shell('cuoc-thi-thang',hero,body,'var(--s-thuong)');
+}
+
+/* ===== Hoi dap ===== */
+function hoiDap(){
+  const hero=pageHero({c:'var(--s-tin)',img:'hoi-dap',crumb:['Hỏi – Đáp'],eyebrow:'Hỏi – Đáp',title:'Hỏi riêng, trả lời công khai',lead:'Gửi câu hỏi, kiến nghị cho Ban biên tập. Câu trả lời được đăng công khai để nhiều người cùng biết.',cta:`<a class="btn btn-sun" href="#hoi-dap" data-sec="gui">Gửi câu hỏi ↓</a><a class="btn btn-line" href="#hoi-dap" data-sec="da-tra-loi">Xem câu đã trả lời</a>`});
+  const body=`
+  <section class="sec"><p class="eyebrow" style="color:var(--s-tin)">Cách hoạt động</p><h2>Ba bước</h2>
+    <div class="how3" style="--c:var(--s-tin)"><div><b>01</b><h4>Bạn gửi kín</h4><p>Câu hỏi, kiến nghị không hiện lên trang.</p></div><div><b>02</b><h4>Ban biên tập gộp</h4><p>Các câu giống nhau được gộp làm một.</p></div><div><b>03</b><h4>Trả lời công khai</h4><p>Người biên tập duyệt từng câu trước khi đăng, đã che mọi thông tin cá nhân.</p></div></div>
+    <div class="side-links"><a href="#ung-pho"><span>Đang gặp chuyện gấp?<small>Đừng chờ trả lời, xem việc cần làm ngay</small></span>›</a></div></section>
+  <section class="sec" id="gui"><p class="eyebrow" style="color:var(--s-tin)">Gửi kín</p><h2>Gửi câu hỏi, kiến nghị</h2>
+    <div class="g2"><form class="form" id="askF">
+      <label for="askT">Câu hỏi hoặc kiến nghị của bạn</label><p class="hint" style="margin-top:-6px">Viết ngắn gọn, không cần kể tên ai.</p>
+      <textarea id="askT" rows="6" maxlength="1500" placeholder="Ví dụ: Có người gọi xưng là bên điện lực, bảo tôi cài ứng dụng để nhận hóa đơn…"></textarea>
+      <div class="row"><span class="hint" id="askN">0 / 1500</span></div>
+      <div class="warn" id="askW" hidden>⚠ Có vẻ bạn vừa gõ một dãy số. Đừng gửi mã OTP, số thẻ, số tài khoản hay số điện thoại. Hãy xóa dãy số đó đi.</div>
+      <label class="cb"><input type="checkbox" id="askPriv"> Tôi muốn nhận trả lời riêng (không bắt buộc)</label>
+      <div id="askMailW" hidden><label for="askMail">Thư điện tử để nhận trả lời</label><input type="email" id="askMail" placeholder="ban@vidu.vn"></div>
+      <label class="cb"><input type="checkbox" id="askOk"> <span><b>Tôi đồng ý</b> cho Ban biên tập đọc câu hỏi này, che mọi thông tin nhận dạng, rồi dùng để trả lời và biên tập thành nội dung chung.</span></label>
+      <div class="row"><span class="hint" id="askHint">Cần đánh dấu đồng ý để gửi.</span><button class="btn btn-ink" id="askBtn" disabled>Gửi câu hỏi ${ar}</button></div>
+      <div id="askOut"></div>
+      <p class="hint">Website không phải nơi tiếp nhận tố giác, tin báo về tội phạm. Muốn trình báo, hãy đến cơ quan Công an gần nhất hoặc nơi bạn cư trú.</p>
+    </form>
+    <div style="display:grid;gap:18px;align-content:start"><div class="before"><p class="eyebrow" style="color:var(--sun)">Trước khi gõ</p><ul><li><i>✕</i>Đừng viết mật khẩu, mã OTP, mã PIN, số thẻ hay số tài khoản.</li><li><i>✕</i>Đừng gửi họ tên, số điện thoại, ảnh giấy tờ của người khác.</li><li><i class="inf">i</i>Giai đoạn đầu chưa nhận tệp đính kèm và ảnh chụp màn hình.</li></ul></div>
+      <div class="ph nat" style="border-radius:var(--r-xl);aspect-ratio:1"><img src="${IMG}hoi-dap-2.jpg" alt=""></div></div></div></section>
+  <section class="sec" id="da-tra-loi"><p class="eyebrow" style="color:var(--s-tham)">Đã trả lời công khai</p><h2>Câu hỏi đã được trả lời</h2><p class="intro">Mỗi câu trả lời đều dẫn về một nội dung đã được thẩm định.</p>
+    <div class="faq">
+      <details open><summary>Có người chuyển nhầm tiền vào tài khoản tôi rồi gọi đòi lại. Tôi có nên chuyển trả ngay theo số họ đưa?</summary><div><div class="tags" style="margin-bottom:10px">${sigTag('thuong')}${sigTag('gap')}</div>Chưa chuyển trả theo số tài khoản người gọi đưa, và không tiêu, không rút khoản đó. Hãy liên hệ ngân hàng của chính bạn để báo có khoản tiền lạ, rồi chỉ hoàn trả theo đúng cách ngân hàng hướng dẫn.<br><a href="#ung-pho" data-sec="chon">Xem việc cần làm khi có tiền lạ chuyển vào →</a></div></details>
+      <details><summary>Người gọi xưng là nhân viên ngân hàng, bảo tôi đọc mã OTP để khóa tài khoản đang bị xâm nhập. Có nên đọc?</summary><div><div class="tags" style="margin-bottom:10px">${sigTag('tin')}${sigTag('so')}</div>Không đọc. Nhân viên ngân hàng không yêu cầu khách đọc mã OTP để khóa tài khoản. Hãy cúp máy, rồi tự gọi số in ở mặt sau thẻ hoặc tự mở ứng dụng ngân hàng để hỏi.<br><a href="#tin-hieu-tin">Xem tín hiệu TIN →</a></div></details>
+    </div><p class="src">Ví dụ cách trình bày. Mục này sẽ đăng câu trả lời thật sau khi website hoạt động.</p></section>`;
+  return shell('hoi-dap',hero,body,'var(--s-tin)');
+}
+
+/* ===== Gioi thieu (ngan gon) ===== */
+function gioiThieu(){
+  const hero=pageHero({c:'var(--ink)',img:'gioi-thieu',crumb:['Giới thiệu'],eyebrow:'Giới thiệu',title:'Một địa chỉ thật giữa muôn vàn bản giả',lead:'Dừng lại. Tự kiểm tra. Hỏi người thân. Ba việc đơn giản giúp bạn không mất tiền vào tay kẻ gian.'});
+  const body=`
+  <section class="sec" id="khong-bao-gio"><div class="story">
+    <div class="phone" style="margin:0"><div class="scr" style="min-height:360px"><div class="from"><span class="av">?</span>Số lạ · +84 9•• ••• •••</div><div class="msg">Chào anh, em bên ngân hàng ạ. Tài khoản anh <mark>đang bị xâm nhập</mark>. Anh <mark>đọc giúp em mã OTP</mark> vừa gửi để em khóa lại ngay nhé. <mark>Gấp lắm anh ạ!</mark></div><span class="time">21:47</span></div></div>
+    <div><p class="eyebrow" style="color:var(--alarm)">Chúng tôi sẽ không bao giờ</p><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);margin:10px 0 18px">Ai tự xưng là chúng tôi mà làm một trong bốn việc này, đó không phải chúng tôi.</h2>
+      <div class="never"><div><i>✕</i>Chủ động liên hệ khi bạn chưa gửi yêu cầu</div><div><i>✕</i>Hỏi mật khẩu, mã OTP, mã PIN, số thẻ, số tài khoản</div><div><i>✕</i>Yêu cầu bạn cài bất kỳ ứng dụng nào</div><div><i>✕</i>Thu bất kỳ khoản tiền nào, dưới bất kỳ tên gọi nào</div></div></div></div></section>
+  <section class="sec"><h2>Vậy chúng tôi là ai?</h2><div class="who"><div><h4>Công ty ABC vận hành</h4><p>Không phải website của cơ quan nhà nước.</p></div><div><h4>Công an xã Thiên Lộc góp ý nội dung</h4><p>Không có nghĩa Công an xác nhận giao dịch, sản phẩm, dịch vụ hay nhà tài trợ nào là an toàn.</p></div><div><h4>Bạn tự kiểm tra, tự quyết định</h4><p>Website không kết luận ai đúng, ai sai, ai lừa đảo.</p></div></div></section>
+  <section class="sec" id="dia-chi"><p class="eyebrow" style="color:var(--s-tham)">Tự kiểm tra</p><h2>Chỉ một địa chỉ duy nhất</h2>
+    <div class="urlbar"><span>https://</span><b>antoantaichinh.vn</b><span>/gioi-thieu</span></div>
+    <p class="muted" style="margin-top:14px">Phần chữ ngay trước dấu gạch chéo đầu tiên phải đúng là <b>antoantaichinh.vn</b>. Ổ khóa, logo, vị trí đầu kết quả tìm kiếm đều làm giả hoặc mua được.</p>
+    <h3 style="margin-top:28px;font-size:1.3rem">Thử nhanh: trang nào là website thật?</h3>
+    <div class="urlq" id="urlQ">${[['antoantaichinh.com/gioi-thieu','Có ổ khóa, logo giống hệt',0],['antoantaichinh.vn/gioi-thieu','Có ổ khóa',1],['antoantaichlnh.vn/gioi-thieu','Nằm đầu kết quả tìm kiếm',0]].map(u=>`<button data-ok="${u[2]}">${u[0]}<small>${u[1]}</small></button>`).join('')}</div><div id="urlOut" aria-live="polite"></div></section>
+  <section class="sec" id="lien-he"><h2>Ba kênh chính thức</h2><div class="chan"><div><b>01</b><h4>Câu hỏi, góp ý, báo lỗi</h4><p>Gửi qua mục Hỏi – Đáp hoặc Góp ý. Ai báo lỗi cũng được.</p></div><div><b>02</b><h4>Dữ liệu cá nhân</h4><p>Xem, sửa hoặc xóa dữ liệu bạn đã gửi. dulieu@antoantaichinh.vn</p></div><div><b>03</b><h4>Cơ quan nhà nước có thẩm quyền</h4><p>Đầu mối trực cả ngoài giờ, tiếp nhận yêu cầu gỡ hoặc sửa nội dung. truc@antoantaichinh.vn</p></div></div>
+    <p class="alert-line">Website không nhận tố giác, tin báo tội phạm. Muốn trình báo, hãy đến cơ quan Công an gần nhất hoặc nơi bạn cư trú.</p></section>
+  <section class="sec"><div class="stop"><span class="s">DỪNG</span><div><h3 style="font-size:1.5rem">Ai tự xưng là chúng tôi mà hỏi mã OTP, đó không phải chúng tôi.</h3><ol><li>1 · Dừng lại</li><li>2 · Tự kiểm tra qua kênh chính thức</li><li>3 · Hỏi người thân</li></ol></div></div></section>`;
+  return shell('gioi-thieu',hero,body,'var(--ink)');
+}
+
+/* ===== Tuong tac ===== */
+function quizBox(el,items,{single}={}){
+  let i=0,score=0;
+  const draw=()=>{
+    if(i>=items.length){el.innerHTML=`<div class="score"><b>${score}/${items.length}</b><p class="muted">câu trả lời đúng</p><div class="cta" style="justify-content:center"><button class="btn btn-ink" id="qAgain">Làm lại</button><a class="btn btn-sun contest-only" href="#cuoc-thi-thang">Thi thật tháng 10/2026 ${ar}</a></div><p class="small muted" style="margin-top:10px">Không thu phí, không hỏi mã OTP, không gọi báo trúng thưởng.</p></div>`;el.querySelector('#qAgain').onclick=()=>{i=0;score=0;draw();};return;}
+    const q=items[i];
+    el.innerHTML=`${single?'':`<div class="top"><span class="lab">${q.lab||''} · ${q.code}</span><span class="lab">Câu ${i+1} / ${items.length}</span></div><div class="bar"><i style="width:${i/items.length*100}%"></i></div>`}
+      ${q.sit?`<div class="sitn">${q.sit}</div>`:''}<h3>${q.q}</h3><div class="opts">${q.opt.map(o=>`<button data-o="${o[0]}"><b>${o[0]}</b><span>${o[1]}</span></button>`).join('')}</div><div class="exp-wrap"></div>`;
+    el.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+      const pick=b.dataset.o, ok=pick===q.ans; if(ok)score++;
+      el.querySelectorAll('.opts button').forEach(x=>{x.disabled=true;if(x.dataset.o===q.ans)x.classList.add('right');else if(x===b)x.classList.add('wrong');});
+      el.querySelector('.exp-wrap').innerHTML=`<div class="explain ${ok?'r':'w'}">${ok?'':'<b>Chưa đúng.</b> '}${q.exp[pick]||''}${ok?'':`<br><br><b>Đáp án ${q.ans}:</b> ${q.exp[q.ans]||''}`}</div>${single?'':`<div class="foot"><span class="muted small">${score} câu đúng</span><button class="btn btn-ink" id="qNext">${i<items.length-1?'Câu tiếp theo':'Xem kết quả'} ${ar}</button></div>`}`;
+      const n=el.querySelector('#qNext'); if(n)n.onclick=()=>{i++;draw();};
+    });
+  };
+  draw();
+}
 let si=0;
 function drawSpot(){
   const s=SPOT[si];
-  $('#spotScr').innerHTML=`<p class="from">${s.from}</p><div class="msg">${s.msg}</div><span class="time">Hôm nay 09:4${si}</span>`;
-  $('#spotCount').textContent=`Tin ${si+1} / ${SPOT.length}`;
+  $('#spotScr').innerHTML=`<div class="from"><span class="av">${s.av}</span>${s.from}</div><div class="msg">${s.msg}</div><span class="time">Hôm nay 09:4${si+1}</span>`;
+  $('#spotDots').innerHTML=SPOT.map((_,j)=>`<i class="${j===si?'on':''}"></i>`).join('');
   $('#spotOut').innerHTML='';
 }
 function answerSpot(a){
   const s=SPOT[si], ok=(a==='1')===s.scam;
-  $('#spotOut').innerHTML=`<div class="verdict" style="border-color:${ok?C.gain:C.fear}"><h4>${ok?'Chính xác!':'Chưa đúng.'} Đây là ${s.scam?'tin lừa đảo':'tin thật'}.</h4><p>${s.why}</p>${s.emo?chip(s.emo):''}<div class="next"><button class="btn btn-sun" id="spotNext">${si<SPOT.length-1?'Tin tiếp theo':'Làm lại'} ${arrow}</button></div></div>`;
+  $('#spotOut').innerHTML=`<div class="verdict" style="--c:${ok?'var(--s-tham)':'var(--alarm)'}"><h4>${ok?'Chính xác!':'Chưa đúng.'} Đây là ${s.scam?'tin lừa đảo':'tin thật'}.</h4><p>${s.why}</p><div class="row">${s.sig.length?`<span class="small muted">Tín hiệu bị nhắm:</span>${s.sig.map(sigTag).join('')}`:''}<button class="btn btn-ink btn-sm" id="spotNext" style="margin-left:auto">${si<SPOT.length-1?'Tin tiếp theo':'Làm lại'} ${ar}</button></div></div>`;
   $('#spotNext').onclick=()=>{si=(si+1)%SPOT.length;drawSpot();};
 }
+function bind(page){
+  if(page==='trang-chu'){
+    drawSpot();$$('.answers button').forEach(b=>b.onclick=()=>answerSpot(b.dataset.a));
+    $$('[data-rail]').forEach(b=>b.onclick=()=>$('#rail').scrollBy({left:+b.dataset.rail*300,behavior:'smooth'}));
+  }
+  if(page==='ung-pho'){
+    const pick=i=>{$$('.pick button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));const s=SITU[i];$('#todo').innerHTML=`<div class="todo" style="--c:${s.c}"><h3>${s.t}: làm ngay</h3><ol>${s.todo.map(t=>`<li>${t}</li>`).join('')}</ol></div>`;};
+    $$('.pick button').forEach((b,i)=>b.onclick=()=>pick(i));
+    if(pendingPick!=null){pick(pendingPick);pendingPick=null;}
+    const upd=()=>{const n=$$('.check input:checked').length;$('#mCount').textContent=n;$('#meter').classList.toggle('hot',n>0);$('#mText').innerHTML=n?'<b>Dừng lại ngay.</b> Chưa chuyển tiền, chưa đọc mã. Gọi ngân hàng hoặc hỏi người thân trước.':'Chạm vào dòng nào giống điều bạn đang gặp.';};
+    $$('.check input').forEach(c=>c.onchange=upd);
+  }
+  if(page.startsWith('tin-hieu-')){const s=SBY[page.slice(9)];const q=DATA.sigQ[s.q];if(q)quizBox($('#sigQuiz'),[q],{single:1});}
+  if(page==='cuoc-thi'&&$('#tryQuiz')){
+    quizBox($('#tryQuiz'),DATA.sample);
+    $('#fbText').oninput=e=>$('#fbBtn').disabled=!e.target.value.trim();
+    $('#fbForm').onsubmit=e=>{e.preventDefault();$('#fbOut').innerHTML='<div class="okmsg">Cảm ơn bạn. Bản mockup: góp ý chưa được gửi đi.</div>';};
+    $('#copyUrl').onclick=e=>{navigator.clipboard?.writeText('https://antoantaichinh.vn').then(()=>e.target.textContent='Đã chép',()=>e.target.textContent='Bôi đen để chép');};
+  }
+  if(page==='cuoc-thi-thang'&&$('#remindF'))$('#remindF').onsubmit=e=>{e.preventDefault();$('#remindOut').innerHTML='<div class="okmsg">Đã ghi nhận. Bản mockup: chưa lưu đăng ký.</div>';};
+  if(page==='hoi-dap'){
+    const t=$('#askT'),ok=$('#askOk');
+    const upd=()=>{const bad=/\d{6,}/.test(t.value.replace(/[\s.\-]/g,''));$('#askN').textContent=`${t.value.length} / 1500`;$('#askW').hidden=!bad;$('#askBtn').disabled=bad||!ok.checked||!t.value.trim();$('#askHint').textContent=bad?'Xóa dãy số trước khi gửi.':!ok.checked?'Cần đánh dấu đồng ý để gửi.':'';};
+    t.oninput=upd;ok.onchange=upd;$('#askPriv').onchange=e=>$('#askMailW').hidden=!e.target.checked;
+    $('#askF').onsubmit=e=>{e.preventDefault();$('#askOut').innerHTML='<div class="okmsg">Đã nhận câu hỏi. Bản mockup: câu hỏi chưa được gửi đi.</div>';};
+  }
+  if(page==='thu-doan'){
+    $('#searchF').onsubmit=e=>{e.preventDefault();const v=$('#searchI').value.toLowerCase();const i=LV.findIndex(l=>l[0].toLowerCase().split(/[ ,]+/).some(w=>w.length>2&&v.includes(w)));go(i>=0?'lv'+(i+1):'linh-vuc');};
+  }
+  if(page==='gioi-thieu'){
+    $$('#urlQ button').forEach(b=>b.onclick=()=>{$$('#urlQ button').forEach(x=>{x.classList.toggle('right',x.dataset.ok==='1');x.classList.toggle('wrong',x===b&&x.dataset.ok!=='1');});$('#urlOut').innerHTML=`<p class="alert-line" style="background:${b.dataset.ok==='1'?'#EAFBF3':'#FFF0F2'};color:${b.dataset.ok==='1'?'#0B5E3A':'#8C1027'}">${b.dataset.ok==='1'?'Đúng: phần trước dấu gạch chéo đầu tiên là antoantaichinh.vn, không thừa, không thiếu chữ nào.':'Chưa đúng. Nhìn kỹ phần trước dấu gạch chéo đầu tiên: đuôi khác (.com) hoặc sai một chữ cái (l thay cho i) đều là trang giả.'}</p>`;});
+  }
+}
 
-/* ===== Dieu huong theo hash ===== */
-let curView='';
+/* ===== Dieu huong ===== */
+let cur='',pendingPick=null;
+const contestOn=()=>!document.body.classList.contains('no-contest');
+function render(page){
+  let html;
+  if(page==='ung-pho')html=ungPho();
+  else if(page==='tin-hieu')html=tinHieu();
+  else if(page.startsWith('tin-hieu-')&&SBY[page.slice(9)])html=sigPage(SBY[page.slice(9)]);
+  else if(page==='thu-doan')html=thuDoan();
+  else if(page==='cuoc-thi')html=contestOn()?cuocThi():contestHidden(page);
+  else if(page==='cuoc-thi-thang')html=contestOn()?cuocThiThang():contestHidden(page);
+  else if(page==='hoi-dap')html=hoiDap();
+  else if(page==='gioi-thieu')html=gioiThieu();
+  else {page='trang-chu';html=home();}
+  $('#view').innerHTML=html;cur=page;bind(page);
+  const grp=page.startsWith('tin-hieu')?'tin-hieu':page==='cuoc-thi-thang'?'cuoc-thi':page;
+  $$('nav.main a').forEach(a=>a.classList.toggle('on',a.dataset.p===grp));
+}
+function go(sec){
+  const t=sec&&document.getElementById(sec);
+  if(t){t.scrollIntoView({block:'start'});if(t.classList.contains('field')){$$('.field').forEach(f=>f.classList.remove('hl'));t.classList.add('hl');}}
+}
 function route(){
-  const h=location.hash.slice(1);
-  const m=h.match(/^bay-(.+)$/);
-  const e=m&&EBY[m[1]];
-  document.querySelectorAll('nav.main a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+h||(!!e&&a.dataset.nav==='bay')));
+  const page=location.hash.slice(1)||'trang-chu';
+  if(page!==cur)render(page);
+  window.scrollTo(0,0);
   $('#mainNav').classList.remove('open');$('#menuToggle').setAttribute('aria-expanded','false');
-  if(e){
-    if(curView!==e.k){$('#view').innerHTML=inner(e);curView=e.k;bindLeaves();}
-    window.scrollTo(0,0);
-    return;
-  }
-  if(curView!=='home'){
-    $('#view').innerHTML=home();curView='home';
-    drawSpot();
-    document.querySelectorAll('.answers button').forEach(b=>b.onclick=()=>answerSpot(b.dataset.a));
-  }
-  const t=h&&h!=='trang-chu'?document.getElementById(h):null;
-  if(t)t.scrollIntoView();else window.scrollTo(0,0);
 }
-function bindLeaves(){
-  document.querySelectorAll('[data-leaf]').forEach(a=>a.addEventListener('click',ev=>{
-    ev.preventDefault();
-    const i=+a.dataset.leaf;
-    document.querySelectorAll('[data-leaf]').forEach(x=>x.classList.toggle('on',x===a));
-    document.querySelectorAll('.case').forEach((c,j)=>c.classList.toggle('hl',j===i));
-    document.getElementById('case-'+i).scrollIntoView({block:'center'});
-  }));
-}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('a[href^="#"]');if(!a)return;
+  const page=a.getAttribute('href').slice(1),sec=a.dataset.sec;
+  if(a.dataset.pick!=null)pendingPick=+a.dataset.pick;
+  if(!sec)return;
+  e.preventDefault();
+  if(page!==cur){if(location.hash.slice(1)!==page){history.pushState(null,'','#'+page);}render(page);}
+  requestAnimationFrame(()=>go(sec));
+  $$('.tree-m').forEach(d=>d.open=false);
+});
 window.addEventListener('hashchange',route);
+window.addEventListener('popstate',()=>{const p=location.hash.slice(1)||'trang-chu';if(p!==cur){render(p);window.scrollTo(0,0);}});
 route();
 
 $('#menuToggle').onclick=()=>{const n=$('#mainNav');n.classList.toggle('open');$('#menuToggle').setAttribute('aria-expanded',n.classList.contains('open'));};
+$('#bigText').onclick=e=>{const on=document.documentElement.classList.toggle('big');e.currentTarget.setAttribute('aria-pressed',on);};
 function setContest(on){
   document.body.classList.toggle('no-contest',!on);
   $('#cOn').setAttribute('aria-pressed',on);$('#cOff').setAttribute('aria-pressed',!on);
   try{localStorage.setItem('mock-contest',on?'1':'0')}catch(_){}
+  if(cur==='cuoc-thi'||cur==='cuoc-thi-thang')render(cur);
 }
 $('#cOn').onclick=()=>setContest(true);$('#cOff').onclick=()=>setContest(false);
 try{if(localStorage.getItem('mock-contest')==='0')setContest(false)}catch(_){}
