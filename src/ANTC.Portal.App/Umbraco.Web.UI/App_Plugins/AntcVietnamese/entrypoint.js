@@ -10,6 +10,16 @@ const labels = {
 };
 
 export function onInit(_host, registry) {
+    document.documentElement.style.setProperty('--umb-header-logo-width', '20px');
+    document.documentElement.style.setProperty('--umb-header-logo-height', '20px');
+
+    // Server-rendered configuration is available before initialization, with no extra request or flicker.
+    // Exclusions also apply when a package registers its sections later during startup.
+    const hiddenSections = JSON.parse(document.getElementById('antc-hidden-sections')?.textContent || '[]');
+    for (const alias of hiddenSections) {
+        registry.exclude(alias);
+    }
+
     const handled = new Set();
     registry.extensions.subscribe(extensions => {
         for (const extension of extensions) {
