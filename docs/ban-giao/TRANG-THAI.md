@@ -5,6 +5,10 @@
 - Cập nhật lần cuối: 2026-10-18 (sau I2) · bởi phiên điều phối của anhnn
 - Câu mở đầu cho phiên mới: *"Đọc `CLAUDE.md` và `docs/ban-giao/TRANG-THAI.md`, rồi làm tiếp theo mục Việc tiếp theo."*
 
+## Việc khác đang làm
+
+- **Làm mới giao diện backoffice** (từ 2026-10-27): review, mockup, chạy thử sửa core Umbraco. Trạng thái và việc tiếp theo xem `docs/ban-giao/BACKOFFICE-UI/0-tong-hop.md`.
+
 ## Tình hình
 
 **Gói CUOC-THI theo cuộc thi theo thời gian đã làm xong, kiểm (K1) và đẩy lên `origin/dev` (2026-10-18).** Đã vào `dev`: M1a (merge `origin/main`, QĐ-022), M1b, B5–B13, F6–F9, S1, I2; mọi task đạt review. I2 chạy đầu–cuối: 48 kiểm API và 28 kiểm giao diện không lỗi (`3-review-CUOC-THI-v6.md`). `dev` chưa push sau các merge; chưa vào `main` (QĐ-017). Không có agent nào đang chạy.
