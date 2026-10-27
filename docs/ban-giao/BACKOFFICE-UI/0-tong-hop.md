@@ -81,20 +81,23 @@ Mục tiêu: chứng minh quy trình "sửa core → build → đóng gói → A
 | Cài thư viện client của core | `npm ci` trong `Umbraco.Web.UI.Client` | Đạt. Cảnh báo `EBADENGINE`: client yêu cầu Node ≥ 24.13 và npm ≥ 11, máy có Node 22.19 và npm 10.9. Không chặn | ~4 phút |
 | Build backoffice bằng tay | `npm run build:for:cms` | Đạt, màu mới có trong file đầu ra | ~10 phút |
 | Đóng gói core | `core_build.ps1` (không kèm `-BuildSpa`) | Báo đạt, **nhưng gói `Umbraco.Cms.StaticAssets` mất toàn bộ backoffice**: 35 file thay vì 2.596 | ~5,6 phút |
-| Đóng gói lại đúng cách | `core_build.ps1 -BuildSpa` | **Đang chạy** lúc ghi file này | ước chừng 15–20 phút |
+| Đóng gói lại đúng cách | `core_build.ps1 -BuildSpa` | **Gói đạt**: `StaticAssets` có 2.591 file (2.556 file backoffice), file thanh trên cùng có màu mới. Script dừng ở bước dọn bộ nhớ đệm NuGet vì tiến trình MSBuild chạy ngầm còn khóa `umbraco.cms.targets`. Đã xử lý bằng `dotnet build-server shutdown` rồi xóa tay 3 gói còn lại | ~20 phút |
+| Chạy web xem kết quả | Tắt web cũ rồi `.\run-local.ps1` | **Chưa làm**: cần anhnn cho phép tắt web đang chạy | – |
 
 **Bài học**
 - **Không build backoffice bằng tay rồi mới đóng gói.** Khi thư mục `wwwroot/umbraco/backoffice` đã có sẵn, MSBuild bỏ qua cả bước build lẫn bước khai báo file vào gói (`Umbraco.Cms.StaticAssets.csproj`, target `BuildStaticAssetsPreconditions` và `DefineBackofficeAssets`). Luôn dùng `core_build.ps1 -BuildSpa`.
 - `core_build.ps1` xóa bộ nhớ đệm NuGet `umbraco.cms*`. Web đang chạy đọc file backoffice từ bộ nhớ đệm đó, nên sau khi đóng gói hỏng thì `/umbraco` trả 500. Lỗi trong log: `DirectoryNotFoundException …\umbraco.cms.staticassets\18.2.1-antc\staticwebassets\umbraco\backoffice\umbraco-package.json`.
 - Phải **tắt web trước khi build App**, nếu không file DLL bị khóa (MSB3026).
+- Chạy `dotnet build-server shutdown` trước `core_build.ps1`, nếu không tiến trình MSBuild của lần build trước khóa DLL trong bộ nhớ đệm và script dừng ở bước dọn đệm.
 - Muốn sửa nhanh nên dùng chế độ dev của Vite (`npm run dev:server`). Cách này cần cấu hình `Umbraco:CMS:Security:BackOfficeHost` trong `appsettings.Local.json`, chưa thử.
 - Bước build còn làm đổi các file sinh tự động: `mockServiceWorker.js` (3 chỗ), `known-keys.const.generated.ts`, `known-keys.types.generated.ts`.
 
 ## 5. Trạng thái máy anhnn lúc ghi file (chưa commit)
 
 - Sửa core: 2 file header ở trên, cùng các file sinh tự động ở mục 4.
-- Toàn bộ `src/ANTC.Portal.Lib/Build.Core/*.nupkg` đã bị thay bằng bản build mới, đang build dở.
-- Web local (PID 8356, chạy từ 23/10) chưa khởi động lại. `/umbraco` đang lỗi 500, trang ngoài vẫn chạy.
+- Toàn bộ `src/ANTC.Portal.Lib/Build.Core/*.nupkg` đã được thay bằng bản build mới, có màu thanh trên mới. Chưa commit.
+- Bộ nhớ đệm NuGet `umbraco.cms*` bản `18.2.1-antc` đã xóa hết, lần build App tới sẽ cài lại từ gói mới.
+- Web local (PID 8356, chạy từ 23/10) chưa khởi động lại, nên `/umbraco` đang lỗi.
 - Thay đổi có sẵn từ trước của anhnn (không liên quan): `Views/*.cshtml`, `uSync/v18/Media/ảnh-hero-*.config`.
 
 **Muốn bỏ chạy thử, quay về như cũ:**
@@ -107,7 +110,7 @@ Remove-Item -Recurse -Force $env:USERPROFILE\.nuget\packages\umbraco.cms*\18.2.1
 
 ## 6. Việc tiếp theo
 
-1. Chờ `core_build.ps1 -BuildSpa` xong, kiểm gói `Umbraco.Cms.StaticAssets` có đủ khoảng 2.596 file.
+1. ~~Chờ `core_build.ps1 -BuildSpa` xong, kiểm gói~~: đã xong, gói đạt.
 2. Tắt web (PID 8356), chạy `.\run-local.ps1`, mở `/umbraco` xem thanh trên đã đổi màu chưa.
 3. Đánh giá: tổng thời gian một vòng sửa, có cần nâng Node lên 24, có nên dùng chế độ dev.
 4. **Cần quyết định** (khi chốt thì ghi vào `docs/quyet-dinh.md`):
