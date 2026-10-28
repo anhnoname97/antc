@@ -1,0 +1,58 @@
+@using System.Globalization
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Plugin.Custom.Core.Contest
+@inject IContestCatalog Contests
+@inject IContestAdminService ContestPrizes
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var contest = await Contests.GetCurrentAsync(Context.RequestAborted);
+    var prizes = contest is null ? Array.Empty<ContestPrizeDto>()
+        : (await ContestPrizes.ContestPrizesAsync(contest.Id, Context.RequestAborted))
+            .Where(prize => prize.IsActive).OrderBy(prize => prize.SortOrder).ThenBy(prize => prize.PrizeId).ToArray();
+    var moneyFormat = CultureInfo.GetCultureInfo("vi-VN");
+    string Medal(string name) => name.Contains("nhất", StringComparison.OrdinalIgnoreCase) ? "1"
+        : name.Contains("nhì", StringComparison.OrdinalIgnoreCase) ? "2"
+        : name.Contains("ba", StringComparison.OrdinalIgnoreCase) ? "3"
+        : name.Contains("khuyến khích", StringComparison.OrdinalIgnoreCase) ? "KK" : "★";
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    var titleId = $"prizes-{Model.ContentKey:N}";
+    var steps = T("claimSteps").Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}
+<section class="sec prize-section" aria-labelledby="@titleId">
+    <div class="wrap prize-grid">
+        <div data-prize-reveal>
+            <div class="sec-head">
+                <div><p class="eyebrow">@T("eyebrow")</p><h2 id="@titleId">@T("title")<br><em>@T("titleAccent")</em></h2></div>
+            </div>
+            <div class="claim">
+                <h3>@T("claimTitle")</h3>
+                <ol>@foreach (var step in steps) { <li>@step</li> }</ol>
+                @if (!string.IsNullOrWhiteSpace(T("warning")))
+                {
+                    <p class="warnx"><span aria-hidden="true">⚠</span><span>@T("warning")</span></p>
+                }
+            </div>
+        </div>
+        <div class="prizes" data-prizes-contest-id="@contest?.Id" role="list" aria-label="Các hạng giải thưởng">
+            @foreach (var prize in prizes)
+            {
+                var medal = Medal(prize.Name);
+                var variant = medal == "2" ? "p2" : medal == "3" ? "p3" : string.Empty;
+                <div class="pz @variant" role="listitem" data-prize-id="@prize.PrizeId">
+                    <span class="medal @(medal == "KK" ? "encouragement" : null)" aria-hidden="true">@medal</span>
+                    <span><b>@prize.Name</b>
+                        <span>@prize.PrizeMoney.ToString("N0", moneyFormat) đồng</span>
+                        @if (!string.IsNullOrWhiteSpace(prize.Description) && !string.Equals(prize.Description, prize.Name, StringComparison.OrdinalIgnoreCase))
+                        { <span>@prize.Description</span> }
+                    </span>
+                    <em>@prize.Quantity giải</em>
+                </div>
+            }
+            @if (prizes.Length == 0)
+            {
+                <p role="status">@(contest is null ? "Chưa có cuộc thi đang diễn ra." : "Giải thưởng của cuộc thi sẽ được cập nhật sau.")</p>
+            }
+        </div>
+    </div>
+</section>

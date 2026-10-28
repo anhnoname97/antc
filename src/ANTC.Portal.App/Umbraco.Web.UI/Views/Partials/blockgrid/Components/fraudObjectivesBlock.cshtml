@@ -1,0 +1,12 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
+@using Umbraco.Cms.Core.Models.Blocks
+@{ var items = Model.Content.Value<BlockListModel>("items"); var index = 0; }
+<div class="sec"><div class="wrap">
+    @await Html.PartialAsync("~/Views/Partials/blockgrid/_FraudHeading.cshtml", Model.Content)
+    <div class="four" data-rvs>
+        @foreach (var item in items ?? Enumerable.Empty<BlockListItem>())
+        {
+            <div class="thing"><span class="n">@(++index)</span><h3>@item.Content.Value("title")</h3><p>@item.Content.Value("description")</p></div>
+        }
+    </div>
+</div></div>

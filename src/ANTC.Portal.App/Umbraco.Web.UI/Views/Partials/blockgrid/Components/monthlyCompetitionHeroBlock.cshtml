@@ -1,0 +1,61 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Plugin.Custom.Core.Contest
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@inject ContestPromotionService Promotions
+@inject IContestAdminService ContestPrizes
+@{
+    var c = Model.Content;
+    string T(string alias) => c.Value<string>(alias) ?? string.Empty;
+    var contest = await Promotions.GetAsync(Context.RequestAborted);
+    var hasPrizes = contest is not null &&
+        (await ContestPrizes.ContestPrizesAsync(contest.Id, Context.RequestAborted))
+            .Any(prize => prize.IsActive && prize.Quantity > 0);
+    var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+    DateTime Local(DateTime date) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(date, DateTimeKind.Utc), vietnam);
+    var start = contest is null ? (DateTime?)null : Local(contest.StartAt);
+    var end = contest is null ? (DateTime?)null : Local(contest.EndAt);
+    var topic = contest?.Name ?? string.Empty;
+    if (topic.StartsWith("Chuyên đề:", StringComparison.OrdinalIgnoreCase))
+    {
+        topic = topic["Chuyên đề:".Length..].Trim();
+    }
+    var id = $"monthly-contest-{Model.ContentKey:N}";
+}
+<section class="ph" aria-labelledby="@id">
+    <div class="ph-sky">@Html.HeroImage(Umbraco.AssignedContentItem, 4)</div>
+    <svg class="ph-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
+    <span class="ph-num month" aria-hidden="true">@(start?.ToString("MM"))</span>
+    <div class="ph-shade"></div>
+    <div class="ph-copy">
+        <nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><a href="/cuoc-thi/">Cuộc thi</a><span aria-hidden="true">/</span><span>Tháng này</span></nav>
+        @if (contest is not null && start.HasValue && end.HasValue)
+        {
+            <p class="eyebrow">@T("eyebrowPrefix") tháng @start.Value.ToString("MM/yyyy")</p>
+            <h1 id="@id"><span class="line"><span data-line>@T("titlePrefix")</span></span><span class="line"><span data-line><em>@topic</em></span></span></h1>
+            <div class="ph-meta" data-intro>
+                <span><b>@start.Value.ToString(start.Value.Year == end.Value.Year ? "d/M" : "d/M/yyyy") – @end.Value.ToString("d/M/yyyy")</b></span>
+                <span><b>@contest.QuestionCount</b> @T("questionLabel")</span>
+                @if (contest.MaxAttempts == 0) { <span><b>Không giới hạn lượt thi</b></span> } else { <span>@T("attemptsPrefix") <b>@contest.MaxAttempts</b> @T("attemptsLabel")</span> }
+                @if (hasPrizes) { <span data-contest-prize-label>@(string.IsNullOrWhiteSpace(T("prizeLabel")) ? "Có xét thưởng" : T("prizeLabel"))</span> }
+            </div>
+        }
+        else
+        {
+            <p class="eyebrow">@T("eyebrowPrefix")</p>
+            <h1 id="@id"><span class="line"><span data-line>@T("emptyTitle")</span></span></h1>
+        }
+        @if (contest is not null && Promotions.IsUpcoming(contest)) { <p class="lead">Cuộc thi sắp diễn ra, đăng ký mở từ @start?.ToString("d/M/yyyy").</p> }
+        <p class="contest-safety-note">@ContestPromotionService.SafetyNotice</p>
+        <div class="ph-links">
+            @if (contest is not null && !Promotions.IsUpcoming(contest) && c.Value<Link>("primaryLink") is { } primary)
+            {
+                <a class="btn btn-red" href="/cuoc-thi/lam-bai/?c=@contest.Id" target="@primary.Target">@primary.Name <span aria-hidden="true">⟶</span></a>
+            }
+            @if (c.Value<Link>("secondaryLink") is { } secondary)
+            {
+                <a class="btn btn-light" href="@secondary.Url" target="@secondary.Target">@secondary.Name</a>
+            }
+        </div>
+    </div>
+</section>

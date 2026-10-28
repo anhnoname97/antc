@@ -6,11 +6,11 @@ public static class PageTreeRules
     private static readonly HashSet<string> FixedPages = new(StringComparer.Ordinal)
     {
         "ungPhoPage", "thuDoanPage", "thamGiaPage", "thiThuPage",
-        "thiPage", "cuocThiLamBaiPage", "hoiDapPage", "chinhSachPage", "searchPage"
+        "thiPage", "thiThangPage", "cuocThiLamBaiPage", "hoiDapPage", "chinhSachPage", "searchPage"
     };
 
     public static bool IsSingleton(string alias) =>
-        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement" or "home"
+        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement" or "home" or "fraudContent" or "policyContent"
         || FixedPages.Contains(alias);
 
     public static string? Validate(
@@ -31,6 +31,14 @@ public static class PageTreeRules
         else if (alias == "home")
         {
             if (parentAlias != "pageManagement") return "Trang chủ phải nằm trong Quản lý trang.";
+        }
+        else if (alias == "fraudContent" && parentAlias != "articleManagement")
+        {
+            return "Nội dung giới thiệu Thủ đoạn phải nằm trong Quản lý nội dung → Thủ đoạn.";
+        }
+        else if (alias == "policyContent" && parentAlias != "contentManagement")
+        {
+            return "Nội dung giới thiệu Chính sách phải nằm trong Quản lý nội dung.";
         }
         else if (alias == "cuocThiLamBaiPage")
         {

@@ -197,9 +197,11 @@ public class ContestAttemptService : IContestAttemptService
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
             // Doc lai trang thai trong khoa: entry tu AuthenticateAsync co the da cu (vd da nop o yeu cau khac)
-            string status = await _db.Entries.AsNoTracking()
-                .Where(e => e.Id == entry.Id).Select(e => e.Status).FirstAsync(ct);
-            if (status == EntryStatuses.Submitted)
+            var current = await _db.Entries.AsNoTracking()
+                .Where(e => e.Id == entry.Id).Select(e => new { e.Status, e.TokenHash }).FirstOrDefaultAsync(ct);
+            if (current is null || current.TokenHash != entry.TokenHash)
+                return SaveAnswerResult.Fail(new("INVALID_TOKEN", "Phiên làm bài đã bị thu hồi hoặc lượt thi đã được xóa."));
+            if (current.Status == EntryStatuses.Submitted)
             {
                 return SaveAnswerResult.Fail(new("ALREADY_SUBMITTED", "Lượt thi này đã được nộp bài."));
             }
@@ -260,7 +262,9 @@ public class ContestAttemptService : IContestAttemptService
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
             // Doc lai luot co theo doi trong khoa: entry tu AuthenticateAsync khong theo doi va co the da cu
-            var current = await _db.Entries.FirstAsync(e => e.Id == entry.Id, ct);
+            var current = await _db.Entries.FirstOrDefaultAsync(e => e.Id == entry.Id, ct);
+            if (current is null || current.TokenHash != entry.TokenHash)
+                return AttachContactResult.Fail(new("INVALID_TOKEN", "Phiên làm bài đã bị thu hồi hoặc lượt thi đã được xóa."));
             if (current.Status == EntryStatuses.Submitted)
             {
                 return AttachContactResult.Fail(new("ALREADY_SUBMITTED", "Lượt thi này đã được nộp bài."));
@@ -297,7 +301,9 @@ public class ContestAttemptService : IContestAttemptService
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
             // Doc lai luot co theo doi trong khoa: entry tu AuthenticateAsync khong theo doi va co the da cu
-            var current = await _db.Entries.FirstAsync(e => e.Id == entry.Id, ct);
+            var current = await _db.Entries.FirstOrDefaultAsync(e => e.Id == entry.Id, ct);
+            if (current is null || current.TokenHash != entry.TokenHash)
+                return SubmitResult.Fail(new("INVALID_TOKEN", "Phiên làm bài đã bị thu hồi hoặc lượt thi đã được xóa."));
             if (current.Status == EntryStatuses.Submitted && current.SubmissionResultJson is { } saved)
             {
                 // Không đọc lại đáp án hay tính lại kết quả đã chốt.
@@ -333,12 +339,18 @@ public class ContestAttemptService : IContestAttemptService
                 return SubmitResult.Fail(new("CONTEST_CLOSED", "Cuộc thi đã hết hạn nộp bài."));
             }
 
-            // Có ít nhất một đáp án là được nộp; câu bỏ trống không có dòng và không được tính đúng.
+            // Chỉ chốt bài khi mọi mã câu trong đề của cuộc thi đều có đáp án.
             int total = contest.QuestionCount;
+            rows = rows.Where(r => contest.QuestionCodes.Contains(r.QuestionCode)).ToList();
             if (rows.Count == 0)
             {
-                return SubmitResult.Fail(new("NOTHING_TO_SUBMIT", "Bạn cần trả lời ít nhất một câu trước khi nộp bài."));
+                return SubmitResult.Fail(new("NOTHING_TO_SUBMIT", "Bạn chưa trả lời câu nào. Vui lòng hoàn thành toàn bộ đề trước khi nộp bài."));
             }
+
+            var answeredCodes = rows.Select(r => r.QuestionCode).ToHashSet(StringComparer.Ordinal);
+            int missing = contest.QuestionCodes.Count(code => !answeredCodes.Contains(code));
+            if (total == 0 || missing > 0)
+                return SubmitResult.Fail(new("INCOMPLETE_ANSWERS", $"Bạn cần trả lời hết các câu hỏi trước khi nộp bài. Còn {missing}/{total} câu chưa trả lời."));
 
             if (current.Mode == EntryModes.Anon && contact is not null)
             {
@@ -376,7 +388,7 @@ public class ContestAttemptService : IContestAttemptService
         if (fields.Count > 0) return new("VALIDATION", fields.Values.First(), fields);
 
         int used = await _db.Entries.CountAsync(e => e.ContestId == contest.Id && e.Phone == phone, ct);
-        if (used >= contest.MaxAttempts)
+        if (contest.MaxAttempts > 0 && used >= contest.MaxAttempts)
             return new("ATTEMPT_LIMIT", $"Số {phone} đã dùng hết {contest.MaxAttempts} lượt của cuộc thi này.");
 
         current.Mode = EntryModes.Named;

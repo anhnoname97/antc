@@ -17,6 +17,8 @@ public class AppDbContext : DbContext
     public static string FoldText(string value) => throw new NotSupportedException("SQL only");
     public DbSet<ContestAccessAudit> ContestAccessAudits => Set<ContestAccessAudit>();
     public DbSet<ContestPublishedResult> ContestPublishedResults => Set<ContestPublishedResult>();
+    public DbSet<ContestDrawDisplay> ContestDrawDisplays => Set<ContestDrawDisplay>();
+    public DbSet<PrivacyOperation> PrivacyOperations => Set<PrivacyOperation>();
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
@@ -24,8 +26,11 @@ public class AppDbContext : DbContext
     public DbSet<Entry> Entries => Set<Entry>();
     public DbSet<EntryAnswer> EntryAnswers => Set<EntryAnswer>();
     public DbSet<Draw> Draws => Set<Draw>();
+    public DbSet<Prize> Prizes => Set<Prize>();
+    public DbSet<ContestPrize> ContestPrizes => Set<ContestPrize>();
     public DbSet<DrawWinner> DrawWinners => Set<DrawWinner>();
     public DbSet<QuestionSubmission> QuestionSubmissions => Set<QuestionSubmission>();
+    public DbSet<QuestionRetentionPolicy> QuestionRetentionPolicies => Set<QuestionRetentionPolicy>();
     public DbSet<QuizTopic> QuizTopics => Set<QuizTopic>();
     public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
     public DbSet<QuizImport> QuizImports => Set<QuizImport>();
@@ -35,12 +40,28 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        b.Entity<PrivacyOperation>(e =>
+        {
+            e.ToTable("privacy_operation");
+            e.Property(x => x.Scope).HasMaxLength(16);
+            e.Property(x => x.Action).HasMaxLength(16);
+            e.Property(x => x.RequestHash).HasMaxLength(64);
+            e.Property(x => x.CleanupErrorCode).HasMaxLength(40);
+            e.HasIndex(x => x.OccurredAt);
+        });
         b.Entity<ContestPublishedResult>(e =>
         {
             e.ToTable("contest_published_result");
             e.HasKey(x => x.ContestId);
             e.Property(x => x.Revision).IsConcurrencyToken();
             e.HasOne(x => x.Contest).WithOne().HasForeignKey<ContestPublishedResult>(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<ContestDrawDisplay>(e =>
+        {
+            e.ToTable("contest_draw_display");
+            e.HasKey(x => x.ContestId);
+            e.Property(x => x.UpdatedBy).HasMaxLength(100);
+            e.HasOne(x => x.Contest).WithOne().HasForeignKey<ContestDrawDisplay>(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<ContestAccessAudit>(e =>
         {
@@ -84,10 +105,31 @@ public class AppDbContext : DbContext
             e.ToTable("draw");
             e.Property(x => x.CreatedBy).HasMaxLength(100);
             e.Property(x => x.Note).HasMaxLength(200);
+            e.Property(x => x.PrizeCode).HasMaxLength(30);
+            e.Property(x => x.PrizeName).HasMaxLength(150);
+            e.HasOne(x => x.PrizeAllocation).WithMany(x => x.Draws)
+                .HasForeignKey(x => new { x.ContestId, x.PrizeId }).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.RequestId).IsUnique();
             e.HasIndex(x => x.ContestId);
             e.HasOne(x => x.Contest).WithMany(x => x.Draws).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Restrict);
         });
 
+        b.Entity<Prize>(e =>
+        {
+            e.ToTable("prize");
+            e.Property(x => x.Code).HasMaxLength(30);
+            e.HasIndex(x => x.Code).IsUnique();
+            e.Property(x => x.Name).HasMaxLength(150);
+            e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.Revision).IsConcurrencyToken();
+        });
+        b.Entity<ContestPrize>(e =>
+        {
+            e.ToTable("contest_prize", table => table.HasCheckConstraint("CK_contest_prize_quantity", "quantity BETWEEN 1 AND 1000"));
+            e.HasKey(x => new { x.ContestId, x.PrizeId });
+            e.HasOne(x => x.Contest).WithMany(x => x.Prizes).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Prize).WithMany(x => x.Contests).HasForeignKey(x => x.PrizeId).OnDelete(DeleteBehavior.Restrict);
+        });
         b.Entity<DrawWinner>(e =>
         {
             e.ToTable("draw_winner");
@@ -95,6 +137,9 @@ public class AppDbContext : DbContext
             e.Property(x => x.Code).HasMaxLength(9);
             e.Property(x => x.FullName).HasMaxLength(100);
             e.Property(x => x.Phone).HasMaxLength(10);
+            e.Property(x => x.CancelledBy).HasMaxLength(100);
+            e.Property(x => x.CancelReasonCode).HasMaxLength(30);
+            e.Property(x => x.CancelReasonText).HasMaxLength(500);
             e.HasOne(x => x.Draw).WithMany(x => x.Winners).HasForeignKey(x => x.DrawId).OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -104,6 +149,8 @@ public class AppDbContext : DbContext
             e.Property(x => x.Type).HasMaxLength(8);
             e.Property(x => x.Content).HasMaxLength(2000);
             e.Property(x => x.Contact).HasMaxLength(200);
+            e.Property(x => x.Source).HasMaxLength(16).HasDefaultValue("portal");
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
             e.Property(x => x.Status).HasMaxLength(10);
             e.Property(x => x.AdminNote).HasMaxLength(1000);
             e.Property(x => x.HandledBy).HasMaxLength(100);
@@ -118,6 +165,19 @@ public class AppDbContext : DbContext
             e.Property(x => x.PublishedGuidanceUrl).HasMaxLength(2048);
             e.Property(x => x.ApprovedBy).HasMaxLength(100);
             e.HasIndex(x => new { x.IsPublished, x.ApprovedAt });
+            e.Property(x => x.AggregatedSourceIds).HasMaxLength(2048);
+            e.Property(x => x.DeletedBy).HasMaxLength(100);
+            e.HasOne<QuestionSubmission>().WithMany().HasForeignKey(x => x.AggregatedIntoId).OnDelete(DeleteBehavior.SetNull);
+            e.HasIndex(x => new { x.DeletedAt, x.CreatedAt });
+            e.HasIndex(x => new { x.IsPublished, x.Status, x.HandledAt });
+            e.HasQueryFilter(x => x.DeletedAt == null);
+        });
+
+        b.Entity<QuestionRetentionPolicy>(e =>
+        {
+            e.ToTable("question_retention_policy");
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.UpdatedBy).HasMaxLength(100);
         });
 
         b.Entity<QuizTopic>(e =>

@@ -69,6 +69,11 @@ public class Draw
     public long Id { get; set; }
     /// <summary>Cuộc thi được dùng để xác định tập người đủ điều kiện.</summary>
     public long? ContestId { get; set; }
+    public long? PrizeId { get; set; }
+    /// <summary>Prize labels frozen at draw time, independent of later catalogue edits.</summary>
+    public string? PrizeCode { get; set; }
+    public string? PrizeName { get; set; }
+    public ContestPrize? PrizeAllocation { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = "";
     public int MinScore { get; set; }
@@ -76,6 +81,10 @@ public class Draw
     public int EligibleCount { get; set; }
     public bool ExcludePrevious { get; set; }
     public string? Note { get; set; }
+
+    /// <summary>Exact eligible-person snapshot. Null for legacy draws: never reconstruct from live entries.</summary>
+    public string? EligibleSnapshotJson { get; set; }
+    public Guid? RequestId { get; set; }
 
     public List<DrawWinner> Winners { get; set; } = new();
     public ContestCampaign? Contest { get; set; }
@@ -91,6 +100,12 @@ public class DrawWinner
     public string FullName { get; set; } = "";
     public string Phone { get; set; } = "";
     public int Score { get; set; }
+    /// <summary>Thoi diem huy nguoi trung (UTC); null nghia la con hieu luc.</summary>
+    public DateTime? CancelledAt { get; set; }
+    public string? CancelledBy { get; set; }
+    /// <summary>Ma ly do huy.</summary>
+    public string? CancelReasonCode { get; set; }
+    public string? CancelReasonText { get; set; }
 
     public Draw? Draw { get; set; }
 }
@@ -104,7 +119,10 @@ public class QuestionSubmission
     public string Content { get; set; } = "";
     public bool WantReply { get; set; }
     public string? Contact { get; set; }
-    public DateTime ConsentAt { get; set; }
+    /// <summary>Thời điểm người gửi portal đồng ý; để trống với nội dung do ban biên tập tạo.</summary>
+    public DateTime? ConsentAt { get; set; }
+    public string Source { get; set; } = "portal";
+    public string? CreatedBy { get; set; }
     /// <summary>moi | dang-xu-ly | da-xu-ly | bo-qua</summary>
     public string Status { get; set; } = "moi";
     public string? AdminNote { get; set; }
@@ -124,6 +142,23 @@ public class QuestionSubmission
     public DateTime? ApprovedAt { get; set; }
     public string? ApprovedBy { get; set; }
     public long ReviewVersion { get; set; }
+    public long? AggregatedIntoId { get; set; }
+    /// <summary>JSON chứa ID nguồn, giữ dấu vết sau khi nội dung nguồn được dọn.</summary>
+    public string? AggregatedSourceIds { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
+}
+
+public class QuestionRetentionPolicy
+{
+    public int Id { get; set; } = 1;
+    public bool Enabled { get; set; }
+    public int RetentionDays { get; set; } = 365;
+    public long ReviewVersion { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? UpdatedBy { get; set; }
+    public DateTime? LastRunAt { get; set; }
+    public int LastDeletedCount { get; set; }
 }
 
 /// <summary>Chuyen de cua ngan hang cau hoi.</summary>
@@ -198,6 +233,34 @@ public class ContestCampaign
     public List<ContestTopic> Topics { get; set; } = new();
     public List<ContestQuestion> Questions { get; set; } = new();
     public List<Entry> Entries { get; set; } = new();
+    public List<Draw> Draws { get; set; } = new();
+    public List<ContestPrize> Prizes { get; set; } = new();
+}
+
+public class Prize
+{
+    public long Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string? Description { get; set; }
+    public bool IsActive { get; set; } = true;
+    public int SortOrder { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public long Revision { get; set; } = 1;
+    public List<ContestPrize> Contests { get; set; } = new();
+}
+
+/// <summary>Many-to-many allocation. Quantity belongs to the contest, not the catalogue.</summary>
+public class ContestPrize
+{
+    public long PrizeMoney { get; set; }
+    public long ContestId { get; set; }
+    public long PrizeId { get; set; }
+    public int Quantity { get; set; }
+    public int SortOrder { get; set; }
+    public ContestCampaign? Contest { get; set; }
+    public Prize? Prize { get; set; }
     public List<Draw> Draws { get; set; } = new();
 }
 

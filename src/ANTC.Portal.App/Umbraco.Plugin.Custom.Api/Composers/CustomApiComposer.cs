@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using OpenIddict.Server;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Plugin.Custom.Api.Models;
+using Umbraco.Plugin.Custom.Api.Infrastructure;
 
 namespace Umbraco.Plugin.Custom.Api.Composers;
 
@@ -11,6 +13,11 @@ public class CustomApiComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
     {
+        builder.Services.AddOpenIddict().AddServer(options => options
+            .AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(handler => handler
+                .UseSingletonHandler<BackofficeSessionHandler>()
+                .SetOrder(OpenIddictServerHandlers.PrepareRefreshTokenPrincipal.Descriptor.Order + 500)));
+
         builder.Services.Configure<ApiBehaviorOptions>(options =>
         {
             options.InvalidModelStateResponseFactory = context =>

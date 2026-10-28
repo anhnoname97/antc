@@ -16,7 +16,7 @@ const TIMEOUT_MS = 15000;
 // khi chay tren localhost/127.0.0.1, de nguoi dung that khong the bat mock bang URL.
 // Che do ep loi cho API-02..05: network|server|token|closed|submitted|rate|named|limit|validation|incomplete.
 // ?mock=notfound: API-01 tra CONTEST_NOT_FOUND, API-07 tra ba mang rong. ?mock=closed: API-07 coi moi cuoc dang dien ra la da ket thuc.
-// ?mock=one: API-07 chi con mot cuoc dang dien ra (mac dinh co hai; ?mock=closed hoac notfound: khong cuoc nao dang dien ra).
+// Mock mac dinh chi co mot cuoc dang dien ra; ?mock=one giu tuong thich URL kiem thu cu.
 // ?mock=small: them cuoc 5 (hai chuyen de, khong co CD1, he so dong ho doc 0,5) vao API-07, mo bang ?c=5.
 // ?mock=submitonly: API-02 bao phase submit_only cho moi luot (dang ky van tao duoc), API-03 tra CONTEST_CLOSED, API-05 van nop duoc.
 // ?mock=almost: dung nhu ok nhung luot moi tao da co san dap an moi cau tru cau cuoi cua chuyen de cuoi.
@@ -62,7 +62,7 @@ async function mockCreateEntry(payload, mode) {
       let attemptNo = null;
       if (payload.mode !== 'anon') {
         const used = Object.values(mockDb().entries).filter((e) => e.contestId === c.id && e.phone && e.phone === payload.phone).length;
-        if (used >= c.maxAttempts) return fail('ATTEMPT_LIMIT', `Số ${payload.phone} đã dùng hết ${c.maxAttempts} lượt của cuộc thi này.`);
+        if (Number(c.maxAttempts) > 0 && used >= c.maxAttempts) return fail('ATTEMPT_LIMIT', `Số ${payload.phone} đã dùng hết ${c.maxAttempts} lượt của cuộc thi này.`);
         attemptNo = used + 1;
       }
       const code = 'AD-' + Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -333,10 +333,10 @@ async function mockContests() {
   });
   mockContestCache = [
     make(1, 'Cuộc thi mẫu 1', all.slice(0, half), now - 10 * DAY, now + 20 * DAY, 2, 'vieclam'),
-    make(2, 'Cuộc thi mẫu 2', all.slice(half), now - 3 * DAY, now + 30 * DAY, 3, null),
-    make(3, 'Cuộc thi sắp tới', all.slice(0, 1), now + 10 * DAY, now + 40 * DAY, 2, null),
+    make(2, 'Cuộc thi mẫu 2', all.slice(half), now + 21 * DAY, now + 30 * DAY, 3, null),
+    make(3, 'Cuộc thi sắp tới', all.slice(0, 1), now + 31 * DAY, now + 40 * DAY, 2, null),
     make(4, 'Cuộc thi đã kết thúc', all.slice(0, 1), now - 60 * DAY, now - 30 * DAY, 2, null),
-    make(5, 'Cuộc thi hai chuyên đề', all.slice(1, 3), now - 1 * DAY, now + 30 * DAY, 2, null, 0.5),
+    make(5, 'Cuộc thi hai chuyên đề', all.slice(1, 3), now - 1 * DAY, now + 20 * DAY, 2, null, 0.5),
   ];
   return { ok: true, data: mockContestCache };
 }
@@ -359,9 +359,10 @@ async function mockSchedule(mode) {
   const cs = await mockContests();
   if (!cs.ok) return cs;
   for (const c of cs.data) {
+    if (c.id === 1 && mode === 'small') continue;
     if (c.id === 5 && mode !== 'small') continue; // cuoc thu cho F8, chi hien khi ?mock=small
     const ph = mode === 'closed' && mockPhase(c) === 'open' ? 'closed' : mockPhase(c);
-    if (ph === 'open' || ph === 'submit_only') out.ongoing.push(c);
+    if (ph === 'open') out.ongoing.push(c);
     else if (ph === 'upcoming') out.upcoming.push(c);
     else out.ended.push(c);
   }
@@ -493,7 +494,7 @@ async function mockMe(path, payload, mode, token) {
     if (!c || c.consent !== true) fields.consent = 'Cần đồng ý để nhận thông tin liên hệ.';
     if (Object.keys(fields).length) return fail('VALIDATION', 'Dữ liệu chưa hợp lệ.', fields);
     const used = Object.values(db.entries).filter((e) => e !== rec && e.phone === phone && e.contestId === rec.contestId).length;
-    if (mode === 'limit' || used >= rec.maxAttempts) return fail('ATTEMPT_LIMIT', `Số ${phone} đã dùng hết ${rec.maxAttempts} lượt thi.`);
+    if (mode === 'limit' || (Number(rec.maxAttempts) > 0 && used >= rec.maxAttempts)) return fail('ATTEMPT_LIMIT', `Số ${phone} đã dùng hết ${rec.maxAttempts} lượt thi.`);
     rec.mode = 'named';
     rec.fullName = String(c.fullName).trim();
     rec.phone = phone;

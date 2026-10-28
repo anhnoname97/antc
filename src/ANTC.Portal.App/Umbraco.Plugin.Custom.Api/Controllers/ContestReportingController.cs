@@ -75,7 +75,7 @@ public sealed class ContestReportingController(ContestReportingService reports,C
     public async Task<IActionResult> Draws(long id,[FromServices] Umbraco.Plugin.Custom.Core.Data.AppDbContext db,CancellationToken ct)
     {
         var rows=await db.Draws.AsNoTracking().Where(d=>d.ContestId==id).OrderByDescending(d=>d.CreatedAt)
-            .Select(d=>new {d.Id,CreatedAt=DateTime.SpecifyKind(d.CreatedAt,DateTimeKind.Utc),WinnerCount=d.Winners.Count}).ToListAsync(ct);
+            .Select(d=>new {d.Id,CreatedAt=DateTime.SpecifyKind(d.CreatedAt,DateTimeKind.Utc),WinnerCount=d.Winners.Count(w=>w.CancelledAt==null),CancelledCount=d.Winners.Count(w=>w.CancelledAt!=null)}).ToListAsync(ct);
         return Ok(rows);
     }
     private static ApiErrorResponse Missing()=>new(new ApiError("CONTEST_NOT_FOUND","Không tìm thấy cuộc thi."));

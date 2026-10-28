@@ -1,9 +1,45 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ArticleListPageModel>
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var category = Model.Category;
+    var browse = Model.Browse;
+    var policy = category.Role == "Chính sách";
+    var titleBreak = category.IsField ? category.Title.LastIndexOf(',') : -1;
 }
-<section class="page-hero">
-    <div class="container">
-        <h1>@Model.Name</h1>
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/articles.css" asp-append-version="true">
+}
+<div class="article-portal article-portal--list" data-article-browser data-category-id="@category.Id" data-section="@browse.Query.SectionFilter" data-page-size="@browse.Query.PageSize">
+    <header class="article-hero article-hero--category"><div class="article-wrap">
+        @await Html.PartialAsync("~/Views/Partials/articles/_Breadcrumbs.cshtml", Model)
+        <div class="article-hero__grid"><div class="article-hero__copy">
+        <p class="article-eyebrow">@(policy ? "Văn bản chính sách" : category.IsField ? "Thủ đoạn theo lĩnh vực" : "Danh sách bài viết")</p>
+        <h1>@if (titleBreak > 0) { <span>@category.Title[..(titleBreak + 1)]</span> <em>@category.Title[(titleBreak + 1)..].Trim()</em> } else { @category.Title }</h1>
+        @if (!string.IsNullOrWhiteSpace(category.Summary)) { <p class="article-lead">@category.Summary</p> }
+        else if (policy) { <p class="article-lead">Thông tin về chính sách, nguyên tắc và quy định của website.</p> }
+        else { <p class="article-lead">Hiểu cách họ tiếp cận.<br>Nhận ra dấu hiệu trước khi quyết định.</p> }
+        <p class="article-count"><span class="article-count__dot"></span>@category.ArticleCount @(policy ? "văn bản" : "bài viết") <span class="article-count__divider">/</span> @(policy ? "Chính sách của website" : "Nhận diện & tự bảo vệ")</p>
+        </div>@await Html.PartialAsync("~/Views/Partials/articles/_FieldVisual.cshtml", Model)</div>
+    </div></header>
+    <div class="article-wrap article-list-layout">
+        @await Html.PartialAsync("~/Views/Partials/articles/_Explore.cshtml", Model.Navigation)
+        <section class="article-list-section" aria-label="Danh sách bài viết">
+            <div class="article-list-toolbar"><div><p class="article-side-label">@(policy ? "Tra cứu văn bản" : "Đọc để nhận diện")</p><h2>@(policy ? "Văn bản trong danh mục" : "Bài viết trong danh mục")</h2></div>
+                <form class="article-filter" data-article-form method="get" action="@category.Url" role="search">
+                    <label for="article-keyword" class="article-sr-only">Tìm bài trong danh mục</label>
+                    <div><input id="article-keyword" name="q" type="search" value="@browse.Search" maxlength="@ArticleQuery.MaxSearchLength" placeholder="Tìm trong danh mục…"><button type="submit" aria-label="Tìm bài"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button></div>
+                    @if (browse.Query.PageSize != 10) { <input type="hidden" name="pageSize" value="@browse.Query.PageSize"> }
+                    @if (browse.Query.SortOrder != "updated-desc") { <input type="hidden" name="sort" value="@browse.Query.SortOrder"> }
+                </form>
+            </div>
+            @await Html.PartialAsync("~/Views/Partials/articles/_Results.cshtml", browse)
+        </section>
     </div>
-</section>
+    @foreach (var item in Model.Navigation.Fields.Append(category).DistinctBy(x => x.Id))
+    {
+        <template data-article-icon="@item.Id">@await Html.PartialAsync("~/Views/Partials/articles/_FieldIcon.cshtml", item.Title)</template>
+    }
+</div>
+@section Scripts {
+    <script type="module" src="~/assets/js/articles.js" asp-append-version="true"></script>
+}

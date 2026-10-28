@@ -2,6 +2,7 @@ import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 
 export const statuses = { moi: 'Mới', 'dang-xu-ly': 'Đang xử lý', 'da-xu-ly': 'Đã xử lý', 'bo-qua': 'Bỏ qua' };
 export const types = { 'cau-hoi': 'Câu hỏi, kiến nghị', 'gop-y': 'Góp ý' };
+export const sources = { portal: 'Trang web', 'quan-tri': 'Quản trị', 'tong-hop': 'Tổng hợp' };
 export const date = value => value ? new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh',
 }).format(new Date(value)) : '—';
@@ -17,4 +18,13 @@ export async function confirmDiscard(host) {
     } catch {
         return false;
     }
+}
+
+export async function confirmAction(host, headline, content, confirmLabel = 'Xóa') {
+    try {
+        await umbOpenModal(host, UMB_CONFIRM_MODAL, { data: {
+            headline, content, confirmLabel, cancelLabel: 'Hủy', color: 'danger',
+        } });
+        return true;
+    } catch { return false; }
 }

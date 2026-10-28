@@ -1,0 +1,21 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/quiz-fonts.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/monthly-competition.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/contest-shell.css" asp-append-version="true">
+}
+<div id="nj-cuoc-thi-thang">
+    @if (Model.Value<BlockGridModel>("layout") is { } blocks)
+    {
+        @await Html.GetBlockGridHtmlAsync(blocks)
+    }
+</div>
+@section Scripts {
+    <script defer src="~/assets/js/vendor/gsap.min.js" asp-append-version="true"></script>
+    <script defer src="~/assets/js/vendor/ScrollTrigger.min.js" asp-append-version="true"></script>
+    <script type="module" src="~/assets/js/monthly-competition.js" asp-append-version="true"></script>
+}

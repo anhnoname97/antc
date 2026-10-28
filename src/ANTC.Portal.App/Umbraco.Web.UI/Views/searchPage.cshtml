@@ -1,9 +1,55 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ArticleSearchPageModel>
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var browse = Model.Browse;
+    var policy = browse.Query.SectionFilter == "policy";
+    var sectionTitle = policy ? "Chính sách" : "Thủ đoạn";
+    var sectionUrl = policy ? "/chinh-sach/" : "/thu-doan/";
 }
-<section class="page-hero">
-    <div class="container">
-        <h1>@Model.Name</h1>
+@section Head {
+    <meta name="robots" content="noindex, follow">
+    <link rel="stylesheet" href="~/assets/css/articles.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/search-responsive.css" asp-append-version="true">
+}
+<div class="article-portal article-portal--search" data-article-browser data-search-page="true" data-section="@browse.Query.SectionFilter" data-page-size="@browse.Query.PageSize">
+    <header class="fraud-search-hero"><div class="article-wrap">
+        <nav class="article-breadcrumbs" aria-label="Vị trí"><ol><li><a href="/">Trang chủ</a></li><li><a href="@sectionUrl">@sectionTitle</a></li><li aria-current="page">Tìm kiếm</li></ol></nav>
+        <div class="fraud-search-hero__row"><div><p class="article-eyebrow">Tra cứu để tự bảo vệ</p><h1>Tìm kiếm <em>@sectionTitle.ToLowerInvariant()</em></h1></div></div>
+        <form class="fraud-results-form" data-article-form method="get" action="@browse.Path" role="search" autocomplete="off">
+            <input type="hidden" name="scope" value="@browse.Scope">
+            @if (browse.Query.PageSize != 10) { <input type="hidden" name="pageSize" value="@browse.Query.PageSize"> }
+            @if (browse.Query.SortOrder != "updated-desc") { <input type="hidden" name="sort" value="@browse.Query.SortOrder"> }
+            <label for="fraud-results-query" class="article-sr-only">Từ khóa tìm bài viết</label>
+            <div class="fraud-results-form__query"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="fraud-results-query" type="search" name="q" value="@browse.Search" placeholder="Ví dụ: đặt cọc, việc làm, vay…" maxlength="@ArticleQuery.MaxSearchLength" aria-describedby="search-privacy"></div>
+            <label class="article-sr-only" for="fraud-results-category">Danh mục</label>
+            <select id="fraud-results-category" name="category"><option value="">Tất cả danh mục</option>@foreach (var category in Model.Categories) { <option value="@category.Id" selected="@(browse.Query.CategoryId == category.Id)">@category.Title</option> }</select>
+            <button class="fraud-results-form__submit" type="submit">Tìm kiếm <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="fraud-search-privacy" id="search-privacy">Không nhập số điện thoại, số tài khoản hay thông tin cá nhân.</p>
+    </div></header>
+    <div class="article-wrap fraud-results-layout">
+        <aside class="fraud-results-sidebar"><p class="article-side-label">Danh mục · Tổng số bài</p>
+            <button class="fraud-results-sidebar__toggle" type="button" aria-expanded="true" aria-controls="fraud-filter-panel" data-search-filters-toggle><span data-search-filter-label>@(Model.Categories.FirstOrDefault(x => x.Id == browse.Query.CategoryId)?.Title ?? "Tất cả")</span><b data-search-filter-count>@browse.Result.Total</b></button>
+            <div id="fraud-filter-panel">
+            <nav class="fraud-result-filters" id="fraud-result-filters" data-category-limit="8" aria-label="Lọc kết quả theo danh mục">
+                <a data-article-category="" href="@browse.PageUrl(1)" class="@(browse.Query.CategoryId is null ? "is-active" : null)" aria-current="@(browse.Query.CategoryId is null ? "true" : null)"><span>Tất cả</span><b title="Tổng số bài trong các danh mục">@Model.Categories.Sum(x => x.ArticleCount)</b></a>
+                @foreach (var category in Model.Categories)
+                {
+                    <a data-article-category="@category.Id" href="@browse.PageUrl(1, category.Id)" class="@(browse.Query.CategoryId == category.Id ? "is-active" : null)" aria-current="@(browse.Query.CategoryId == category.Id ? "true" : null)"><span>@category.Title</span><b title="Tổng số bài trong danh mục">@category.ArticleCount</b></a>
+                }
+            </nav>
+            </div>
+        </aside>
+        <section class="fraud-results-content" aria-label="Kết quả tìm kiếm">
+            @await Html.PartialAsync("~/Views/Partials/articles/_Results.cshtml", browse)
+        </section>
     </div>
-</section>
+    @foreach (var category in Model.Categories)
+    {
+        <template data-article-icon="@category.Id">@await Html.PartialAsync("~/Views/Partials/articles/_FieldIcon.cshtml", category.Title)</template>
+    }
+</div>
+@section Scripts {
+    <script src="~/assets/js/fraud-search.js" asp-append-version="true" defer></script>
+    <script type="module" src="~/assets/js/articles.js" asp-append-version="true"></script>
+}

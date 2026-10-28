@@ -1,0 +1,16 @@
+@model ArticleNavigation
+<aside class="article-sidebar">
+    @if (Model.Fields.Count > 0)
+    {
+        <nav class="field-nav" aria-label="Các lĩnh vực thủ đoạn"><p class="article-side-label">Khám phá lĩnh vực</p>
+        @foreach (var field in Model.Fields)
+        {
+            <a href="@field.Url" class="@(field.Id == Model.Selected.Id ? "is-active" : null)" aria-current="@(field.Id == Model.Selected.Id ? "true" : null)"><span class="field-nav__icon">@await Html.PartialAsync("~/Views/Partials/articles/_FieldIcon.cshtml", field.Title)</span><span>@field.Title</span><span class="field-nav__arrow" aria-hidden="true">↗</span></a>
+        }
+        </nav>
+    }
+    @if (Model.EmergencyUrl is not null)
+    {
+        <div class="article-help"><span class="article-help__mark" aria-hidden="true">!</span><h2>Đang gặp chuyện<br>đáng ngờ?</h2><p>Dừng lại một nhịp.<br>Xem việc cần làm ngay.</p><a href="@Model.EmergencyUrl">Ứng phó khẩn cấp <span aria-hidden="true">↗</span></a></div>
+    }
+</aside>

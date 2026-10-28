@@ -1,0 +1,3 @@
+@model ArticleCard
+<span class="article-label article-label--amber" data-card-draft hidden="@(!Model.IsDraft)">Bản dự thảo</span>
+<span class="article-label @(Model.Label.Type == "unverified" ? "article-label--amber" : null)" data-card-label hidden="@(Model.Label.Type == "none" || string.IsNullOrWhiteSpace(Model.Label.Text))">@Model.Label.Text</span>

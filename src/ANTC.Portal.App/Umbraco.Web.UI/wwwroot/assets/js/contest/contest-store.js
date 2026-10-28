@@ -8,12 +8,14 @@ import {
 const KEY_ENTRY = 'at_entry';
 const KEY_PRACTICE = 'at_practice';
 const KEY_QUEUE = 'at_queue';
+const KEY_LATE = 'at_late_answers'; // Đáp án sau hạn, tách riêng theo mã lượt thi; không gửi máy chủ.
 const RETRY_MS = [2000, 5000, 15000]; // sau do giu 15s
 
 // Ma loi gui lai khong bao gio thanh cong: bo muc khoi hang doi
-const DROP_CODES = ['CONTEST_CLOSED', 'UNKNOWN_QUESTION', 'INVALID_OPTION', 'TOPIC_LOCKED'];
+const DROP_CODES = [ 'UNKNOWN_QUESTION', 'INVALID_OPTION', 'TOPIC_LOCKED'];
 
 export const state = {
+  answeringClosed: false, // Máy chủ đã ngừng nhận đáp án, vẫn làm tiếp trên thiết bị.
   practice: false, // dang o che do luyen tap (khong goi API)
   entry: null, // { code, token, mode, attemptNo, maxAttempts, contestId }
   contestId: null, // cuoc thi cua man hinh (null: luot cu khong co cuoc, hoac luyen tap); QUIZ goi kem ?contest= khi co
@@ -117,6 +119,7 @@ export function pendingCount() {
 // ---- Dat/xoa phien ----
 
 function resetState() {
+  state.answeringClosed = false;
   state.entry = null;
   state.contestId = null;
   state.contest = null;
@@ -152,6 +155,49 @@ function syncEntry(patch) {
   // Chi cap nhat khi at_entry van la luot dang lam (tab khac co the da doi sang luot khac)
   if (!cur || cur.token !== state.entry.token) return;
   state.entry = saveEntry({ ...cur, ...patch });
+}
+
+// Phần sau hạn không đi vào hàng đợi gửi lại hoặc điểm dự thi.
+export function answeringLocally() {
+  return !state.practice && !!state.entry && state.status !== 'submitted' &&
+    (state.answeringClosed || hasLateAnswers() || (state.synced && (!state.contest || state.contest.phase !== 'open')));
+}
+
+export function hasLateAnswers() {
+  return [...state.answers.values()].some(value => value.localOnly);
+}
+
+// Chỉ bỏ phần local-only khi người dùng chủ động làm lại trong cuộc thi đã mở.
+export function restartLocalAnswers() {
+  if (!state.entry || !state.synced || state.contest?.phase !== 'open' || state.status === 'submitted') return false;
+  const entries = readJson(KEY_LATE, {});
+  delete entries[state.entry.code];
+  writeJson(KEY_LATE, entries);
+  for (const [q, value] of state.answers) if (value.localOnly) state.answers.delete(q);
+  state.answeringClosed = false;
+  emit('change');
+  return true;
+}
+
+function saveLateAnswer(item) {
+  const value = { a: item.a, correct: item.correct, cd: String(item.cd), pending: false, stored: false, localOnly: true };
+  state.answers.set(item.q, value);
+  const entries = readJson(KEY_LATE, {});
+  const code = state.entry.code;
+  entries[code] = { ...(entries[code] || {}), [item.q]: value };
+  writeJson(KEY_LATE, entries);
+}
+
+function overlayLateAnswers() {
+  if (!state.entry || state.status === 'submitted') return;
+  // Cuộc thi đang mở: tiếp tục lượt thi bằng đáp án chính thức từ máy chủ.
+  // Giữ bản luyện tập cũ trên thiết bị nhưng không trộn vào tiến độ dự thi.
+  if (state.synced && state.contest?.phase === 'open') return;
+  const entries = readJson(KEY_LATE, {});
+  for (const [q, value] of Object.entries(entries[state.entry.code] || {})) {
+    // Đáp án đã được máy chủ ghi nhận luôn có ưu tiên.
+    if (!state.answers.has(q)) state.answers.set(q, { ...value, pending: false, stored: false, localOnly: true });
+  }
 }
 
 // ---- Che do luyen tap: tien do o at_practice, khong lan voi luot thi ----
@@ -220,6 +266,7 @@ export async function init(contestId) {
       return { view: 'register', practice: state.practice };
     }
     // Mang/may chu loi: giu luot da luu, dung tien do tu hang doi; flush() se lay lai API-02 khi co mang
+    overlayLateAnswers();
     overlayQueue();
     scheduleRetry(r.error.retryAfter);
     return { view: 'exam', practice: false, offline: true, error: r.error };
@@ -239,8 +286,10 @@ function applyServer(d) {
   state.fullName = d.fullName || null;
   state.phoneMasked = d.phoneMasked || null;
   state.contest = d.contest || null;
+  state.answeringClosed = !!state.contest && state.contest.phase !== 'open';
   state.topics = Array.isArray(d.topics) ? d.topics.map((t) => ({ cd: String(t.cd), count: t.count })) : [];
   state.answers = new Map(d.answers.map((x) => [x.q, { a: x.a, correct: x.correct, cd: String(x.cd), pending: false, stored: true }]));
+  overlayLateAnswers();
   syncEntry({ code: d.code, mode: d.mode, attemptNo: d.attemptNo, maxAttempts: d.maxAttempts });
   if (d.status === 'submitted') {
     dropEntryQueue(state.entry.code);
@@ -275,6 +324,11 @@ export async function answer(q, a, cd, correct) {
   // Mot cau chi gui mot lan
   const had = state.answers.get(q);
   if (had) return view({ ...had, stored: false });
+  if (answeringLocally()) {
+    saveLateAnswer({ q, a, cd, correct });
+    emit('change');
+    return view(state.answers.get(q));
+  }
   state.answers.set(q, { a, correct, cd: String(cd), pending: true, stored: false });
   enqueue({ entry: state.entry.code, q, a, cd: String(cd), correct });
   emit('change');
@@ -347,6 +401,11 @@ async function drain() {
   const token = state.entry && state.entry.token;
   for (const item of readQueue()) {
     if (!state.entry || state.entry.code !== code) return;
+    if (item.entry === code && answeringLocally()) {
+      saveLateAnswer(item);
+      dequeue(item);
+      continue;
+    }
     if (item.entry !== code) continue; // muc cua luot khac: de nguyen, init() cua luot do hoac luot moi se don
     const r = await saveAnswer(item.q, item.a, token);
     if (state.entry === null || state.entry.code !== code) return;
@@ -367,6 +426,12 @@ async function drain() {
       state.status = 'submitted';
       emit('submitted');
       break;
+    }
+    if (c === 'CONTEST_CLOSED') {
+      state.answeringClosed = true;
+      saveLateAnswer(item);
+      dequeue(item);
+      continue;
     }
     if (DROP_CODES.includes(c)) {
       dropItem(item, c);
@@ -415,6 +480,7 @@ export async function attachContact(contact) {
 export async function submit(contact) {
   await flush();
   if (!state.entry) return { ok: false, error: { code: 'INVALID_TOKEN', message: '', fields: {} } };
+  if (hasLateAnswers()) return { ok: false, error: { code: 'CONTEST_CLOSED', message: 'Đã hết hạn nộp bài. Phần làm sau hạn chỉ lưu trên thiết bị, không được nộp hoặc xét thưởng.', fields: {} } };
   if (pendingCount()) return { ok: false, error: { code: 'QUEUE_PENDING', message: 'Đang lưu đáp án, hãy thử lại sau.', fields: {} } };
   const entry = state.entry;
   const r = handleAuth(await apiSubmitEntry(contact, entry.token));

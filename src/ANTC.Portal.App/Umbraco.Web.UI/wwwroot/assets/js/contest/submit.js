@@ -1,7 +1,8 @@
+import { blockCopy } from './block-copy.js';
 // Nop bai, gan thong tin du thuong cho luot an danh, man ket qua luot thi (FE-29).
 // exam.js goi: panelHtml (thanh nop bai o danh sach / man Xong chuyen de), attachButtonHtml (cot ben), resultHtml (man ket qua),
-// wire (mo hop thoai khi bam nut). Trang thai lay tu contest-store.js; hop thoai la <dialog id="sdlg"> trong _LuongThi.cshtml.
-import { state, submit, attachContact, topicProgress } from './contest-store.js';
+// wire (mo hop thoai khi bam nut). Trang thai lay tu contest-store.js; hop thoai la <dialog id="sdlg"> trong contestSubmissionBlock.cshtml.
+import { state, hasLateAnswers, restartLocalAnswers, submit, attachContact, topicProgress, pendingCount } from './contest-store.js';
 import { checkContact } from './phone.js';
 import { esc, eyebrowHtml } from '../quiz/quiz-ui.js';
 
@@ -36,7 +37,8 @@ let kind = null; // 'submit' | 'attach'
 let busy = false;
 let opener = null;
 let notice = ''; // thong bao tu may chu (vd NOTHING_TO_SUBMIT), hien tren thanh nop bai cho toi khi tien do doi hoac doi luot
-let noticeAt = null; // so cau da tra loi luc thong bao hien lan dau; doi so nay (tra loi them) thi bo thong bao
+let noticeAt = null; // so cau da tra loi khi nhan thong bao; tra loi them thi bo thong bao cu
+let currentTopics = () => [];
 let expired = false; // da nhan CONTEST_CLOSED o API-04/05: het han nop
 
 export function setup(handlers) {
@@ -52,7 +54,7 @@ export function resetSubmit() {
 
 export function setNotice(text) {
   notice = text || '';
-  noticeAt = null;
+  noticeAt = notice ? counts(state.topics).answered : null;
 }
 
 const box = (k, html) => `<div class="infobox infobox--${k}">${html}</div>`;
@@ -74,24 +76,40 @@ function submitExpired() {
 
 const inEntry = () => !state.practice && !!state.entry && state.status !== 'submitted';
 
+// Chi mo nop bai khi tat ca chuyen de/cau hoi cua luot da hoan thanh va luu len may chu.
+function readyToSubmit(topics) {
+  const plan = state.topics.length ? state.topics : topics;
+  const { total, complete } = counts(plan);
+  return inEntry() && state.synced && complete && !submitExpired() && !hasLateAnswers()
+    && (state.total == null || Number(state.total) === total)
+    && pendingCount() === 0 && ![...state.answers.values()].some(answer => answer.pending);
+}
+
+
 // ---- HTML ----
 
 // Thanh nop bai o dau danh sach chuyen de va man Xong chuyen de
 export function panelHtml(topics) {
   if (!inEntry()) return '';
-  const { total, answered, complete } = counts(topics);
+  const { total, answered, complete } = counts(state.topics.length ? state.topics : topics);
+  if (!complete) return '';
   if (notice) {
     if (noticeAt === null) noticeAt = answered;
     else if (noticeAt !== answered) notice = ''; // tien do doi thi thong bao cu khong con dung
   }
   let o = notice ? box('warn', esc(notice)) : '';
-  if (submitExpired()) {
-    return o + box('warn', '<b>Đã hết hạn nộp bài.</b> Bạn vẫn xem lại được ngân hàng câu hỏi ở chế độ luyện tập.');
+  // API lưu đáp án có thể báo đóng trước khi phase từ lần tải trước được cập nhật.
+  // Bài có đáp án làm sau hạn chỉ được xem lại trên thiết bị, kể cả trong thời gian gia hạn nộp.
+  if (submitExpired() || (hasLateAnswers() && (state.answeringClosed || state.contest?.phase === 'submit_only'))) {
+    return box('warn', '<b>Đã hết hạn nộp bài.</b> Bạn vẫn xem lại được ngân hàng câu hỏi ở chế độ luyện tập.');
   }
-  if (answered === 0) {
-    return o + box('soft', `<b>Đã trả lời 0 / ${total} câu.</b> Trả lời ít nhất một câu để nộp bài.`);
+  if (hasLateAnswers()) {
+    const restart = state.contest?.phase === 'open'
+      ? '<button type="button" class="qnav o" data-restart-local>Làm lại phần chưa được ghi nhận để dự thi</button>' : '';
+    return box('warn', '<b>Phần bài làm này chưa được ghi nhận trên máy chủ.</b> Các đáp án này chỉ lưu trên thiết bị, không phải kết quả đã nộp. ' + restart);
   }
-  const progress = complete ? `Bạn đã trả lời hết ${total} câu.` : `Bạn đã trả lời ${answered} / ${total} câu. Câu chưa trả lời không được tính đúng.`;
+  if (!readyToSubmit(topics)) return '';
+  const progress = `Bạn đã trả lời hết ${total} câu và hoàn thành toàn bộ chuyên đề.`;
   return o + `<div class="infobox infobox--ok submitbar"><p><b>${progress}</b> Nộp bài để chốt kết quả. Nộp rồi thì không làm tiếp được trong lượt này.</p>`
     + '<button type="button" class="qnav f" data-submit-open>Nộp bài dự thi</button></div>';
 }
@@ -115,16 +133,16 @@ export function resultHtml(topics, r, canRetry) {
   const total = r ? r.total : state.total;
   const when = fmtTime(r ? r.submittedAt : state.submittedAt);
   const sub = [state.contest ? `Cuộc thi “${esc(state.contest.name)}”` : '', e ? `Mã dự thi ${esc(e.code)}` : '', when ? `Nộp lúc ${esc(when)}` : ''].filter(Boolean).join(' · ');
-  let o = `<div class="qin exam__result">${eyebrowHtml('Đã nộp bài')}<h2 id="eh" tabindex="-1" class="contest__h2">`
-    + (score != null && total != null ? `Bạn trả lời đúng ${esc(score)} trên ${esc(total)} câu` : 'Bài của bạn đã được nộp')
+  let o = `<div class="qin exam__result">${eyebrowHtml(blockCopy('entry-result', 'eyebrow', 'Đã nộp bài'))}<h2 id="eh" tabindex="-1" class="contest__h2">`
+    + (score != null && total != null ? esc(blockCopy('entry-result', 'title', 'Bạn trả lời đúng {correct} trên {total} câu', { correct: score, total })) : 'Bài của bạn đã được nộp')
     + `</h2>${sub ? `<p class="exam__sub">${sub}</p>` : ''}`;
   if (!r) {
     o += box('warn', '<b>Chưa tải được chi tiết kết quả.</b> Kiểm tra mạng rồi bấm thử lại.')
       + '<div class="exam__actions"><button type="button" class="qnav f" data-result-retry>Thử lại</button></div>';
   } else {
     o += r.eligibleForPrize
-      ? box('ok', '<b>Bài của bạn được đưa vào danh sách xét giải.</b>')
-      : box('soft', '<b>Bài ẩn danh, không xét giải.</b>');
+      ? box('ok', `<b>${esc(blockCopy('entry-result', 'eligibleMessage', 'Bài của bạn được đưa vào danh sách xét giải.'))}</b>`)
+      : box('soft', `<b>${esc(blockCopy('entry-result', 'anonymousMessage', 'Bài ẩn danh, không xét giải.'))}</b>`);
     const by = Array.isArray(r.byTopic) ? r.byTopic : [];
     if (by.length) {
       const title = (cd) => {
@@ -137,7 +155,7 @@ export function resultHtml(topics, r, canRetry) {
         + '</tbody></table>';
     }
   }
-  o += '<div class="exam__actions"><button type="button" class="qnav f" data-review-bank>Xem lại ngân hàng câu hỏi</button>';
+  o += `<div class="exam__actions"><button type="button" class="qnav f" data-review-bank>${esc(blockCopy('entry-result', 'reviewLabel', 'Xem lại ngân hàng câu hỏi'))}</button>`;
   if (canRetry) o += `<a class="qnav o" href="#dang-ky">Thi lượt thứ ${esc(Number(e.attemptNo) + 1)}</a>`;
   return `${o}</div></div>`;
 }
@@ -178,7 +196,7 @@ function correctCount() {
 }
 
 function openDialog(k, trigger, topics) {
-  if (!dlg || !state.entry) return;
+  if (!dlg || !state.entry || (k === 'submit' && !readyToSubmit(topics) && !submitExpired())) return;
   kind = k;
   opener = trigger;
   showErr('');
@@ -188,25 +206,33 @@ function openDialog(k, trigger, topics) {
   }
   wantEl.checked = false;
   if (kind === 'attach') {
-    titleEl.textContent = 'Dự thi có tên để xét giải';
+    titleEl.textContent = blockCopy('submission', 'attachTitle', 'Dự thi có tên để xét giải');
     sumEl.textContent = `Mã dự thi ${state.entry.code} và các câu bạn đã làm được giữ nguyên.`;
     tickRow.hidden = true;
   } else {
     const { total, answered } = counts(topics);
-    titleEl.textContent = 'Nộp bài dự thi';
+    titleEl.textContent = blockCopy('submission', 'title', 'Nộp bài dự thi');
     sumEl.textContent = `Bạn đã làm ${answered} / ${total} câu, đúng ${correctCount()} câu. Nộp rồi thì không làm tiếp được trong lượt này.`;
     tickRow.hidden = state.entry.mode !== 'anon';
   }
   sumEl.hidden = false;
-  cancelBtn.textContent = kind === 'attach' ? 'Đóng' : 'Làm tiếp';
+  cancelBtn.textContent = kind === 'attach' ? 'Đóng' : blockCopy('submission', 'cancelLabel', 'Làm tiếp');
   setBusy(false);
   syncFields();
   dlg.showModal();
   titleEl.focus({ preventScroll: true });
+  if (k === 'submit' && submitExpired()) showExpiredNotice();
 }
 
 function closeDialog() {
   if (dlg.open) dlg.close();
+}
+
+function showExpiredNotice() {
+  expired = true;
+  showErr('Đã hết hạn nộp bài. Bài thi chưa được nộp; bạn vẫn có thể xem lại các đáp án đã lưu.');
+  okBtn.disabled = true;
+  cancelBtn.textContent = 'Đóng';
 }
 
 // Loi tu may chu hoac mang: giu hop thoai mo de thu lai, tru khi khong con y nghia (het han, thieu cau, token)
@@ -236,14 +262,13 @@ function handleError(err, contact) {
       return;
     case 'CONTEST_CLOSED':
       const attaching = kind === 'attach';
-      closeDialog();
       if (attaching) {
+        closeDialog();
         // Chi het han gan ten, nop bai co the con (submit_only): doc lai API-02 de cot ben an nut, khong khoa nop bai
         deps.onAttached();
         return;
       }
-      expired = true;
-      deps.onClosed();
+      showExpiredNotice();
       return;
     case 'ALREADY_NAMED':
       closeDialog();
@@ -266,6 +291,15 @@ function handleError(err, contact) {
 
 async function onOk() {
   if (busy || !state.entry) return;
+  if (kind === 'submit' && submitExpired()) {
+    showExpiredNotice();
+    return;
+  }
+  if (kind === 'submit' && !readyToSubmit(currentTopics())) {
+    closeDialog();
+    deps?.onIncomplete('Bạn cần hoàn thành toàn bộ câu hỏi và chuyên đề, đồng thời lưu hết đáp án trước khi nộp bài.');
+    return;
+  }
   let contact;
   if (kind === 'attach' || wantEl.checked) {
     const r = checkContact({
@@ -310,6 +344,7 @@ if (dlg) {
   dlg.addEventListener('cancel', (e) => { if (busy) e.preventDefault(); });
   dlg.addEventListener('close', () => {
     kind = null;
+    if (expired) deps.onClosed();
     if (opener && opener.isConnected) opener.focus({ preventScroll: true });
     else if (deps) deps.focusFallback();
     opener = null;
@@ -318,7 +353,12 @@ if (dlg) {
 
 // Bam nut mo hop thoai trong vung examView / cot ben. getTopics: danh sach chuyen de dang dung (de tom tat so cau)
 export function wire(root, getTopics) {
+  currentTopics = getTopics;
   root.addEventListener('click', (e) => {
+    if (e.target.closest('[data-restart-local]')) {
+      if (restartLocalAnswers()) deps.onIncomplete('');
+      return;
+    }
     const sub = e.target.closest('[data-submit-open]');
     if (sub) {
       openDialog('submit', sub, getTopics());

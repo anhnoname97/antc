@@ -1,16 +1,20 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.BlockGridItem>
 @using Umbraco.Cms.Core.Models
+@using Umbraco.Plugin.Custom.Core.Contest
+@inject ContestPromotionService Promotions
 @{
     var content = Model.Content;
-    var eyebrow = content.Value<string>("eyebrow");
-    var title = content.Value<string>("title");
-    var schedule = content.Value<string>("scheduleText");
-    var summary = content.Value<string>("summary");
+    var contest = await Promotions.GetAsync(Context.RequestAborted);
+    var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+    DateTime Local(DateTime value) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value, DateTimeKind.Utc), vietnam);
+    var eyebrow = contest is null ? null : $"Cuộc thi tháng {Local(contest.StartAt):MM/yyyy}";
+    var title = contest?.Name;
+    var schedule = contest is null ? null : $"{Local(contest.StartAt):d/M/yyyy} – {Local(contest.EndAt):d/M/yyyy}";
+    var summary = contest is null ? null : $"{contest.QuestionCount} câu hỏi · " + (contest.MaxAttempts == 0 ? "Không giới hạn lượt / số điện thoại" : $"Tối đa {contest.MaxAttempts} lượt / số điện thoại");
     var link = content.Value<Link>("link");
-    var safetyNote = content.Value<string>("safetyNote");
+    var contestUrl = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("thiThangPage").FirstOrDefault()?.Url() ?? "/cuoc-thi-thang/";
+    var safetyNote = ContestPromotionService.ShortSafetyNotice;
     var metadata = string.Join(" · ", new[] { schedule, summary }.Where(value => !string.IsNullOrWhiteSpace(value)));
-    var canLink = !string.IsNullOrWhiteSpace(link?.Url) && !string.IsNullOrWhiteSpace(link.Name)
-        && (link.Url.StartsWith('/') || link.Url.StartsWith('#') || (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"));
 }
 @if (!string.IsNullOrWhiteSpace(title))
 {
@@ -24,10 +28,7 @@
         {
             <p class="competition-promo__meta">@metadata</p>
         }
-        @if (canLink)
-        {
-            <a class="intro-hero__button intro-hero__button--primary competition-promo__link" href="@link!.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener noreferrer" : null)">@link.Name <span aria-hidden="true">⟶</span></a>
-        }
+        <a class="intro-hero__button intro-hero__button--primary competition-promo__link" href="@contestUrl">@(string.IsNullOrWhiteSpace(link?.Name) ? "Xem cuộc thi" : link.Name) <span aria-hidden="true">⟶</span></a>
         @if (!string.IsNullOrWhiteSpace(safetyNote))
         {
             <p class="competition-promo__safety">

@@ -13,6 +13,31 @@ namespace Umbraco.Plugin.Custom.Tests;
 /// <summary>B8a, B8b: API-02 den API-05 theo cuoc cua luot.</summary>
 public class ContestAttemptServiceTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UnlimitedContest_ContactAndSubmitAllowMoreThanDefaultLimit(bool submit)
+    {
+        await using var f=await Fixture.CreateAsync();
+        var contest=await f.AddContestAsync(Now.AddHours(-1),Now.AddHours(1));
+        contest.MaxAttempts=0;await f.Db.SaveChangesAsync();
+        for(int i=1;i<=5;i++)
+        {
+            var entry=await f.AddEntryAsync(contest.Id);
+            await f.Service().SaveAnswerAsync(entry,"A1","A");
+            var contact=new ContactRequest("Nguyễn Văn An","0912345678",null,true);
+            if(submit) Assert.Null((await f.Service().SubmitAsync(entry,contact)).Error);
+            else
+            {
+                var result=await f.Service().AttachContactAsync(entry,contact);
+                Assert.Null(result.Error);Assert.Equal(0,result.Contact!.MaxAttempts);
+            }
+            var stored=await f.Db.Entries.AsNoTracking().SingleAsync(e=>e.Id==entry.Id);
+            Assert.Equal(i,stored.AttemptNo);
+            Assert.Equal(submit?EntryStatuses.Submitted:EntryStatuses.InProgress,stored.Status);
+        }
+        Assert.Equal(5,await f.Db.Entries.CountAsync(e=>e.Phone=="0912345678"));
+    }
     private static readonly DateTime Now = new(2026, 10, 16, 5, 0, 0, DateTimeKind.Utc);
     private sealed class Clock : TimeProvider { public override DateTimeOffset GetUtcNow() => new(Now); }
 
@@ -429,7 +454,7 @@ public class ContestAttemptServiceTests
     }
 
     [Fact]
-    public async Task Submit_RequiresOneAnswer_AllowsPartialExam_UsesExamTotalAndByTopic()
+    public async Task Submit_RequiresEntireExam_ThenFreezesScoreAndByTopic()
     {
         await using var f = await Fixture.CreateAsync();
         var c = await AddTwoTopicContestAsync(f, Now.AddDays(-1), Now.AddDays(1), 24);
@@ -439,20 +464,42 @@ public class ContestAttemptServiceTests
         Assert.Equal("NOTHING_TO_SUBMIT", none.Error?.Code);
 
         Assert.Null((await f.Service().SaveAnswerAsync(e, "A1", "A")).Error);
+        var incomplete = await f.Service().SubmitAsync(e, new("Nguyễn Văn An", "0912345678", null, true));
+        Assert.Equal("INCOMPLETE_ANSWERS", incomplete.Error?.Code);
+        var unchanged = await f.Db.Entries.AsNoTracking().SingleAsync(x => x.Id == e.Id);
+        Assert.Equal(EntryStatuses.InProgress, unchanged.Status);
+        Assert.Null(unchanged.Phone); Assert.Null(unchanged.FullName); Assert.Null(unchanged.ConsentAt);
+        Assert.Null(unchanged.Score); Assert.Null(unchanged.SubmittedAt); Assert.Null(unchanged.SubmissionResultJson);
+        Assert.Single(await f.Db.EntryAnswers.ToListAsync());
+        Assert.Null((await f.Service().SaveAnswerAsync(e, "B1", "B")).Error);
         var done = await f.Service().SubmitAsync(e, null);
         Assert.Null(done.Error);
         Assert.Equal(2, done.Result!.Total);
         Assert.Equal(1, done.Result.Score);
-        Assert.Equal(1, done.Result.Answered);
+        Assert.Equal(2, done.Result.Answered);
         Assert.False(done.Result.EligibleForPrize);
         Assert.Equal(new[] { ("1", 1, 1), ("2", 0, 1) }, done.Result.ByTopic.Select(t => (t.Cd, t.Correct, t.Count)));
         Assert.Equal(2, f.Db.Entries.AsNoTracking().Single(x => x.Id == e.Id).TotalQuestions);
-        Assert.Single(await f.Db.EntryAnswers.ToListAsync());
+        Assert.Equal(2, await f.Db.EntryAnswers.CountAsync());
         Assert.Equal("ALREADY_SUBMITTED", (await f.Service().SaveAnswerAsync(e, "B1", "B")).Error?.Code);
 
         // nop lai tra ket qua cu
         var again = await f.Service().SubmitAsync(e, null);
         Assert.Equal(done.Result.SubmittedAt, again.Result!.SubmittedAt);
+    }
+
+    [Fact]
+    public async Task Submit_AnswerOutsideExamCannotReplaceMissingQuestion()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var c = await AddTwoTopicContestAsync(f, Now.AddDays(-1), Now.AddDays(1), 24);
+        var e = await f.AddEntryAsync(c.Id);
+        await f.Service().SaveAnswerAsync(e, "A1", "A");
+        f.Db.EntryAnswers.Add(new EntryAnswer { EntryId=e.Id, QuestionCode="A2", Topic=1, Chosen="A", IsCorrect=true, AnsweredAt=Now });
+        await f.Db.SaveChangesAsync();
+        Assert.Equal(2,await f.Db.EntryAnswers.CountAsync());
+        Assert.Equal("INCOMPLETE_ANSWERS",(await f.Service().SubmitAsync(e,null)).Error?.Code);
+        Assert.Equal(EntryStatuses.InProgress,(await f.Db.Entries.AsNoTracking().SingleAsync()).Status);
     }
 
     [Theory]
@@ -489,6 +536,7 @@ public class ContestAttemptServiceTests
         var e = await f.AddEntryAsync(c.Id);
         string code = e.Code, tokenHash = e.TokenHash;
         await f.Service().SaveAnswerAsync(e, "A1", "A");
+        await f.Service().SaveAnswerAsync(e, "A2", "B");
         await f.Service().SaveAnswerAsync(e, "B1", "B");
         var result = await f.Service().SubmitAsync(e,
             new("  Nguyễn Văn An  ", "+84 (912) 345-678", "  Đơn vị  ", true));
@@ -507,7 +555,7 @@ public class ContestAttemptServiceTests
         Assert.Equal(Now, stored.SubmittedAt);
         Assert.Equal(EntryStatuses.Submitted, stored.Status);
         Assert.Equal(await f.Db.EntryAnswers.CountAsync(a => a.IsCorrect), stored.Score);
-        Assert.Equal(2, stored.Answered);
+        Assert.Equal(3, stored.Answered);
         Assert.Equal(3, stored.TotalQuestions);
         Assert.Equal(JsonSerializer.Serialize(result.Result), stored.SubmissionResultJson);
     }
@@ -531,6 +579,7 @@ public class ContestAttemptServiceTests
         }
         var e = await f.AddEntryAsync(c.Id);
         await f.Service().SaveAnswerAsync(e, "A1", "A");
+        await f.Service().SaveAnswerAsync(e, "B1", "B");
         var response = await f.Service().SubmitAsync(e, new("Nguyễn Văn An", phone, null, consent));
 
         Assert.Equal(error, response.Error?.Code);
@@ -544,7 +593,7 @@ public class ContestAttemptServiceTests
         Assert.Null(stored.Score);
         Assert.Null(stored.SubmittedAt);
         Assert.Null(stored.SubmissionResultJson);
-        Assert.Single(await f.Db.EntryAnswers.Where(a => a.EntryId == e.Id).ToListAsync());
+        Assert.Equal(2, await f.Db.EntryAnswers.CountAsync(a => a.EntryId == e.Id));
     }
 
     [Theory]
@@ -593,7 +642,10 @@ public class ContestAttemptServiceTests
         var c = await AddOrderedContestAsync(f, 1, 2);
         var e = await f.AddEntryAsync(c.Id);
         await f.Service().SaveAnswerAsync(e, "A1", "A");
+        await f.Service().SaveAnswerAsync(e, "A2", "B");
+        await f.Service().SaveAnswerAsync(e, "B1", "B");
         var first = await f.Service().SubmitAsync(e, null);
+        Assert.Null(first.Error);
         string firstJson = JsonSerializer.Serialize(first.Result);
         var submittedAt = (await f.Db.Entries.AsNoTracking().SingleAsync()).SubmittedAt;
 
@@ -676,6 +728,7 @@ public class ContestAttemptServiceTests
                 var e = await f.AddEntryAsync(c.Id);
                 entries.Add(e);
                 await f.Service().SaveAnswerAsync(e, "A1", "A");
+                await f.Service().SaveAnswerAsync(e, "B1", "B");
             }
             var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             var tasks = entries.Select(async (entry, i) =>

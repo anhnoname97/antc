@@ -127,7 +127,8 @@ export class UmbBackofficeHeaderSectionsElement extends UmbLitElement {
 				height: 60px;
 				flex-basis: 100%;
 				font-size: 16px; /* specific for the header */
-				background-color: var(--uui-color-header-background);
+				/* ANTC: de trong suot de lay mau nen cua thanh tren */
+				background-color: transparent;
 				--uui-tab-text: var(--uui-color-header-contrast);
 				--uui-tab-text-hover: var(--uui-color-header-contrast-emphasis);
 				--uui-tab-text-active: var(--uui-color-header-contrast-emphasis);

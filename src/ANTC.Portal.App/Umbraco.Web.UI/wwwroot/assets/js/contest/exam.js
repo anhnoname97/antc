@@ -1,10 +1,11 @@
+import { blockCopy } from './block-copy.js';
 // Dieu phoi man hinh cuoc thi (FE-26): Dang ky, Danh sach chuyen de (#ngan-hang), Gioi thieu chuyen de (#chuyen-de-N), cot ben.
 // Man cau hoi (#chuyen-de-N/cau-hoi) co dong ho doc, man Xong chuyen de (#chuyen-de-N/xong), lam lai (FE-27).
 // Trang thai lay tu contest-store.js. Nop bai, hop thoai va man ket qua (#ket-qua) o submit.js (FE-29).
 import { onRegistered, requestedContestId } from './register.js';
 import { loadEntry } from './contest-api.js';
 import {
-  state, init, on, enterPractice, resetPractice, topicProgress, loadTopics, loadQuestions, answer, getAnswer, submit as submitEntry,
+  state, answeringLocally, hasLateAnswers, init, on, enterPractice, resetPractice, topicProgress, loadTopics, loadQuestions, answer, getAnswer, submit as submitEntry,
 } from './contest-store.js';
 import {
   setup as setupSubmit, resetSubmit, setNotice, panelHtml, attachButtonHtml, resultHtml, wire as wireSubmit,
@@ -45,7 +46,6 @@ function parseFactor(raw) {
 }
 const readFactor = () => (state.practice || !state.contest ? 1 : parseFactor(state.contest.readTimerFactor));
 // Cuoc thi khong nhan dap an nua: da lay duoc API-02 ma phase khac 'open' (lan luot khong co cuoc cung la closed)
-const phaseClosed = () => !state.practice && !!state.entry && state.synced && (!state.contest || state.contest.phase !== 'open');
 const isSubmitOnly = () => !state.practice && !!state.contest && state.contest.phase === 'submit_only';
 
 let topics = null; // QUIZ-01
@@ -54,7 +54,6 @@ let offline = false;
 let current = null; // { view: 'register' | 'menu' | 'intro' | 'q', cd? }
 let qs = null; // man cau hoi dang xem: { cd, list (QUIZ-02), i, busy, note, shown, left (ma cau -> so giay doc con lai), timer }
 let routeSeq = 0; // moi lan route() tang 1; lan chay cu thoat som neu da co lan moi hon
-let contestClosed = false; // da nhan CONTEST_CLOSED o API-03: thoi gui them, chi bao ly do
 const qcache = new Map(); // cd -> danh sach cau hoi QUIZ-02 da tai
 
 // ---- Tinh toan chung ----
@@ -138,7 +137,7 @@ function entryBoxHtml() {
   if (e.mode === 'anon') {
     return box('soft', `<b>Đang thi ẩn danh.</b> Mã ẩn danh của bạn là ${esc(e.code)}. Bài làm không được xét giải.`);
   }
-  const nth = e.attemptNo && e.maxAttempts ? ` Đây là lượt thứ ${esc(e.attemptNo)} trên ${esc(e.maxAttempts)}.` : '';
+  const nth = e.attemptNo ? ` Đây là lượt thứ ${esc(e.attemptNo)}${Number(e.maxAttempts) === 0 ? ' · không giới hạn lượt thi' : ` trên ${esc(e.maxAttempts)}`}.` : '';
   return box('ok', `<b>Đã đăng ký.</b> Mã dự thi của bạn là ${esc(e.code)}.${nth}`);
 }
 
@@ -149,17 +148,20 @@ function headHtml(eyebrow, title, sub) {
 // Cuoc thi khong nhan dap an nua (API-02 phase): bao ro truoc khi vao lam
 function phaseHtml() {
   if (state.practice || !state.entry || !state.synced || state.status === 'submitted') return '';
-  if (isSubmitOnly()) return box('warn', '<b>Cuộc thi đã đóng nhận đáp án.</b> Bạn không trả lời thêm được; nếu đã trả lời đủ các câu thì vẫn nộp bài được trong thời hạn nộp.');
-  if (phaseClosed()) return box('warn', '<b>Cuộc thi này đã đóng.</b> Lượt thi không nhận thêm đáp án.');
+  // Khi đã làm xong, panel nộp bài là nơi duy nhất hiển thị trạng thái hết hạn.
+  const prog = progress();
+  if (prog.length && prog.every(topic => topic.done)) return '';
+  if (isSubmitOnly()) return box('warn', '<b>Cuộc thi đã hết hạn nhận đáp án.</b> Bạn vẫn có thể làm tiếp trên thiết bị. Phần làm sau hạn không được nộp hoặc xét thưởng.');
+  if (answeringLocally() && state.contest?.phase === 'open' && !state.answeringClosed) return box('warn', '<b>Có đáp án chỉ lưu trên thiết bị.</b> Cuộc thi vẫn đang mở; phần này chưa được ghi nhận vào kết quả dự thi.');
+  if (answeringLocally()) return box('warn', '<b>Đã hết hạn nộp bài.</b> Bạn vẫn có thể làm tiếp trên thiết bị; phần làm sau hạn không được nộp hoặc xét thưởng.');
   return '';
 }
 
 function menuHtml() {
   const prog = progress();
   const n = topics.length;
-  const order = n > 1 ? ' <b>Làm lần lượt từng chuyên đề theo thứ tự</b>: xong chuyên đề trước thì chuyên đề sau mới mở.' : '';
-  const sub = `${n} chuyên đề, tổng cộng ${totalQuestions()} câu.${order} Mỗi câu hiện phần giải thích sau khi bạn chọn.`;
-  let o = `<div class="qin">${headHtml('Ngân hàng câu hỏi', 'Phần thi trắc nghiệm', sub)}`;
+  const sub = esc(blockCopy('topics', 'description', '{topicCount} chuyên đề, tổng cộng {total} câu. Làm lần lượt từng chuyên đề theo thứ tự. Mỗi câu hiện phần giải thích sau khi bạn chọn.', { topicCount: n, total: totalQuestions() }));
+  let o = `<div class="qin">${headHtml(blockCopy('topics', 'eyebrow', 'Ngân hàng câu hỏi'), blockCopy('topics', 'title', 'Phần thi trắc nghiệm'), sub)}`;
   if (offline) o += box('warn', '<b>Chưa kết nối được máy chủ.</b> Tiến độ có thể chưa mới nhất; các đáp án chưa gửi sẽ tự gửi lại khi có mạng.');
   o += phaseHtml();
   o += entryBoxHtml();
@@ -182,27 +184,27 @@ function menuHtml() {
     }
   }
   o += '</ol>';
-  return `${o}<p class="exam__note">${esc(NOT_POLICE)}</p></div>`;
+  return `${o}<p class="exam__note">${esc(blockCopy('topics', 'notice', NOT_POLICE))}</p></div>`;
 }
 
 // Nut chinh cua phan gioi thieu: bat dau, lam tiep tu cau k, hoac xem lai khi da xong
 function startLabel(t) {
   const p = progress().find((x) => x.cd === String(t.cd));
-  if (!p || !p.answered) return `Bắt đầu ${t.count} câu ›`;
+  if (!p || !p.answered) return blockCopy('intro', 'startLabel', 'Bắt đầu {count} câu ›', { count: t.count });
   if (p.done) return `Làm lại chuyên đề ${t.cd} ›`;
   const list = qcache.get(String(t.cd));
   const k = list ? firstUnanswered(list) + 1 : p.answered + 1;
-  return `Làm tiếp từ câu ${k} ›`;
+  return blockCopy('intro', 'resumeLabel', 'Làm tiếp từ câu {number} ›', { number: k });
 }
 
 function introHtml(t) {
   const intro = Array.isArray(t.intro) ? t.intro : (t.intro ? [t.intro] : []);
   const terms = Array.isArray(t.terms) ? t.terms : [];
-  let o = `<div class="qin"><a class="qnav o qnav--s" href="#ngan-hang">‹ Danh sách chuyên đề</a>`
+  let o = `<div class="qin"><a class="qnav o qnav--s" href="#ngan-hang">${esc(blockCopy('intro', 'backLabel', '‹ Danh sách chuyên đề'))}</a>`
     + `<div class="exam__intro-head">${headHtml(`Ngân hàng câu hỏi · Chuyên đề ${t.cd}`, t.title, '')}</div>`
     + `<div class="exam__intro">${intro.map((p) => `<p>${esc(p)}</p>`).join('')}</div>`;
   if (terms.length) {
-    o += `<details class="peek"><summary><span><b>Hiểu nhanh mấy từ</b><span class="peek__n">${terms.length} từ dùng trong chuyên đề này</span></span><span class="peek__pk" aria-hidden="true"></span></summary>`
+    o += `<details class="peek"><summary><span><b>${esc(blockCopy('intro', 'termsTitle', 'Hiểu nhanh mấy từ'))}</b><span class="peek__n">${terms.length} từ dùng trong chuyên đề này</span></span><span class="peek__pk" aria-hidden="true"></span></summary>`
       + `<dl>${terms.map((x) => `<div><dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd></div>`).join('')}</dl></details>`;
   }
   const redo = progress().find((x) => x.cd === String(t.cd));
@@ -211,7 +213,7 @@ function introHtml(t) {
     o += box('soft', '<b>Làm lại là xem lại để học.</b> Điểm của lượt thi chỉ tính lần trả lời đầu tiên của mỗi câu.');
   }
   o += `<div class="exam__actions"><button type="button" class="qnav f" ${isRedo ? 'data-redo' : 'data-start'}="${esc(t.cd)}">${esc(startLabel(t))}</button>`
-    + `<a class="qnav o" href="#ngan-hang">Chọn chuyên đề khác</a></div></div>`;
+    + `<a class="qnav o" href="#ngan-hang">${esc(blockCopy('intro', 'otherLabel', 'Chọn chuyên đề khác'))}</a></div></div>`;
   return o;
 }
 
@@ -224,8 +226,8 @@ function doneHtml(t) {
     return a && a.a === q.ans;
   }).length;
   const rest = progress().filter((p) => !p.done).length;
-  const saved = state.practice ? 'Kết quả này chỉ hiện trên máy của bạn.' : 'Kết quả đã được lưu vào lượt thi của bạn.';
-  let o = `<div class="qin exam__done">${headHtml(`Chuyên đề ${cd} · đã làm xong`, `Bạn trả lời đúng ${right} trên ${list.length} câu`, `${saved} Câu nào chưa đúng thì đọc lại phần giải thích là đủ.`)}`;
+  const saved = hasLateAnswers() ? 'Phần bài làm này chỉ được lưu trên thiết bị, chưa được ghi nhận vào kết quả dự thi hoặc xét thưởng.' : state.practice ? blockCopy('topic-result', 'practiceMessage', 'Kết quả này chỉ hiện trên máy của bạn.') : blockCopy('topic-result', 'savedMessage', 'Kết quả đã được lưu vào lượt thi của bạn.');
+  let o = `<div class="qin exam__done">${headHtml(`Chuyên đề ${cd} · đã làm xong`, blockCopy('topic-result', 'title', 'Bạn trả lời đúng {correct} trên {total} câu', { correct: right, total: list.length }), `${esc(saved)} Câu nào chưa đúng thì đọc lại phần giải thích là đủ.`)}`;
   const nx = topics[topics.findIndex((x) => String(x.cd) === cd) + 1];
   if (nx) o += box('ok', `<b>Chuyên đề ${esc(nx.cd)} đã mở.</b>${esc(nx.title)}.`);
   if (!state.practice && state.entry && state.entry.mode === 'anon') {
@@ -234,7 +236,7 @@ function doneHtml(t) {
   o += panelHtml(topics);
   const next = rest ? `Chọn chuyên đề tiếp theo, còn ${rest} ›` : `Đã làm hết ${topics.length} chuyên đề, xem lại danh sách ›`;
   o += `<div class="exam__actions"><a class="qnav f" href="#ngan-hang">${esc(next)}</a>`
-    + `<button type="button" class="qnav o" data-redo="${esc(cd)}">Làm lại chuyên đề ${esc(cd)}</button></div>`
+    + `<button type="button" class="qnav o" data-redo="${esc(cd)}">${esc(blockCopy('topic-result', 'retryLabel', 'Làm lại chuyên đề {cd}', { cd }))}</button></div>`
     + '<p class="exam__note">Làm hết câu hỏi không có nghĩa là an toàn. Gặp việc thật, vẫn phải chậm lại và tự kiểm tra bằng kênh do chính mình tìm ra.</p></div>';
   return o;
 }
@@ -248,13 +250,13 @@ function sideHtml(view) {
       + (contestOpen() ? '<a class="qnav o qnav--s qnav--block" href="#dang-ky">Đăng ký dự thi</a>' : '') + '</div>';
   } else if (e) {
     const anon = e.mode === 'anon';
-    o = `<div class="sidecard">${eyebrowHtml(anon ? 'Thí sinh ẩn danh' : 'Thí sinh')}`
+    o = `<div class="sidecard">${eyebrowHtml(anon ? blockCopy('sidebar', 'anonymousLabel', 'Thí sinh ẩn danh') : blockCopy('sidebar', 'participantLabel', 'Thí sinh'))}`
       + `<p class="sidecard__label">${anon ? 'Mã ẩn danh' : 'Mã dự thi'}</p><b class="sidecard__code${anon ? ' sidecard__code--anon' : ''}">${esc(e.code)}</b>`;
     if (anon) {
       o += `<span class="sidecard__tag">Không xét giải</span>${attachButtonHtml()}`;
     } else {
       if (state.fullName) o += `<p class="sidecard__name">${esc(state.fullName)}</p>`;
-      if (e.attemptNo && e.maxAttempts) o += `<p class="sidecard__meta">Lượt thứ ${esc(e.attemptNo)} / ${esc(e.maxAttempts)}</p>`;
+      if (e.attemptNo) o += `<p class="sidecard__meta">Lượt thứ ${esc(e.attemptNo)}${Number(e.maxAttempts) === 0 ? ' · Không giới hạn lượt thi' : ` / ${esc(e.maxAttempts)}`}</p>`;
     }
     o += '</div>';
   } else {
@@ -263,7 +265,7 @@ function sideHtml(view) {
   if (topics) {
     const prog = progress();
     const done = prog.filter((p) => p.done).length;
-    o += `<div class="sidecard">${eyebrowHtml('Tiến độ')}<p class="sidecard__text sidecard__text--tight">Đã xong ${done} / ${topics.length} chuyên đề</p>`
+    o += `<div class="sidecard">${eyebrowHtml(blockCopy('sidebar', 'progressLabel', 'Tiến độ'))}<p class="sidecard__text sidecard__text--tight">Đã xong ${done} / ${topics.length} chuyên đề</p>`
       + progressHtml(done, topics.length, 'Số chuyên đề đã xong')
       + '<ol class="sidelist">'
       + topics.map((t) => {
@@ -365,11 +367,13 @@ function curQuestion() {
 }
 
 function nextLabel() {
-  return qs.i >= qs.list.length - 1 ? 'Đã hiểu, xem kết quả ›' : 'Đã hiểu, sang câu tiếp theo ›';
+  return qs.i >= qs.list.length - 1 ? blockCopy('question', 'finishLabel', 'Đã hiểu, xem kết quả ›') : blockCopy('question', 'nextLabel', 'Đã hiểu, sang câu tiếp theo ›');
 }
 
 function noteText() {
   const a = qs && getAnswer(curQuestion().code);
+  if (((a && a.localOnly) || answeringLocally()) && state.contest?.phase === 'open' && !state.answeringClosed) return 'Đáp án này chỉ lưu trên thiết bị, chưa được ghi nhận vào kết quả dự thi. Cuộc thi vẫn đang mở.';
+  if ((a && a.localOnly) || answeringLocally()) return 'Cuộc thi đã hết hạn nhận đáp án. Bạn vẫn có thể làm tiếp, phần làm sau hạn chỉ lưu trên thiết bị, không được nộp hoặc xét thưởng.';
   if (a && a.pending) return PENDING_TEXT;
   return qs ? qs.note : '';
 }
@@ -381,7 +385,7 @@ function questionScreenHtml() {
   const chosen = a ? a.a : null;
   const nextAttrs = { id: 'qnext', 'data-next': '' };
   if (chosen == null || (qs.left.get(q.code) || 0) > 0) nextAttrs.disabled = '';
-  const prev = i > 0 ? navButtonHtml('‹ Câu trước', 'o', { 'data-prev': '' }) : '';
+  const prev = i > 0 ? navButtonHtml(blockCopy('question', 'previousLabel', '‹ Câu trước'), 'o', { 'data-prev': '' }) : '';
   return `<div class="qin"><div class="qtop"><a class="qnav o" href="#chuyen-de-${esc(cd)}">‹ Chuyên đề ${esc(cd)}</a>`
     + `<span class="qcount">Câu ${i + 1} / ${list.length}</span></div>`
     + `<div id="qprog">${progressHtml(i + (chosen != null ? 1 : 0), list.length, 'Tiến độ trong chuyên đề')}</div>`
@@ -431,12 +435,6 @@ async function pick(k) {
   const s = qs;
   const q = curQuestion();
   if (s.busy || getAnswer(q.code)) return;
-  if (contestClosed || phaseClosed()) {
-    // Da biet cuoc thi khong nhan dap an (phase cua API-02 hoac 403 truoc do): khong gui them yeu cau
-    s.note = ERR_TEXT.CONTEST_CLOSED;
-    paintNote();
-    return;
-  }
   s.busy = true;
   s.note = '';
   s.left.set(q.code, readSeconds(q));
@@ -446,7 +444,6 @@ async function pick(k) {
   s.busy = false;
   if (qs !== s || curQuestion() !== q) return;
   if (!r.ok) {
-    if (r.code === 'CONTEST_CLOSED') contestClosed = true;
     s.note = ERR_TEXT[r.code] || ERR_DEFAULT;
     paintFailed(q);
     return;
@@ -524,7 +521,6 @@ function resetLoaded() {
   clearTimer();
   topics = null;
   qs = null;
-  contestClosed = false;
   qcache.clear();
   resetSubmit();
 }
@@ -623,7 +619,7 @@ async function route(focus) {
 // Co the thi them luot: da nop co ten, con luot, cuoc con mo
 function canRetry() {
   const e = state.entry;
-  return !!e && e.mode === 'named' && Number(e.attemptNo) > 0 && Number(e.maxAttempts) > Number(e.attemptNo)
+  return !!e && e.mode === 'named' && Number(e.attemptNo) > 0 && (Number(e.maxAttempts) === 0 || Number(e.maxAttempts) > Number(e.attemptNo))
     && !!state.contest && state.contest.phase === 'open';
 }
 
@@ -781,7 +777,6 @@ on('submitted', () => {
 on('dropped', ({ q, code }) => {
   // Dap an dang cho bi may chu tu choi (vd cuoc thi da dong): cau tro lai chua tra loi, bao ly do
   if (!qs || current.view !== 'q' || curQuestion().code !== q) return;
-  if (code === 'CONTEST_CLOSED') contestClosed = true;
   qs.note = ERR_TEXT[code] || ERR_DEFAULT;
   paintFailed(curQuestion());
 });

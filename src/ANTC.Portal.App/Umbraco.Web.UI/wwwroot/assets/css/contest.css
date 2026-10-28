@@ -220,3 +220,7 @@
   .sdlg__actions .qnav { width: 100%; justify-content: center; }
   .submitbar .qnav { width: 100%; justify-content: center; }
 }
+
+/* Shared fixed header used by the integrated contest flow. */
+.contest-site .page-hero--contest { padding-top: 144px; }
+.contest-site .contest__main { scroll-margin-top: 100px; }

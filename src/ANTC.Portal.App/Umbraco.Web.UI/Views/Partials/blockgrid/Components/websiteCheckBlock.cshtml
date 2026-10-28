@@ -35,7 +35,7 @@
                 {
                     var item = block.Content;
                     var number = ++index;
-                    <button type="button" class="website-check__hotspot @(item.Value<bool>("isTrusted") ? "is-trusted" : "is-caution")" style="left:@(Position(item, "positionX"))%;top:@(Position(item, "positionY"))%" aria-expanded="false" aria-controls="@(prefix + "-" + number)" aria-label="@($"Điểm {number}: {item.Value<string>("title")}")" data-hotspot><span>@number</span></button>
+                    <button type="button" class="website-check__hotspot @(item.Value<bool>("isTrusted") ? "is-trusted" : "is-caution")" style="left:@(Position(item, "positionX"))%;top:@(Position(item, "positionY"))%" aria-expanded="false" aria-controls="@(prefix + "-" + number)" aria-label="@($"Điểm {number}: {item.Value<string>("title")}")" data-hotspot data-hotspot-number="@number"><span>@number</span></button>
                 }
             }
         </div>

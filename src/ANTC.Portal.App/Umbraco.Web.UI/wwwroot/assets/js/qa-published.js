@@ -1,32 +1,9 @@
+import { initMotion, markMotion } from './motion.js';
+
 export function animateQaPublishedAnswers(page) {
-  const { gsap, ScrollTrigger } = window;
-  if (!gsap || !ScrollTrigger) return;
-  gsap.registerPlugin(ScrollTrigger);
-  for (const section of page.querySelectorAll('[data-qa-published]')) {
-    const media = gsap.matchMedia(section);
-    media.add('(prefers-reduced-motion: no-preference)', () => {
-      for (const element of section.querySelectorAll('[data-published-reveal]')) {
-        gsap.fromTo(element, { autoAlpha: 0, y: 40 }, {
-          autoAlpha: 1, y: 0, ease: 'power2.out',
-          scrollTrigger: { trigger: element, start: 'top 94%', end: 'top 70%', scrub: .6 }
-        });
-      }
-      const list = section.querySelector('[data-published-list]');
-      if (list) {
-        gsap.fromTo([...list.children], { autoAlpha: 0, y: 50, scale: .96 }, {
-          autoAlpha: 1, y: 0, scale: 1, stagger: .15, ease: 'power2.out',
-          scrollTrigger: { trigger: list, start: 'top 90%', end: 'top 50%', scrub: .6 }
-        });
-      }
-      const revealFocus = event => {
-        const item = event.target.closest('details');
-        if (item) gsap.to(item, { autoAlpha: 1, y: 0, scale: 1, duration: 0, overwrite: true });
-      };
-      section.addEventListener('focusin', revealFocus);
-      return () => section.removeEventListener('focusin', revealFocus);
-    });
-  }
-  ScrollTrigger.sort(); ScrollTrigger.refresh();
+  markMotion(page, '[data-published-reveal]', 'data-rv');
+  markMotion(page, '[data-published-list]', 'data-rvs');
+  initMotion(page);
 }
 
 // Enhance the server-rendered six-item pages without losing open answers.

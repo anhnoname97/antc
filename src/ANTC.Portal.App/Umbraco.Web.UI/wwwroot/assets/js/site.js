@@ -1,29 +1,45 @@
-// Ma JS dung chung cho moi trang. Moi chuc nang mot module rieng trong thu muc nay (xem FE-01).
-// Vi du co san: doc/ghi co chu cho nut "A+ Chu to" (FE-04 hoan thien giao dien va nhan nut).
+// FE-04: ba muc chu, dong bo cac nut va giu hoat dong khi storage bi chan.
 const KEY = 'at_font_scale';
+const labels = ['A+ Chữ to', 'A++ Chữ to hơn', 'A Chữ thường'];
+const compactLabels = ['A', 'A++', 'A+++'];
+const compactScreen = matchMedia('(max-width: 1199px)');
+const descriptions = ['Cỡ chữ thường, 100%', 'Cỡ chữ to, 112,5%', 'Cỡ chữ rất to, 125%'];
+const normalize = value => ['0', '1', '2'].includes(String(value)) ? Number(value) : 0;
 
 export function getFontScale() {
-  try { return Number(localStorage.getItem(KEY) || 0); } catch { return 0; }
+  return normalize(document.documentElement.dataset.fontScale);
 }
 
-export function setFontScale(level) {
+function updateFontButtons(level) {
+  for (const button of document.querySelectorAll('[data-font-toggle]')) {
+    button.textContent = compactScreen.matches ? compactLabels[level] : labels[level];
+    button.setAttribute('aria-pressed', String(level > 0));
+    button.setAttribute('aria-label', `${labels[level]}. Hiện tại: ${descriptions[level]}.`);
+  }
+}
+
+export function setFontScale(value, persist = true) {
+  const level = normalize(value);
   document.documentElement.dataset.fontScale = String(level);
-  try { localStorage.setItem(KEY, String(level)); } catch { /* che do rieng tu */ }
+  if (persist) {
+    try { localStorage.setItem(KEY, String(level)); } catch { /* van dung duoc trong phien trang */ }
+  }
+  updateFontButtons(level);
+  const status = document.querySelector('[data-font-status]');
+  if (status) status.textContent = descriptions[level];
+  // Cho cac khoi theo doi data-font-scale va trinh duyet cap nhat bo cuc truoc khi do lai.
+  requestAnimationFrame(() => window.ScrollTrigger?.refresh(true));
 }
 
-document.querySelector('[data-font-toggle]')?.addEventListener('click', () => {
-  setFontScale((getFontScale() + 1) % 3);
-  updateFontButton();
+updateFontButtons(getFontScale());
+compactScreen.addEventListener('change', () => updateFontButtons(getFontScale()));
+for (const button of document.querySelectorAll('[data-font-toggle]')) {
+  button.addEventListener('click', () => setFontScale((getFontScale() + 1) % 3));
+}
+window.addEventListener('storage', event => {
+  if (event.key !== KEY && event.key !== null) return;
+  setFontScale(normalize(event.newValue), false);
 });
-
-function updateFontButton() {
-  const level = getFontScale();
-  const button = document.querySelector('[data-font-toggle]');
-  button?.setAttribute('aria-pressed', String(level > 0));
-  button?.setAttribute('aria-label', level === 2 ? 'Khôi phục cỡ chữ mặc định' : 'Tăng cỡ chữ');
-}
-
-updateFontButton();
 
 const header = document.querySelector('[data-site-header]');
 if (header) {
@@ -33,6 +49,33 @@ if (header) {
   document.body.classList.toggle('has-header-hero', hasHero);
   // Hero mới có thể khai báo data-header-hero để dùng header trong suốt.
   header.dataset.overlay = String(hasHero && !hero.matches('.page-hero'));
+
+  const menuButton = header.querySelector('[data-site-menu]');
+  const navigation = header.querySelector('#site-header-nav');
+  const mobileHeader = matchMedia('(max-width: 1100px)');
+  if (menuButton && navigation) {
+    header.classList.add('has-mobile-menu');
+    const setMenuOpen = (open, restoreFocus = false) => {
+      header.classList.toggle('is-menu-open', open);
+      menuButton.setAttribute('aria-expanded', String(open));
+      menuButton.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu');
+      if (restoreFocus) menuButton.focus({ preventScroll: true });
+    };
+    menuButton.addEventListener('click', () => setMenuOpen(menuButton.getAttribute('aria-expanded') !== 'true'));
+    navigation.addEventListener('click', event => {
+      if (event.target.closest('a')) setMenuOpen(false);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && header.classList.contains('is-menu-open')) setMenuOpen(false, true);
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!header.contains(event.target)) setMenuOpen(false);
+    });
+    document.addEventListener('focusin', event => {
+      if (!header.contains(event.target)) setMenuOpen(false);
+    });
+    mobileHeader.addEventListener('change', () => setMenuOpen(false));
+  }
 
   const updateHeader = () => {
     const threshold = hasHero ? Math.max(0, hero.getBoundingClientRect().bottom + window.scrollY - header.offsetHeight - 12) : 16;
@@ -50,9 +93,20 @@ if (header) {
   }
   window.addEventListener('scroll', updateHeader, { passive: true });
 
-  header.querySelector('[data-announcement-close]')?.addEventListener('click', () => {
-    header.querySelector('[data-header-announcement]').hidden = true;
-    header.querySelector('.site-brand')?.focus();
-    measureHeader();
+
+}
+
+// FE-32: dong bo an thanh trong phien, khong phu thuoc JavaScript de in noi dung.
+const notice = document.querySelector('[data-contest-notice]');
+if (notice) {
+  notice.querySelector('[data-contest-notice-close]').addEventListener('click', () => {
+    document.documentElement.dataset.contestAnnouncementHidden = 'true';
+    try { sessionStorage.setItem('at_contest_announcement', 'hidden'); } catch { /* van an trong trang */ }
+    document.querySelector('.contest-brand, .site-brand')?.focus();
+    requestAnimationFrame(() => {
+      const header = document.querySelector('[data-site-header], [data-contest-header]');
+      if (header) document.documentElement.style.setProperty('--site-header-height', `${header.offsetHeight}px`);
+      window.ScrollTrigger?.refresh(true);
+    });
   });
 }

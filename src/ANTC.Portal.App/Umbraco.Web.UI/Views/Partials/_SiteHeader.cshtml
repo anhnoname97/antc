@@ -8,6 +8,10 @@
     var home = site.DescendantsOrSelfOfType("home").FirstOrDefault();
     var homeUrl = home?.Url() ?? "/";
     var path = Context.Request.Path.Value ?? "/";
+    if (Model.ContentType.Alias == "searchPage" && Context.Request.Query["scope"] == "thu-doan")
+    {
+        path = site.DescendantsOrSelfOfType("thuDoanPage").FirstOrDefault()?.Url() ?? "/thu-doan/";
+    }
     var logo = site.Value<IPublishedContent>("logoHeaderImage");
     var logoAlt = site.Value<string>("headerLogoAlt");
     var menu = site.Value<BlockListModel>("menu");
@@ -15,23 +19,14 @@
     var ctaPage = cta?.Value<IPublishedContent>("page");
     var ctaUrl = ctaPage?.Url();
     var ctaLabel = cta?.Value<string>("label");
-    var announcementText = site.Value<string>("headerAnnouncementText");
-    var showAnnouncement = site.Value<bool>("showHeaderAnnouncement") && !string.IsNullOrWhiteSpace(announcementText);
-    var announcementLinks = site.Value<BlockListModel>("headerAnnouncementLink");
+
 }
 <header class="site-header" id="site-header" data-site-header>
-    @if (showAnnouncement)
-    {
-        <div class="site-announcement" data-header-announcement role="region" aria-label="Thông báo website">
-            <div class="site-announcement__inner">
-                <span class="site-announcement__dot" aria-hidden="true"></span>
-                <p>@announcementText</p>
-                @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (announcementLinks?.AsEnumerable(), path, (string?)"site-announcement__link", false))
-                <button class="site-announcement__close" type="button" data-announcement-close aria-label="Ẩn thông báo">×</button>
-            </div>
-        </div>
-    }
+    @await Html.PartialAsync("~/Views/Partials/_ContestAnnouncement.cshtml", Model)
     <div class="site-header__inner">
+        <button class="site-header__menu-toggle" type="button" data-site-menu aria-controls="site-header-nav" aria-expanded="false" aria-label="Mở menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
         <a class="site-brand" href="@homeUrl" aria-label="@(siteName + ", trang giới thiệu")">
             @if (logo is not null)
             {
@@ -45,13 +40,9 @@
             }
             <span class="site-brand__text">
                 <b>@siteName</b>
-                @if (site.Value<bool>("showPreviewBanner"))
-                {
-                    <small>BẢN DỰNG THỬ</small>
-                }
             </span>
         </a>
-        <nav class="site-header__nav" aria-label="Điều hướng chính">
+        <nav class="site-header__nav" id="site-header-nav" aria-label="Điều hướng chính">
             @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (menu?.AsEnumerable(), path, (string?)null, true))
         </nav>
         <div class="site-header__tools">

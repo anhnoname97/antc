@@ -1,0 +1,11 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+<div class="field-visual" aria-hidden="true">
+    <div class="field-visual__orbit field-visual__orbit--one"></div><div class="field-visual__orbit field-visual__orbit--two"></div>
+    <span class="field-visual__spark">✦</span>
+    <div class="field-visual__document"><span class="field-visual__corner"></span>
+        <div class="field-visual__icon">@await Html.PartialAsync("~/Views/Partials/articles/_FieldIcon.cshtml", Model.Name)</div>
+        <span class="field-visual__rule"></span><span class="field-visual__rule field-visual__rule--short"></span>
+    </div>
+    <div class="field-visual__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8 12 3 3 5-6"/></svg><span>Nhận diện.<br><b>Tự bảo vệ.</b></span></div>
+    <span class="field-visual__caption">AN TOÀN TÀI CHÍNH</span>
+</div>

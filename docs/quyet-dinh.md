@@ -284,3 +284,38 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Giả định của Claude: "làm nốt" gồm B14 và việc kiểm các mục còn chưa kiểm (K1).
 - Ảnh hưởng: thêm task B14 (BE) và K1 (kiểm chứng).
 
+
+### QĐ-028 · Làm mới backoffice: được sửa core, tông xanh lục bảo, font Roboto, khu Cuộc thi dùng UUI
+
+- Ngày: 2026-10-28 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: BACKOFFICE-UI (BO-01 → BO-26), `src/ANTC.Portal.Core`, `App_Plugins/ContestManagement`, FE-30
+- Vấn đề: FE-30 trong `Ke-hoach-cong-viec-antoantaichinh-v3.xlsx` ghi trang quản trị dựng bằng Razor Pages, "không viết phần mở rộng cho giao diện backoffice"; từ 20/10 đã chuyển sang Lit trong backoffice. Bố cục mockup ở các màn gốc của Umbraco cần sửa core.
+- Quyết định: (1) được sửa mã nguồn core Umbraco cho các màn cần đổi bố cục, chỉ khi tiện ích mở rộng hoặc view không làm được; mỗi chỗ sửa gắn chú thích `ANTC:`, ghi vào `docs/ban-giao/BACKOFFICE-UI/core-patches.md`, đóng gói bằng `core_build.ps1 -BuildSpa`. (2) Tông màu xanh lục bảo: thanh trên `#0B3B3A`, nút chính `#0E7C72`, nền chọn `#E3F4F1`, chữ trên nền chọn `#0A5E57`, viền chọn `#B9E2DB`; màu đỏ đô chỉ giữ ở logo khiên. (3) Font Roboto, tự host như website. (4) Khu Quản lý cuộc thi làm lại bằng thành phần UUI và biến ANTC, thay CSS tự viết.
+- Lý do: thiết kế phải triển khai được; màu đỏ nhìn nặng nề và dễ nhầm với thao tác nguy hiểm; Roboto đã có sẵn; UUI đồng bộ với phần còn lại của backoffice.
+- Ảnh hưởng: các task BO-02, BO-04, BO-08 trong `docs/ban-giao/BACKOFFICE-UI/Ke-hoach-lam-moi-backoffice.docx`; mockup dùng Be Vietnam Pro nhưng khi làm dùng Roboto.
+
+### QĐ-029 · Số điện thoại trong backoffice: đầy đủ trong bảng, che ở khung trình chiếu quay số
+
+- Ngày: 2026-10-28 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: BO-13 (Quay số), `App_Plugins/ContestManagement/contest-draws.js`
+- Vấn đề: `docs/ban-giao/Trang-quan-tri-cuoc-thi.md` ghi số điện thoại hiện đầy đủ ở mọi màn backoffice có phân quyền, kể cả màn trình chiếu; mockup Quay số che chữ số giữa.
+- Quyết định: giữ đầy đủ trong các bảng backoffice; riêng khung trình chiếu kết quả quay số che chữ số giữa (ví dụ `0009 ••• 045`).
+- Lý do: màn trình chiếu hay được chiếu hoặc chia sẻ công khai.
+- Ảnh hưởng: sửa phần trình chiếu ở BO-13; cập nhật `Trang-quan-tri-cuoc-thi.md` khi làm xong.
+
+### QĐ-030 · Menu khu Cuộc thi theo ba nhóm, Quay số thành mục riêng; ô tìm nhanh luôn hiện
+
+- Ngày: 2026-10-28 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: BO-08, BO-09, BO-11 → BO-16; `App_Plugins/ContestManagement/umbraco-package.json`, `contest-management.js`
+- Vấn đề: `Trang-quan-tri-cuoc-thi.md` ghi "Lượt dự thi" và "Lần quay số" là tab trong trang Cuộc thi, bộ lọc nằm trong "Tìm kiếm nâng cao" thu gọn mặc định; code ngày 27/10 vẫn còn mục menu "Lượt thi" trùng với tab.
+- Quyết định: (1) menu ba nhóm Vận hành (Tổng quan, Cuộc thi, Lượt thi, Quay số, Công bố kết quả) / Ngân hàng đề (Câu hỏi, Chuyên đề, Giải thưởng) / Dữ liệu (Thống kê câu hỏi, Dữ liệu cá nhân); Quay số là mục riêng; Lượt thi chỉ ở một chỗ; URL cũ vẫn hoạt động. (2) Ô tìm kiếm và tab trạng thái luôn hiện; các điều kiện lọc khác vẫn thu gọn sau nút "Bộ lọc".
+- Lý do: quay số làm thường xuyên; bỏ trùng lặp; tìm nhanh không phải mở khối thu gọn.
+- Ảnh hưởng: thay một phần mô tả trong `Trang-quan-tri-cuoc-thi.md` khi làm xong.
+
+### QĐ-031 · Phạm vi đợt làm mới backoffice: API mới chốt contract trước, quyền chi tiết để sau, ô kiểm chặn xuất bản
+
+- Ngày: 2026-10-28 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: BO-10b, BO-19, BO-22, BO-25
+- Quyết định: (1) làm các tính năng cần API mới ("Cần xử lý", "Hoạt động gần đây", "Chưa dùng ở đâu") trong đợt này, nhưng phải chốt contract (đường dẫn, JSON mẫu, mã lỗi theo QĐ-004) trước khi code. (2) Quyền chi tiết theo chức năng trong khu Cuộc thi (BO-25) để giai đoạn sau, có review bảo mật riêng; đợt này giữ kiểm quyền theo nhóm `quanTriCuocThi`. (3) Ô "Kiểm tra trước khi xuất bản" chặn xuất bản khi còn mục bắt buộc chưa đạt; vẫn cho lưu nháp.
+- Lý do: tránh làm API khi contract chưa rõ; đổi quyền có rủi ro bảo mật; bài thiếu thông tin không được đăng.
+- Ảnh hưởng: BO-25 ra khỏi đợt này; BO-19 phải chặn nút Xuất bản và giải thích mục còn thiếu.

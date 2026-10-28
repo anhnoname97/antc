@@ -127,6 +127,70 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.ToTable("contest", (string)null);
                 });
 
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestDrawDisplay", b =>
+                {
+                    b.Property<long>("ContestId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("contest_id");
+
+                    b.Property<bool>("ShowAntiScamTicker")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("show_anti_scam_ticker");
+
+                    b.Property<bool>("ShowLiveBadge")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("show_live_badge");
+
+                    b.Property<bool>("TransparentBackground")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("transparent_background");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("ContestId");
+
+                    b.ToTable("contest_draw_display", (string)null);
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPrize", b =>
+                {
+                    b.Property<long>("ContestId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("contest_id");
+
+                    b.Property<long>("PrizeId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("prize_id");
+
+                    b.Property<long>("PrizeMoney")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("prize_money");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("quantity");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("ContestId", "PrizeId");
+
+                    b.HasIndex("PrizeId");
+
+                    b.ToTable("contest_prize", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_contest_prize_quantity", "quantity BETWEEN 1 AND 1000");
+                        });
+                });
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPublishedResult", b =>
                 {
                     b.Property<long>("ContestId")
@@ -295,6 +359,10 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("eligible_count");
 
+                    b.Property<string>("EligibleSnapshotJson")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("eligible_snapshot_json");
+
                     b.Property<bool>("ExcludePrevious")
                         .HasColumnType("INTEGER")
                         .HasColumnName("exclude_previous");
@@ -308,6 +376,24 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("note");
 
+                    b.Property<string>("PrizeCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("prize_code");
+
+                    b.Property<long?>("PrizeId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("prize_id");
+
+                    b.Property<string>("PrizeName")
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("prize_name");
+
+                    b.Property<Guid?>("RequestId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("request_id");
+
                     b.Property<int>("WinnersRequested")
                         .HasColumnType("INTEGER")
                         .HasColumnName("winners_requested");
@@ -315,6 +401,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ContestId");
+
+                    b.HasIndex("RequestId")
+                        .IsUnique();
+
+                    b.HasIndex("ContestId", "PrizeId");
 
                     b.ToTable("draw", (string)null);
                 });
@@ -328,6 +419,25 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Property<int>("Rank")
                         .HasColumnType("INTEGER")
                         .HasColumnName("rank");
+
+                    b.Property<string>("CancelReasonCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cancel_reason_code");
+
+                    b.Property<string>("CancelReasonText")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cancel_reason_text");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<string>("CancelledBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cancelled_by");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -502,6 +612,157 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.ToTable("entry_answer", (string)null);
                 });
 
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.PrivacyOperation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("action");
+
+                    b.Property<Guid>("ActorUserKey")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("actor_user_key");
+
+                    b.Property<string>("CleanupErrorCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cleanup_error_code");
+
+                    b.Property<string>("CountsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("counts_json");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("request_hash");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("scope");
+
+                    b.Property<bool>("VacuumCompleted")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("vacuum_completed");
+
+                    b.Property<DateTime?>("VacuumCompletedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("vacuum_completed_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.ToTable("privacy_operation", (string)null);
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.Prize", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("code");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("name");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("revision");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("sort_order");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("prize", (string)null);
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuestionRetentionPolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("enabled");
+
+                    b.Property<int>("LastDeletedCount")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("last_deleted_count");
+
+                    b.Property<DateTime?>("LastRunAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("last_run_at");
+
+                    b.Property<int>("RetentionDays")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("retention_days");
+
+                    b.Property<long>("ReviewVersion")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("review_version");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("question_retention_policy", (string)null);
+                });
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuestionSubmission", b =>
                 {
                     b.Property<long>("Id")
@@ -513,6 +774,15 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT")
                         .HasColumnName("admin_note");
+
+                    b.Property<long?>("AggregatedIntoId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("aggregated_into_id");
+
+                    b.Property<string>("AggregatedSourceIds")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("aggregated_source_ids");
 
                     b.Property<string>("Answer")
                         .HasMaxLength(10000)
@@ -528,7 +798,7 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("approved_by");
 
-                    b.Property<DateTime>("ConsentAt")
+                    b.Property<DateTime?>("ConsentAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("consent_at");
 
@@ -546,6 +816,20 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("deleted_by");
 
                     b.Property<string>("GuidanceLabel")
                         .HasMaxLength(200)
@@ -594,6 +878,14 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("review_version");
 
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("portal")
+                        .HasColumnName("source");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -612,11 +904,17 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AggregatedIntoId");
+
+                    b.HasIndex("DeletedAt", "CreatedAt");
+
                     b.HasIndex("IpHash", "CreatedAt");
 
                     b.HasIndex("IsPublished", "ApprovedAt");
 
                     b.HasIndex("Status", "CreatedAt");
+
+                    b.HasIndex("IsPublished", "Status", "HandledAt");
 
                     b.ToTable("question_submission", (string)null);
                 });
@@ -787,6 +1085,36 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.ToTable("quiz_topic", (string)null);
                 });
 
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestDrawDisplay", b =>
+                {
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", "Contest")
+                        .WithOne()
+                        .HasForeignKey("Umbraco.Plugin.Custom.Core.Data.ContestDrawDisplay", "ContestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contest");
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPrize", b =>
+                {
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", "Contest")
+                        .WithMany("Prizes")
+                        .HasForeignKey("ContestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.Prize", "Prize")
+                        .WithMany("Contests")
+                        .HasForeignKey("PrizeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Contest");
+
+                    b.Navigation("Prize");
+                });
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPublishedResult", b =>
                 {
                     b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", "Contest")
@@ -836,6 +1164,7 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Navigation("Topic");
                 });
 
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.Draw", b =>
                 {
                     b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestCampaign", "Contest")
@@ -843,7 +1172,14 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasForeignKey("ContestId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.ContestPrize", "PrizeAllocation")
+                        .WithMany("Draws")
+                        .HasForeignKey("ContestId", "PrizeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Contest");
+
+                    b.Navigation("PrizeAllocation");
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.DrawWinner", b =>
@@ -878,6 +1214,14 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                     b.Navigation("Entry");
                 });
 
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuestionSubmission", b =>
+                {
+                    b.HasOne("Umbraco.Plugin.Custom.Core.Data.QuestionSubmission", null)
+                        .WithMany()
+                        .HasForeignKey("AggregatedIntoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuizQuestion", b =>
                 {
                     b.HasOne("Umbraco.Plugin.Custom.Core.Data.QuizTopic", "Topic")
@@ -895,9 +1239,16 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.Navigation("Entries");
 
+                    b.Navigation("Prizes");
+
                     b.Navigation("Questions");
 
                     b.Navigation("Topics");
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.ContestPrize", b =>
+                {
+                    b.Navigation("Draws");
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.Draw", b =>
@@ -908,6 +1259,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.Entry", b =>
                 {
                     b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.Prize", b =>
+                {
+                    b.Navigation("Contests");
                 });
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.QuizQuestion", b =>
