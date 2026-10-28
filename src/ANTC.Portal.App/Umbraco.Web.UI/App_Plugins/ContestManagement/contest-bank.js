@@ -3,7 +3,7 @@ import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
-import { contestStyles } from './contest-theme.js?v=1.14.10';
+import { contestStyles } from './contest-theme.js?v=1.15.0';
 import { pageSizeSelect } from './contest-page-size.js';
 import { paginate } from './contest-pagination.js';
 
@@ -88,10 +88,10 @@ export class ContestBankView extends UmbLitElement {
     }
     _bank() {
         return html`<antc-contest-questions-table embedded
-            @quiz-data-changed=${() => { this._preview = null; this._phrase = ''; this._message = ''; }}
+            @quiz-data-changed=${() => { this._preview = null; this._phrase = ''; this._message = ''; this._detail = null; }}
             @question-view=${event => {
                 this._detail = event.detail;
-                this.updateComplete.then(() => this.shadowRoot.querySelector('dialog')?.showModal());
+                this.updateComplete.then(() => this.shadowRoot.querySelector('.question-preview')?.focus({ preventScroll: true }));
             }}></antc-contest-questions-table>`;
     }
     _import() {
@@ -120,13 +120,17 @@ export class ContestBankView extends UmbLitElement {
             <div class="table-wrap"><table><thead><tr><th>Lần nhập</th><th>Thời điểm (VN)</th><th>Người nhập</th><th>Tệp</th><th>Thêm</th><th>Sửa</th><th>Ngừng dùng</th><th>Trong giờ thi</th><th></th></tr></thead><tbody>${(data?.items || []).map(i => html`<tr><td>#${i.id}</td><td>${date(i.createdAt)}</td><td>${i.createdBy}</td><td>${i.fileName}</td><td>${i.added}</td><td>${i.updated}</td><td>${i.deactivated}</td><td>${i.duringContest ? 'Có' : 'Không'}</td><td><button ?disabled=${this._busy || !i.canDownload} @click=${() => this._download(`/imports/${i.id}/file`, i.fileName)}>Tải tệp gốc</button></td></tr>`)}</tbody></table></div>
             <div class="pager" aria-label="Phân trang lịch sử nhập">${pageSizeSelect(this._historySize, size => { this._historySize = size; this._historyPage = 1; this._run(() => this._loadHistory()); }, this._busy, 'Số dòng lịch sử nhập')}<button ?disabled=${this._busy || !data || data.page <= 1} @click=${() => { this._historyPage--; this._run(() => this._loadHistory()); }}>← Trước</button><span>Trang ${data?.page || 1}/${Math.max(1, data?.totalPages || 0)}</span><button ?disabled=${this._busy || !data || data.page >= data.totalPages} @click=${() => { this._historyPage++; this._run(() => this._loadHistory()); }}>Sau →</button></div></section>`;
     }
+    _questionPreview() {
+        const q = this._detail;
+        return html`<aside class="question-preview" tabindex="-1" aria-label="Xem nhanh câu hỏi"><div class="panel-heading"><span class="mono">${q.code}</span><button aria-label="Đóng xem nhanh" @click=${() => { this._detail = null; }}>×</button></div><span class=${`badge ${q.isActive ? 'on' : 'off'}`}>${q.isActive ? 'Đang dùng' : 'Ngừng dùng'}</span><p class="muted">${q.situation || ''}</p><h2>${q.question}</h2>${(q.answers || []).map(a => html`<div class=${`preview-answer ${a.isCorrect ? 'correct' : ''}`}><strong>${a.key}</strong><span>${a.text}${a.isCorrect ? html`<small class="block">✓ Đáp án đúng</small>` : nothing}</span></div>`)}<h3>Giải thích</h3>${(q.answers || []).filter(a => a.isCorrect).map(a => html`<p>${a.explanation}</p>`)}<p>${q.safeAction}</p><p class="muted">${q.topicTitle} · Thời gian đọc: ${q.readSeconds}s</p><div class="actions"><button class="primary" @click=${() => this.shadowRoot.querySelector('antc-contest-questions-table')?.openEditor(q)}>Sửa câu hỏi</button></div></aside>`;
+    }
     render() {
-        return html`<umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Quản lý cuộc thi</div><h1>Câu hỏi</h1><p class="page-description">Thêm, sửa, tra cứu câu hỏi, nhập ma trận Excel và theo dõi lịch sử cập nhật.</p></div></header>
+        return html`<umb-body-layout main-no-padding><div class="page"><header class="page-heading"><div><div class="eyebrow">Ngân hàng đề</div><h1>Câu hỏi</h1><p class="page-description">Thêm, sửa, tra cứu câu hỏi, nhập ma trận Excel và theo dõi lịch sử cập nhật.</p></div></header>
             ${this._error ? html`<div class="error-notice" role="alert">${this._error}</div>` : nothing}${this._message ? html`<div class="success-notice" role="status">${this._message}</div>` : nothing}
             <div class="toolbar"><div class="tabs">${[['bank', 'Danh sách câu hỏi'], ['import', 'Nhập từ Excel'], ['history', 'Lịch sử nhập']].map(([key, title]) => html`<button class=${this._tab === key ? 'primary' : ''} aria-pressed=${this._tab === key} @click=${() => { this._tab = key; }}>${title}</button>`)}</div><div class="actions"><button ?disabled=${this._busy} @click=${() => this._download('/imports/template', 'mau-ngan-hang-cau-hoi.xlsx')}>Tải tệp mẫu</button><button ?disabled=${this._busy} @click=${() => this._download('/imports/export', 'ngan-hang-cau-hoi.xlsx')}>Xuất ngân hàng Excel</button></div></div>
             ${this._busy ? html`<p class="loading-notice" role="status">Đang xử lý…</p>` : nothing}
-            <div ?hidden=${this._tab !== 'bank'}>${this._bank()}</div><div ?hidden=${this._tab !== 'import'}>${this._import()}</div><div ?hidden=${this._tab !== 'history'}>${this._historyView()}</div>
-            ${this._detail ? html`<dialog class="large" @close=${() => { this._detail = null; }} @cancel=${() => { this._detail = null; }}><div class="dialog-header"><h2>${this._detail.code} — ${this._detail.kind}</h2><button aria-label="Đóng" @click=${() => { this._detail = null; }}>×</button></div><div class="entry-content"><p>${this._detail.situation}</p><h3>${this._detail.question}</h3>${this._detail.answers.map(a => html`<section><strong>${a.key}. ${a.text} ${a.isCorrect ? '✓ Đáp án đúng' : ''}</strong><p>${a.explanation}</p></section>`)}<p>${this._detail.safeAction}</p><p class="muted">Thời gian đọc: ${this._detail.readSeconds}s · Thứ tự: ${this._detail.sortOrder}</p></div><div class="dialog-footer"><button @click=${() => { this._detail = null; }}>Đóng</button></div></dialog>` : nothing}
+            <div ?hidden=${this._tab !== 'bank'} class=${this._detail ? 'question-workspace' : 'question-workspace no-preview'}>${this._bank()}${this._detail ? this._questionPreview() : nothing}</div><div ?hidden=${this._tab !== 'import'}>${this._import()}</div><div ?hidden=${this._tab !== 'history'}>${this._historyView()}</div>
+
         </div></umb-body-layout>`;
     }
 }

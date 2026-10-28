@@ -22,6 +22,7 @@ public sealed class ContestAdministrationFullHostTests
         string root=Directory.CreateDirectory(Path.Combine(Path.GetTempPath(),"antc-admin-full-"+Guid.NewGuid().ToString("N"))).FullName;
         string appDb=Path.Combine(root,"app.db"),cmsDb=Path.Combine(root,"cms.db");
         ProjectFiles.CopyDirectory(Path.Combine(ProjectFiles.WebRoot,"App_Plugins"),Path.Combine(root,"App_Plugins"));
+        ProjectFiles.CopyDirectory(Path.Combine(ProjectFiles.WebRoot,"Views"),Path.Combine(root,"Views"));
         ProjectFiles.CopyDirectory(Path.Combine(ProjectFiles.WebRoot,"wwwroot","App_Plugins"),Path.Combine(root,"wwwroot","App_Plugins"));
         string password="Aa1!"+Guid.NewGuid().ToString("N");
         var listener=new TcpListener(IPAddress.Loopback,0);listener.Start();int port=((IPEndPoint)listener.LocalEndpoint).Port;listener.Stop();
@@ -30,6 +31,14 @@ public sealed class ContestAdministrationFullHostTests
         var output=new System.Collections.Concurrent.ConcurrentQueue<string>();
         // Umbraco scans its entire binary directory. Copy only the host's dependencies, not xUnit/testhost assemblies.
         string bin=Directory.CreateDirectory(Path.Combine(root,"bin")).FullName;
+        ProjectFiles.CopyDirectory(Path.Combine(AppContext.BaseDirectory,"refs"),Path.Combine(bin,"refs"));
+        // Runtime Razor also resolves framework implementation assemblies absent from reference packs.
+        string aspNetRuntime=Path.GetDirectoryName(typeof(Microsoft.AspNetCore.Hosting.IWebHostEnvironment).Assembly.Location)!;
+        foreach(string file in Directory.GetFiles(aspNetRuntime,"*.dll"))
+        {
+            string reference=Path.Combine(bin,"refs",Path.GetFileName(file));
+            if(!File.Exists(reference))File.Copy(file,reference);
+        }
         using(var deps=JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"Umbraco.Web.UI.deps.json"))))
         {
             var names=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -56,9 +65,9 @@ public sealed class ContestAdministrationFullHostTests
         start.Environment["Umbraco__CMS__Unattended__UnattendedUserName"]="Isolated Admin Test";
         start.Environment["Umbraco__CMS__Unattended__UnattendedUserEmail"]="admin-test@example.invalid";
         start.Environment["Umbraco__CMS__Unattended__UnattendedUserPassword"]=password;
-        start.Environment["Umbraco__CMS__ModelsBuilder__ModelsMode"]="Nothing";
+        start.Environment["Umbraco__CMS__ModelsBuilder__ModelsMode"]="InMemoryAuto";
         start.Environment["Umbraco__CMS__Global__UseHttps"]="false";
-        start.Environment["Umbraco__CMS__Runtime__Mode"]="Development";
+        start.Environment["Umbraco__CMS__Runtime__Mode"]="BackofficeDevelopment";
         start.Environment["Deployment__ImportStructure"]="false";
         start.Environment["Deployment__Maintenance"]="false";
         async Task StartAsync()
@@ -71,7 +80,7 @@ public sealed class ContestAdministrationFullHostTests
             while(timer.Elapsed<TimeSpan.FromSeconds(55))
             {
                 if(process.HasExited) throw new InvalidOperationException("Isolated host exited: "+string.Join("\n",output.TakeLast(30)));
-                try {if((await client.GetAsync("/healthz")).StatusCode==HttpStatusCode.OK)return;}catch(HttpRequestException){}catch(TaskCanceledException){}
+                try {if((await client.GetAsync("/umbraco/management/api/v1/server/status")).StatusCode==HttpStatusCode.OK)return;}catch(HttpRequestException){}catch(TaskCanceledException){}
                 await Task.Delay(250);
             }
             throw new TimeoutException("Isolated host startup: "+string.Join("\n",output.TakeLast(30)));
