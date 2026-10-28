@@ -82,7 +82,8 @@ Mục tiêu: chứng minh quy trình "sửa core → build → đóng gói → A
 | Build backoffice bằng tay | `npm run build:for:cms` | Đạt, màu mới có trong file đầu ra | ~10 phút |
 | Đóng gói core | `core_build.ps1` (không kèm `-BuildSpa`) | Báo đạt, **nhưng gói `Umbraco.Cms.StaticAssets` mất toàn bộ backoffice**: 35 file thay vì 2.596 | ~5,6 phút |
 | Đóng gói lại đúng cách | `core_build.ps1 -BuildSpa` | **Gói đạt**: `StaticAssets` có 2.591 file (2.556 file backoffice), file thanh trên cùng có màu mới. Script dừng ở bước dọn bộ nhớ đệm NuGet vì tiến trình MSBuild chạy ngầm còn khóa `umbraco.cms.targets`. Đã xử lý bằng `dotnet build-server shutdown` rồi xóa tay 3 gói còn lại | ~20 phút |
-| Chạy web xem kết quả | Tắt web cũ rồi `.\run-local.ps1` | **Chưa làm**: cần anhnn cho phép tắt web đang chạy | – |
+| Chạy web xem kết quả | Tắt web cũ rồi `.\run-local.ps1` | **Đạt**: chụp bằng Playwright thấy thanh trên cùng màu đỏ đô. Phát hiện **logo bị vỡ**: 5 file `umbraco/assets` (`login.jpg`, `logo*.svg`) không có trong mã nguồn vì `src/ANTC.Portal.Core/.gitignore` dòng 72 bỏ qua thư mục này | – |
+| Khôi phục logo rồi đóng gói lại | Lấy 5 file từ gói gốc vào `src/Umbraco.Cms.StaticAssets/wwwroot/umbraco/assets`, đưa vào git bằng `git add -f`, chạy `core_build.ps1 -BuildSpa` | **Treo** sau nhiều giờ ở bước `dotnet pack`. Đã dừng, trả `src/ANTC.Portal.Lib/Build.Core` về bản gốc trong git. **Để làm sau** | – |
 
 **Bài học**
 - **Không build backoffice bằng tay rồi mới đóng gói.** Khi thư mục `wwwroot/umbraco/backoffice` đã có sẵn, MSBuild bỏ qua cả bước build lẫn bước khai báo file vào gói (`Umbraco.Cms.StaticAssets.csproj`, target `BuildStaticAssetsPreconditions` và `DefineBackofficeAssets`). Luôn dùng `core_build.ps1 -BuildSpa`.
@@ -95,9 +96,10 @@ Mục tiêu: chứng minh quy trình "sửa core → build → đóng gói → A
 ## 5. Trạng thái máy anhnn lúc ghi file (chưa commit)
 
 - Sửa core: 2 file header ở trên, cùng các file sinh tự động ở mục 4.
-- Toàn bộ `src/ANTC.Portal.Lib/Build.Core/*.nupkg` đã được thay bằng bản build mới, có màu thanh trên mới. Chưa commit.
-- Bộ nhớ đệm NuGet `umbraco.cms*` bản `18.2.1-antc` đã xóa hết, lần build App tới sẽ cài lại từ gói mới.
-- Web local (PID 8356, chạy từ 23/10) chưa khởi động lại, nên `/umbraco` đang lỗi.
+Cập nhật 28/10:
+- Đã commit trên nhánh `docs/backoffice-ui`: 2 file header đã sửa (có chú thích `ANTC:`) và 5 file `umbraco/assets` (thêm bằng `git add -f`). **Chưa đóng gói**: các gói `src/ANTC.Portal.Lib/Build.Core/*.nupkg` vẫn là bản gốc, nên App dùng gói từ git sẽ chưa thấy màu mới.
+- Máy anhnn: bộ nhớ đệm NuGet (`~/.nuget/packages/umbraco.cms*/18.2.1-antc`) đang giữ gói build thử (thanh đỏ đô, logo vỡ). Muốn quay về gói gốc thì xóa các thư mục đó rồi chạy `.\run-local.ps1`.
+- Việc còn lại của chạy thử: đóng gói lại có đủ logo (`core_build.ps1 -BuildSpa`), tìm nguyên nhân lần đóng gói thứ ba bị treo.
 - Thay đổi có sẵn từ trước của anhnn (không liên quan): `Views/*.cshtml`, `uSync/v18/Media/ảnh-hero-*.config`.
 
 **Muốn bỏ chạy thử, quay về như cũ:**
