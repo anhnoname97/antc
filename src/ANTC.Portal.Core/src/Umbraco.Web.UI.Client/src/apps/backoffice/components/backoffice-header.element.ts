@@ -21,8 +21,8 @@ export class UmbBackofficeHeaderElement extends UmbLitElement {
 
 			#appHeader {
 				--uui-focus-outline-color: var(--uui-color-header-contrast-emphasis);
-				/* ANTC: nen thanh tren theo mau thuong hieu */
-				background-color: var(--umb-header-background-color, #5c0f0b);
+				/* ANTC: nen thanh tren mau xanh luc bao (da chot 28/10/2026) */
+				background-color: var(--umb-header-background-color, #0b3b3a);
 				display: flex;
 				align-items: center;
 				justify-content: space-between;

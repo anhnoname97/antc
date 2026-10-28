@@ -110,6 +110,10 @@ Remove-Item -Recurse -Force $env:USERPROFILE\.nuget\packages\umbraco.cms*\18.2.1
 .\run-local.ps1
 ```
 
+## 5a. Tông màu đã chốt (28/10)
+
+anhnn chọn **Xanh lục bảo** sau khi so sánh 4 phương án (xanh than, lục bảo, xanh Umbraco, than chì): thanh trên `#0B3B3A`, nút chính `#0E7C72`, nền chọn `#E3F4F1`, chữ trên nền chọn `#0A5E57`, viền chọn `#B9E2DB`. Màu đỏ đô chỉ giữ ở logo khiên. Lý do bỏ màu đỏ: nhìn nặng nề, và nút chính màu đỏ dễ nhầm với thao tác nguy hiểm. Mockup, ảnh và file Word đã cập nhật theo màu này.
+
 ## 5b. Kế hoạch cho đội dev (28/10)
 
 - `Ke-hoach-lam-moi-backoffice.docx`: chuẩn giao diện, quy tắc UX, 11 ảnh mockup, quy trình sửa core, 27 task (BO-01 → BO-26, BO-10b) có sửa ở đâu, sửa như nào, tiêu chí đạt, cách kiểm; 10 điểm cần chốt.
