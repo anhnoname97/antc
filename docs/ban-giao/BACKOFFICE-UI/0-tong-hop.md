@@ -110,6 +110,11 @@ Remove-Item -Recurse -Force $env:USERPROFILE\.nuget\packages\umbraco.cms*\18.2.1
 .\run-local.ps1
 ```
 
+## 5b. Kế hoạch cho đội dev (28/10)
+
+- `Ke-hoach-lam-moi-backoffice.docx`: chuẩn giao diện, quy tắc UX, 11 ảnh mockup, quy trình sửa core, 27 task (BO-01 → BO-26, BO-10b) có sửa ở đâu, sửa như nào, tiêu chí đạt, cách kiểm; 10 điểm cần chốt.
+- `anh/01-dang-nhap.png` → `anh/11-nhom-quyen.png`: ảnh mockup dựng từ file nguồn của canvas.
+
 ## 6. Việc tiếp theo
 
 1. ~~Chờ `core_build.ps1 -BuildSpa` xong, kiểm gói~~: đã xong, gói đạt.
