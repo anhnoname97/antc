@@ -1,7 +1,7 @@
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 
-export const statuses = { moi: 'Mới', 'dang-xu-ly': 'Đang xử lý', 'da-xu-ly': 'Đã xử lý', 'bo-qua': 'Bỏ qua' };
-export const types = { 'cau-hoi': 'Câu hỏi, kiến nghị', 'gop-y': 'Góp ý' };
+export const statuses = { moi: 'Mới', 'dang-xu-ly': 'Đang xử lý', 'cho-duyet': 'Chờ duyệt', 'da-xu-ly': 'Đã xử lý', 'bo-qua': 'Bỏ qua', 'luu-tru': 'Lưu trữ' };
+export const types = { 'cau-hoi': 'Câu hỏi', 'gop-y': 'Góp ý', kiennghi: 'Kiến nghị' };
 export const sources = { portal: 'Trang web', 'quan-tri': 'Quản trị', 'tong-hop': 'Tổng hợp' };
 export const date = value => value ? new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh',

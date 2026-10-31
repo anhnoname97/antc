@@ -113,6 +113,7 @@ public class DrawWinner
 /// <summary>Cau hoi, kien nghi, gop y gui tu trang Hoi - Dap.</summary>
 public class QuestionSubmission
 {
+    public string? AssignedTo { get; set; }
     public long Id { get; set; }
     /// <summary>cau-hoi | gop-y</summary>
     public string Type { get; set; } = "cau-hoi";
