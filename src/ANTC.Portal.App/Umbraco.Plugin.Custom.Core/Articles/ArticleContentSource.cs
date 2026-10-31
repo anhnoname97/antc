@@ -73,22 +73,39 @@ public sealed partial class UmbracoArticleContentSource(IDocumentNavigationQuery
         string? role = Dropdown(list, "listRole");
         string? url = AntcPublicPaths.GetPath("articleList", slug, listRole: role);
         if (url is null) return null;
-        ArticleContent[] articles = Children(list, "article").Select(x => MapArticle(x, url, days, bodyArticleId, defaultShareImage, includeBodies))
+        ArticleContent[] articles = Children(list, "article").Select(x => MapArticle(x, Segment(x), url, days, bodyArticleId, defaultShareImage, includeBodies))
             .OfType<ArticleContent>().ToArray();
+        return new(CategorySnapshot(list, slug, url, defaultShareImage, articles.Length), articles);
+    }
+
+    private static ArticleCategory CategorySnapshot(IPublishedContent list, string slug, string url, ArticleImage? defaultShareImage, int count)
+    {
+        string? role = Dropdown(list, "listRole");
         string summary = list.Value<string>("summary") ?? string.Empty;
-        var category = new ArticleCategory(list.Key, list.Name, slug, url, summary,
-            list.Value<bool>("isField"), Dropdown(list, "fieldIcon"), role == "Không có" ? null : role, articles.Length)
+        return new ArticleCategory(list.Key, list.Name, slug, url, summary,
+            list.Value<bool>("isField"), Dropdown(list, "fieldIcon"), role == "Không có" ? null : role, count)
         {
             Seo = Seo(list, summary, defaultShareImage),
             ShowOnHome = list.Value<bool>("showOnHome"),
             SearchKeywords = Text(list, "searchKeywords") ?? string.Empty
         };
-        return new(category, articles);
     }
 
-    private ArticleContent? MapArticle(IPublishedContent item, string categoryUrl, int days, Guid? bodyArticleId, ArticleImage? defaultShareImage, bool includeBodies)
+    // Only used with the parent of CurrentPage inside authenticated native preview.
+    public static ArticleCategory? MapPreviewCategory(IPublishedContent list, string slug)
     {
-        string slug = Segment(item);
+        if (list.ContentType.Alias != "articleList") return null;
+        var url = AntcPublicPaths.GetPath("articleList", slug, listRole: Dropdown(list, "listRole"));
+        return url is null ? null : CategorySnapshot(list, slug, url, Image(list.Root(), "heroImage1"), 0);
+    }
+
+    // Mapping only: the render controller must establish Umbraco's authenticated
+    // preview mode before supplying its CurrentPage. Public Read() remains published-only.
+    public static ArticleContent? MapPreviewArticle(IPublishedContent item, string slug, ArticleCategory category, int days) =>
+        MapArticle(item, slug, category.Url, days, item.Key, Image(item.Root(), "heroImage1"), true);
+
+    private static ArticleContent? MapArticle(IPublishedContent item, string slug, string categoryUrl, int days, Guid? bodyArticleId, ArticleImage? defaultShareImage, bool includeBodies)
+    {
         string? url = AntcPublicPaths.GetPath("article", slug, categoryUrl);
         if (url is null) return null;
         string? agency = Text(item, "sourceAgency");
@@ -124,7 +141,8 @@ public sealed partial class UmbracoArticleContentSource(IDocumentNavigationQuery
     {
         MediaWithCrops? image = item.Value<MediaWithCrops>(alias);
         string? url = image?.MediaUrl();
-        return string.IsNullOrWhiteSpace(url) ? null : new ArticleImage(url, Text(image!, "altText") ?? image!.Name);
+        string? alt = alias == "image" && item.ContentType.Alias == "article" ? Text(item, "imageAlt") : null;
+        return string.IsNullOrWhiteSpace(url) ? null : new ArticleImage(url, alt ?? Text(image!, "altText") ?? image!.Name);
     }
 
     private static ArticleLabel Label(string? value, string? agency) => value switch

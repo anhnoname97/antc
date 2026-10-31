@@ -1,0 +1,12 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.Blocks.RichTextBlockItem>
+@using Umbraco.Extensions
+@{
+    var text = Model.Content.Value<string>("text");
+}
+@if (!string.IsNullOrWhiteSpace(text))
+{
+    <aside class="antc-article-notice">
+        <h3>Hộp lưu ý</h3>
+        <p>@text</p>
+    </aside>
+}

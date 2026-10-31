@@ -1,0 +1,98 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "ANTC Article Editor",
+  "version": "0.12.1",
+  "extensions": [
+    {
+      "type": "propertyContext",
+      "alias": "Antc.PropertyContext.Article.FieldDescription",
+      "name": "Hướng dẫn ngắn trong màn Soạn bài",
+      "api": "/App_Plugins/AntcArticleEditor/field-description-context.js?v=0.11.0",
+      "forPropertyEditorUis": [
+        "Umb.PropertyEditorUi.TextArea",
+        "Umb.PropertyEditorUi.TextBox",
+        "Umb.PropertyEditorUi.Tiptap",
+        "Umb.PropertyEditorUi.MediaPicker",
+        "Umb.PropertyEditorUi.Dropdown",
+        "Umb.PropertyEditorUi.DatePicker",
+        "Umb.PropertyEditorUi.Toggle"
+      ],
+      "meta": {},
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "article"
+        }
+      ]
+    },
+    {
+      "type": "workspaceContext",
+      "alias": "Antc.WorkspaceContext.Article.PropertyAccess",
+      "name": "Quyền xem trường trong màn soạn bài",
+      "api": "/App_Plugins/AntcArticleEditor/property-access-context.js?v=0.9.0",
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "article"
+        }
+      ]
+    },
+    {
+      "type": "workspaceContext",
+      "alias": "Antc.WorkspaceContext.Article.SeoPreview",
+      "name": "Xem trước SEO và chia sẻ bài viết",
+      "api": "/App_Plugins/AntcArticleEditor/seo-preview-context.js?v=0.9.0",
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "article"
+        }
+      ]
+    },
+    {
+      "type": "workspaceView",
+      "alias": "Antc.WorkspaceView.Article.Compose",
+      "overwrites": "Umb.WorkspaceView.Document.Edit",
+      "name": "Soạn bài viết ANTC",
+      "element": "/App_Plugins/AntcArticleEditor/article-editor.js?v=0.12.0",
+      "weight": 250,
+      "meta": {
+        "label": "Soạn bài",
+        "pathname": "compose",
+        "icon": "icon-edit"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "article"
+        }
+      ]
+    },
+    {
+      "type": "blockEditorCustomView",
+      "alias": "Antc.BlockCustomView.ArticleNotice",
+      "name": "Xem trước Hộp lưu ý",
+      "element": "/App_Plugins/AntcArticleEditor/notice-preview.js?v=0.3.0",
+      "forContentTypeAlias": "antcArticleNotice",
+      "forBlockEditor": [
+        "block-rte"
+      ]
+    }
+  ]
+}

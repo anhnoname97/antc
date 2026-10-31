@@ -1,14 +1,14 @@
 {
   "$schema": "../../umbraco-package-schema.json",
   "name": "ANTC Vietnamese",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "allowPublicAccess": true,
   "extensions": [
     {
       "type": "backofficeEntryPoint",
       "alias": "Antc.EntryPoint.Vietnamese",
       "name": "Chuẩn hóa nhãn quản trị tiếng Việt",
-      "js": "/App_Plugins/AntcVietnamese/entrypoint.js?v=1.4.0"
+      "js": "/App_Plugins/AntcVietnamese/entrypoint.js?v=1.4.2"
     },
     {
       "type": "localization",
