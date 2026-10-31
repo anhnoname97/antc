@@ -22,13 +22,20 @@ const path = require('node:path');
             const layout = await view.locator('.page,.embedded-page').first().evaluate(node => ({ width: node.clientWidth, scroll: node.scrollWidth, title: node.querySelector('h1') ? getComputedStyle(node.querySelector('h1')).fontSize : null }));
             assert.ok(layout.scroll <= layout.width + 1, 'Only table containers should scroll horizontally');
             if (layout.title) assert.ok(parseInt(layout.title) >= 24, 'Shared theme must be loaded');
+            assert.match(await view.evaluate(node => getComputedStyle(node).fontFamily), /Roboto/, 'Contest pages must use Roboto');
         };
         const verifyPageSizes = async view => {
             for (const select of await view.locator('.pager select,.local-pager select').all()) {
                 if (await select.isVisible()) assert.deepEqual(await select.locator('option').evaluateAll(options => options.map(o => o.value)), ['10', '50', '100']);
             }
         };
-        await page.goto(root + 'dashboard');
+        const verifyDefaultPageSize = async view => {
+            for (const select of await view.locator('.pager select,.local-pager select').all()) {
+                if (await select.isVisible()) assert.equal(await select.inputValue(), '10', 'New lists must start with 10 rows per page');
+            }
+        };
+        const initial = await page.goto(root + 'dashboard');
+        assert.ok(initial.ok(), `Backoffice HTML failed (${initial.status()}): ${(await page.locator('body').innerText()).slice(0, 6000)}`);
         await page.locator('input[name="username"]').fill('admin-test@example.invalid', { timeout: 30000 });
         await page.locator('input[name="password"]').fill(process.env.ANTC_TEST_PASSWORD);
         await page.locator('#umb-login-button').click();
@@ -37,9 +44,15 @@ const path = require('node:path');
         await page.locator('antc-contest-dashboard-view').waitFor({ state: 'visible', timeout: 45000 });
         const dashboard = page.locator('antc-contest-dashboard-view');
         await dashboard.locator('.metrics').waitFor({ timeout: 30000 });
+        await page.waitForFunction(view => !view._busy, await dashboard.elementHandle());
+        await page.evaluate(() => document.fonts.load('400 14px Roboto', 'Cuộc thi An toàn tài chính 0123456789'));
+        assert.equal(await page.evaluate(() => [...document.fonts].some(font => font.family.includes('Roboto') && font.status === 'loaded')), true, 'Local Roboto font must load');
+        assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-antc-contest-section')), true);
+        assert.equal(await dashboard.locator('.dashboard-banner').count(), 1);
         assert.equal(await dashboard.locator('.metrics article').count(), 5);
         await verifyLayout(dashboard);
         await verifyPageSizes(dashboard);
+        await verifyDefaultPageSize(dashboard);
         await screenshot('dashboard');
         // Navigate through the sidebar in the same document: page.goto hides SPA routing failures.
         const navigationMarker = await page.evaluate(() => window.__contestNavigationMarker = crypto.randomUUID());
@@ -67,6 +80,7 @@ const path = require('node:path');
         await prizes.getByText('TEST-FIRST', { exact: true }).waitFor({ timeout: 30000 });
         await verifyLayout(prizes);
         await verifyPageSizes(prizes);
+        await verifyDefaultPageSize(prizes);
         await prizes.getByRole('button', { name: '+ Thêm giải thưởng', exact: true }).click();
         await prizes.locator('dialog[open]').waitFor();
         await prizes.getByRole('button', { name: 'Hủy', exact: true }).click();
@@ -81,8 +95,9 @@ const path = require('node:path');
         const entries = page.locator('antc-contest-entries-report-view');
         const code = process.env.ANTC_TEST_ENTRY_CODE;
         await entries.getByRole('button', { name: code, exact: true }).click({ timeout: 30000 });
+        await verifyDefaultPageSize(entries);
         const dialog = entries.locator('dialog'); await dialog.waitFor({ state: 'visible' });
-        assert.equal(await dialog.locator('[data-question-code]').count(), 200);
+        assert.equal(await dialog.locator('[data-question-code]').count(), await entries.evaluate(view => view._detail.topics.reduce((total, topic) => total + Math.min(10, topic.total), 0)));
         const topicDetails = dialog.locator('.entry-content details').first();
         const topicPager = topicDetails.locator('[data-pagination]');
         await topicPager.locator('select').selectOption('10');
@@ -163,8 +178,8 @@ const path = require('node:path');
         }
         await screenshot('question-statistics-answers');
         const questionPager = questionReport.locator('[data-pagination="questions"]');
-        assert.equal(await questionReport.locator('tbody tr').count(), 50);
-        assert.equal(await questionPager.locator('select').inputValue(), '50');
+        assert.equal(await questionReport.locator('tbody tr').count(), 10);
+        assert.equal(await questionPager.locator('select').inputValue(), '10');
         const firstQuestion = await questionReport.locator('tbody tr').first().innerText();
         await questionPager.getByRole('button', { name: 'Sau →', exact: true }).click();
         assert.notEqual(await questionReport.locator('tbody tr').first().innerText(), firstQuestion);
@@ -216,12 +231,25 @@ const path = require('node:path');
             const view = page.locator(tag);
             await view.locator(trigger).waitFor({ timeout: 30000 });
             await verifyPageSizes(view);
+            await verifyDefaultPageSize(view);
             for (const size of ['10', '100', '50']) {
                 await view.locator('[data-page-size]').selectOption(size);
                 await page.waitForFunction(({ view, size }) => !view.loading && view.result?.pageSize === Number(size), { view: await view.elementHandle(), size });
             }
             await page.waitForFunction(tag => { const host = (function find(root) { for (const node of root.querySelectorAll('*')) { if (node.localName === tag) return node; if (node.shadowRoot) { const found = find(node.shadowRoot); if (found) return found; } } })(document); return host && !host.loading; }, tag);
             await verifyLayout(view);
+            if (name === 'contest') {
+                const dates = view.locator('.campaign-dates').first();
+                assert.deepEqual(await dates.locator('time').allTextContents().then(values => values.map(value => /^\d{2}\/\d{2}\/\d{4}$/.test(value))), [true, true]);
+                const [startDate, endDate] = await dates.locator('time').evaluateAll(nodes => nodes.map(node => ({ left: node.getBoundingClientRect().left, width: node.getBoundingClientRect().width })));
+                assert.ok(Math.abs(startDate.left - endDate.left) <= 1, 'Start and end dates must align');
+                assert.ok(Math.abs(startDate.width - endDate.width) <= 1, 'Date digits must have equal widths');
+                await view.locator('[data-state="upcoming"]').click();
+                assert.equal(await view.locator('tbody .empty').count(), 1);
+                await view.locator('[data-state="ended"]').click();
+                assert.ok(await view.locator('[data-edit-campaign]').count() > 0);
+                await view.locator('[data-state=""]').click();
+            }
             await screenshot(name + '-list');
             await view.locator(trigger).click();
             const editor = view.locator('dialog#editor');
@@ -233,7 +261,12 @@ const path = require('node:path');
                 assert.equal(await editor.locator('.answer-row').filter({ has: page.locator('input[value="C"]:checked') }).count(), 1);
             }
             if (name === 'contest') {
-                await editor.locator('.contest-prize-picker > summary').click();
+                await screenshot('contest-editor-new');
+                await page.setViewportSize({ width: 900, height: 900 });
+                assert.equal(await editor.evaluate(el => el.scrollWidth <= el.clientWidth + 1), true);
+                await screenshot('contest-editor-compact');
+                await page.setViewportSize({ width: 1500, height: 1000 });
+                await editor.locator('.contest-prize-picker').evaluate(el => { el.open = true; });
                 await editor.locator(`[data-prize="${process.env.ANTC_TEST_PRIZE_ID}"]`).check();
                 await editor.locator(`[data-prize-quantity="${process.env.ANTC_TEST_PRIZE_ID}"]`).fill('2');
                 await editor.locator(`[data-prize-money="${process.env.ANTC_TEST_PRIZE_ID}"]`).fill('1500000');
@@ -269,23 +302,23 @@ const path = require('node:path');
             if (name === 'contest') {
                 await view.locator(`[data-edit-campaign="${process.env.ANTC_TEST_CONTEST_ID}"]`).click();
                 await editor.waitFor({ state: 'visible' });
-                await editor.locator('input[name="name"]').fill('Tên sửa vẫn được giữ khi lỗi');
-                const selectedBefore = await editor.locator('[data-question]:checked').count();
-                await editor.getByRole('button', { name: 'Lưu cuộc thi', exact: true }).click();
-                await editor.locator('[data-save-error]').waitFor();
-                assert.equal(await editor.locator('input[name="name"]').inputValue(), 'Tên sửa vẫn được giữ khi lỗi');
-                assert.equal(await editor.locator('[data-question]:checked').count(), selectedBefore);
+                assert.equal(await editor.locator('input[name="name"]').evaluate(el => el.readOnly), true);
+                assert.equal(await editor.locator('input[name="startAt"]').evaluate(el => el.readOnly), true);
+                assert.equal(await editor.locator('[data-question]:not(:disabled)').count(), 0);
+                assert.equal(await editor.locator('.editor-nav button').count(), 5);
+                assert.equal(await editor.locator('.editor-section').count(), 5);
+                assert.equal(await editor.locator('input[name="active"]').isEnabled(), true);
                 await screenshot('contest-update-validation');
                 await editor.getByRole('button', { name: 'Hủy', exact: true }).click();
                 await view.locator(`[data-edit-campaign="${process.env.ANTC_TEST_CONTEST_ID}"]`).click();
                 await editor.waitFor({ state: 'visible' });
-                await editor.locator('.contest-prize-picker > summary').click();
+                await editor.locator('.contest-prize-picker').evaluate(el => { el.open = true; });
                 await editor.locator(`[data-prize-money="${process.env.ANTC_TEST_PRIZE_ID}"]`).fill('2500000');
                 await editor.getByRole('button', { name: 'Lưu riêng cấu hình giải thưởng', exact: true }).click();
                 await editor.waitFor({ state: 'hidden' });
                 await view.locator(`[data-edit-campaign="${process.env.ANTC_TEST_CONTEST_ID}"]`).click();
                 await editor.waitFor({ state: 'visible' });
-                await editor.locator('.contest-prize-picker > summary').click();
+                await editor.locator('.contest-prize-picker').evaluate(el => { el.open = true; });
                 assert.equal(await editor.locator(`[data-prize-money="${process.env.ANTC_TEST_PRIZE_ID}"]`).inputValue(), '2500000');
                 await screenshot('contest-prize-money');
                 await editor.getByRole('button', { name: 'Hủy', exact: true }).click();
@@ -302,11 +335,11 @@ const path = require('node:path');
                 assert.equal(await inlineEntries.locator('input[name="search"]').isVisible(), false);
                 await inlineEntries.locator('.advanced-search > summary').click();
                 assert.equal(await inlineEntries.locator('input[name="search"]').inputValue(), 'Giữ bộ lọc');
-                await contest.getByRole('tab', { name: 'Lần quay số', exact: true }).click();
+                await contest.getByRole('tab', { name: 'Quay số trúng thưởng', exact: true }).click();
                 assert.equal(page.url(), contestUrl);
                 await contest.getByRole('tab', { name: 'Lượt dự thi', exact: true }).click();
                 assert.equal(await inlineEntries.locator('input[name="search"]').inputValue(), 'Giữ bộ lọc');
-                await contest.getByRole('tab', { name: 'Lần quay số', exact: true }).click();
+                await contest.getByRole('tab', { name: 'Quay số trúng thưởng', exact: true }).click();
                 const draws = page.locator('antc-contest-draws-view');
                 await draws.locator('select[name="contestId"]').selectOption(process.env.ANTC_TEST_CONTEST_ID, { timeout: 30000 });
                 await draws.locator('select[name="prizeId"]').selectOption(process.env.ANTC_TEST_PRIZE_ID, { timeout: 30000 });
@@ -359,7 +392,7 @@ const path = require('node:path');
                 assert.equal(await draws.getByRole('button', { name: 'Sửa', exact: true }).count(), 0);
                 assert.equal(await draws.getByRole('button', { name: 'Xóa', exact: true }).count(), 0);
                 await page.reload();
-                await page.locator('antc-contest-view').getByRole('tab', { name: 'Lần quay số', exact: true }).click();
+                await page.locator('antc-contest-view').getByRole('tab', { name: 'Quay số trúng thưởng', exact: true }).click();
                 await page.locator('antc-contest-draws-view .summary').filter({ hasText: `${initialDraws + 1} lần quay` }).waitFor({ timeout: 30000 });
                 assert.equal(await page.getByRole('link', { name: 'Lượt thi', exact: true }).count(), 1);
                 assert.equal(await page.getByRole('link', { name: 'Quay số', exact: true }).count(), 0);
@@ -381,12 +414,12 @@ const path = require('node:path');
         await bank.locator('antc-contest-questions-table tbody tr').first().waitFor({ timeout: 30000 });
         await verifyLayout(bank);
         await bank.locator('[data-view]').first().click();
-        await bank.locator('dialog[open]').waitFor({ state: 'visible' });
-        await bank.getByRole('button', { name: 'Đóng', exact: true }).last().click();
-        assert.equal(await bank.locator('dialog[open]').count(), 0);
+        await bank.locator('.question-preview').waitFor({ state: 'visible' });
+        await screenshot('question-quick-preview');
+        await bank.getByRole('button', { name: 'Đóng xem nhanh', exact: true }).click();
+        assert.equal(await bank.locator('.question-preview').count(), 0);
         const mergedTable = bank.locator('antc-contest-questions-table');
         const searchedCode = await mergedTable.locator('[data-view]').first().innerText();
-        await mergedTable.locator('.advanced-search > summary').click();
         await mergedTable.locator('input[name="term"]').fill(searchedCode);
         await Promise.all([
             page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/admin/quiz/questions' && new URL(response.url()).searchParams.get('search') === searchedCode),
@@ -465,6 +498,7 @@ const path = require('node:path');
         assert.equal(errors.filter(e => /contest-reports|ContestReports/.test(e)).length, 0);
         console.log('Browser PASS: 7 routes, shared theme, responsive tables, 4-option radio selection, collapsible tree, create dialogs Close/Cancel, detail Escape, CSV and publication.');
     } catch (error) {
+        if (page && process.env.ANTC_SCREENSHOT_DIR) await page.screenshot({ path: path.join(process.env.ANTC_SCREENSHOT_DIR, 'failure.png') }).catch(() => {});
         const view = page ? await page.locator('antc-contest-entries-report-view').evaluateAll(nodes => nodes.map(n => ({ busy: n._busy, error: n._error, detail: !!n._detail, dialogOpen: n.shadowRoot.querySelector('dialog')?.open, buttons: [...n.shadowRoot.querySelectorAll('button')].map(b => ({ text: b.textContent, disabled: b.disabled })) }))) : [];
         console.error('Browser diagnostics:', page ? new URL(page.url()).pathname : 'no page', errors.slice(0, 10), view);
         throw error;

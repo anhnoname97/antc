@@ -1,9 +1,10 @@
+import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.8';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
-import { contestStyles } from './contest-theme.js?v=1.14.10';
-import { pageSizeSelect } from './contest-page-size.js';
+import { contestStyles } from './contest-theme.js?v=1.15.8';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.8';
 
 const API = '/umbraco/management/api/v1/antc/contest-privacy';
 const BULK = 'XÓA DỮ LIỆU CÁ NHÂN', ANON = 'XÓA THÔNG TIN', DELETE = 'XÓA VĨNH VIỄN';
@@ -17,7 +18,7 @@ export class ContestPrivacyView extends UmbLitElement {
     static styles = contestStyles;
     constructor() {
         super(); this._busy = true; this._error = ''; this._preview = null; this._history = null; this._mode = 'anonymize';
-        this._confirmation = ''; this._bulkConfirmation = ''; this._result = null; this._page = 1; this._historySize ??= 50; this._lookupSize ??= 50;
+        this._confirmation = ''; this._bulkConfirmation = ''; this._result = null; this._page = 1; this._historySize ??= DEFAULT_PAGE_SIZE; this._lookupSize ??= DEFAULT_PAGE_SIZE;
         this._personRequest = crypto.randomUUID(); this._bulkRequest = crypto.randomUUID();
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._load(); } });
     }
@@ -68,7 +69,7 @@ export class ContestPrivacyView extends UmbLitElement {
             this._preview = null; this._confirmation = ''; this._bulkConfirmation = '';
             this._personRequest = crypto.randomUUID(); this._bulkRequest = crypto.randomUUID();
             this.renderRoot.querySelector('#privacy-search').reset();
-            this._page = 1; this._historySize ??= 50; this._lookupSize ??= 50; this._history = await this._request(`/operations?page=1&pageSize=${this._historySize}`);
+            this._page = 1; this._historySize ??= DEFAULT_PAGE_SIZE; this._lookupSize ??= DEFAULT_PAGE_SIZE; this._history = await this._request(`/operations?page=1&pageSize=${this._historySize}`);
         } catch (error) { this._error = error.message; } finally { this._busy = false; }
     }
     async _vacuum(id) {

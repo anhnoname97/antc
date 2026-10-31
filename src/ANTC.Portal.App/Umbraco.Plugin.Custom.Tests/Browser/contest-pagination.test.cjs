@@ -7,7 +7,7 @@ const modulePromise = import('data:text/javascript;base64,' + Buffer.from(source
 
 test('pagination handles empty lists and disables movement through one logical page', async () => {
     const { paginate } = await modulePromise;
-    assert.deepEqual(paginate([]), { items: [], total: 0, size: 50, page: 1, pages: 1, start: 0, end: 0 });
+    assert.deepEqual(paginate([]), { items: [], total: 0, size: 10, page: 1, pages: 1, start: 0, end: 0 });
 });
 test('first, middle and last pages preserve order without duplicate or missing rows', async () => {
     const { paginate } = await modulePromise;
@@ -32,6 +32,7 @@ test('supported page sizes and per-list defaults work without changing source to
         assert.equal(p.items.length, size); assert.equal(p.items[0], size); assert.equal(p.total, 200);
     }
     assert.equal(paginate(rows, {}, 10).size, 10);
-    assert.equal(paginate(rows, { size: 0 }).size, 50);
-    assert.equal(paginate(rows, { size: 20 }).size, 50);
+    assert.equal(paginate(rows).items.length, 10);
+    assert.equal(paginate(rows, { size: 0 }).size, 10);
+    assert.equal(paginate(rows, { size: 20 }).size, 10);
 });

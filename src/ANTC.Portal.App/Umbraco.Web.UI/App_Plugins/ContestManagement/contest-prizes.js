@@ -1,9 +1,10 @@
+import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.8';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
-import { contestStyles } from './contest-theme.js?v=1.14.10';
-import { pageSizeSelect } from './contest-page-size.js';
+import { contestStyles } from './contest-theme.js?v=1.15.8';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.8';
 
 const API = '/api/v1/admin/contest/prizes';
 export class ContestPrizesView extends UmbLitElement {
@@ -11,7 +12,7 @@ export class ContestPrizesView extends UmbLitElement {
     static properties = { _data: { state: true }, _busy: { state: true }, _error: { state: true }, _editor: { state: true }, _message: { state: true } };
     constructor() {
         super(); this._data = null; this._busy = true; this._error = ''; this._message = ''; this._editor = null;
-        this._page = 1; this._size = 50; this._search = ''; this._active = '';
+        this._page = 1; this._size = DEFAULT_PAGE_SIZE; this._search = ''; this._active = '';
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._run(() => this._load()); } });
     }
     async _request(path = '', options = {}, retry = true) {
