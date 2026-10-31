@@ -29,8 +29,8 @@ public sealed class QuestionOperations(AppDbContext db, IQuestionModerationServi
 
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var rows = await SelectedAsync(request.Items!, ct);
-        if (rows.Any(x => x.IsPublished || x.AggregatedIntoId != null || x.Status is not ("moi" or "dang-xu-ly")))
-            throw Invalid("Chỉ tổng hợp mục Mới hoặc Đang xử lý, chưa công bố và chưa được tổng hợp.");
+        if (rows.Any(x => x.Type != "cau-hoi" || x.IsPublished || x.AggregatedIntoId != null || x.Status != "moi"))
+            throw Invalid("Chỉ trả lời chung cho câu hỏi Mới tiếp nhận, chưa công bố và chưa được tổng hợp.");
 
         var created = await moderation.CreateAsync(draft, actor, ct);
         var summary = await db.QuestionSubmissions.SingleAsync(x => x.Id == created.Id, ct);

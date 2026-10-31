@@ -770,6 +770,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("id");
 
+                    b.Property<string>("AssignedTo")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("assigned_to");
+
                     b.Property<string>("AdminNote")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT")
