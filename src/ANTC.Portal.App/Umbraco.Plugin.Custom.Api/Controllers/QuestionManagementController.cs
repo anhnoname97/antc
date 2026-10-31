@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Core.Security;
@@ -30,6 +32,19 @@ public sealed class QuestionManagementController(IQuestionSubmissionService ques
     [HttpGet("{id:long}")]
     public async Task<IActionResult> Get(long id, CancellationToken ct)
         => await moderation.GetAsync(id, ct) is { } row ? Ok(row) : NotFound();
+
+    [HttpGet("inbox-counts")]
+    public async Task<IActionResult> InboxCounts(CancellationToken ct, string? type = null)
+    {
+        if (Invalid(new QuestionFilter(Type: type), 1) is { } error) return BadRequest(error);
+        return Ok(await questions.InboxCountsAsync(ct, type));
+    }
+
+    [HttpGet("handlers")]
+    public IActionResult Handlers([FromServices] IUserService users)
+        => Ok(users.GetAll(0, 1000, out _, "Name", Direction.Ascending, filter: (string?)null)
+            .Where(x => x.IsApproved && !x.IsLockedOut && x.AllowedSections.Contains(AdministrationAccess.QuestionsSectionAlias))
+            .Select(x => new { value = x.Username, name = x.Name ?? x.Username }));
 
     [HttpPut("{id:long}")]
     public Task<IActionResult> Save(long id, [FromBody] QuestionReview review, CancellationToken ct)
@@ -75,6 +90,7 @@ public sealed class QuestionManagementController(IQuestionSubmissionService ques
         => page < 1 || filter.From > filter.To || filter.Search?.Length > 200
             || !string.IsNullOrEmpty(filter.Type) && !QuestionValues.Types.ContainsKey(filter.Type)
             || !string.IsNullOrEmpty(filter.Status) && !QuestionValues.Statuses.ContainsKey(filter.Status)
+            || !string.IsNullOrEmpty(filter.Inbox) && !QuestionValues.Inboxes.Contains(filter.Inbox)
             ? new { error = new { code = "VALIDATION", message = "Bộ lọc hoặc số trang không hợp lệ." } } : null;
 }
 

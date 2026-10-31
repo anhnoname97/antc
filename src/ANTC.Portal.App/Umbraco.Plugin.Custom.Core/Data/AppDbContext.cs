@@ -146,6 +146,7 @@ public class AppDbContext : DbContext
         b.Entity<QuestionSubmission>(e =>
         {
             e.ToTable("question_submission");
+            e.Property(x => x.AssignedTo).HasMaxLength(100);
             e.Property(x => x.Type).HasMaxLength(8);
             e.Property(x => x.Content).HasMaxLength(2000);
             e.Property(x => x.Contact).HasMaxLength(200);
