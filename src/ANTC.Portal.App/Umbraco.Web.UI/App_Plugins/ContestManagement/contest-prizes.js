@@ -1,10 +1,10 @@
-import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.7';
+import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.8';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
-import { contestStyles } from './contest-theme.js?v=1.15.7';
-import { pageSizeSelect } from './contest-page-size.js?v=1.15.7';
+import { contestStyles } from './contest-theme.js?v=1.15.8';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.8';
 
 const API = '/api/v1/admin/contest/prizes';
 export class ContestPrizesView extends UmbLitElement {

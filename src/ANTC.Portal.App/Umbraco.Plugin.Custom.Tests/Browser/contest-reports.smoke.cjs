@@ -22,6 +22,7 @@ const path = require('node:path');
             const layout = await view.locator('.page,.embedded-page').first().evaluate(node => ({ width: node.clientWidth, scroll: node.scrollWidth, title: node.querySelector('h1') ? getComputedStyle(node.querySelector('h1')).fontSize : null }));
             assert.ok(layout.scroll <= layout.width + 1, 'Only table containers should scroll horizontally');
             if (layout.title) assert.ok(parseInt(layout.title) >= 24, 'Shared theme must be loaded');
+            assert.match(await view.evaluate(node => getComputedStyle(node).fontFamily), /Roboto/, 'Contest pages must use Roboto');
         };
         const verifyPageSizes = async view => {
             for (const select of await view.locator('.pager select,.local-pager select').all()) {
@@ -44,6 +45,8 @@ const path = require('node:path');
         const dashboard = page.locator('antc-contest-dashboard-view');
         await dashboard.locator('.metrics').waitFor({ timeout: 30000 });
         await page.waitForFunction(view => !view._busy, await dashboard.elementHandle());
+        await page.evaluate(() => document.fonts.load('400 14px Roboto', 'Cuộc thi An toàn tài chính 0123456789'));
+        assert.equal(await page.evaluate(() => [...document.fonts].some(font => font.family.includes('Roboto') && font.status === 'loaded')), true, 'Local Roboto font must load');
         assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-antc-contest-section')), true);
         assert.equal(await dashboard.locator('.dashboard-banner').count(), 1);
         assert.equal(await dashboard.locator('.metrics article').count(), 5);

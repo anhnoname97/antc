@@ -5,7 +5,7 @@ import { unsafeCSS } from '@umbraco-cms/backoffice/external/lit';
 if (!document.querySelector('link[data-contest-admin-font]')) {
   const fonts = document.createElement('link');
   fonts.rel = 'stylesheet';
-  fonts.href = '/App_Plugins/ContestManagement/contest-fonts.css?v=1.15.7';
+  fonts.href = '/assets/css/fonts.css?v=1.15.8';
   fonts.dataset.contestAdminFont = '';
   document.head.append(fonts);
 }
@@ -18,7 +18,7 @@ export const contestStylesText = `
   --cm-radius:8px; --cm-panel-radius:14px;
   --cm-shadow:0 1px 2px #19203305,0 2px 6px #19203304;
   display:block; height:100%; min-width:0; color:var(--cm-text); color-scheme:light;
-  font:14px/1.5 'Be Vietnam Pro',system-ui,sans-serif;
+  font:14px/1.5 'Roboto',Arial,sans-serif;
   -webkit-font-smoothing:antialiased;
 }
 *,*::before,*::after{box-sizing:border-box}
@@ -143,7 +143,7 @@ button.primary:hover:not(:disabled),.filter-panel .actions>button:first-child:ho
 button.secondary{background:var(--cm-accent-soft);border-color:transparent;color:var(--cm-accent-text);box-shadow:none}
 button.ghost{box-shadow:none;border-color:transparent;background:transparent}
 button.danger{color:var(--cm-danger)}button.danger:hover:not(:disabled){background:var(--cm-danger-soft);border-color:#f5c6c7}
-button.link{border:0;background:transparent;color:var(--cm-accent-text);padding:2px 0;min-height:28px;box-shadow:none;font-family:ui-monospace,monospace;font-weight:600}
+button.link{border:0;background:transparent;color:var(--cm-accent-text);padding:2px 0;min-height:28px;box-shadow:none;font-family:inherit;font-weight:600}
 button.link:hover:not(:disabled){background:transparent;text-decoration:underline;text-underline-offset:4px}
 .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}
 .filter-panel>.actions{border-top:1px solid var(--cm-border);padding:16px 0;margin:18px 0 0}
@@ -159,7 +159,7 @@ thead th{position:sticky;top:0;z-index:2;background:var(--cm-subtle);font-size:1
 tbody tr:last-child td{border-bottom:0}tbody tr{transition:background .12s}tbody tr:nth-child(even){background:var(--cm-subtle)}tbody tr:hover{background:var(--cm-hover)}
 td.actions{display:table-cell;white-space:nowrap;text-align:right;margin:0}td.actions button+button{margin-left:6px}
 td.actions button{min-height:30px;padding:5px 9px;font-size:12px}
-.nowrap{white-space:nowrap}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;color:var(--cm-muted)}
+.nowrap{white-space:nowrap}.mono{font-family:inherit;font-size:12px;color:var(--cm-muted)}
 td:first-child .mono,td.mono{white-space:nowrap}
 .question{max-width:440px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.6}
 td.question{display:table-cell;min-width:260px;max-width:560px;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -316,9 +316,9 @@ th,td{padding:12px 14px}
 .campaign-list th,.campaign-list td{padding:10px 14px}
 .campaign-name{min-height:0;line-height:1.5}
 .campaign-list .pager{margin-top:10px}
-.campaign-dates{display:grid;gap:0;justify-items:center;width:max-content;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}
+.campaign-dates{display:grid;gap:0;justify-items:center;width:max-content;font-family:inherit;font-variant-numeric:tabular-nums}
 .campaign-dates time{display:block;line-height:1.5}
-.campaign-date-arrow{color:var(--cm-muted);font-family:system-ui,sans-serif;font-size:14px;line-height:12px}
+.campaign-date-arrow{color:var(--cm-muted);font-family:inherit;font-size:14px;line-height:12px}
 @media(max-width:760px){.page-heading{padding:14px 0 10px}.toolbar{gap:10px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(forced-colors:active){button,input,select,textarea,.badge,.answer{border:1px solid ButtonText}button:focus-visible{outline:2px solid Highlight}}

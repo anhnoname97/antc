@@ -1,15 +1,15 @@
-import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.7';
+import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.8';
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { UmbLitElement } from "@umbraco-cms/backoffice/lit-element";
 import { css, html } from "@umbraco-cms/backoffice/external/lit";
-import { contestStyles, contestStylesText } from './contest-theme.js?v=1.15.7';
+import { contestStyles, contestStylesText } from './contest-theme.js?v=1.15.8';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
-import './contest-reports.js?v=1.15.7';
-import './contest-draws.js?v=1.15.7';
-import { ContestBankView } from './contest-bank.js?v=1.15.7';
-import { campaignState, scheduleMarkup, loadCampaigns } from './contest-layout.js?v=1.15.7';
-import { arrangeCampaignEditor } from './contest-editor.js?v=1.15.7';
+import './contest-reports.js?v=1.15.8';
+import './contest-draws.js?v=1.15.8';
+import { ContestBankView } from './contest-bank.js?v=1.15.8';
+import { campaignState, scheduleMarkup, loadCampaigns } from './contest-layout.js?v=1.15.8';
+import { arrangeCampaignEditor } from './contest-editor.js?v=1.15.8';
 
 const API = "/api/v1/admin/quiz";
 const CONTEST_API = "/api/v1/admin/contest";

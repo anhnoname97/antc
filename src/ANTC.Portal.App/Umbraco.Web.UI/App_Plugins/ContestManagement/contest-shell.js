@@ -1,5 +1,5 @@
 import { UmbControllerBase } from '@umbraco-cms/backoffice/class-api';
-import './contest-theme.js?v=1.15.7';
+import './contest-theme.js?v=1.15.8';
 
 // The section context owns these shell tokens and releases them on navigation.
 // Native Umbraco navigation, search and permissions remain in control of the shell.
@@ -12,7 +12,7 @@ export default class ContestShell extends UmbControllerBase {
                 --umb-header-background-color:#0B3B3A;
                 --uui-color-header-surface:#0B3B3A; --uui-color-header-background:#0B3B3A;
                 --uui-color-header-contrast:#DFEEEB; --uui-color-header-contrast-emphasis:#fff;
-                --uui-font-family:'Be Vietnam Pro',system-ui,sans-serif;
+                --uui-font-family:'Roboto',Arial,sans-serif;
                 --uui-color-selected:#E3F4F1; --uui-color-selected-emphasis:#C7E9E3;
                 --uui-color-selected-contrast:#0A5E57;
                 --uui-color-current:#E3F4F1; --uui-color-current-emphasis:#C7E9E3;
