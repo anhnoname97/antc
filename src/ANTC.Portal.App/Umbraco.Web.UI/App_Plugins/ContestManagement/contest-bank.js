@@ -3,9 +3,9 @@ import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
-import { contestStyles } from './contest-theme.js?v=1.15.0';
-import { pageSizeSelect } from './contest-page-size.js';
-import { paginate } from './contest-pagination.js';
+import { contestStyles } from './contest-theme.js?v=1.15.7';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.7';
+import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.7';
 
 const API = '/api/v1/admin/quiz';
 const PHRASE = 'XÁC NHẬN NHẬP NGÂN HÀNG';
@@ -21,7 +21,7 @@ export class ContestBankView extends UmbLitElement {
     constructor() {
         super(); this._busy = true; this._error = ''; this._message = ''; this._tab = 'bank';
         this._history = null; this._preview = null; this._file = null; this._phrase = '';
-        this._historyPage = 1; this._historySize = 50; this._detail = null; this._pagination = {};
+        this._historyPage = 1; this._historySize = DEFAULT_PAGE_SIZE; this._detail = null; this._pagination = {};
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._run(() => this._load()); } });
     }
     async _request(path, options = {}, retry = true) {
@@ -82,7 +82,7 @@ export class ContestBankView extends UmbLitElement {
         });
     }
     _slice(items, key) {
-        const p = paginate(items, this._pagination[key], 50);
+        const p = paginate(items, this._pagination[key]);
         const move = page => { this._pagination = { ...this._pagination, [key]: { page, size: p.size } }; };
         return { ...p, controls: p.total ? html`<nav class="pager" aria-label=${`Phân trang ${key}`}>${pageSizeSelect(p.size, size => { this._pagination = { ...this._pagination, [key]: { page: 1, size } }; }, this._busy, `Số dòng ${key}`)}<button ?disabled=${this._busy || p.page <= 1} @click=${() => move(p.page - 1)}>← Trước</button><span>${p.start}–${p.end} / ${p.total} · Trang ${p.page}/${p.pages}</span><button ?disabled=${this._busy || p.page >= p.pages} @click=${() => move(p.page + 1)}>Sau →</button></nav>` : nothing };
     }

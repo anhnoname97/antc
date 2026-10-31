@@ -68,7 +68,7 @@ public sealed class ContestBackofficeAssetsTests
         using var manifest=JsonDocument.Parse(File.ReadAllText(Path.Combine(plugin,"umbraco-package.json")));
         var menus=manifest.RootElement.GetProperty("extensions").EnumerateArray().Where(e=>e.GetProperty("type").GetString()=="menuItem").ToArray();
         Assert.Single(menus,e=>e.GetProperty("alias").GetString()=="Antc.MenuItem.ContestManagement.EntriesReport");
-        Assert.Single(menus,e=>e.GetProperty("alias").GetString()=="Antc.MenuItem.ContestManagement.Draws");
+        Assert.DoesNotContain(menus,e=>e.GetProperty("alias").GetString()=="Antc.MenuItem.ContestManagement.Draws");
         string script=File.ReadAllText(Path.Combine(plugin,"contest-management.js"));
         Assert.Contains("<antc-contest-entries-report-view embedded>",script);
         Assert.Contains("<antc-contest-draws-view embedded>",script);

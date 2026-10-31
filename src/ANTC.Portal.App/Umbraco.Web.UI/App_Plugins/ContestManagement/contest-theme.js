@@ -5,7 +5,7 @@ import { unsafeCSS } from '@umbraco-cms/backoffice/external/lit';
 if (!document.querySelector('link[data-contest-admin-font]')) {
   const fonts = document.createElement('link');
   fonts.rel = 'stylesheet';
-  fonts.href = '/App_Plugins/ContestManagement/contest-fonts.css?v=1.15.0';
+  fonts.href = '/App_Plugins/ContestManagement/contest-fonts.css?v=1.15.7';
   fonts.dataset.contestAdminFont = '';
   document.head.append(fonts);
 }
@@ -89,7 +89,39 @@ select{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2314233B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;background-size:16px;
 }
-@media(forced-colors:active){select{appearance:auto;background-image:none}}
+/* Style native pickers without replacing form controls or their change events.
+   Browsers without customizable selects retain the existing native picker. */
+@supports (appearance:base-select){
+  select:not([multiple]):not([size]),select:not([multiple]):not([size])::picker(select){appearance:base-select}
+  select:not([multiple]):not([size]){background-image:none;padding-inline-end:12px;gap:8px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  select:not([multiple]):not([size]):disabled{cursor:not-allowed}
+  select:not([multiple]):not([size])::picker-icon{content:'';width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);flex-shrink:0;margin-inline-start:auto;color:var(--cm-muted)}
+  select:not([multiple]):not([size]):open::picker-icon{transform:translateY(2px) rotate(225deg);color:var(--cm-accent)}
+  select:not([multiple]):not([size]):open{border-color:var(--cm-accent);box-shadow:0 0 0 3px #0e7c721a}
+  select:not([multiple]):not([size])::picker(select){
+    box-sizing:border-box;min-inline-size:anchor-size(self-inline);inline-size:max-content;
+    max-inline-size:min(560px,calc(100vw - 24px));max-block-size:min(320px,50dvh);
+    margin-block:5px;padding:6px;border:1px solid var(--cm-border);border-radius:12px;
+    background:var(--cm-surface);color:var(--cm-text);font:inherit;
+    box-shadow:0 12px 32px #14233b24,0 2px 8px #14233b0d;
+    overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c5d4d1 transparent;
+  }
+  select:not([multiple]):not([size]) option{
+    display:flex;align-items:center;gap:12px;min-block-size:36px;padding:8px 12px;
+    border:0;border-radius:7px;background:var(--cm-surface);color:var(--cm-text);
+    font:inherit;line-height:1.5;white-space:normal;overflow-wrap:anywhere;cursor:pointer;
+  }
+  select:not([multiple]):not([size]) option+option{margin-block-start:2px}
+  select:not([multiple]):not([size]) option:checked{background:var(--cm-accent-soft);color:var(--cm-accent-text);font-weight:600}
+  select:not([multiple]):not([size]) option:hover,select:not([multiple]):not([size]) option:focus{background:#eef5f3;outline:none}
+  select:not([multiple]):not([size]) option:checked:hover,select:not([multiple]):not([size]) option:checked:focus{background:#c7e9e3}
+  select:not([multiple]):not([size]) option::checkmark{order:1;margin-inline-start:auto;flex-shrink:0;color:var(--cm-accent);font-weight:700}
+  select:not([multiple]):not([size]) option:disabled{color:var(--cm-muted);opacity:.55;cursor:not-allowed}
+}
+@media(forced-colors:active){
+  select{appearance:auto;background-image:none}
+  select:not([multiple]):not([size]),select:not([multiple]):not([size])::picker(select){appearance:auto}
+}
 input::placeholder,textarea::placeholder{color:var(--cm-muted);font-weight:400}
 input:hover:not(:disabled):not([readonly]),select:hover:not(:disabled),textarea:hover:not(:disabled){border-color:#a5a7b3}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cm-accent);box-shadow:0 0 0 3px #14233b22}
@@ -253,6 +285,41 @@ details.editor-section{border:1px solid var(--cm-border);border-radius:14px;back
 @media(max-width:1200px){.question-workspace{grid-template-columns:minmax(0,1fr) 280px}.campaign-editor-body{grid-template-columns:160px minmax(0,1fr);gap:16px;padding-inline:24px}.contest-prize-option{grid-template-columns:minmax(0,1fr) 80px}.contest-prize-option>label:nth-of-type(3){grid-column:1/-1}.dashboard-banner{grid-template-columns:1fr}}
 @media(max-width:1000px){.question-workspace{grid-template-columns:1fr}.question-preview{position:static}.draw-workspace,.dashboard-panels{grid-template-columns:1fr}dialog.campaign-editor{width:100vw}.page{padding-inline:20px}}
 @media(max-width:760px){.page{padding:0 16px 24px}.campaign-editor-body{grid-template-columns:1fr;padding:0 16px 20px}.editor-nav{position:static;display:flex;overflow:auto;border-radius:10px;gap:4px}.editor-nav button{flex-shrink:0}.editor-section{padding:18px;scroll-margin-top:160px}.editor-lock-note{margin-inline:16px}.campaign-editor form>header{padding:16px}.campaign-editor header h2{font-size:20px}.campaign-editor form>footer{padding:14px 16px;flex-wrap:wrap}.editor-save-status{flex-basis:100%}.list-heading{align-items:flex-start}.list-heading p{max-width:60%}.schedule-card{padding:16px}.dashboard-banner{padding:20px}.dashboard-banner h2{font-size:20px}.dashboard-banner .actions{flex-wrap:wrap}.status-tabs{gap:4px}.status-tabs button{font-size:11px;padding:7px}.draw-workspace .draw-fields{grid-template-columns:1fr}}
+/* Compact page rhythm; keep control sizes and editor form spacing intact. */
+.page-heading{padding:16px 0 12px;gap:16px}
+.page-heading h1{margin-bottom:6px}.page-heading .eyebrow{margin-bottom:4px}
+.toolbar{gap:12px;margin-bottom:12px;padding-bottom:0}
+.toolbar>.actions{margin:0}
+.tabs{gap:16px}.tabs button{padding:8px 2px}
+.box,section,.report-panel{padding:16px;margin-bottom:14px}
+.filter-panel{padding:16px 16px 0;margin-bottom:14px}
+.advanced-search{margin-bottom:12px}
+.metrics{gap:12px;margin-bottom:14px}
+.dashboard-panels{gap:14px;margin-bottom:14px}
+.draw-workspace{gap:16px;margin-bottom:14px}
+.list-heading{margin-bottom:14px}
+.summary{margin:14px 0 10px}.pager{margin-top:12px}
+th,td{padding:12px 14px}
+/* Match the contest list's nested header and calendar to the other compact pages. */
+:host(antc-contest-view) .page-heading{padding-bottom:4px}
+:host(antc-contest-view) .page-heading h1{margin-bottom:0}
+:host(antc-contest-table) .list-heading{align-items:flex-start;gap:10px;margin-bottom:10px}
+:host(antc-contest-table) .list-heading p{padding-top:4px}
+.schedule-card{padding:12px 16px;margin-bottom:10px}
+.schedule-card .panel-heading{margin-bottom:8px}
+.schedule-card h2{font-size:16px}
+.schedule-months{padding-bottom:6px}
+.schedule-track{margin-bottom:14px}
+.schedule-bar{height:28px;min-height:28px;padding:4px 8px}
+.campaign-list-tools{margin-bottom:8px}
+.campaign-list .summary{margin:8px 0}
+.campaign-list th,.campaign-list td{padding:10px 14px}
+.campaign-name{min-height:0;line-height:1.5}
+.campaign-list .pager{margin-top:10px}
+.campaign-dates{display:grid;gap:0;justify-items:center;width:max-content;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}
+.campaign-dates time{display:block;line-height:1.5}
+.campaign-date-arrow{color:var(--cm-muted);font-family:system-ui,sans-serif;font-size:14px;line-height:12px}
+@media(max-width:760px){.page-heading{padding:14px 0 10px}.toolbar{gap:10px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(forced-colors:active){button,input,select,textarea,.badge,.answer{border:1px solid ButtonText}button:focus-visible{outline:2px solid Highlight}}
 `;

@@ -1,25 +1,27 @@
+import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.7';
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { UmbLitElement } from "@umbraco-cms/backoffice/lit-element";
 import { css, html } from "@umbraco-cms/backoffice/external/lit";
-import { contestStyles, contestStylesText } from './contest-theme.js?v=1.15.0';
+import { contestStyles, contestStylesText } from './contest-theme.js?v=1.15.7';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
-import './contest-reports.js?v=1.15.0';
-import './contest-draws.js?v=1.15.0';
-import { ContestBankView } from './contest-bank.js?v=1.15.0';
-import { campaignState, scheduleMarkup, loadCampaigns } from './contest-layout.js?v=1.15.0';
-import { arrangeCampaignEditor } from './contest-editor.js?v=1.15.0';
+import './contest-reports.js?v=1.15.7';
+import './contest-draws.js?v=1.15.7';
+import { ContestBankView } from './contest-bank.js?v=1.15.7';
+import { campaignState, scheduleMarkup, loadCampaigns } from './contest-layout.js?v=1.15.7';
+import { arrangeCampaignEditor } from './contest-editor.js?v=1.15.7';
 
 const API = "/api/v1/admin/quiz";
 const CONTEST_API = "/api/v1/admin/contest";
 const keys = ["A", "B", "C", "D"];
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
 const formatDate = (v) => v ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(v)) : "—";
+const formatContestDate = (v) => v ? new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(v)) : "—";
 const lines = (v) => String(v || "").split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-const pager = (r) => `<div class="pager"><label class="page-size">Số dòng<select data-page-size aria-label="Số dòng mỗi trang">${[10, 50, 100].map(n => `<option value="${n}" ${(r?.pageSize || 50) === n ? "selected" : ""}>${n}</option>`).join("")}</select></label><button data-prev ${!r || r.page <= 1 ? "disabled" : ""}>← Trước</button><span>Trang ${r?.page || 1}/${Math.max(1, r?.totalPages || 1)}</span><button data-next ${!r || r.page >= r.totalPages ? "disabled" : ""}>Sau →</button></div>`;
+const pager = (r) => `<div class="pager"><label class="page-size">Số dòng<select data-page-size aria-label="Số dòng mỗi trang">${[10, 50, 100].map(n => `<option value="${n}" ${(r?.pageSize || DEFAULT_PAGE_SIZE) === n ? "selected" : ""}>${n}</option>`).join("")}</select></label><button data-prev ${!r || r.page <= 1 ? "disabled" : ""}>← Trước</button><span>Trang ${r?.page || 1}/${Math.max(1, r?.totalPages || 1)}</span><button data-next ${!r || r.page >= r.totalPages ? "disabled" : ""}>Sau →</button></div>`;
 
 class AdminPage extends UmbElementMixin(HTMLElement) {
-  constructor(title) { super(); this.title = title; this.page = 1; this.pageSize = 50; this.loading = false; this.message = ""; this.error = ""; this.attachShadow({ mode: "open" }); }
+  constructor(title) { super(); this.title = title; this.page = 1; this.pageSize = DEFAULT_PAGE_SIZE; this.loading = false; this.message = ""; this.error = ""; this.attachShadow({ mode: "open" }); }
   async connectedCallback() {
     super.connectedCallback?.();
     this.loading = true;
@@ -120,7 +122,7 @@ class TopicsPage extends AdminPage {
 }
 
 class QuestionsPage extends AdminPage {
-  constructor() { super("Câu hỏi"); this.search = ""; this.topicId = ""; this.status = ""; this.topics = []; this.pageSize = 50; }
+  constructor() { super("Câu hỏi"); this.search = ""; this.topicId = ""; this.status = ""; this.topics = []; this.pageSize = DEFAULT_PAGE_SIZE; }
   async request(path, options = {}) {
     const result = await super.request(path, options);
     if (['POST', 'PUT', 'DELETE'].includes(options.method))
@@ -187,7 +189,7 @@ class ContestPage extends AdminPage {
     const rows = (this.result?.items || []).map(x => {
       const state = campaignState(x, now);
       const progress = Math.max(0, Math.min(100, 100 * (now - Date.parse(x.startAt)) / (Date.parse(x.endAt) - Date.parse(x.startAt))));
-      return `<tr><td><button class="campaign-name" data-open-campaign="${x.id}"><span class="mono">#${x.id}</span><strong>${esc(x.name)}</strong></button><small class="block">${esc(x.description || "")}</small></td><td class="nowrap">${formatDate(x.startAt)}<br><span class="muted">→ ${formatDate(x.endAt)}</span>${state.key === 'live' ? `<div class="schedule-progress"><span style="width:${progress}%"></span></div>` : ''}</td><td>${x.topicCount} chuyên đề<small class="block">${x.questionCount} câu hỏi · ${x.maxAttempts === 0 ? "Không giới hạn lượt" : `${x.maxAttempts} lượt/người`}</small></td><td><strong>${x.entryCount}</strong></td><td><span class="badge ${state.color}">${state.label}</span></td><td class="actions"><button data-edit-campaign="${x.id}">Mở</button><button class="danger ghost" data-delete-campaign="${x.id}" ${x.entryCount || Date.parse(x.startAt) <= now ? 'disabled title="Cuộc thi đã bắt đầu hoặc có lượt thi, không thể xóa"' : ''}>Xóa</button></td></tr>`;
+      return `<tr><td><button class="campaign-name" data-open-campaign="${x.id}"><span class="mono">#${x.id}</span><strong>${esc(x.name)}</strong></button><small class="block">${esc(x.description || "")}</small></td><td class="nowrap"><div class="campaign-dates"><time datetime="${esc(x.startAt)}" aria-label="Bắt đầu: ${formatContestDate(x.startAt)}">${formatContestDate(x.startAt)}</time><span class="campaign-date-arrow" aria-hidden="true">↓</span><time class="muted" datetime="${esc(x.endAt)}" aria-label="Kết thúc: ${formatContestDate(x.endAt)}">${formatContestDate(x.endAt)}</time></div>${state.key === 'live' ? `<div class="schedule-progress"><span style="width:${progress}%"></span></div>` : ''}</td><td>${x.topicCount} chuyên đề<small class="block">${x.questionCount} câu hỏi · ${x.maxAttempts === 0 ? "Không giới hạn lượt" : `${x.maxAttempts} lượt/người`}</small></td><td><strong>${x.entryCount}</strong></td><td><span class="badge ${state.color}">${state.label}</span></td><td class="actions"><button data-edit-campaign="${x.id}">Mở</button><button class="danger ghost" data-delete-campaign="${x.id}" ${x.entryCount || Date.parse(x.startAt) <= now ? 'disabled title="Cuộc thi đã bắt đầu hoặc có lượt thi, không thể xóa"' : ''}>Xóa</button></td></tr>`;
     }).join("");
     const headers = "<th>Cuộc thi</th><th>Thời gian</th><th>Bộ đề</th><th>Lượt dự thi</th><th>Trạng thái</th><th>Thao tác</th>";
     const tabs = [['', 'Tất cả'], ['live', 'Đang diễn ra'], ['upcoming', 'Sắp diễn ra'], ['ended', 'Đã kết thúc'], ['inactive', 'Ngừng dùng']].map(([key,label]) => `<button type="button" data-state="${key}" aria-pressed="${this.state === key}" class="${this.state === key ? 'primary' : ''}">${label}<span>${this.campaigns.filter(c => !key || campaignState(c).key === key).length}</span></button>`).join('');

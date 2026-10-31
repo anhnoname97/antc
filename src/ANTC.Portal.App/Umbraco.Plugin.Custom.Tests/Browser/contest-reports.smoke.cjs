@@ -28,6 +28,11 @@ const path = require('node:path');
                 if (await select.isVisible()) assert.deepEqual(await select.locator('option').evaluateAll(options => options.map(o => o.value)), ['10', '50', '100']);
             }
         };
+        const verifyDefaultPageSize = async view => {
+            for (const select of await view.locator('.pager select,.local-pager select').all()) {
+                if (await select.isVisible()) assert.equal(await select.inputValue(), '10', 'New lists must start with 10 rows per page');
+            }
+        };
         const initial = await page.goto(root + 'dashboard');
         assert.ok(initial.ok(), `Backoffice HTML failed (${initial.status()}): ${(await page.locator('body').innerText()).slice(0, 6000)}`);
         await page.locator('input[name="username"]').fill('admin-test@example.invalid', { timeout: 30000 });
@@ -44,6 +49,7 @@ const path = require('node:path');
         assert.equal(await dashboard.locator('.metrics article').count(), 5);
         await verifyLayout(dashboard);
         await verifyPageSizes(dashboard);
+        await verifyDefaultPageSize(dashboard);
         await screenshot('dashboard');
         // Navigate through the sidebar in the same document: page.goto hides SPA routing failures.
         const navigationMarker = await page.evaluate(() => window.__contestNavigationMarker = crypto.randomUUID());
@@ -51,7 +57,6 @@ const path = require('node:path');
             ['Câu hỏi', 'antc-contest-questions-view'],
             ['Chuyên đề', 'antc-contest-topics-view'],
             ['Cuộc thi', 'antc-contest-view'],
-            ['Quay số', 'antc-contest-draws-view'],
             ['Giải thưởng', 'antc-contest-prizes-view'],
             ['Lượt thi', 'antc-contest-entries-report-view'],
             ['Thống kê câu hỏi', 'antc-contest-question-report-view'],
@@ -72,6 +77,7 @@ const path = require('node:path');
         await prizes.getByText('TEST-FIRST', { exact: true }).waitFor({ timeout: 30000 });
         await verifyLayout(prizes);
         await verifyPageSizes(prizes);
+        await verifyDefaultPageSize(prizes);
         await prizes.getByRole('button', { name: '+ Thêm giải thưởng', exact: true }).click();
         await prizes.locator('dialog[open]').waitFor();
         await prizes.getByRole('button', { name: 'Hủy', exact: true }).click();
@@ -86,8 +92,9 @@ const path = require('node:path');
         const entries = page.locator('antc-contest-entries-report-view');
         const code = process.env.ANTC_TEST_ENTRY_CODE;
         await entries.getByRole('button', { name: code, exact: true }).click({ timeout: 30000 });
+        await verifyDefaultPageSize(entries);
         const dialog = entries.locator('dialog'); await dialog.waitFor({ state: 'visible' });
-        assert.equal(await dialog.locator('[data-question-code]').count(), 200);
+        assert.equal(await dialog.locator('[data-question-code]').count(), await entries.evaluate(view => view._detail.topics.reduce((total, topic) => total + Math.min(10, topic.total), 0)));
         const topicDetails = dialog.locator('.entry-content details').first();
         const topicPager = topicDetails.locator('[data-pagination]');
         await topicPager.locator('select').selectOption('10');
@@ -168,8 +175,8 @@ const path = require('node:path');
         }
         await screenshot('question-statistics-answers');
         const questionPager = questionReport.locator('[data-pagination="questions"]');
-        assert.equal(await questionReport.locator('tbody tr').count(), 50);
-        assert.equal(await questionPager.locator('select').inputValue(), '50');
+        assert.equal(await questionReport.locator('tbody tr').count(), 10);
+        assert.equal(await questionPager.locator('select').inputValue(), '10');
         const firstQuestion = await questionReport.locator('tbody tr').first().innerText();
         await questionPager.getByRole('button', { name: 'Sau →', exact: true }).click();
         assert.notEqual(await questionReport.locator('tbody tr').first().innerText(), firstQuestion);
@@ -221,6 +228,7 @@ const path = require('node:path');
             const view = page.locator(tag);
             await view.locator(trigger).waitFor({ timeout: 30000 });
             await verifyPageSizes(view);
+            await verifyDefaultPageSize(view);
             for (const size of ['10', '100', '50']) {
                 await view.locator('[data-page-size]').selectOption(size);
                 await page.waitForFunction(({ view, size }) => !view.loading && view.result?.pageSize === Number(size), { view: await view.elementHandle(), size });
@@ -228,6 +236,11 @@ const path = require('node:path');
             await page.waitForFunction(tag => { const host = (function find(root) { for (const node of root.querySelectorAll('*')) { if (node.localName === tag) return node; if (node.shadowRoot) { const found = find(node.shadowRoot); if (found) return found; } } })(document); return host && !host.loading; }, tag);
             await verifyLayout(view);
             if (name === 'contest') {
+                const dates = view.locator('.campaign-dates').first();
+                assert.deepEqual(await dates.locator('time').allTextContents().then(values => values.map(value => /^\d{2}\/\d{2}\/\d{4}$/.test(value))), [true, true]);
+                const [startDate, endDate] = await dates.locator('time').evaluateAll(nodes => nodes.map(node => ({ left: node.getBoundingClientRect().left, width: node.getBoundingClientRect().width })));
+                assert.ok(Math.abs(startDate.left - endDate.left) <= 1, 'Start and end dates must align');
+                assert.ok(Math.abs(startDate.width - endDate.width) <= 1, 'Date digits must have equal widths');
                 await view.locator('[data-state="upcoming"]').click();
                 assert.equal(await view.locator('tbody .empty').count(), 1);
                 await view.locator('[data-state="ended"]').click();
@@ -379,7 +392,7 @@ const path = require('node:path');
                 await page.locator('antc-contest-view').getByRole('tab', { name: 'Quay số trúng thưởng', exact: true }).click();
                 await page.locator('antc-contest-draws-view .summary').filter({ hasText: `${initialDraws + 1} lần quay` }).waitFor({ timeout: 30000 });
                 assert.equal(await page.getByRole('link', { name: 'Lượt thi', exact: true }).count(), 1);
-                assert.equal(await page.getByRole('link', { name: 'Quay số', exact: true }).count(), 1);
+                assert.equal(await page.getByRole('link', { name: 'Quay số', exact: true }).count(), 0);
             }
         }
         await page.setViewportSize({ width: 900, height: 900 });

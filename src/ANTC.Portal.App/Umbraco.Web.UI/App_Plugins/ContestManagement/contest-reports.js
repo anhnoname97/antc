@@ -1,9 +1,9 @@
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { css, html, nothing } from '@umbraco-cms/backoffice/external/lit';
-import { contestStyles } from './contest-theme.js?v=1.15.0';
-import { pageSizeSelect } from './contest-page-size.js';
-import { paginate } from './contest-pagination.js';
-import { campaignState, loadCampaigns } from './contest-layout.js?v=1.15.0';
+import { contestStyles } from './contest-theme.js?v=1.15.7';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.7';
+import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.7';
+import { campaignState, loadCampaigns } from './contest-layout.js?v=1.15.7';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
@@ -23,7 +23,7 @@ export class ContestReportsView extends UmbLitElement {
         _pagination: { state: true }, _campaigns: { state: true }, _hardQuestions: { state: true },
     };
     constructor(view = 'dashboard') {
-        super(); this.view = view; this.filters = { sort: 'created_desc', page: '1', pageSize: '50' };
+        super(); this.view = view; this.filters = { sort: 'created_desc', page: '1', pageSize: String(DEFAULT_PAGE_SIZE) };
         this._options = { contests: [], topics: [] }; this._busy = true; this._error = ''; this._message = '';
         this._data = null; this._detail = null; this._state = null; this._draws = []; this._selected = []; this._sequence = 0; this._pagination = {}; this._campaigns = []; this._hardQuestions = [];
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._load(); } });
@@ -81,10 +81,10 @@ export class ContestReportsView extends UmbLitElement {
     _filter(event) {
         event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget));
         if ((values.contestId || '') !== (this.filters.contestId || '')) delete values.topicId;
-        this.filters = { ...values, page: '1', pageSize: this.filters.pageSize || '50' }; this._load();
+        this.filters = { ...values, page: '1', pageSize: this.filters.pageSize || String(DEFAULT_PAGE_SIZE) }; this._load();
     }
     _page(delta) { this.filters.page = String(Number(this.filters.page || 1) + delta); this._load(); }
-    _slice(items, key, defaultSize = 50) { return paginate(items, this._pagination[key], defaultSize); }
+    _slice(items, key, defaultSize = DEFAULT_PAGE_SIZE) { return paginate(items, this._pagination[key], defaultSize); }
     _localPage(key, page, size) { this._pagination = { ...this._pagination, [key]: { page, size } }; }
     _pager(key, p, label) {
         return html`<nav class="local-pager" aria-label=${`Phân trang ${label}`} data-pagination=${key}>
@@ -164,7 +164,7 @@ export class ContestReportsView extends UmbLitElement {
                 `}
                 `}
             </div><div class="actions"><button class="primary" ?disabled=${this._busy}>${this.view === 'publication' ? 'Mở cuộc thi' : 'Lọc dữ liệu'}</button>
-            <button type="button" ?disabled=${this._busy} @click=${event => { event.currentTarget.form?.reset(); this.filters = { sort: 'created_desc', page: '1', pageSize: '50' }; this._load(); }}>Đặt lại</button></div>
+            <button type="button" ?disabled=${this._busy} @click=${event => { event.currentTarget.form?.reset(); this.filters = { sort: 'created_desc', page: '1', pageSize: String(DEFAULT_PAGE_SIZE) }; this._load(); }}>Đặt lại</button></div>
         </form></details>`;
     }
     _dashboard() {
@@ -181,11 +181,11 @@ export class ContestReportsView extends UmbLitElement {
     }
     _entries() {
         const d = this._data;
-        return html`<div class="actions"><span>${d.total} lượt — ${d.pageSize || 50} dòng mỗi trang</span><button ?disabled=${this._busy} @click=${() => this._export('entries')}>Xuất danh sách CSV</button><button ?disabled=${this._busy} @click=${() => this._export('answers')}>Xuất đáp án CSV</button></div>
+        return html`<div class="actions"><span>${d.total} lượt — ${d.pageSize || DEFAULT_PAGE_SIZE} dòng mỗi trang</span><button ?disabled=${this._busy} @click=${() => this._export('entries')}>Xuất danh sách CSV</button><button ?disabled=${this._busy} @click=${() => this._export('answers')}>Xuất đáp án CSV</button></div>
             <div class="scroll"><table><thead><tr><th>Mã dự thi</th><th>Họ tên</th><th>Điện thoại</th><th>Đơn vị</th><th>Chế độ</th><th>Lượt thứ</th><th>Trạng thái</th><th>Đã làm</th><th>Đúng / điểm</th><th>Tạo lúc</th><th>Nộp lúc</th></tr></thead><tbody>
                 ${d.items.map(e => html`<tr><td><button class="link" ?disabled=${this._busy} @click=${event => this._open(e.id, event.currentTarget)}>${e.code}</button></td><td>${e.fullName || '—'}</td><td>${e.phone || '—'}</td><td>${e.org || '—'}</td><td><span class="badge neutral">${mode(e.mode)}</span></td><td>${e.attemptNo ?? '—'}</td><td><span class=${`badge ${e.status === 'submitted' ? 'on' : 'off'}`}>${status(e.status)}</span></td><td>${e.answered}</td><td><strong>${e.correct}</strong></td><td class="nowrap">${date(e.createdAt)}</td><td class="nowrap">${date(e.submittedAt)}</td></tr>`)}
             </tbody></table></div>${!d.items.length ? html`<p>Không có lượt thi phù hợp.</p>` : nothing}
-            <div class="actions pager">${pageSizeSelect(d.pageSize || 50, size => { this.filters.pageSize = String(size); this.filters.page = '1'; this._load(); }, this._busy, 'Số dòng lượt thi')}<button ?disabled=${this._busy || d.page <= 1} @click=${() => this._page(-1)}>← Trước</button><span>Trang ${d.page} / ${Math.max(1, d.pages)}</span><button ?disabled=${this._busy || d.page >= d.pages} @click=${() => this._page(1)}>Sau →</button></div>`;
+            <div class="actions pager">${pageSizeSelect(d.pageSize || DEFAULT_PAGE_SIZE, size => { this.filters.pageSize = String(size); this.filters.page = '1'; this._load(); }, this._busy, 'Số dòng lượt thi')}<button ?disabled=${this._busy || d.page <= 1} @click=${() => this._page(-1)}>← Trước</button><span>Trang ${d.page} / ${Math.max(1, d.pages)}</span><button ?disabled=${this._busy || d.page >= d.pages} @click=${() => this._page(1)}>Sau →</button></div>`;
     }
     _questions() {
         const questions = this._slice(this._data, 'questions');

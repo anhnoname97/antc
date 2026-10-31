@@ -3,9 +3,9 @@ import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
-import { contestStyles } from './contest-theme.js?v=1.15.0';
-import { pageSizeSelect } from './contest-page-size.js';
-import { paginate } from './contest-pagination.js';
+import { contestStyles } from './contest-theme.js?v=1.15.7';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.7';
+import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.7';
 
 const API = '/umbraco/management/api/v1/antc/contest-draws';
 const date = value => value ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(value)) : '—';
@@ -26,7 +26,7 @@ export class ContestDrawsView extends UmbLitElement {
         this._contestId = ''; this._minScore = ''; this._count = '1'; this._note = ''; this._exclude = true;
         this._prizes = []; this._prizeId = '';
         this._page = 1; this._search = ''; this._winnerPage = 1; this._scorePage = 1; this._invalidate();
-        this._historySize = 50; this._candidateSize = 50; this._scoreSize = 50; this._winnerSize = 50;
+        this._historySize = DEFAULT_PAGE_SIZE; this._candidateSize = DEFAULT_PAGE_SIZE; this._scoreSize = DEFAULT_PAGE_SIZE; this._winnerSize = DEFAULT_PAGE_SIZE;
         this._spinning = false; this._countdown = 0; this._celebrate = false;
         this.consumeContext(UMB_AUTH_CONTEXT, auth => { if (auth && !this._auth) { this._auth = auth; this._load(); } });
     }
@@ -157,7 +157,7 @@ export class ContestDrawsView extends UmbLitElement {
     }
     _previewView() {
         const p = this._previewData, max = Math.max(1, ...p.scores.map(s => s.count));
-        const scores = paginate(p.scores, { page: this._scorePage, size: this._scoreSize }, 50);
+        const scores = paginate(p.scores, { page: this._scorePage, size: this._scoreSize });
         const candidates = p.candidates;
         return html`<div class="draw-preview" role="status"><strong>${p.eligibleCount} người đủ điều kiện</strong><p class="muted">${p.totalCandidates} số điện thoại sau khi gộp và loại người đã trúng · Điểm cao nhất: ${p.suggestedMinScore}. Đây là số liệu xem trước; tập đủ điều kiện được tính lại khi quay.</p>
             ${Number(this._count) > p.eligibleCount ? html`<p class="error">Yêu cầu ${this._count} người trúng nhưng chỉ có ${p.eligibleCount} người đủ điều kiện.</p>` : nothing}
@@ -169,7 +169,7 @@ export class ContestDrawsView extends UmbLitElement {
     }
     _resultView() {
         const d = this._result; if (!d) return nothing;
-        const p = paginate(d.winners, { page: this._winnerPage, size: this._winnerSize }, 50);
+        const p = paginate(d.winners, { page: this._winnerPage, size: this._winnerSize });
         return html`<section id="draw-result" aria-label="Kết quả quay số">
             ${this._celebrate ? html`<div class="draw-celebration" role="status"><div class="draw-confetti" aria-hidden="true">${Array.from({ length: 28 }, (_, i) => html`<i style=${`--i:${i};--x:${(i * 37) % 100}%;--h:${(i * 47) % 360}`}></i>`)}</div><span aria-hidden="true">✦</span><strong>Chúc mừng ${d.winners.length} người trúng giải!</strong><p>Kết quả chính thức đã được máy chủ lưu.</p></div>` : nothing}
             <div class="panel-heading"><div><div class="eyebrow">Kết quả quay #${d.id}</div><h2>${d.prizeName || d.note || 'Danh sách trúng giải'}</h2><p class="muted">${d.contestName || 'Dữ liệu cũ'} · ${date(d.createdAt)} · ${d.winners.length}/${d.eligibleCount} người</p></div><button class="presentation-button" @click=${async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await this.renderRoot.querySelector('#draw-result').requestFullscreen(); } catch { this._error = 'Trình duyệt không hỗ trợ toàn màn hình. Bạn có thể dùng phím F11.'; } }}>Trình chiếu / thoát</button></div>
