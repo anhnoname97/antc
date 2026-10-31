@@ -9,6 +9,30 @@ const labels = {
     'History': 'Lịch sử', 'Child items': 'Mục con'
 };
 
+// Toolbar labels are literal manifest strings, so localization dictionaries
+// alone cannot translate them. Keep commands, icons and extension APIs intact.
+const toolbarLabels = {
+    'Umb.Tiptap.Toolbar.Unlink': 'Bỏ liên kết',
+    'Umb.Tiptap.Toolbar.Underline': 'Gạch chân',
+    'Umb.Tiptap.Toolbar.TextAlignLeft': 'Căn trái',
+    'Umb.Tiptap.Toolbar.TextAlignCenter': 'Căn giữa',
+    'Umb.Tiptap.Toolbar.TextAlignRight': 'Căn phải',
+    'Umb.Tiptap.Toolbar.TextAlignJustify': 'Căn đều hai bên',
+    'Umb.Tiptap.Toolbar.OrderedList': 'Danh sách đánh số',
+    'Umb.Tiptap.Toolbar.Blockquote': 'Trích dẫn',
+    'Umb.Tiptap.Toolbar.HorizontalRule': 'Đường phân cách',
+    'Umb.Tiptap.Toolbar.Strike': 'Gạch ngang',
+    'Umb.Tiptap.Toolbar.Subscript': 'Chỉ số dưới',
+    'Umb.Tiptap.Toolbar.Superscript': 'Chỉ số trên',
+    'Umb.Tiptap.Toolbar.Table': 'Bảng',
+    'Umb.Tiptap.Toolbar.Heading1': 'Tiêu đề cấp 1',
+    'Umb.Tiptap.Toolbar.Heading2': 'Tiêu đề cấp 2',
+    'Umb.Tiptap.Toolbar.Heading3': 'Tiêu đề cấp 3',
+    'Umb.Tiptap.Toolbar.Heading4': 'Tiêu đề cấp 4',
+    'Umb.Tiptap.Toolbar.Heading5': 'Tiêu đề cấp 5',
+    'Umb.Tiptap.Toolbar.Heading6': 'Tiêu đề cấp 6',
+};
+
 export function onInit(_host, registry) {
     document.documentElement.style.setProperty('--umb-header-logo-width', '20px');
     document.documentElement.style.setProperty('--umb-header-logo-height', '20px');
@@ -24,8 +48,10 @@ export function onInit(_host, registry) {
     registry.extensions.subscribe(extensions => {
         for (const extension of extensions) {
             if (handled.has(extension.alias) || extension.alias.startsWith('Antc.')) continue;
-            if (!['menu', 'menuItem', 'dashboard', 'workspaceView', 'sectionSidebarApp', 'collectionView'].includes(extension.type)) continue;
-            const label = labels[extension.meta?.label];
+            if (!['menu', 'menuItem', 'dashboard', 'workspaceView', 'sectionSidebarApp', 'collectionView', 'tiptapToolbarExtension'].includes(extension.type)) continue;
+            const label = extension.type === 'tiptapToolbarExtension'
+                ? toolbarLabels[extension.alias]
+                : labels[extension.meta?.label];
             if (!label) continue;
             handled.add(extension.alias);
             registry.unregister(extension.alias);

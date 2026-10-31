@@ -22,6 +22,7 @@ public sealed class ArticleDetailPageModel(IPublishedContent content, ArticleDet
     ArticleNavigation navigation) : ArticlePageModel(content)
 {
     public ArticleDetail Article { get; } = article;
+    public bool CategoryIsPublished { get; init; } = true;
     public ArticleNavigation Navigation { get; } = navigation;
 }
 

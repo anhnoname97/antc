@@ -33,7 +33,10 @@ if (builder.Environment.IsDevelopment())
 builder.Configuration.AddEnvironmentVariables().AddCommandLine(args);
 builder.Services.AddWindowsService();
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
-    options.Filters.Add<BackofficeBrandingViewFilter>());
+{
+    options.Filters.Add<BackofficeBrandingViewFilter>();
+    options.Filters.Add<ArticlePropertyPermissionsFilter>();
+});
 builder.Services.AddAntcApiProtection(builder.Configuration);
 builder.Services.AddAdministrationIpAllowlist(builder.Configuration, builder.Environment);
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationMiddlewareResultHandler,

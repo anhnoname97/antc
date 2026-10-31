@@ -1,0 +1,21 @@
+.antc-article-notice {
+  margin-block: 24px;
+  padding: 20px 24px;
+  border: 1px solid var(--antc-ring, #b9e2db);
+  border-left: 4px solid var(--antc-primary, #0e7c72);
+  border-radius: 12px;
+  background: var(--antc-tint, #e3f4f1);
+  color: var(--antc-text, #1a2033);
+  overflow-wrap: anywhere;
+}
+.antc-article-notice h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 8px;
+  color: var(--antc-tint-text, #0a5e57);
+  font: inherit;
+  font-weight: 700;
+}
+.antc-article-notice h3::before { content: '\26A0'; }
+.antc-article-notice p { margin: 0; white-space: pre-line; line-height: 1.7; }
