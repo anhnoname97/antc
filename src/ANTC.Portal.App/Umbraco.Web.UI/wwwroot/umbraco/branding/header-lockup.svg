@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="36" viewBox="0 0 180 36" role="img" aria-labelledby="title">
+  <title id="title">An toàn tài chính — Trang quản trị</title>
+  <rect width="36" height="36" rx="10" fill="#fff"/>
+  <g transform="translate(8 8) scale(.833333)" fill="none" stroke="#0b3b3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2.8 19.5 5.6v6.1c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V5.6z"/>
+    <path d="m8.7 12 2.3 2.3 4.3-4.6"/>
+  </g>
+  <g font-family="Roboto, Arial, sans-serif">
+    <text x="46" y="15" fill="#fff" font-size="14" font-weight="700">An toàn tài chính</text>
+    <text x="46" y="30" fill="#e3f4f1" font-size="12">Trang quản trị</text>
+  </g>
+</svg>

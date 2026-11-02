@@ -6,6 +6,7 @@ import { UMB_VALIDATION_CONTEXT, extractJsonQueryProps } from '@umbraco-cms/back
 import { editorStyles } from './editor-styles.js?v=0.12.0';
 import './seo-preview.js?v=0.9.0';
 import './publication-info.js?v=0.9.0';
+import './body-resize.js';
 import { ANTC_ARTICLE_ACCESS_CONTEXT } from './property-access-context.js?v=0.9.0';
 import { ANTC_ARTICLE_COMPOSE_CONTEXT } from './field-description-context.js?v=0.11.0';
 
@@ -284,7 +285,11 @@ class AntcArticleEditor extends UmbLitElement {
   }
 
   _renderFields(aliases) {
-    return repeat(aliases, alias => alias, alias => html`<umb-content-workspace-property alias=${alias}></umb-content-workspace-property>`);
+    return repeat(aliases, alias => alias, alias => alias === 'body'
+      ? html`<antc-article-body-resize ?disabled=${!this._access?.writable.body}>
+          <umb-content-workspace-property alias="body"></umb-content-workspace-property>
+        </antc-article-body-resize>`
+      : html`<umb-content-workspace-property alias=${alias}></umb-content-workspace-property>`);
   }
 
   _renderSection(group) {
@@ -331,10 +336,6 @@ class AntcArticleEditor extends UmbLitElement {
     const extraAliases = this._extraAliases();
     return html`<div class="scroll-area"><div class="layout">
       <main class="paper" aria-label="Soạn bài viết">
-        <header class="intro">
-          <p class="eyebrow">BIÊN TẬP BÀI VIẾT</p>
-          <h2>${this._variant?.name || 'Bài viết mới'}</h2>
-        </header>
         ${this._renderTabs()}
         ${repeat(this._visibleTabs(), tab => tab.id, tab => html`<div class="compose-panel" role="tabpanel"
           id=${`compose-panel-${tab.id}`} aria-labelledby=${`compose-tab-${tab.id}`} tabindex="0"
