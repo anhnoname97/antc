@@ -319,3 +319,48 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: (1) làm các tính năng cần API mới ("Cần xử lý", "Hoạt động gần đây", "Chưa dùng ở đâu") trong đợt này, nhưng phải chốt contract (đường dẫn, JSON mẫu, mã lỗi theo QĐ-004) trước khi code. (2) Quyền chi tiết theo chức năng trong khu Cuộc thi (BO-25) để giai đoạn sau, có review bảo mật riêng; đợt này giữ kiểm quyền theo nhóm `quanTriCuocThi`. (3) Ô "Kiểm tra trước khi xuất bản" chặn xuất bản khi còn mục bắt buộc chưa đạt; vẫn cho lưu nháp.
 - Lý do: tránh làm API khi contract chưa rõ; đổi quyền có rủi ro bảo mật; bài thiếu thông tin không được đăng.
 - Ảnh hưởng: BO-25 ra khỏi đợt này; BO-19 phải chặn nút Xuất bản và giải thích mục còn thiếu.
+
+### QĐ-032 · Portal v2: chuyển sang cấu trúc 3 mục, bỏ Block Grid ở các trang chính
+
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: toàn bộ document type, view Razor, nội dung mẫu trong `uSync/v18`; `docs/ban-giao/PORTAL-V2/1-phan-tich-cau-hinh-umbraco.md` mục 4–7, 10
+- Vấn đề: đặc tả của khách (`docs/ban-dung-v2/Cấu trúc website theo hướng sau.docx` › 3. Sitemap) và bản dựng v2 dùng menu đúng 3 mục Khẩn cấp · Công cụ & checklist · Các rủi ro; Umbraco hiện có 22 loại trang theo cấu trúc cũ (Ứng phó, Thủ đoạn, Tham gia…), các trang chính chỉ có một trường `layout` kiểu Block Grid (`ContentTypes/home.config`, `thuDoanPage.config`…).
+- Quyết định: dựng lại cây nội dung và document type theo cấu trúc 3 mục và đường dẫn của đặc tả 3.3. Các trang chính dùng trường riêng theo từng khối của đặc tả, không dùng Block Grid. Trang Cuộc thi và Hỏi – Đáp giữ như hiện có.
+- Lý do: bố cục của đặc tả cố định; khách phàn nàn quản lý nội dung quá nhiều thao tác, nguyên nhân chính là Block Grid lồng khối (`docs/ban-giao/BACKOFFICE-UI/3-don-gian-hoa-quan-ly-noi-dung.md` mục 1).
+- Ảnh hưởng: bỏ `ungPhoPage`, `thuDoanPage`, `thamGiaPage`, `fraudContent` và phần lớn 72 loại khối (giữ file `<Empty … Change="Delete">` của uSync); chuyển 40 bài đang có sang loại mới; viết lại view; mockup backoffice phải vẽ lại cây nội dung.
+
+### QĐ-033 · Portal v2: logic và nhãn theo đúng đặc tả của khách, không theo 7 điều chỉnh của bản dựng
+
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: trình hỏi Khẩn cấp, 3 công cụ, trang cảnh báo; `1-phan-tich-cau-hinh-umbraco.md` mục 3.2, 6.4, 6.7, 6.10
+- Vấn đề: README bản dựng (`docs/ban-dung-v2/antoantaichinh-nguon/README.md` › "Điều chỉnh để giữ đúng đề cương 1.3") làm khác đặc tả ở 7 chỗ: nhãn mức độ, nhãn "An toàn tương đối", cách tính theo số dấu hiệu, "Có thể là", "Mức độ phổ biến", bước "gỡ ứng dụng lạ, quét thiết bị", bước "bật xác thực hai lớp".
+- Quyết định: làm theo đặc tả. Mức độ: Thường / Cao / Rất cao. Công cụ 1: An toàn tương đối (0 dấu hiệu) / Cần kiểm tra thêm (1) / Cần dừng lại (từ 2). Công cụ 2: Cần thẩm định kỹ / Rủi ro cao / Không nên tham gia. Kết quả trình hỏi ghi "Có thể là". Trang cảnh báo có "Mức độ phổ biến". Công cụ 3 dùng bảng hành động của đặc tả 6.3. Câu hỏi, lựa chọn của trình hỏi và công cụ dùng nguyên văn đặc tả 5.2–5.4, 6.1–6.3.
+- Lý do: đặc tả của khách là gốc cho bố cục và chức năng.
+- Ảnh hưởng: form công cụ có trường "Trả lời nào là dấu hiệu" thay cho "Loại câu Dừng/Hoãn"; form cảnh báo thêm trường Mức độ phổ biến. Câu chữ hành động ở công cụ 3 ("gỡ ứng dụng lạ, quét thiết bị", "bật xác thực hai lớp") README ghi là chưa qua thẩm định hoặc ngược quy trình đã thẩm định; đây là nội dung nhập trong CMS, cần Ban biên tập xác nhận trước khi xuất bản.
+
+### QĐ-034 · Quy tắc trình hỏi sửa bằng màn ma trận
+
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `wizardPage`, property editor mới trong `App_Plugins`; đặc tả 5.7, 11.2
+- Vấn đề: đặc tả yêu cầu bảng ánh xạ [kênh] + [yêu cầu] + [lời hứa/đe dọa] → mức độ, tình huống, dấu hiệu, hành động, bài viết, cập nhật được từ CMS; Umbraco không có sẵn trình chọn phù hợp.
+- Quyết định: viết property editor "Ma trận tình huống": hàng là tình huống, cột là các lựa chọn của 3 bước, ô đánh dấu; mỗi hàng có mức độ, dấu hiệu, việc cần làm, bài viết liên quan; có khung thử kết quả. Dữ liệu lưu là giá trị JSON của trang `wizardPage`, đi theo lưu nháp, xuất bản và lịch sử phiên bản của Umbraco.
+- Lý do: biên tập viên sửa quy tắc không cần nhớ mã.
+- Ảnh hưởng: thêm task riêng (khoảng 3–4 ngày), cần review riêng; phía máy chủ kiểm JSON hợp lệ khi xuất bản.
+
+### QĐ-035 · Phân quyền nội dung portal: hai nhóm Quản trị viên và Biên tập viên
+
+- Ngày: 2026-11-02 · Người xác nhận: anhnn (giao chọn phương án dễ dùng nhất) · Trạng thái: Hiệu lực
+- Phạm vi: nhóm người dùng Umbraco, quyền theo trang và theo trường; đặc tả 11.1
+- Vấn đề: đặc tả yêu cầu ít nhất 2 vai trò Admin và Content Editor; bản đề xuất có thêm nhóm Người duyệt.
+- Quyết định: hai nhóm. Biên tập viên tự xuất bản được nội dung hay đổi (cảnh báo, bài viết, checklist, hỏi đáp nhanh, thủ đoạn, câu chữ trên các trang), chỉ thấy các tab "hay sửa", không tạo hoặc xóa trang cố định, không sửa cài đặt website và ma trận trình hỏi. Quản trị viên toàn quyền. Ô "Kiểm tra trước khi xuất bản" (QĐ-031 khoản 3) thay cho bước duyệt. Nhóm `quanTriCuocThi` giữ nguyên, gán thêm cho người phụ trách cuộc thi.
+- Lý do: ít nhóm, ít bước, đúng mức tối thiểu của đặc tả.
+- Ảnh hưởng: cấu hình 2 user group, quyền theo trường cho `siteSettings`; không làm luồng gửi duyệt.
+
+### QĐ-036 · PDF checklist: LibreOffice sinh tự động, lùi về tệp tải lên khi hosting không cho cài
+
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `checklistPage`, V2-08b, V2-08c; đặc tả 5.5, 11.1, 11.3
+- Vấn đề: đặc tả cần nút "Tải checklist PDF" và "tải PDF hoặc in"; hạ tầng production chưa rõ, có thể chỉ là gói hosting không cho cài phần mềm.
+- Quyết định: (1) làm trước cách sinh PDF tự động: điền nội dung checklist vào mẫu `.docx` bằng OpenXML, chuyển sang PDF bằng LibreOffice chạy headless, sinh lúc xuất bản qua hàng đợi chạy nền (mỗi lần một tiến trình, có giới hạn thời gian), lưu theo phiên bản. (2) Nếu máy chủ không có LibreOffice thì dùng tệp PDF do biên tập viên tải lên. Chọn chế độ bằng cấu hình; không tìm thấy `soffice` thì tự chuyển sang chế độ tải lên và báo trong backoffice. (3) Bản in A4 luôn có, làm đường lùi cuối cùng và cho nút In.
+- Lý do: tệp luôn khớp nội dung, biên tập viên không phải làm PDF bằng tay; vẫn chạy được khi hạ tầng không cho cài.
+- Ảnh hưởng: thêm trường "Tệp PDF" ở `checklistPage`; thêm dịch vụ sinh PDF, mẫu `.docx`, font Be Vietnam Pro trên máy chủ; cần xác minh hạ tầng production trước khi triển khai.

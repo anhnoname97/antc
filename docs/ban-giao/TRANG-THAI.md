@@ -7,6 +7,7 @@
 
 ## Việc khác đang làm
 
+- **Portal v2 theo đặc tả 3 mục của khách** (từ 2026-11-02): đã chốt QĐ-032 → QĐ-036; danh mục cấu hình Umbraco, form và chia việc V2-00 → V2-13 ở `docs/ban-giao/PORTAL-V2/1-phan-tich-cau-hinh-umbraco.md`; mockup `PORTAL-V2/mockup-portal-v2.html`; danh mục chọn và chuẩn document type ở `PORTAL-V2/2-danh-muc-va-document-type.md` (chờ anhnn xác nhận mục 9). Hạ tầng production chưa rõ (V2-00). Còn mở: giá trị "Mức độ phổ biến", ngưỡng công cụ 2, giới hạn `.gov.vn` (mục 12). Việc tiếp theo: `/feature-design` cho V2-01.
 - **Làm mới giao diện backoffice** (từ 2026-10-27): review, mockup, chạy thử sửa core Umbraco. Trạng thái và việc tiếp theo xem `docs/ban-giao/BACKOFFICE-UI/0-tong-hop.md`.
 
 ## Tình hình
