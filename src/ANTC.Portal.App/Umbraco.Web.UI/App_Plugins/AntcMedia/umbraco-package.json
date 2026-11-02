@@ -1,0 +1,11 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "ANTC Media Library",
+  "version": "1.0.10",
+  "extensions": [{
+    "type": "appEntryPoint",
+    "alias": "Antc.EntryPoint.MediaLibrary",
+    "name": "Thư viện phương tiện ANTC",
+    "js": "/App_Plugins/AntcMedia/entrypoint.js?v=1.0.10"
+  }]
+}
