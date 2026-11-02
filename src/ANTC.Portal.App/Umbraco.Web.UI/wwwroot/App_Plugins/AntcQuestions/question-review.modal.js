@@ -55,7 +55,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
     _resetDraft() {
         this._draft = this._row
             ? { status: this._row.status, answer: this._row.answer || '', adminNote: this._row.adminNote || '',
-                guidanceLabel: this._row.guidanceLabel || '', guidanceUrl: this._row.guidanceUrl || '' }
+                guidanceLabel: this._row.guidanceLabel || '', guidanceUrl: this._row.guidanceUrl || '', assignedTo: this._row.assignedTo || '' }
             : { type: 'cau-hoi', content: '', answer: '', adminNote: '' };
         this._initialDraft = JSON.stringify(this._draft);
         this._fieldErrors = {};
@@ -185,7 +185,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                             ${this._fieldErrors.answer ? html`<span slot="description" class="field-error">${this._fieldErrors.answer}</span>` : nothing}
                         </umb-property-layout>
                         ${row ? html`
-                        <umb-property-layout orientation="vertical" label="Nhãn liên kết hướng dẫn" description=${row.type === 'cau-hoi'
+                        <umb-property-layout orientation="vertical" label="Nhãn liên kết hướng dẫn" description=${row.type !== 'gop-y'
                             ? 'Bắt buộc khi duyệt công bố câu hỏi. Ví dụ: Xem việc cần làm khi có tiền lạ chuyển vào.'
                             : 'Không bắt buộc cho góp ý. Nếu thêm liên kết, nhập cả nhãn và đường dẫn.'}>
                             <uui-input slot="editor" label="Nhãn liên kết hướng dẫn" maxlength="200" .value=${this._draft.guidanceLabel}
@@ -220,7 +220,7 @@ export class AntcQuestionReviewModal extends UmbModalBaseElement {
                         ?disabled=${this._busy} @click=${() => this._act('create')}>${this.data.sources?.length ? 'Tạo bản tổng hợp' : 'Tạo bản nháp'}</uui-button>`}
                 ${row && Object.hasOwn(types, row.type) ? html`<uui-button slot="actions" label="Duyệt và công bố" look="primary" color="positive" data-action="approve"
                     .state=${this._action === 'approve' ? 'waiting' : undefined}
-                    ?disabled=${this._busy || this._draft.answer.trim().length < 10 || row.type === 'cau-hoi' && (!this._draft.guidanceLabel.trim() || !this._draft.guidanceUrl.trim())}
+                    ?disabled=${this._busy || this._draft.answer.trim().length < 10 || row.type !== 'gop-y' && (!this._draft.guidanceLabel.trim() || !this._draft.guidanceUrl.trim())}
                     @click=${() => this._act('approve')}>Duyệt và công bố</uui-button>` : nothing}
             </umb-body-layout>
         `;

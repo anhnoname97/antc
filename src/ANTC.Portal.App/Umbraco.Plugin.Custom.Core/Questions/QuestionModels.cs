@@ -15,12 +15,14 @@ public static class QuestionValues
     };
     public static readonly IReadOnlyDictionary<string, string> Types = new Dictionary<string, string>
     {
-        ["cau-hoi"] = "Câu hỏi, kiến nghị", ["gop-y"] = "Góp ý"
+        ["cau-hoi"] = "Câu hỏi", ["gop-y"] = "Góp ý", ["kiennghi"] = "Kiến nghị"
     };
     public static readonly IReadOnlyDictionary<string, string> Statuses = new Dictionary<string, string>
     {
-        ["moi"] = "Mới", ["dang-xu-ly"] = "Đang xử lý", ["da-xu-ly"] = "Đã xử lý", ["bo-qua"] = "Bỏ qua"
+        ["moi"] = "Mới", ["dang-xu-ly"] = "Đang xử lý", ["cho-duyet"] = "Chờ duyệt",
+        ["da-xu-ly"] = "Đã xử lý", ["bo-qua"] = "Bỏ qua", ["luu-tru"] = "Lưu trữ"
     };
+    public static readonly string[] Inboxes = ["moi", "dang-xu-ly", "cho-duyet", "da-tra-loi", "da-cong-khai", "luu-tru"];
     public const int PageSize = 50;
     public static readonly TimeSpan VietnamOffset = TimeSpan.FromHours(7);
     public static DateTimeOffset AsUtc(DateTime value) => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
@@ -28,7 +30,7 @@ public static class QuestionValues
 
 public sealed record QuestionRegistration(string Type, string Content, bool WantReply, string? Contact);
 public sealed record QuestionFilter(string? Type = null, string? Status = null, DateOnly? From = null,
-    DateOnly? To = null, string? Search = null);
+    DateOnly? To = null, string? Search = null, string? Inbox = null);
 public sealed record QuestionPage(IReadOnlyList<QuestionRow> Items, int Total, int Page)
 {
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(Total / (double)QuestionValues.PageSize));
@@ -40,6 +42,9 @@ public sealed record QuestionRow(long Id, string Type, string Content, bool Want
     string Source = QuestionValues.PortalSource, string? CreatedBy = null,
     string? GuidanceLabel = null, string? GuidanceUrl = null, string? PublishedGuidanceLabel = null, string? PublishedGuidanceUrl = null)
 {
+    public string? AssignedTo { get; init; }
+    public string? AggregatedIntoTitle { get; init; }
+    public IReadOnlyDictionary<long, string> AggregatedSourceTitles { get; init; } = new Dictionary<long, string>();
     public long? AggregatedIntoId { get; init; }
     public IReadOnlyList<long> AggregatedSourceIds { get; init; } = [];
 
@@ -50,6 +55,7 @@ public sealed record QuestionRow(long Id, string Type, string Content, bool Want
         row.ApprovedAt is { } approved ? QuestionValues.AsUtc(approved) : null, row.ApprovedBy, row.ReviewVersion,
         row.Source, row.CreatedBy, row.GuidanceLabel, row.GuidanceUrl, row.PublishedGuidanceLabel, row.PublishedGuidanceUrl)
     {
+        AssignedTo = row.AssignedTo,
         AggregatedIntoId = row.AggregatedIntoId,
         AggregatedSourceIds = row.AggregatedSourceIds is { Length: > 0 } ids ? JsonSerializer.Deserialize<long[]>(ids) ?? [] : []
     };
@@ -71,7 +77,7 @@ public sealed record QuestionDraft(string? Type, string? Content, string? Answer
 }
 
 public sealed record QuestionReview(long ReviewVersion, string Status, string? AdminNote, string? Answer,
-    string? GuidanceLabel = null, string? GuidanceUrl = null);
+    string? GuidanceLabel = null, string? GuidanceUrl = null, string? AssignedTo = null);
 public sealed record PublishedQuestion(long Id, string Question, string Answer, DateTimeOffset AnsweredAt, string Type,
     string? GuidanceLabel = null, string? GuidanceUrl = null);
 public sealed record PublishedQuestionQuery(int Page = 1, int PageSize = PublishedQuestionPage.DefaultPageSize,
@@ -132,6 +138,7 @@ public interface IQuestionSubmissionService
 {
     Task SubmitAsync(QuestionRegistration registration, IPAddress? ip, CancellationToken ct = default);
     Task<QuestionPage> ListAsync(QuestionFilter filter, int page, CancellationToken ct = default);
+    Task<IReadOnlyDictionary<string, int>> InboxCountsAsync(CancellationToken ct = default, string? type = null);
     IAsyncEnumerable<QuestionRow> ExportAsync(QuestionFilter filter, CancellationToken ct = default);
     Task<bool> ReviewAsync(long id, string status, string? note, string actor, CancellationToken ct = default);
 }

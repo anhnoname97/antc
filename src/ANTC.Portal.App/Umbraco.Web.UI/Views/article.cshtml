@@ -3,16 +3,33 @@
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var article = Model.Article;
     var category = article.Category;
+    var siteName = Model.Root()?.Value<string>("siteName") ?? "antoantaichinh.vn";
+    var origin = new Uri($"{Context.Request.Scheme}://{Context.Request.Host}");
+    var shareUrl = new Uri(origin, article.Url).AbsoluteUri;
+    var shareImage = article.Seo.Image;
 }
 @section Head {
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="@article.Seo.Title">
+    <meta property="og:description" content="@article.Seo.Description">
+    <meta property="og:site_name" content="@siteName">
+    <meta property="og:url" content="@shareUrl">
+    @if (shareImage is not null)
+    {
+        <meta property="og:image" content="@(new Uri(origin, shareImage.Url).AbsoluteUri)">
+        <meta property="og:image:alt" content="@shareImage.Alt">
+    }
+    <meta name="twitter:card" content="@(shareImage is null ? "summary" : "summary_large_image")">
     <link rel="stylesheet" href="~/assets/css/articles.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/article-detail-responsive.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/article-notice.css" asp-append-version="true">
 }
 <div class="article-portal article-portal--detail">
     <div class="article-wrap article-detail-top">@await Html.PartialAsync("~/Views/Partials/articles/_Breadcrumbs.cshtml", Model)</div>
     <div class="article-wrap article-detail-layout"><div class="article-main-column"><div class="article-paper">
         <header class="article-hero article-hero--detail"><div class="article-heading">
-            <a class="article-eyebrow" href="@category.Url">@category.Title</a>
+            @if (Model.CategoryIsPublished) { <a class="article-eyebrow" href="@category.Url">@category.Title</a> }
+            else { <span class="article-eyebrow">@category.Title · Chuyên mục chưa xuất bản</span> }
             <div class="article-labels">@await Html.PartialAsync("~/Views/Partials/articles/_Status.cshtml", article)</div>
             <h1>@article.Title</h1>
             @if (article.UpdatedDate is { } date) { <p class="article-meta">Cập nhật <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p> }

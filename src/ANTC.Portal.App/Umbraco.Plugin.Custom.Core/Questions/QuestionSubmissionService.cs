@@ -60,7 +60,7 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
         int skip = (int)Math.Min((long)(Math.Max(1, page) - 1) * QuestionValues.PageSize, int.MaxValue);
         List<QuestionSubmission> rows = await query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
             .Skip(skip).Take(QuestionValues.PageSize).ToListAsync(ct);
-        return new QuestionPage(rows.Select(QuestionRow.FromEntity).ToArray(), total, Math.Max(1, page));
+        return new QuestionPage(await QuestionRelatedTitles.LoadAsync(db, rows.Select(QuestionRow.FromEntity).ToArray(), ct), total, Math.Max(1, page));
     }
 
     public async IAsyncEnumerable<QuestionRow> ExportAsync(QuestionFilter filter,
@@ -71,6 +71,24 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
             yield return QuestionRow.FromEntity(row);
     }
 
+    public async Task<IReadOnlyDictionary<string, int>> InboxCountsAsync(CancellationToken ct = default, string? type = null)
+    {
+        var query = db.QuestionSubmissions.AsNoTracking();
+        if (!string.IsNullOrEmpty(type)) query = query.Where(x => x.Type == type);
+        var groups = await query
+            .GroupBy(x => new { x.Status, x.IsPublished })
+            .Select(x => new { x.Key.Status, x.Key.IsPublished, Count = x.Count() }).ToListAsync(ct);
+        return QuestionValues.Inboxes.ToDictionary(inbox => inbox, inbox => groups
+            .Where(x => inbox switch
+            {
+                "da-cong-khai" => x.IsPublished,
+                "da-tra-loi" => x.Status == "da-xu-ly" && !x.IsPublished,
+                "luu-tru" => x.Status is "luu-tru" or "bo-qua",
+                "cho-duyet" => x.Status == "cho-duyet",
+                _ => x.Status == inbox && !x.IsPublished
+            }).Sum(x => x.Count));
+    }
+
     public async Task<bool> ReviewAsync(long id, string status, string? note, string actor, CancellationToken ct = default)
     {
         if (!QuestionValues.Statuses.ContainsKey(status)) throw new ArgumentException("Trạng thái không hợp lệ.", nameof(status));
@@ -79,10 +97,10 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         int updated = await db.QuestionSubmissions.Where(x => x.Id == id).ExecuteUpdateAsync(set => set
             .SetProperty(x => x.Status, status).SetProperty(x => x.AdminNote, note)
-            .SetProperty(x => x.IsPublished, x => status != "bo-qua" && x.IsPublished)
+            .SetProperty(x => x.IsPublished, x => status != "bo-qua" && status != "luu-tru" && x.IsPublished)
             .SetProperty(x => x.ReviewVersion, x => x.ReviewVersion + 1)
             .SetProperty(x => x.HandledBy, actor).SetProperty(x => x.HandledAt, now), ct);
-        if (updated == 1 && status == "bo-qua")
+        if (updated == 1 && status is "bo-qua" or "luu-tru")
             foreach (var observer in publicationObservers ?? [])
                 await observer.ChangedAsync(id, CancellationToken.None);
         return updated == 1;
@@ -93,6 +111,15 @@ public sealed class QuestionSubmissionService(AppDbContext db, IOptions<ContestS
         IQueryable<QuestionSubmission> query = db.QuestionSubmissions.AsNoTracking();
         if (!string.IsNullOrEmpty(filter.Type)) query = query.Where(x => x.Type == filter.Type);
         if (!string.IsNullOrEmpty(filter.Status)) query = query.Where(x => x.Status == filter.Status);
+        query = filter.Inbox switch
+        {
+            "da-cong-khai" => query.Where(x => x.IsPublished),
+            "da-tra-loi" => query.Where(x => x.Status == "da-xu-ly" && !x.IsPublished),
+            "luu-tru" => query.Where(x => x.Status == "luu-tru" || x.Status == "bo-qua"),
+            "cho-duyet" => query.Where(x => x.Status == "cho-duyet"),
+            "moi" or "dang-xu-ly" => query.Where(x => x.Status == filter.Inbox && !x.IsPublished),
+            _ => query
+        };
         if (filter.From is { } from)
         {
             DateTime start = DayStartUtc(from); query = query.Where(x => x.CreatedAt >= start);

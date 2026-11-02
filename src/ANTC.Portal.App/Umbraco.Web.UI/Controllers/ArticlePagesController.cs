@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.OutputCaching;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Web;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Web.Common.Controllers;
 using Umbraco.Extensions;
 using Umbraco.Plugin.Custom.Core.Articles;
@@ -111,16 +112,39 @@ public sealed class ChinhSachPageController(ILogger<RenderController> logger, IC
 }
 
 public sealed class ArticleController(ILogger<RenderController> logger, ICompositeViewEngine views,
-    IUmbracoContextAccessor context, IPublishedArticleService articles) : ArticleRenderController(logger, views, context, articles)
+    IUmbracoContextAccessor context, IPublishedArticleService articles, IDocumentUrlService urls,
+    ArticleHtmlSanitizer sanitizer, TimeProvider clock) : ArticleRenderController(logger, views, context, articles)
 {
     [AcceptVerbs("GET", "HEAD")]
     [OutputCache(PolicyName = UmbracoConstants.Website.OutputCache.ContentCachePolicy)]
     public override IActionResult Index()
     {
         if (CurrentPage is not { } page) return NotFound();
-        var article = Articles.Detail(page.Key);
+        // InPreviewMode is established by Umbraco's authenticated preview flow,
+        // never by a query parameter or a change to the public article service.
+        var preview = UmbracoContext.InPreviewMode;
+        var article = preview ? PreviewArticle(page) : Articles.Detail(page.Key);
         return article is null ? NotFound() : CurrentTemplate(new ArticleDetailPageModel(page, article,
-            Navigation(article.Category)) { ArticleSeo = article.Seo });
+            Navigation(article.Category)) { ArticleSeo = article.Seo,
+                CategoryIsPublished = !preview || Articles.Category(article.Category.Id) is not null });
+    }
+
+    private ArticleDetail? PreviewArticle(IPublishedContent page)
+    {
+        Response.Headers.CacheControl = "private, no-store";
+        Response.Headers["X-Robots-Tag"] = "noindex, noarchive";
+        var parent = page.Parent();
+        var category = parent is null ? null : UmbracoArticleContentSource.MapPreviewCategory(parent,
+            urls.GetUrlSegment(parent.Key, string.Empty, true) ?? string.Empty);
+        var slug = urls.GetUrlSegment(page.Key, string.Empty, true);
+        if (category is null || string.IsNullOrWhiteSpace(slug)) return null;
+        int days = ArticleReviewPolicy.MaxAgeDays(page.Root().Value<int?>("articleReviewAfterDays"));
+        var snapshot = UmbracoArticleContentSource.MapPreviewArticle(page, slug, category, days);
+        if (snapshot is null) return null;
+        var card = snapshot.Card with { Review = ArticleReviewPolicy.Evaluate(snapshot.Card.Review.LastReviewedDate,
+            days, ArticleReviewPolicy.Today(clock)) };
+        return new(card, category, sanitizer.Clean(snapshot.BodyHtml), snapshot.SafeAction,
+            snapshot.Seo with { HideFromSearch = true }, Articles.Detail(page.Key)?.RelatedArticles ?? []);
     }
 }
 

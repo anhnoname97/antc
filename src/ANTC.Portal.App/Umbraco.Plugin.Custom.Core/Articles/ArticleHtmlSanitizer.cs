@@ -10,7 +10,7 @@ public sealed class ArticleHtmlSanitizer
     {
         var sanitizer = new HtmlSanitizer { KeepChildNodes = true };
         sanitizer.AllowedTags.Clear();
-        sanitizer.AllowedTags.UnionWith(["p", "br", "h2", "h3", "strong", "b", "em", "i", "ul", "ol", "li",
+        sanitizer.AllowedTags.UnionWith(["p", "br", "h2", "h3", "strong", "b", "em", "i", "u", "ul", "ol", "li", "aside",
             "a", "blockquote", "table", "caption", "colgroup", "col", "thead", "tbody", "tfoot", "tr", "th", "td",
             "figure", "figcaption", "img"]);
         sanitizer.AllowedAttributes.Clear();
@@ -20,6 +20,13 @@ public sealed class ArticleHtmlSanitizer
         sanitizer.AllowedCssProperties.Clear();
         sanitizer.AllowedAtRules.Clear();
         sanitizer.AllowDataAttributes = false;
+        // Only the exact class emitted by the article notice partial survives.
+        // Other classes, inline styles and event attributes remain disallowed.
+        sanitizer.RemovingAttribute += (_, args) =>
+        {
+            if (args.Tag.LocalName == "aside" && args.Attribute.Name == "class"
+                && args.Attribute.Value == "antc-article-notice") args.Cancel = true;
+        };
         sanitizer.RemovingTag += (_, args) =>
         {
             if (args.Tag.LocalName is "script" or "style" or "iframe" or "object" or "embed" or "template"
