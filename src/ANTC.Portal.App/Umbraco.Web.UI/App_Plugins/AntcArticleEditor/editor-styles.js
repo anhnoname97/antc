@@ -47,7 +47,6 @@ export const editorStyles = css`
     border-radius: var(--antc-radius);
   }
   .paper { overflow: clip; }
-  .intro { padding: var(--antc-space); border-bottom: 1px solid var(--antc-border); }
   .compose-tabs { position: sticky; top: 0; z-index: 3; display: flex; gap: 4px; min-height: 56px; padding: 0 16px; background: var(--antc-surface); border-bottom: 1px solid var(--antc-border); overflow-x: auto; }
   .compose-tabs > button { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 12px 16px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--antc-muted); font: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; }
   .compose-tabs > button:hover { color: var(--antc-tint-text); background: var(--antc-tint); }
@@ -58,8 +57,6 @@ export const editorStyles = css`
   .compose-panel:focus-visible { outline: 2px solid var(--antc-primary); outline-offset: -4px; }
   .history-view { padding: var(--antc-space); }
   .history-view umb-extension-slot { display: block; min-width: 0; }
-  .eyebrow { margin: 0 0 8px; color: var(--antc-tint-text); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
-  h2 { margin: 0; font-size: 28px; line-height: 1.35; font-weight: 700; overflow-wrap: anywhere; }
   h3 { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 700; }
   p { margin: 8px 0 0; }
   .muted, .hint, .count { color: var(--antc-muted); font-size: 13px; }
@@ -111,7 +108,6 @@ export const editorStyles = css`
     .status-card .hint { margin-top: 12px; }
   }
   @container (max-width: 600px) {
-    h2 { font-size: 24px; }
     .side-stack { grid-template-columns: minmax(0, 1fr); }
   }
 `;

@@ -214,6 +214,73 @@ if (!username || !password) throw new Error('Set ANTC_BACKOFFICE_USERNAME and AN
     assert(Math.abs(toolbarPosition.tabsTop - toolbarPosition.viewportTop) <= 1, 'Compose tabs stay visible while writing');
     assert(toolbarPosition.top >= toolbarPosition.tabsBottom - 1, 'Sticky toolbar must stay below compose tabs');
     assert(toolbarPosition.bottom < toolbarPosition.viewportBottom);
+
+    // Resizing is local geometry only: keep the native editor instance, markup,
+    // toolbar commands and unsaved values across the internal tabs.
+    await typeBody('Nội dung chưa lưu để thử kéo chiều cao.');
+    const nativeBody = editor.locator('umb-content-workspace-property[alias=body] umb-input-tiptap');
+    const contentBox = nativeBody.locator('#editor');
+    const grip = editor.getByRole('button', { name: 'Thay đổi chiều cao nội dung', exact: true });
+    const markupBeforeResize = await body.innerHTML();
+    await body.evaluate(element => { element.dataset.resizeIdentity = 'original'; });
+    const contentHeight = () => contentBox.evaluate(element => element.getBoundingClientRect().height);
+    const dragGrip = async delta => {
+      await grip.scrollIntoViewIfNeeded();
+      const box = await grip.boundingBox();
+      const content = await contentBox.boundingBox();
+      assert(Math.abs(box.x + box.width - content.x - content.width) <= 2, 'Grip aligns with input right edge');
+      assert(Math.abs(box.y + box.height - content.y - content.height) <= 2, 'Grip aligns with input bottom edge');
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 + delta, { steps: 12 });
+      await page.mouse.up();
+    };
+    const initialBodyHeight = await contentHeight();
+    await dragGrip(220);
+    const expandedBodyHeight = await contentHeight();
+    assert(Math.abs(expandedBodyHeight - initialBodyHeight - 220) <= 2, 'Drag down expands content area');
+    await dragGrip(-100);
+    const reducedBodyHeight = await contentHeight();
+    assert(Math.abs(expandedBodyHeight - reducedBodyHeight - 100) <= 2, 'Drag up shrinks content area');
+    assert.equal(await body.innerHTML(), markupBeforeResize);
+    assert.equal(await body.getAttribute('data-resize-identity'), 'original');
+    await editor.getByRole('tab', { name: 'Nguồn và rà soát', exact: true }).click();
+    await editor.getByRole('tab', { name: 'Bài viết', exact: true }).click();
+    assert.equal(await contentHeight(), reducedBodyHeight, 'Internal tab changes retain manual height');
+    assert.equal(await body.innerHTML(), markupBeforeResize);
+    await grip.focus();
+    await grip.press('Home');
+    const minimumBodyHeight = await contentHeight();
+    await grip.press('ArrowUp');
+    assert.equal(await contentHeight(), minimumBodyHeight, 'Grip cannot collapse editor below minimum');
+    await grip.press('ArrowDown');
+    assert.equal(await contentHeight(), minimumBodyHeight + 20, 'Keyboard can resize content');
+    await typeBody(Array.from({ length: 40 }, (_, index) => `Đoạn dài ${index + 1}.`).join('\n'));
+    const scrollableBody = await contentBox.evaluate(element => {
+      element.scrollTop = element.scrollHeight;
+      return { height: element.clientHeight, total: element.scrollHeight, top: element.scrollTop };
+    });
+    assert(scrollableBody.total > scrollableBody.height && scrollableBody.top > 0,
+      `Manually reduced editor scrolls to long content: ${JSON.stringify(scrollableBody)}`);
+    for (const width of [1024, 1920]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await dragGrip(40);
+      assert.equal(await editor.locator('.scroll-area').evaluate(element => element.scrollWidth > element.clientWidth + 1), false);
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await grip.press('End');
+    const maximumBodyHeight = await contentHeight();
+    await grip.press('ArrowDown');
+    assert.equal(await contentHeight(), maximumBodyHeight, 'Grip respects maximum height');
+    await grip.press('Home');
+    await grip.press('ArrowDown');
+    await typeBody('Kéo góc dưới bên phải để đổi chiều cao ô nội dung.');
+    await dragGrip(200);
+    if (process.env.ANTC_SCREENSHOT_DIR) {
+      await page.screenshot({ path: path.join(process.env.ANTC_SCREENSHOT_DIR, 'article-editor-resize-1440.png') });
+    }
+    assert.equal(await editor.locator('antc-article-body-resize').count(), 1, 'Only body gets a resize grip');
+    console.log('Body resize:', { initialBodyHeight, expandedBodyHeight, reducedBodyHeight, minimumBodyHeight, maximumBodyHeight, scrollableBody });
     await page.waitForLoadState('networkidle');
     await page.reload(); // Discard browser-only state before checking another workspace.
     console.log('Reloading article');

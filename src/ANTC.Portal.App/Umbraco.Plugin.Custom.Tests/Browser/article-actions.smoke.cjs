@@ -63,7 +63,6 @@ const id = process.env.ANTC_ARTICLE_ID || '90ab7780-e72b-4d53-ae5a-147dfb353e03'
     }
     assert(reachedSave, 'Save is reachable by keyboard, including native menu triggers');
     await name.fill('Tiêu đề kiểm tra giao diện, chưa lưu');
-    await editor.getByRole('heading', { name: 'Tiêu đề kiểm tra giao diện, chưa lưu', exact: true }).waitFor();
     await name.fill(originalName);
     if (process.env.ANTC_SCREENSHOT_DIR) fs.mkdirSync(process.env.ANTC_SCREENSHOT_DIR, { recursive: true });
     for (const width of [1024, 1280, 1440, 1920]) {
@@ -81,12 +80,12 @@ const id = process.env.ANTC_ARTICLE_ID || '90ab7780-e72b-4d53-ae5a-147dfb353e03'
     }
     const workspace = page.locator('umb-workspace-split-view');
     for (let index = 0; index < 3; index++) {
-      await workspace.locator('a[role=tab][href$="/view/content"]').click();
+      await workspace.locator('a[role=tab][href$="/view/info"]').click();
       await workspace.getByRole('tab', { name: 'Soạn bài', exact: true }).click();
     }
     await save.waitFor();
     assert.deepEqual(writes, []);
-    console.log('Native action aliases, disabled states, keyboard, title sync, schedule guard and four widths passed');
+    console.log('Native action aliases, disabled states, keyboard and four widths passed');
 
     if (write) {
       const previewSummary = `Bản xem trước được lưu qua nút gốc ở đầu bài. ${Date.now()}`;

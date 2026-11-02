@@ -1,0 +1,16 @@
+/* BACKOFFICE-UI section 2.1 / QD-028 and the BO-04 header logo lockup. */
+umb-app {
+  --antc-top: #0b3b3a;
+  --antc-header-text: #e3f4f1;
+  --antc-header-text-emphasis: #fff;
+  --antc-header-logo-hover: rgba(255, 255, 255, 0.08);
+
+  --umb-header-background-color: var(--antc-top);
+  --uui-color-header-surface: var(--antc-top);
+  --uui-color-header-contrast: var(--antc-header-text);
+  --uui-color-header-contrast-emphasis: var(--antc-header-text-emphasis);
+
+  --umb-header-logo-width: auto;
+  --umb-header-logo-height: 36px;
+  --umb-header-logo-margin: 0 16px 0 0;
+}
