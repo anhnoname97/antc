@@ -273,7 +273,7 @@ public sealed class ContestAdministrationFullHostTests
             if(Environment.GetEnvironmentVariable("ANTC_RUN_BROWSER")=="1")
             {
                 var browserStart=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
-                browserStart.ArgumentList.Add(Path.Combine(ProjectFiles.WebRoot,"..","Umbraco.Plugin.Custom.Tests","Browser","contest-reports.smoke.cjs"));
+                browserStart.ArgumentList.Add(Path.Combine(ProjectFiles.WebRoot,"..","Umbraco.Plugin.Custom.Tests","Browser",Environment.GetEnvironmentVariable("ANTC_BROWSER_SCRIPT") ?? "contest-reports.smoke.cjs"));
                 browserStart.Environment["ANTC_TEST_URL"]=client.BaseAddress.ToString();
                 browserStart.Environment["ANTC_TEST_PASSWORD"]=password;
                 browserStart.Environment["ANTC_TEST_CONTEST_ID"]=contestId.ToString();

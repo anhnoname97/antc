@@ -1,0 +1,47 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "ANTC Identity Management Design",
+  "version": "1.0.0",
+  "extensions": [
+    {
+      "type": "valueSummary",
+      "kind": "default",
+      "alias": "Antc.ValueSummary.AccountState",
+      "name": "ANTC account status badge",
+      "forValueType": "Antc.ValueType.AccountState",
+      "element": "/App_Plugins/IdentityManagement/account-state.js?v=1.0.0"
+    },
+    {
+      "type": "collectionView",
+      "kind": "table",
+      "alias": "Antc.CollectionView.User.Table",
+      "name": "ANTC account table",
+      "overwrites": "Umb.CollectionView.User.Table",
+      "weight": 1200,
+      "meta": {
+        "label": "Danh sách",
+        "columns": [
+          { "field": "email", "label": "Thư điện tử" },
+          { "field": "userGroupUniques", "label": "Nhóm tài khoản", "valueType": "Umb.ValueType.UserGroup.References" },
+          { "field": "state", "label": "Trạng thái", "valueType": "Antc.ValueType.AccountState" },
+          { "field": "lastLoginDate", "label": "Đăng nhập gần nhất", "valueType": "Umb.ValueType.DateTime" }
+        ]
+      },
+      "conditions": [{ "alias": "Umb.Condition.CollectionAlias", "match": "Umb.Collection.User" }]
+    },
+    {
+      "type": "sectionContext",
+      "alias": "Antc.SectionContext.UserDesign",
+      "name": "ANTC account and account group design",
+      "api": "/App_Plugins/IdentityManagement/identity-theme.js?v=1.0.0",
+      "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Users" }]
+    },
+    {
+      "type": "sectionContext",
+      "alias": "Antc.SectionContext.MemberDesign",
+      "name": "ANTC member and member group design",
+      "api": "/App_Plugins/IdentityManagement/identity-theme.js?v=1.0.0",
+      "conditions": [{ "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Members" }]
+    }
+  ]
+}
