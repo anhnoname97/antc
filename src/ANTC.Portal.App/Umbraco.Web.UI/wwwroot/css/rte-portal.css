@@ -1,0 +1,32 @@
+/* Khung soan "Soan thao · Bai doc" (V2-01c): hop k-* hien giong website de bien tap vien nhan ra.
+   Mau lay theo bang mau cua khach trong mockup-portal-v2.html; website dung tokens.css (V2-13a). */
+.k-box, .k-now, .k-stop, .k-pocket, .k-case, .k-chips, .k-note {
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem 0.2rem;
+  margin: 0.4rem 0 0.7rem;
+}
+.k-box { background: #eaf2fb; }
+.k-now { background: #fff6da; border-left: 4px solid #ffc94d; }
+.k-stop { background: #fdeee6; border-left: 4px solid #d9531e; }
+.k-pocket { border: 1.5px dashed #9aa7b2; }
+.k-case { background: #f5f7fa; border: 1px solid #d6dfe1; }
+.k-chips { background: #e3f4f1; }
+.k-note { background: #f5f7fa; border-left: 4px solid #9aa7b2; }
+.k-box::before, .k-now::before, .k-stop::before, .k-pocket::before, .k-case::before, .k-chips::before, .k-note::before {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #56686c;
+  margin-bottom: 0.2rem;
+}
+.k-box::before { content: "Câu hỏi của bài"; }
+.k-now::before { content: "Nhớ một câu"; }
+.k-stop::before { content: "Dấu hiệu phải dừng"; }
+.k-pocket::before { content: "Bỏ túi"; }
+.k-case::before { content: "Trường hợp thật"; }
+.k-chips::before { content: "Hiểu nhanh"; }
+.k-note::before { content: "Ghi chú"; }
+table { border-collapse: collapse; }
+th, td { border: 1px solid #afbec2; padding: 0.3rem 0.5rem; vertical-align: top; }

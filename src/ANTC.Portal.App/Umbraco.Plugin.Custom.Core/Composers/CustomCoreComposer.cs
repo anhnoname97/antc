@@ -10,6 +10,8 @@ using Umbraco.Plugin.Custom.Core.Articles;
 using Umbraco.Plugin.Custom.Core.Backoffice;
 using Umbraco.Plugin.Custom.Core.Contest;
 using Umbraco.Plugin.Custom.Core.Data;
+using Umbraco.Plugin.Custom.Core.PortalV2.DanhMuc;
+using Umbraco.Plugin.Custom.Core.PortalV2.Schema;
 using Umbraco.Plugin.Custom.Core.Quiz;
 using Umbraco.Plugin.Custom.Core.Questions;
 using Umbraco.Plugin.Custom.Core.Services;
@@ -54,6 +56,11 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddScoped<IArticleContentSource, UmbracoArticleContentSource>();
         builder.Services.AddScoped<IPublishedArticleService, PublishedArticleService>();
         builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ArticleSchemaMigration>();
+
+        // Portal v2: dung schema nen (chi khi bat PortalV2:SchemaBuilder:Enabled o Development) va kiem danh sach co dinh
+        builder.Services.AddOptions<PortalV2SchemaOptions>().Bind(builder.Config.GetSection(PortalV2SchemaOptions.SectionName));
+        builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, PortalV2SchemaBuilder>();
+        builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, DanhMucStartupCheck>();
         builder.Services.AddScoped<IContestEntryService>(services => new ContestEntryService(
             services.GetRequiredService<AppDbContext>(),
             services.GetRequiredService<IContestCatalog>(),
