@@ -381,6 +381,15 @@ if imgdir:
         buf = io.BytesIO(); im.save(buf, 'JPEG', quality=72)
         m['src'] = 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode()
 N.append(N.pop(next(i for i, x in enumerate(N) if x['id'] == 'lib')))
+# QD-053 bo sung: noi dung tren, trang duoi, Cai dat website cuoi; trang phang duoi Quan ly trang, trang thong tin va chinh sach gom mot thu muc
+node('f-other', 'pages', 'otherPagesFolder', 'Trang thông tin, chính sách', {})
+for x in N:
+    if x['p'] == 'home':
+        x['p'] = 'f-other' if x['type'] in ('infoPage', 'policyPage') else 'pages'
+    if x['id'] == 'settings':
+        x['p'] = None
+for rid in ('pages', 'settings'):
+    N.append(N.pop(next(i for i, x in enumerate(N) if x['id'] == rid)))
 data = json.dumps({'N': N, 'MEDIA': MEDIA}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 src = open(srcpath, encoding='utf-8').read()
 out = src.replace('__DATA__', data)

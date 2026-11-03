@@ -104,7 +104,7 @@ function convert(f, v, ctx, alias) {
 function fieldsOf(type) {
   const out = [];
   const walk = list => list.forEach(f => { if (f.g) walk(f.f); else if (f.t !== 'info') out.push(f); });
-  (T[type].tabs || []).filter(t => !t.list).forEach(t => walk(t.f));
+  (T[type].tabs || []).filter(t => !t.list && !t.dash).forEach(t => walk(t.f));
   return out;
 }
 

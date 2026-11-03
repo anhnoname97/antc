@@ -75,7 +75,7 @@ for (const a of order) {
   if (COLL[a]) facts.push('Có Collection (tab danh sách)' + (COLL[a].sortable ? ', kéo sắp thứ tự' : '') + (COLL[a].cols ? ': cột ' + COLL[a].cols.map(c => c[0]).join(', ') : '') + (COLL[a].filters ? '; lọc ' + COLL[a].filters.map(c => c[0]).join(', ') : ''));
   md += facts.join(' · ') + '\n';
   if (t.info) { md += '\nKhông có trường mới: ' + t.info + '\n'; continue; }
-  const tabs = (t.tabs || []).filter(x => !x.list);
+  const tabs = (t.tabs || []).filter(x => !x.list && !x.dash);
   if (!tabs.length) continue;
   md += '\n| Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |\n|---|---|---|---|---|---|---|\n';
   tabs.forEach(tb => { if (tb.t === 'SEO và chia sẻ') { md += `| SEO và chia sẻ | | (composition \`seoBase\`, \`publishMetaBase\`) | | | | Mục 6.13 file phân tích |\n`; return; } rows(tb.f, tb.t + (tb.adm ? ' (chỉ Quản trị)' : ''), '', '', ''); });

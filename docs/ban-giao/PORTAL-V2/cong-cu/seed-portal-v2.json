@@ -394,177 +394,6 @@
   }
  ],
  "fields": {
-  "siteSettings": {
-   "stopPrinciples": {
-    "kind": "table",
-    "max": 4
-   },
-   "stopPrinciples[].icon": {
-    "kind": "fixed",
-    "list": "Danh mục · Biểu tượng",
-    "multiple": false
-   },
-   "stopPrinciples[].title": {
-    "kind": "text",
-    "max": 40
-   },
-   "stopPrinciples[].description": {
-    "kind": "area",
-    "max": 120
-   },
-   "reviewDate": {
-    "kind": "date"
-   },
-   "nextReviewDate": {
-    "kind": "date"
-   },
-   "disclaimer": {
-    "kind": "area",
-    "max": 300
-   },
-   "mainLinks": {
-    "kind": "table",
-    "max": 4
-   },
-   "mainLinks[].label": {
-    "kind": "text",
-    "max": 40
-   },
-   "mainLinks[].targetPage": {
-    "kind": "content",
-    "multiple": false,
-    "source": "PAGES"
-   },
-   "commitments": {
-    "kind": "lines",
-    "max": 4
-   },
-   "extraLinks": {
-    "kind": "table",
-    "max": 6
-   },
-   "extraLinks[].label": {
-    "kind": "text",
-    "max": 40
-   },
-   "extraLinks[].targetPage": {
-    "kind": "content",
-    "multiple": false,
-    "source": "PAGES"
-   },
-   "operatorNote": {
-    "kind": "area",
-    "max": 300
-   },
-   "siteName": {
-    "kind": "text",
-    "max": 40
-   },
-   "tagline": {
-    "kind": "text",
-    "max": 80
-   },
-   "headerLogo": {
-    "kind": "media"
-   },
-   "headerLogoAlt": {
-    "kind": "text",
-    "max": 80
-   },
-   "footerLogo": {
-    "kind": "media"
-   },
-   "footerLogoAlt": {
-    "kind": "text",
-    "max": 80
-   },
-   "topBarMode": {
-    "kind": "fixed",
-    "list": "Danh mục · Dải trên cùng",
-    "multiple": false
-   },
-   "disableIndexing": {
-    "kind": "toggle"
-   },
-   "showContestEntry": {
-    "kind": "toggle"
-   },
-   "contestShortName": {
-    "kind": "text",
-    "max": 30
-   },
-   "contestFullName": {
-    "kind": "text",
-    "max": 120
-   },
-   "showSponsor": {
-    "kind": "toggle"
-   },
-   "sponsorName": {
-    "kind": "text"
-   },
-   "sponsorLogo": {
-    "kind": "media"
-   },
-   "sponsorLink": {
-    "kind": "url"
-   },
-   "sponsorNote": {
-    "kind": "text"
-   },
-   "resultNote": {
-    "kind": "area",
-    "max": 300
-   },
-   "notConclusionNote": {
-    "kind": "area",
-    "max": 300
-   },
-   "stopLabel": {
-    "kind": "text",
-    "max": 40
-   },
-   "stopText": {
-    "kind": "area",
-    "max": 300
-   },
-   "holdLabel": {
-    "kind": "text",
-    "max": 40
-   },
-   "holdText": {
-    "kind": "area",
-    "max": 300
-   },
-   "clearLabel": {
-    "kind": "text",
-    "max": 40
-   },
-   "clearText": {
-    "kind": "area",
-    "max": 300
-   },
-   "noReportNote": {
-    "kind": "area",
-    "max": 300
-   },
-   "noAdviceNote": {
-    "kind": "area",
-    "max": 300
-   },
-   "mustRemember": {
-    "kind": "lines",
-    "max": 2
-   },
-   "bankLookupSteps": {
-    "kind": "lines",
-    "max": 5
-   },
-   "refuseLendingNote": {
-    "kind": "area",
-    "max": 300
-   }
-  },
   "homePage": {
    "eyebrow": {
     "kind": "text",
@@ -2302,16 +2131,185 @@
    "bodyText": {
     "kind": "rte"
    }
+  },
+  "siteSettings": {
+   "stopPrinciples": {
+    "kind": "table",
+    "max": 4
+   },
+   "stopPrinciples[].icon": {
+    "kind": "fixed",
+    "list": "Danh mục · Biểu tượng",
+    "multiple": false
+   },
+   "stopPrinciples[].title": {
+    "kind": "text",
+    "max": 40
+   },
+   "stopPrinciples[].description": {
+    "kind": "area",
+    "max": 120
+   },
+   "reviewDate": {
+    "kind": "date"
+   },
+   "nextReviewDate": {
+    "kind": "date"
+   },
+   "disclaimer": {
+    "kind": "area",
+    "max": 300
+   },
+   "mainLinks": {
+    "kind": "table",
+    "max": 4
+   },
+   "mainLinks[].label": {
+    "kind": "text",
+    "max": 40
+   },
+   "mainLinks[].targetPage": {
+    "kind": "content",
+    "multiple": false,
+    "source": "PAGES"
+   },
+   "commitments": {
+    "kind": "lines",
+    "max": 4
+   },
+   "extraLinks": {
+    "kind": "table",
+    "max": 6
+   },
+   "extraLinks[].label": {
+    "kind": "text",
+    "max": 40
+   },
+   "extraLinks[].targetPage": {
+    "kind": "content",
+    "multiple": false,
+    "source": "PAGES"
+   },
+   "operatorNote": {
+    "kind": "area",
+    "max": 300
+   },
+   "siteName": {
+    "kind": "text",
+    "max": 40
+   },
+   "tagline": {
+    "kind": "text",
+    "max": 80
+   },
+   "headerLogo": {
+    "kind": "media"
+   },
+   "headerLogoAlt": {
+    "kind": "text",
+    "max": 80
+   },
+   "footerLogo": {
+    "kind": "media"
+   },
+   "footerLogoAlt": {
+    "kind": "text",
+    "max": 80
+   },
+   "topBarMode": {
+    "kind": "fixed",
+    "list": "Danh mục · Dải trên cùng",
+    "multiple": false
+   },
+   "disableIndexing": {
+    "kind": "toggle"
+   },
+   "showContestEntry": {
+    "kind": "toggle"
+   },
+   "contestShortName": {
+    "kind": "text",
+    "max": 30
+   },
+   "contestFullName": {
+    "kind": "text",
+    "max": 120
+   },
+   "showSponsor": {
+    "kind": "toggle"
+   },
+   "sponsorName": {
+    "kind": "text"
+   },
+   "sponsorLogo": {
+    "kind": "media"
+   },
+   "sponsorLink": {
+    "kind": "url"
+   },
+   "sponsorNote": {
+    "kind": "text"
+   },
+   "resultNote": {
+    "kind": "area",
+    "max": 300
+   },
+   "notConclusionNote": {
+    "kind": "area",
+    "max": 300
+   },
+   "stopLabel": {
+    "kind": "text",
+    "max": 40
+   },
+   "stopText": {
+    "kind": "area",
+    "max": 300
+   },
+   "holdLabel": {
+    "kind": "text",
+    "max": 40
+   },
+   "holdText": {
+    "kind": "area",
+    "max": 300
+   },
+   "clearLabel": {
+    "kind": "text",
+    "max": 40
+   },
+   "clearText": {
+    "kind": "area",
+    "max": 300
+   },
+   "noReportNote": {
+    "kind": "area",
+    "max": 300
+   },
+   "noAdviceNote": {
+    "kind": "area",
+    "max": 300
+   },
+   "mustRemember": {
+    "kind": "lines",
+    "max": 2
+   },
+   "bankLookupSteps": {
+    "kind": "lines",
+    "max": 5
+   },
+   "refuseLendingNote": {
+    "kind": "area",
+    "max": 300
+   }
   }
  },
  "counts": {
-  "pagesRoot": 1,
   "contentRoot": 1,
   "alertFolder": 1,
   "articleFolder": 1,
   "actionFolder": 1,
   "checklistFolder": 1,
-  "siteSettings": 1,
   "homePage": 1,
   "khanCapPage": 1,
   "wizardPage": 1,
@@ -2349,19 +2347,12 @@
   "quickQaItem": 7,
   "snippetFolder": 1,
   "sharedSnippet": 5,
-  "libraryFolder": 1
+  "libraryFolder": 1,
+  "otherPagesFolder": 1,
+  "pagesRoot": 1,
+  "siteSettings": 1
  },
  "nodes": [
-  {
-   "key": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
-   "mockupId": "pages",
-   "parentKey": null,
-   "contentType": "pagesRoot",
-   "name": "Quản lý trang",
-   "state": "published",
-   "sortOrder": 0,
-   "values": {}
-  },
   {
    "key": "02308def-050d-5f02-901f-d457d298ec5e",
    "mockupId": "content",
@@ -2369,7 +2360,7 @@
    "contentType": "contentRoot",
    "name": "Quản lý nội dung",
    "state": "published",
-   "sortOrder": 1,
+   "sortOrder": 0,
    "values": {}
   },
   {
@@ -2413,140 +2404,13 @@
    "values": {}
   },
   {
-   "key": "a60f81d4-ea51-5082-8795-f87afe1a2e05",
-   "mockupId": "settings",
-   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
-   "contentType": "siteSettings",
-   "name": "Cài đặt website",
-   "state": "published",
-   "sortOrder": 0,
-   "values": {
-    "stopPrinciples": [
-     {
-      "key": "8e414314-50b8-5c34-bd16-dce1f39d83ba",
-      "icon": "money",
-      "title": "Không chuyển tiền",
-      "description": "Kể cả khoản họ gọi là phí xác minh, phí mở khóa, tiền bảo lãnh."
-     },
-     {
-      "key": "de33cea6-7323-5c85-844a-1fd9fed4228d",
-      "icon": "key",
-      "title": "Không cung cấp OTP",
-      "description": "Không đọc, không gửi mã OTP, mật khẩu, mã PIN cho bất kỳ ai."
-     },
-     {
-      "key": "a0396c21-40e3-5f84-9b55-580f81beac55",
-      "icon": "link",
-      "title": "Không bấm link lạ",
-      "description": "Không bấm vào đường link người lạ gửi, không quét mã QR họ đưa."
-     },
-     {
-      "key": "b1c42e08-6b6d-5503-afba-55ff10ed2768",
-      "icon": "app",
-      "title": "Không cài ứng dụng theo yêu cầu",
-      "description": "Không cài theo đường dẫn người khác gửi, không cho xem hay điều khiển màn hình."
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "nextReviewDate": "2027-01-20",
-    "disclaimer": "Thông tin trên website chỉ để tham khảo, giúp bạn tự kiểm tra và tự quyết định. Website không tiếp nhận tố giác và không thay cho tư vấn pháp lý, tài chính.",
-    "mainLinks": [
-     {
-      "key": "675e406a-9d81-54fb-a900-0195ec5b35e9",
-      "label": "Về website",
-      "targetPage": "7e808842-c330-5813-946d-0236a138ad72"
-     },
-     {
-      "key": "e0863b56-2cb1-5c28-b90f-1c2031b693bf",
-      "label": "Nguyên tắc nội dung",
-      "targetPage": "410885c2-eec7-5ef4-b30c-2b525e8035ff"
-     },
-     {
-      "key": "9bf48969-4420-5208-a120-368d1b3ac7e7",
-      "label": "Chính sách bảo vệ dữ liệu cá nhân",
-      "targetPage": "53200ada-4126-5e6e-af19-6c3b9cf2909e"
-     },
-     {
-      "key": "01a41c55-161c-5396-8a53-ce5cedaa4e9e",
-      "label": "Tuyên bố miễn trừ trách nhiệm",
-      "targetPage": "caddc7b0-b147-5169-a02d-7f98dce36095"
-     }
-    ],
-    "commitments": [
-     "Không hỏi mật khẩu, mã xác thực hoặc số tài khoản của bạn.",
-     "Không yêu cầu bạn cài ứng dụng.",
-     "Không thu bất kỳ khoản phí nào.",
-     "Không nhận tài trợ từ đơn vị tài chính, đầu tư, cho vay."
-    ],
-    "extraLinks": [
-     {
-      "key": "d0779a90-8102-5a92-8251-a7b27afee1bb",
-      "label": "Hỏi – Đáp",
-      "targetPage": "6f751c1b-d808-5eb4-8702-f18c55439856"
-     },
-     {
-      "key": "09ba5974-baf3-5ee7-bfa8-2111136918b9",
-      "label": "Liên hệ đúng nơi",
-      "targetPage": "ac21724f-923b-5c8f-b4b4-6e3530bb4ab2"
-     },
-     {
-      "key": "ad28475c-0184-585c-a909-237b7d36b203",
-      "label": "Xác minh đúng trang",
-      "targetPage": "788d1f58-b706-5270-b15e-7c6f2e074f03"
-     },
-     {
-      "key": "ad91596a-1aec-5c85-8c4f-5dc589aac676",
-      "label": "Góp ý",
-      "targetPage": "fbff8243-0df8-5299-a1a1-07b2673b5bdb"
-     }
-    ],
-    "operatorNote": "Website do pháp nhân chủ quản vận hành dưới sự định hướng, thẩm định nội dung chuyên môn của Công an xã Thiên Lộc.",
-    "siteName": "An toàn tài chính",
-    "tagline": "Tự kiểm tra trước khi đưa tiền, mã hoặc giấy tờ",
-    "headerLogo": {
-     "media": "logo-antc.svg"
-    },
-    "headerLogoAlt": "An toàn tài chính",
-    "footerLogo": {
-     "media": "logo-antc-trang.svg"
-    },
-    "footerLogoAlt": "An toàn tài chính",
-    "topBarMode": "thu",
-    "disableIndexing": true,
-    "showContestEntry": true,
-    "contestShortName": "Cuộc thi",
-    "contestFullName": "Cuộc thi trực tuyến tìm hiểu an toàn tài chính",
-    "showSponsor": false,
-    "resultNote": "Kết quả chỉ mang tính tham khảo, không phải kết luận pháp lý và không thay thế việc liên hệ ngân hàng hoặc cơ quan có thẩm quyền.",
-    "notConclusionNote": "Kết quả này dựa trên thông tin bạn vừa nhập. Đây không phải kết luận về bất kỳ cá nhân, tổ chức nào.",
-    "stopLabel": "DỪNG",
-    "stopText": "Dừng giao dịch ngay. Đây là khuyến nghị dừng hành động của bạn, không phải kết luận rằng đã có hành vi lừa đảo.",
-    "holdLabel": "HOÃN VÀ KIỂM CHỨNG",
-    "holdText": "Chưa thực hiện giao dịch cho tới khi bạn đã kiểm chứng bằng một kênh do chính bạn tìm ra.",
-    "clearLabel": "CHƯA PHÁT HIỆN ĐIỂM DỪNG",
-    "clearText": "Chưa phát hiện điểm dừng từ thông tin bạn cung cấp. Kết quả này không có nghĩa giao dịch an toàn.",
-    "noReportNote": "Website không tiếp nhận tố giác, tin báo về tội phạm. Việc trình báo phải thực hiện tại cơ quan Công an.",
-    "noAdviceNote": "Website không tư vấn đầu tư, không tư vấn tài chính cá nhân và không giới thiệu sản phẩm tài chính. Nội dung của mục Rủi ro tài chính chỉ nhằm giúp bạn đặt đúng câu hỏi trước khi quyết định.",
-    "mustRemember": [
-     "Có đăng ký doanh nghiệp không đồng nghĩa với được phép cung cấp dịch vụ tài chính. Nhiều dịch vụ tài chính đòi hỏi giấy phép chuyên ngành riêng; kiểm tra đăng ký doanh nghiệp là chưa đủ.",
-     "Một khoản đầu tư có thể làm mất tiền mà không có bất kỳ hành vi gian dối nào. Thua lỗ do biến động thị trường không phải là lừa đảo, và cần được xử lý theo cách khác."
-    ],
-    "bankLookupSteps": [
-     "<b>Có thẻ ngân hàng:</b> lật mặt sau thẻ, gọi số chăm sóc khách hàng in trên thẻ.",
-     "<b>Không có thẻ:</b> mở ứng dụng ngân hàng bạn đã cài từ trước, vào mục Trợ giúp hoặc Liên hệ.",
-     "<b>Luôn luôn:</b> không bấm đường link và không gọi số do người kia gửi."
-    ],
-    "refuseLendingNote": "Từ chối ngay lời đề nghị cho mượn, cho thuê, bán hoặc mở hộ tài khoản ngân hàng, ví điện tử, SIM, dù được trả tiền công."
-   }
-  },
-  {
    "key": "8a2eec09-55da-582a-b342-537ebd77750d",
    "mockupId": "home",
    "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "homePage",
    "name": "Trang chủ",
    "state": "published",
-   "sortOrder": 1,
+   "sortOrder": 0,
    "values": {
     "eyebrow": "Khẩn cấp",
     "title": "Bạn vừa nhận tin nhắn, cuộc gọi hoặc lời mời đáng ngờ?",
@@ -2573,11 +2437,11 @@
   {
    "key": "068097f9-11b9-5810-be40-c37cff1aa894",
    "mockupId": "khan-cap",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "khanCapPage",
    "name": "Khẩn cấp",
    "state": "published",
-   "sortOrder": 0,
+   "sortOrder": 1,
    "values": {
     "title": "Khẩn cấp",
     "lead": "Nhận được cuộc gọi, tin nhắn, lời mời đáng ngờ, hoặc đã lỡ làm theo? Bắt đầu từ đây.",
@@ -3983,11 +3847,11 @@
   {
    "key": "17029f01-72cd-5287-9a0c-0099268a3c1e",
    "mockupId": "cong-cu",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "congCuPage",
    "name": "Hãy tự kiểm tra",
    "state": "published",
-   "sortOrder": 1,
+   "sortOrder": 2,
    "values": {
     "title": "Hãy tự kiểm tra",
     "lead": "Kiểm tra trước khi chuyển tiền, đầu tư, vay, hoặc khi nghi mình bị lừa. Không cần đăng nhập, không lưu câu trả lời.",
@@ -4766,11 +4630,11 @@
   {
    "key": "206ee00d-348e-58ba-8f9b-80a3bb45fe88",
    "mockupId": "rui-ro",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "ruiRoPage",
    "name": "Các rủi ro",
    "state": "published",
-   "sortOrder": 2,
+   "sortOrder": 3,
    "values": {
     "title": "Các rủi ro",
     "lead": "Chọn một nhóm để xem cảnh báo và bài hướng dẫn."
@@ -5778,21 +5642,21 @@
   {
    "key": "6f751c1b-d808-5eb4-8702-f18c55439856",
    "mockupId": "hoi-dap",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "hoiDapPage",
    "name": "Hỏi – Đáp",
    "state": "published",
-   "sortOrder": 3,
+   "sortOrder": 4,
    "values": {}
   },
   {
    "key": "ac21724f-923b-5c8f-b4b4-6e3530bb4ab2",
    "mockupId": "lien-he",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "lienHePage",
    "name": "Liên hệ đúng nơi",
    "state": "published",
-   "sortOrder": 4,
+   "sortOrder": 5,
    "values": {
     "title": "Liên hệ đúng nơi",
     "lead": "Mỗi việc có một nơi nhận. Gọi đúng nơi thì việc được xử lý nhanh hơn.",
@@ -5834,11 +5698,11 @@
   {
    "key": "fbff8243-0df8-5299-a1a1-07b2673b5bdb",
    "mockupId": "gop-y",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "gopYPage",
    "name": "Góp ý",
    "state": "published",
-   "sortOrder": 5,
+   "sortOrder": 6,
    "values": {
     "title": "Góp ý",
     "lead": "Thấy nội dung sai, khó hiểu hoặc đã cũ? Gửi cho Ban biên tập.",
@@ -5852,11 +5716,11 @@
   {
    "key": "7e808842-c330-5813-946d-0236a138ad72",
    "mockupId": "info-ve-website",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "741b9832-b5cb-5a7e-833b-b53efd976f58",
    "contentType": "infoPage",
    "name": "Về website",
    "state": "published",
-   "sortOrder": 6,
+   "sortOrder": 0,
    "values": {
     "title": "Về website",
     "illustration": {
@@ -5868,11 +5732,11 @@
   {
    "key": "410885c2-eec7-5ef4-b30c-2b525e8035ff",
    "mockupId": "info-nguyen-tac",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "741b9832-b5cb-5a7e-833b-b53efd976f58",
    "contentType": "infoPage",
    "name": "Nguyên tắc nội dung",
    "state": "published",
-   "sortOrder": 7,
+   "sortOrder": 1,
    "values": {
     "title": "Nguyên tắc nội dung"
    }
@@ -5880,11 +5744,11 @@
   {
    "key": "788d1f58-b706-5270-b15e-7c6f2e074f03",
    "mockupId": "info-xac-minh",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "741b9832-b5cb-5a7e-833b-b53efd976f58",
    "contentType": "infoPage",
    "name": "Xác minh đúng trang",
    "state": "published",
-   "sortOrder": 8,
+   "sortOrder": 2,
    "values": {
     "title": "Xác minh đúng trang",
     "illustration": {
@@ -5896,11 +5760,11 @@
   {
    "key": "caddc7b0-b147-5169-a02d-7f98dce36095",
    "mockupId": "pol-mt",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "741b9832-b5cb-5a7e-833b-b53efd976f58",
    "contentType": "policyPage",
    "name": "Tuyên bố miễn trừ trách nhiệm",
    "state": "draft",
-   "sortOrder": 9,
+   "sortOrder": 3,
    "values": {
     "title": "Tuyên bố miễn trừ trách nhiệm",
     "umbracoUrlName": "tuyen-bo-mien-tru-trach-nhiem",
@@ -5911,11 +5775,11 @@
   {
    "key": "53200ada-4126-5e6e-af19-6c3b9cf2909e",
    "mockupId": "pol-dl",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "741b9832-b5cb-5a7e-833b-b53efd976f58",
    "contentType": "policyPage",
    "name": "Chính sách bảo vệ dữ liệu cá nhân",
    "state": "draft",
-   "sortOrder": 10,
+   "sortOrder": 4,
    "values": {
     "title": "Chính sách bảo vệ dữ liệu cá nhân",
     "umbracoUrlName": "chinh-sach-bao-ve-du-lieu-ca-nhan",
@@ -5926,11 +5790,11 @@
   {
    "key": "034edeb2-a468-54dc-90df-d39e13f65bb7",
    "mockupId": "pol-tt",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "741b9832-b5cb-5a7e-833b-b53efd976f58",
    "contentType": "policyPage",
    "name": "Chính sách tài trợ",
    "state": "draft",
-   "sortOrder": 11,
+   "sortOrder": 5,
    "values": {
     "title": "Chính sách tài trợ",
     "umbracoUrlName": "chinh-sach-tai-tro",
@@ -5941,11 +5805,11 @@
   {
    "key": "0d2071d8-d01e-5e87-8d46-fe0b77ae308b",
    "mockupId": "pol-ng",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "741b9832-b5cb-5a7e-833b-b53efd976f58",
    "contentType": "policyPage",
    "name": "Nguyên tắc dẫn nguồn",
    "state": "draft",
-   "sortOrder": 12,
+   "sortOrder": 6,
    "values": {
     "title": "Nguyên tắc dẫn nguồn",
     "umbracoUrlName": "nguyen-tac-dan-nguon",
@@ -5956,11 +5820,11 @@
   {
    "key": "71db4d81-e414-55b9-a067-73f6b0bb1680",
    "mockupId": "pol-cc",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "741b9832-b5cb-5a7e-833b-b53efd976f58",
    "contentType": "policyPage",
    "name": "Cách báo lỗi và cải chính",
    "state": "draft",
-   "sortOrder": 13,
+   "sortOrder": 7,
    "values": {
     "title": "Cách báo lỗi và cải chính",
     "umbracoUrlName": "cach-bao-loi-va-cai-chinh",
@@ -5971,31 +5835,31 @@
   {
    "key": "c06f9837-10e0-53b9-8e65-17a19294923d",
    "mockupId": "cuoc-thi",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "thiPage",
    "name": "Cuộc thi trực tuyến",
    "state": "published",
-   "sortOrder": 14,
+   "sortOrder": 7,
    "values": {}
   },
   {
    "key": "fd18b3c0-39dd-54b9-8856-22c8ec3b50e5",
    "mockupId": "tim-kiem",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "searchPage",
    "name": "Tìm kiếm",
    "state": "published",
-   "sortOrder": 15,
+   "sortOrder": 8,
    "values": {}
   },
   {
    "key": "e7342297-9790-5f0e-9503-6676044bd1fd",
    "mockupId": "404",
-   "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "notFoundPage",
    "name": "Không tìm thấy trang",
    "state": "published",
-   "sortOrder": 16,
+   "sortOrder": 9,
    "values": {}
   },
   {
@@ -7393,6 +7257,153 @@
    "state": "published",
    "sortOrder": 6,
    "values": {}
+  },
+  {
+   "key": "741b9832-b5cb-5a7e-833b-b53efd976f58",
+   "mockupId": "f-other",
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
+   "contentType": "otherPagesFolder",
+   "name": "Trang thông tin, chính sách",
+   "state": "published",
+   "sortOrder": 10,
+   "values": {}
+  },
+  {
+   "key": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
+   "mockupId": "pages",
+   "parentKey": null,
+   "contentType": "pagesRoot",
+   "name": "Quản lý trang",
+   "state": "published",
+   "sortOrder": 1,
+   "values": {}
+  },
+  {
+   "key": "a60f81d4-ea51-5082-8795-f87afe1a2e05",
+   "mockupId": "settings",
+   "parentKey": null,
+   "contentType": "siteSettings",
+   "name": "Cài đặt website",
+   "state": "published",
+   "sortOrder": 2,
+   "values": {
+    "stopPrinciples": [
+     {
+      "key": "8e414314-50b8-5c34-bd16-dce1f39d83ba",
+      "icon": "money",
+      "title": "Không chuyển tiền",
+      "description": "Kể cả khoản họ gọi là phí xác minh, phí mở khóa, tiền bảo lãnh."
+     },
+     {
+      "key": "de33cea6-7323-5c85-844a-1fd9fed4228d",
+      "icon": "key",
+      "title": "Không cung cấp OTP",
+      "description": "Không đọc, không gửi mã OTP, mật khẩu, mã PIN cho bất kỳ ai."
+     },
+     {
+      "key": "a0396c21-40e3-5f84-9b55-580f81beac55",
+      "icon": "link",
+      "title": "Không bấm link lạ",
+      "description": "Không bấm vào đường link người lạ gửi, không quét mã QR họ đưa."
+     },
+     {
+      "key": "b1c42e08-6b6d-5503-afba-55ff10ed2768",
+      "icon": "app",
+      "title": "Không cài ứng dụng theo yêu cầu",
+      "description": "Không cài theo đường dẫn người khác gửi, không cho xem hay điều khiển màn hình."
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "nextReviewDate": "2027-01-20",
+    "disclaimer": "Thông tin trên website chỉ để tham khảo, giúp bạn tự kiểm tra và tự quyết định. Website không tiếp nhận tố giác và không thay cho tư vấn pháp lý, tài chính.",
+    "mainLinks": [
+     {
+      "key": "675e406a-9d81-54fb-a900-0195ec5b35e9",
+      "label": "Về website",
+      "targetPage": "7e808842-c330-5813-946d-0236a138ad72"
+     },
+     {
+      "key": "e0863b56-2cb1-5c28-b90f-1c2031b693bf",
+      "label": "Nguyên tắc nội dung",
+      "targetPage": "410885c2-eec7-5ef4-b30c-2b525e8035ff"
+     },
+     {
+      "key": "9bf48969-4420-5208-a120-368d1b3ac7e7",
+      "label": "Chính sách bảo vệ dữ liệu cá nhân",
+      "targetPage": "53200ada-4126-5e6e-af19-6c3b9cf2909e"
+     },
+     {
+      "key": "01a41c55-161c-5396-8a53-ce5cedaa4e9e",
+      "label": "Tuyên bố miễn trừ trách nhiệm",
+      "targetPage": "caddc7b0-b147-5169-a02d-7f98dce36095"
+     }
+    ],
+    "commitments": [
+     "Không hỏi mật khẩu, mã xác thực hoặc số tài khoản của bạn.",
+     "Không yêu cầu bạn cài ứng dụng.",
+     "Không thu bất kỳ khoản phí nào.",
+     "Không nhận tài trợ từ đơn vị tài chính, đầu tư, cho vay."
+    ],
+    "extraLinks": [
+     {
+      "key": "d0779a90-8102-5a92-8251-a7b27afee1bb",
+      "label": "Hỏi – Đáp",
+      "targetPage": "6f751c1b-d808-5eb4-8702-f18c55439856"
+     },
+     {
+      "key": "09ba5974-baf3-5ee7-bfa8-2111136918b9",
+      "label": "Liên hệ đúng nơi",
+      "targetPage": "ac21724f-923b-5c8f-b4b4-6e3530bb4ab2"
+     },
+     {
+      "key": "ad28475c-0184-585c-a909-237b7d36b203",
+      "label": "Xác minh đúng trang",
+      "targetPage": "788d1f58-b706-5270-b15e-7c6f2e074f03"
+     },
+     {
+      "key": "ad91596a-1aec-5c85-8c4f-5dc589aac676",
+      "label": "Góp ý",
+      "targetPage": "fbff8243-0df8-5299-a1a1-07b2673b5bdb"
+     }
+    ],
+    "operatorNote": "Website do pháp nhân chủ quản vận hành dưới sự định hướng, thẩm định nội dung chuyên môn của Công an xã Thiên Lộc.",
+    "siteName": "An toàn tài chính",
+    "tagline": "Tự kiểm tra trước khi đưa tiền, mã hoặc giấy tờ",
+    "headerLogo": {
+     "media": "logo-antc.svg"
+    },
+    "headerLogoAlt": "An toàn tài chính",
+    "footerLogo": {
+     "media": "logo-antc-trang.svg"
+    },
+    "footerLogoAlt": "An toàn tài chính",
+    "topBarMode": "thu",
+    "disableIndexing": true,
+    "showContestEntry": true,
+    "contestShortName": "Cuộc thi",
+    "contestFullName": "Cuộc thi trực tuyến tìm hiểu an toàn tài chính",
+    "showSponsor": false,
+    "resultNote": "Kết quả chỉ mang tính tham khảo, không phải kết luận pháp lý và không thay thế việc liên hệ ngân hàng hoặc cơ quan có thẩm quyền.",
+    "notConclusionNote": "Kết quả này dựa trên thông tin bạn vừa nhập. Đây không phải kết luận về bất kỳ cá nhân, tổ chức nào.",
+    "stopLabel": "DỪNG",
+    "stopText": "Dừng giao dịch ngay. Đây là khuyến nghị dừng hành động của bạn, không phải kết luận rằng đã có hành vi lừa đảo.",
+    "holdLabel": "HOÃN VÀ KIỂM CHỨNG",
+    "holdText": "Chưa thực hiện giao dịch cho tới khi bạn đã kiểm chứng bằng một kênh do chính bạn tìm ra.",
+    "clearLabel": "CHƯA PHÁT HIỆN ĐIỂM DỪNG",
+    "clearText": "Chưa phát hiện điểm dừng từ thông tin bạn cung cấp. Kết quả này không có nghĩa giao dịch an toàn.",
+    "noReportNote": "Website không tiếp nhận tố giác, tin báo về tội phạm. Việc trình báo phải thực hiện tại cơ quan Công an.",
+    "noAdviceNote": "Website không tư vấn đầu tư, không tư vấn tài chính cá nhân và không giới thiệu sản phẩm tài chính. Nội dung của mục Rủi ro tài chính chỉ nhằm giúp bạn đặt đúng câu hỏi trước khi quyết định.",
+    "mustRemember": [
+     "Có đăng ký doanh nghiệp không đồng nghĩa với được phép cung cấp dịch vụ tài chính. Nhiều dịch vụ tài chính đòi hỏi giấy phép chuyên ngành riêng; kiểm tra đăng ký doanh nghiệp là chưa đủ.",
+     "Một khoản đầu tư có thể làm mất tiền mà không có bất kỳ hành vi gian dối nào. Thua lỗ do biến động thị trường không phải là lừa đảo, và cần được xử lý theo cách khác."
+    ],
+    "bankLookupSteps": [
+     "<b>Có thẻ ngân hàng:</b> lật mặt sau thẻ, gọi số chăm sóc khách hàng in trên thẻ.",
+     "<b>Không có thẻ:</b> mở ứng dụng ngân hàng bạn đã cài từ trước, vào mục Trợ giúp hoặc Liên hệ.",
+     "<b>Luôn luôn:</b> không bấm đường link và không gọi số do người kia gửi."
+    ],
+    "refuseLendingNote": "Từ chối ngay lời đề nghị cho mượn, cho thuê, bán hoặc mở hộ tài khoản ngân hàng, ví điện tử, SIM, dù được trả tiền công."
+   }
   }
  ]
 }

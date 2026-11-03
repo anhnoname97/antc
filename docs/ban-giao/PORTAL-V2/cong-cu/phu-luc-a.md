@@ -52,7 +52,7 @@ Không có trang · Không xóa (trang cố định)
 
 #### `homePage` · Trang chủ
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `infoPage`, `policyPage`
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
@@ -524,11 +524,15 @@ Có template và đường dẫn · Tạo: chỉ Quản trị viên · Xóa: ch�
 
 #### `pagesRoot` · Quản lý trang
 
-Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Tên, Loại
+Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Tên, Loại, Địa chỉ
 
 #### `contentRoot` · Quản lý nội dung
 
 Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Mục, Số mục, Ai thêm được
+
+#### `otherPagesFolder` · Trang thông tin, chính sách
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `infoPage`, `policyPage` · Có Collection (tab danh sách): cột Tên, Loại, Địa chỉ, Trạng thái
 
 #### `alertFolder` · Cảnh báo
 

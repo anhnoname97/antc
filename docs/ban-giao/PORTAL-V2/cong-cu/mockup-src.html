@@ -158,6 +158,12 @@ svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .infov b{color:var(--fg);font-weight:500}
 .filebox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .filebox .cb{flex:1;min-width:220px}
+.dash{display:grid;gap:16px}.dh{margin:0 0 4px;font-size:var(--fs-m)}.dsub{margin:0 0 12px;color:var(--muted);font-size:var(--fs-s)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.dcard{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:10px;padding:12px}.dcard p{margin:0;color:var(--muted);font-size:var(--fs-s);flex:1}.dcard .btn{align-self:flex-start}
+.dopen{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;color:var(--fg);font-size:var(--fs-m);text-align:left}.dopen .cnt{margin-left:auto;color:var(--faint);font-size:var(--fs-s)}
+.dlist{list-style:none;margin:0;padding:0;display:grid;gap:2px}.drow{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;border-radius:6px;padding:6px 8px;cursor:pointer;color:var(--fg);text-align:left}.drow:hover{background:var(--panel-2)}.drow span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.drow small{color:var(--muted)}
+.dpages{display:flex;flex-wrap:wrap;gap:8px}.xlink{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .mprev{flex-basis:100%;display:block;width:100%;max-width:360px;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
 .upl{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);border-radius:6px;padding:7px 12px;cursor:pointer;background:var(--panel)}
 .upl:hover{background:var(--panel-2)}
@@ -530,7 +536,7 @@ function src(s){
   }return []}
 
 /* ---------- trạng thái ---------- */
-let ROLE='bt',CUR=null,TAB=0,ERR={},DIRTY=false,PANELS=[],SHOWTAB=null,OPEN=new Set(['pages','home','content','lib']);
+let ROLE='bt',CUR=null,TAB=0,ERR={},DIRTY=false,PANELS=[],SHOWTAB=null,OPEN=new Set(['content','pages']);
 function markDirty(){if(DIRTY)return;DIRTY=true;const s=document.getElementById('state');if(s){s.textContent='Có thay đổi chưa lưu';s.className='state dirty'}}
 
 /* ---------- Combobox ---------- */
@@ -820,7 +826,7 @@ const visible=(f,obj,node)=>!(f.adm&&ROLE!=='qt')&&!(f.when&&!f.when(obj,node));
 function collect(node,mode){
   const out=[];const t=T[node.type];const nm=(node.name||'').trim();
   if(!nm)out.push(['name','Vui lòng nhập tên.',0]);else if(t.nameMax&&nm.length>t.nameMax)out.push(['name','Tên tối đa '+t.nameMax+' ký tự, đang có '+nm.length+'.',0]);
-  tabsOf(node).forEach((tb,ti)=>{if(tb.list)return;
+  tabsOf(node).forEach((tb,ti)=>{if(tb.list||tb.dash)return;
     const walk=(list,obj,prefix)=>list.forEach(f=>{if(f.g){if(!(f.adm&&ROLE!=='qt'))walk(f.f,obj,prefix);return}if(!visible(f,obj,node))return;
       const key=prefix+f.k;const m=vField(f,obj,mode,node);if(m)out.push([key,m,ti]);
       if(f.t==='table')(obj[f.k]||[]).forEach(r=>f.cols.concat(f.extra||[]).forEach(c=>{const mm=vField(c,r,mode,node);if(mm)out.push([r._k+'.'+c.k,mm,ti])}));
@@ -957,6 +963,9 @@ const lvChip=id=>{const l=LEVEL.find(x=>x.id===id);return l?h('span',{class:'lvc
 const nameOf=id=>{const n=byId(id);return n?n.name:''};
 function refs(id){const out=[];const has=o=>{if(o==null)return false;if(typeof o==='string')return o===id;if(Array.isArray(o))return o.some(has);if(typeof o==='object')return Object.entries(o).some(([k,x])=>k!=='_k'&&has(x));return false};
   N.forEach(n=>{if(n.id!==id&&has(n.v))out.push(n)});return out}
+const FOLDEROF={alertPage:'c-alert',viecCanLamPage:'c-vcl',riskArticlePage:'c-art',checklistPage:'c-chk'};
+const PAGEOF={alertFolder:'canh-bao-moi',articleFolder:'rui-ro',actionFolder:'khan-cap',checklistFolder:'cong-cu',quickQaFolder:'hoi-dap'};
+const OPENLIST=(t,id)=>h('span',{class:'xlink'},h('span',{text:t}),h('button',{type:'button',class:'btn',onclick:()=>go(id)},icon('right'),'Mở danh sách'));
 const WHO=n=>{const c=COLL[n.type]&&COLL[n.type].child;return !c?'–':T[c].create==='bt'?'Biên tập viên':'Quản trị viên'};
 const COLL={
   alertFolder:{child:'alertPage',label:'cảnh báo',cols:[['Tiêu đề',n=>h('span',null,n.name)],['Mức độ',n=>lvChip(n.v.level)],['Phổ biến',n=>nameOf(n.v.pop)||'–'],['Ngày cập nhật',n=>fmtDate(n.v.upd)],['Còn mới',n=>{const d=daysSince(n.v.upd);return d==null?'–':d<=90?h('span',{class:'st pub',text:'Còn '+(90-d)+' ngày'}):h('span',{class:'st old',text:'Quá 90 ngày'})}],['Trạng thái',stChip]],
@@ -965,7 +974,8 @@ const COLL={
     filters:[['Nhóm chính',()=>src('GRP'),(n,x)=>n.v.grp===x],['Loại bài',FIX.KIND,(n,x)=>n.v.kind===x],['Trạng thái',[{id:'pub',name:'Đã đăng'},{id:'draft',name:'Nháp'}],(n,x)=>n.st===x]]},
   libraryFolder:{child:null,label:'danh mục',cols:[['Danh mục',n=>h('span',null,n.name)],['Số mục',n=>String(kids(n.id).length)],['Ai thêm được',WHO]]},
   contentRoot:{child:null,label:'mục',cols:[['Mục',n=>h('span',null,n.name)],['Số mục',n=>String(kids(n.id).length)],['Ai thêm được',WHO]]},
-  pagesRoot:{child:null,label:'mục',cols:[['Tên',n=>h('span',null,n.name)],['Loại',n=>T[n.type].name]]},
+  pagesRoot:{child:null,label:'trang',cols:[['Tên',n=>h('span',null,n.name)],['Loại',n=>T[n.type].name],['Địa chỉ',n=>h('code',{text:urlOf(n)||'–'})]]},
+  otherPagesFolder:{child:'infoPage',label:'trang',cols:[['Tên',n=>h('span',null,n.name)],['Loại',n=>T[n.type].name],['Địa chỉ',n=>h('code',{text:urlOf(n)})],['Trạng thái',stChip]]},
   channelFolder:{child:'channelItem',sortable:true},audienceFolder:{child:'audienceItem',sortable:true},stopSignFolder:{child:'stopSignItem',sortable:true},popularityFolder:{child:'popularityItem',sortable:true},topicFolder:{child:'topicItem',sortable:true},
   tacticFolder:{child:'tacticItem',label:'thủ đoạn',cols:[['Tên thủ đoạn',n=>h('span',null,n.name)],['Chuyên đề',n=>{const t=byId(n.v.topic);return t?'Chuyên đề '+t.v.number:'–'}],['Mức độ',n=>lvChip(n.v.level)],['Kênh',n=>String((n.v.ch||[]).length)],['Đang dùng',n=>n.v.active===false?h('span',{class:'st off',text:'Ngừng dùng'}):h('span',{class:'st pub',text:'Đang dùng'})],['Chỗ dùng',n=>String(refs(n.id).length)]],
     filters:[['Chuyên đề',()=>src('TOPIC'),(n,x)=>n.v.topic===x],['Mức độ',LEVEL,(n,x)=>n.v.level===x],['Đang dùng',[{id:'1',name:'Đang dùng'},{id:'0',name:'Ngừng dùng'}],(n,x)=>(n.v.active!==false)===(x==='1')]]},
@@ -976,9 +986,10 @@ const COLL={
 let CST={};
 function Collection(node){
   const cfg=COLL[node.type];const st=CST[node.id]||(CST[node.id]={q:'',f:{},sel:new Set()});const root=h('div',{class:'coll'});
+  const pageBanner=()=>{const pg=byId(PAGEOF[node.type]);if(pg)root.append(h('div',{class:'banner info'},icon('info'),h('span',{text:'Hiện trên website ở trang “'+pg.name+'” ('+urlOf(pg)+'). Tiêu đề, câu dẫn của trang đó sửa ở Quản lý trang.'}),h('button',{type:'button',class:'btn',onclick:()=>go(pg.id)},'Mở trang')))};
   const canCreate=cfg.child&&canDo(T[cfg.child].create);
   function render(){
-    root.textContent='';
+    root.textContent='';pageBanner();
     const search=h('input',{class:'txt',type:'search',placeholder:'Tìm theo tên…','aria-label':'Tìm theo tên'});search.value=st.q;search.addEventListener('input',()=>{st.q=search.value;renderRows()});
     const tool=h('div',{class:'ctool'},h('div',{class:'search'},icon('search'),search));
     (cfg.filters||[]).forEach(([l,items,fn],i)=>{const cb=Combobox({items,value:st.f[i]?[st.f[i]]:[],ph:'Mọi '+l.toLowerCase(),label:'Lọc theo '+l.toLowerCase(),onChange:x=>{st.f[i]=x;renderRows()}});tool.append(cb.el)});
@@ -1047,7 +1058,7 @@ const T={
     {g:'Khối Hãy tự kiểm tra',f:[F('toolsTitle','Tiêu đề khối','text',{req:1,max:60}),F('tools','Ba thẻ kiểm tra nhanh','multi',{src:'TOOL',req:1,min:3,max:3,sort:1,help:'Kéo thẻ để sắp thứ tự'})]},
     {g:'Khối Các rủi ro',f:[F('riskTitle','Tiêu đề khối','text',{req:1,max:60}),F('riskInfo','Thẻ nhóm','info',{fn:()=>'Lấy tự động từ 5 nhóm rủi ro, số bài đếm tự động.'})]},
     {g:'Khối Cảnh báo mới',f:[F('alertTitle','Tiêu đề khối','text',{req:1,max:60}),F('alertMore','Chữ nút “Xem tất cả”','text',{req:1,max:40}),F('alertCount','Số cảnh báo hiện','num',{req:1,lo:1,hi:3,help:'Chỉ lấy cảnh báo cập nhật trong 90 ngày; không có thì khối ẩn'}),F('pin','Cảnh báo ghim','pick',{src:'ALERT',showDraft:1,help:'Hết 90 ngày thì tự bỏ ghim'})]}]},seoTab]},
-  khanCapPage:{name:'Khẩn cấp',page:1,del:false,tabs:[{t:'Nội dung',f:[{g:'Việc cần làm',f:[F('where','Việc cần làm','info',{fn:()=>N.filter(x=>x.type==='viecCanLamPage').length+' trang việc cần làm. Thêm, sửa ở Quản lý nội dung › Việc cần làm.'})]},
+  khanCapPage:{name:'Khẩn cấp',page:1,del:false,tabs:[{t:'Nội dung',f:[{g:'Việc cần làm',f:[F('where','Việc cần làm','info',{fn:()=>OPENLIST(N.filter(x=>x.type==='viecCanLamPage').length+' trang việc cần làm. Thêm, sửa ở Quản lý nội dung › Việc cần làm.',FOLDEROF['viecCanLamPage'])})]},
     {g:'Đầu trang',f:[F('title','Tiêu đề','text',{req:1,max:90}),F('lead','Mô tả','area',{req:1,max:220})]},
     {g:'Lối vào trình hỏi',f:[F('wzTitle','Tiêu đề','text',{req:1,max:60}),F('wzDesc','Mô tả','area',{req:1,max:220}),F('wzBtn','Chữ nút','text',{req:1,max:32})]},
     {g:'Việc cần làm ngay',f:[F('doorLead','Câu dẫn','area',{req:1,max:220}),F('doors','Ba cửa vào','cards',{req:1,min:3,max:3,unit:'cửa',sum:'t',flags:it=>[(FIX.DOORKIND.find(x=>x.id===it.kind)||{}).name||'',it.kind==='luaChon'?(it.opts||[]).length+' lựa chọn':''].filter(Boolean),fields:[
@@ -1074,7 +1085,7 @@ const T={
     {g:'Rà soát',f:[F('rev','Ngày rà soát','date',{req:'xb',help:'Quá 90 ngày tự hiện cảnh báo'}),F('src','Nguồn kiểm chứng','text',{req:'xb',max:200})]}]},seoTab]},
   congCuPage:{name:'Hãy tự kiểm tra',page:1,del:false,tabs:[{t:'Nội dung',f:[{g:'Đầu trang',f:[F('title','Tiêu đề','text',{req:1,max:90}),F('lead','Mô tả','area',{req:1,max:240})]},
     {g:'Kiểm tra nhanh',f:[F('toolsTitle','Tiêu đề phần','text',{req:1,max:60}),F('tools','Ba kiểm tra nhanh theo thứ tự','multi',{src:'TOOL',req:1,min:3,max:3,sort:1})]},
-    {g:'Danh sách kiểm tra',f:[F('chkTitle','Tiêu đề phần','text',{req:1,max:60}),F('chkLead','Câu dẫn','area',{req:1,max:300}),F('chkOrder','Thứ tự','info',{fn:()=>'Theo thứ tự ở Quản lý nội dung › Danh sách kiểm tra. Kéo ⋮⋮ ở đó để đổi.'})]},
+    {g:'Danh sách kiểm tra',f:[F('chkTitle','Tiêu đề phần','text',{req:1,max:60}),F('chkLead','Câu dẫn','area',{req:1,max:300}),F('chkOrder','Thứ tự','info',{fn:()=>OPENLIST('Theo thứ tự ở Quản lý nội dung › Danh sách kiểm tra. Kéo ⋮⋮ ở đó để đổi.','c-chk')})]},
     {g:'Kiểm tra kiến thức',f:[F('knowTitle','Tiêu đề phần','text',{req:1,max:60}),F('know','Các lối vào','table',{max:4,cols:[{k:'ic',l:'Biểu tượng',t:'pick',src:'ICONS',w:'150px'},{k:'nhan',l:'Tên',req:1,max:40,w:'24%'},{k:'desc',l:'Mô tả',t:'area',max:140},{k:'trang',l:'Trang',t:'pick',src:'PAGES',req:1,w:'24%'}]})]}]},seoTab]},
   toolCountPage:{name:'Kiểm tra nhanh',page:1,del:false,sub:()=>'Hãy tự kiểm tra',tabs:[{t:'Nội dung',f:[
     {g:'Đầu trang',f:[F('title','Tiêu đề','text',{req:1,max:90}),F('slug','Đường dẫn','text',{req:1,max:60}),F('icon','Biểu tượng','pick',{src:'ICONS',req:1}),F('card','Mô tả ngắn trên thẻ','area',{req:1,max:160}),F('lead','Câu dẫn','area',{req:1,max:240}),
@@ -1102,7 +1113,7 @@ const T={
       F('pdfState','Nút tải trên website','info',{fn:v=>v.pdf?'Tải tệp đã chọn.':'Chưa có tệp: nút tải mở bản in A4.'})]},
     {g:'Rà soát',f:[F('ver','Phiên bản','text',{req:'xb',max:20}),F('rev','Ngày rà soát','date',{req:'xb'})]}]},seoTab]},
   ruiRoPage:{name:'Các rủi ro',page:1,del:false,tabs:[{t:'Nội dung',f:[{g:'Nội dung',f:[F('title','Tiêu đề','text',{req:1,max:90}),F('lead','Mô tả','area',{max:220}),F('redir','Chuyển hướng','info',{fn:()=>'Địa chỉ /cac-rui-ro chuyển hướng 301 về /cac-rui-ro/canh-bao-moi.'})]}]},seoTab]},
-  alertListPage:{name:'Cảnh báo mới',page:1,del:false,tabs:[{t:'Nội dung',f:[{g:'Nội dung',f:[F('where','Cảnh báo','info',{fn:()=>N.filter(x=>x.type==='alertPage').length+' cảnh báo. Thêm, sửa ở Quản lý nội dung › Cảnh báo.'}),F('title','Tiêu đề','text',{req:1,max:90}),F('lead','Câu dẫn','area',{req:1,max:220}),F('sample','Dòng “Mẫu trình bày”','toggle',{cap:'Hiện dòng báo đây là cảnh báo mẫu'})]}]},seoTab]},
+  alertListPage:{name:'Cảnh báo mới',page:1,del:false,tabs:[{t:'Nội dung',f:[{g:'Nội dung',f:[F('where','Cảnh báo','info',{fn:()=>OPENLIST(N.filter(x=>x.type==='alertPage').length+' cảnh báo. Thêm, sửa ở Quản lý nội dung › Cảnh báo.',FOLDEROF['alertPage'])}),F('title','Tiêu đề','text',{req:1,max:90}),F('lead','Câu dẫn','area',{req:1,max:220}),F('sample','Dòng “Mẫu trình bày”','toggle',{cap:'Hiện dòng báo đây là cảnh báo mẫu'})]}]},seoTab]},
   alertPage:{name:'Cảnh báo',page:1,create:'bt',del:'bt',nameMax:110,sub:n=>'Cảnh báo · '+(fmtDate(n.v.upd)||'chưa có ngày'),defaults:()=>({level:'',pop:'',steps:[],signs:[],signs2:[],ch:[],aud:[],tac:[],tabs:[],rel:[],kw:[],upd:'2026-11-03',ttl:'180'}),tabs:[
     {t:'Nội dung',f:[{g:'Nội dung',f:[F('title','Tiêu đề','text',{req:1,max:110,ph:(v,n)=>n.name}),F('desc','Mô tả 1 dòng','area',{req:1,max:160,help:'Dùng cho thẻ và mô tả chia sẻ'}),F('level','Mức độ cần thận trọng','pick',{src:'LEVEL',req:1}),F('pop','Mức độ phổ biến','pick',{src:'POP',req:1,help:'Danh mục do Ban biên tập quản lý (QĐ-038)'}),F('popNote','Căn cứ mức độ phổ biến','text',{max:160,help:'Số liệu của cơ quan nào, ngày nào'}),
       F('steps','Kịch bản thường gặp','lines',{req:'xb',min:3,max:5,help:'3–5 bước (đặc tả 7.4)'}),F('signs','Dấu hiệu nhận biết','multi',{src:'SIGN'}),F('signs2','Dấu hiệu khác','lines',{max:4,help:'Khi không có trong danh mục'}),F('todo','Việc cần làm: trang','pick',{src:'VCL',req:'xb'})]}]},
@@ -1110,7 +1121,7 @@ const T={
     {t:'Phân loại',f:[{g:'Phân loại',f:[F('ch','Kênh','multi',{src:'CH',req:'xb'}),F('aud','Đối tượng dễ bị nhắm tới','multi',{src:'AUD',req:'xb'}),F('tac','Thủ đoạn liên quan','multi',{src:'TAC',max:8,sort:1,help:'Kéo thẻ để sắp thứ tự'}),F('tabs','Hiện thêm ở nhóm','multi',{src:'GRP',help:'Ngoài nhóm chính Cảnh báo mới'}),F('rel','Bài liên quan','multi',{src:'REL',max:4,remote:1,showDraft:1,help:'Để trống thì lấy tự động cùng nhóm'}),F('kw','Từ khóa tìm kiếm','tags',{help:'Gõ rồi Enter để thêm thẻ mới'})]}]},
     {t:'Lịch',f:[{g:'Lịch',f:[F('upd','Ngày cập nhật','date',{req:1,help:'Dùng để tính 90 ngày “mới”'}),F('ttl','Tự gỡ sau (ngày)','num',{req:1,lo:30,hi:720,help:'Mặc định 180 (README mục 8)'}),F('fresh','Tình trạng','info',{fn:v=>{const d=daysSince(v.upd);return d==null?'Chưa có ngày cập nhật':d<=90?'Còn hiện ở “mới” thêm '+(90-d)+' ngày. Tự gỡ sau '+Math.max(0,(+v.ttl||180)-d)+' ngày.':'Đã quá 90 ngày, không còn hiện ở trang chủ.'}})]},
       {g:'Hẹn giờ',f:[F('sched','Hẹn giờ đăng, gỡ','info',{fn:()=>'Dùng chức năng lịch có sẵn của Umbraco ở nút mũi tên cạnh “Lưu và xuất bản”.'})]}]},seoTab]},
-  riskCategoryPage:{name:'Nhóm rủi ro',page:1,del:false,sub:()=>'Các rủi ro',tabs:[{t:'Nội dung',f:[{g:'Nội dung',f:[F('where','Bài viết','info',{fn:()=>{const g=CUR;return N.filter(x=>x.type==='riskArticlePage'&&x.v.grp===g).length+' bài có Nhóm chính là nhóm này. Thêm, sửa ở Quản lý nội dung › Bài viết.'}}),F('tab','Tên tab','text',{req:1,max:28}),F('short','Mô tả ngắn trên thẻ trang chủ','text',{req:1,max:60}),F('lead','Câu dẫn đầu trang','area',{req:1,max:220}),F('icon','Biểu tượng','pick',{src:'ICONS',req:1}),F('thumb','Ảnh thu nhỏ','media',{help:'Ảnh trên thẻ nhóm ở trang chủ và Các rủi ro (QĐ-052)'}),
+  riskCategoryPage:{name:'Nhóm rủi ro',page:1,del:false,sub:()=>'Các rủi ro',tabs:[{t:'Nội dung',f:[{g:'Nội dung',f:[F('where','Bài viết','info',{fn:()=>{const g=CUR;return OPENLIST(N.filter(x=>x.type==='riskArticlePage'&&x.v.grp===g).length+' bài có Nhóm chính là nhóm này. Thêm, sửa ở Quản lý nội dung › Bài viết.','c-art')}}),F('tab','Tên tab','text',{req:1,max:28}),F('short','Mô tả ngắn trên thẻ trang chủ','text',{req:1,max:60}),F('lead','Câu dẫn đầu trang','area',{req:1,max:220}),F('icon','Biểu tượng','pick',{src:'ICONS',req:1}),F('thumb','Ảnh thu nhỏ','media',{help:'Ảnh trên thẻ nhóm ở trang chủ và Các rủi ro (QĐ-052)'}),
     F('tactics','Thủ đoạn hiện trong nhóm','multi',{src:'TAC',sort:1}),F('pins','Bài ghim đầu danh sách','multi',{src:'ART',max:2,showDraft:1}),F('noAns','Câu “Không thấy câu trả lời?”','area',{max:200})]}]},seoTab]},
   riskArticlePage:{name:'Bài viết',page:1,create:'bt',del:'bt',nameMax:110,sub:n=>((FIX.KIND.find(k=>k.id===n.v.kind)||{}).name||'Bài viết')+' · '+((byId(n.v.grp)||{}).name||'chưa chọn nhóm'),defaults:()=>({kind:'huongDan',signs:[],scen:[],todo:[],dont:[],srcs:[],ch:[],aud:[],tabs:[],kw:[],syn:[],rel:[]}),tabs:[
     {t:'Nội dung',f:[{g:'Thông tin bài',f:[F('title','Tiêu đề','text',{req:1,max:110,ph:(v,n)=>n.name}),F('kind','Loại bài','pick',{src:'KIND',req:1,re:1,help:'Bài hướng dẫn cần đủ Dấu hiệu và Việc cần làm ngay'}),F('desc','Mô tả 1 dòng','area',{req:1,max:160,help:'Hiện trên thẻ bài'}),F('icon','Biểu tượng','pick',{src:'ICONS'})]},
@@ -1132,7 +1143,8 @@ const T={
   infoPage:{name:'Trang thông tin',page:1,create:'qt',del:'qt',tabs:[{t:'Nội dung',f:[{g:'Nội dung',f:[F('title','Tiêu đề','text',{req:1,max:90}),F('lead','Câu dẫn','area',{req:'xb',max:220}),F('body','Nội dung','rte',{req:'xb'}),F('gaps','Mục còn chỗ trống','area',{max:300,help:'Ghi những chỗ còn chờ khách cung cấp, không hiện ra website'})]}]},seoTab]},
   policyPage:{name:'Chính sách',page:1,create:'qt',del:'qt',tabs:[{t:'Nội dung',f:[{g:'Nội dung',f:[F('title','Tiêu đề','text',{req:1,max:110}),F('slug','Đường dẫn','text',{req:1,max:60}),F('ver','Dòng phiên bản','text',{req:1,max:80,help:'Ví dụ “Bản dự thảo · ngày ban hành”'}),F('body','Nội dung','rte',{req:1})]}]},seoTab]},
   pagesRoot:{name:'Quản lý trang',del:false,folder:1,tabs:[{t:'Trang',list:1}]},
-  contentRoot:{name:'Quản lý nội dung',del:false,folder:1,tabs:[{t:'Mục nội dung',list:1}]},
+  contentRoot:{name:'Quản lý nội dung',del:false,folder:1,tabs:[{t:'Bắt đầu',dash:1},{t:'Tất cả mục',list:1}]},
+  otherPagesFolder:{name:'Trang thông tin, chính sách',del:false,folder:1,tabs:[{t:'Danh sách',list:1}]},
   alertFolder:{name:'Cảnh báo',del:false,folder:1,hide:1,tabs:[{t:'Danh sách',list:1}]},
   articleFolder:{name:'Bài viết',del:false,folder:1,hide:1,tabs:[{t:'Danh sách',list:1}]},
   actionFolder:{name:'Việc cần làm',del:false,folder:1,hide:1,tabs:[{t:'Danh sách',list:1}]},
@@ -1168,10 +1180,10 @@ COLL.actionFolder={child:'viecCanLamPage',label:'trang',sortable:true,cols:[['T�
 const tabsOf=n=>(T[n.type].tabs||[]).filter(t=>!(t.adm&&ROLE!=='qt'));
 const canDo=need=>need==='bt'?true:need==='qt'?ROLE==='qt':false;
 const CURNODE=()=>byId(CUR);
-const ALLOW={homePage:['infoPage','policyPage'],alertFolder:['alertPage'],articleFolder:['riskArticlePage'],actionFolder:['viecCanLamPage'],checklistFolder:['checklistPage'],channelFolder:['channelItem'],audienceFolder:['audienceItem'],stopSignFolder:['stopSignItem'],popularityFolder:['popularityItem'],topicFolder:['topicItem'],tacticFolder:['tacticItem'],quickQaFolder:['quickQaItem'],snippetFolder:['sharedSnippet']};
+const ALLOW={otherPagesFolder:['infoPage','policyPage'],alertFolder:['alertPage'],articleFolder:['riskArticlePage'],actionFolder:['viecCanLamPage'],checklistFolder:['checklistPage'],channelFolder:['channelItem'],audienceFolder:['audienceItem'],stopSignFolder:['stopSignItem'],popularityFolder:['popularityItem'],topicFolder:['topicItem'],tacticFolder:['tacticItem'],quickQaFolder:['quickQaItem'],snippetFolder:['sharedSnippet']};
 const DESC={infoPage:'Trang như Về website, Xác minh đúng trang',policyPage:'Văn bản chính sách, điều khoản',viecCanLamPage:'Một tình huống và các bước cần làm',checklistPage:'Danh sách kiểm tra “Trước khi…”: câu hỏi, bảng kiểm bỏ túi, kết quả, bản in',alertPage:'Cảnh báo mới, hiện ở trang chủ trong 90 ngày',riskArticlePage:'Bài hướng dẫn, bài đọc chuyên đề hoặc bài đọc thêm',channelItem:'Một kênh để lọc và gắn vào bài',audienceItem:'Một nhóm người dễ bị nhắm tới',stopSignItem:'Một dấu hiệu phải dừng',popularityItem:'Một giá trị của Mức độ phổ biến',topicItem:'Một chuyên đề, nối với ngân hàng câu hỏi',tacticItem:'Một thủ đoạn, hiện thành thẻ trong Các rủi ro',quickQaItem:'Một câu hỏi và trả lời ngắn',sharedSnippet:'Một hộp chữ dùng lại ở nhiều trang'};
 const allowFor=n=>(ALLOW[n.type]||[]);
-Object.assign(TYPE_ICON,{pagesRoot:'folder',contentRoot:'folder',alertFolder:TYPE_ICON.alertPage,articleFolder:TYPE_ICON.riskArticlePage,actionFolder:TYPE_ICON.viecCanLamPage,checklistFolder:TYPE_ICON.checklistPage});
+Object.assign(TYPE_ICON,{otherPagesFolder:'folder',pagesRoot:'folder',contentRoot:'folder',alertFolder:TYPE_ICON.alertPage,articleFolder:TYPE_ICON.riskArticlePage,actionFolder:TYPE_ICON.viecCanLamPage,checklistFolder:TYPE_ICON.checklistPage});
 let CMENU=null;const closeMenu=()=>{if(CMENU){CMENU.remove();CMENU=null}};
 document.addEventListener('mousedown',e=>{if(CMENU&&!CMENU.contains(e.target)&&!e.target.closest('[data-create]'))closeMenu()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
@@ -1185,7 +1197,25 @@ function createBtn(n){const all=allowFor(n);if(!all.length)return null;const ok=
   if(!ok.length)return h('span',{class:'state',title:'Chỉ Quản trị viên tạo được',text:'Tạo '+T[all[0]].name.toLowerCase()+': chỉ Quản trị viên'});
   return h('button',{type:'button',class:'btn pri','data-create':'1','aria-haspopup':ok.length>1||all.length>1?'menu':null,onclick:e=>createMenu(n,e.currentTarget)},icon('plus'),ok.length===1?'Tạo '+T[ok[0]].name.toLowerCase():'Tạo mới',ok.length>1?icon('down'):null)}
 const URLBASE={alertPage:()=>'canh-bao-moi',viecCanLamPage:()=>'khan-cap',checklistPage:()=>'cong-cu',riskArticlePage:n=>n.v.grp};
-function urlOf(n){if(!T[n.type]||!T[n.type].page)return '';if(URLBASE[n.type]){const b=byId(URLBASE[n.type](n));return b?urlOf(b)+'/'+(n.v.slug||slugify(n.name)):'(chọn Nhóm chính để có đường dẫn)'}if(n.type==='homePage')return '/';const segs=[];let x=n;while(x&&x.type!=='homePage'){segs.unshift(x.v.slug||slugify(x.name));x=byId(x.p)}return '/'+segs.join('/')}
+function urlOf(n){if(!T[n.type]||!T[n.type].page)return '';if(URLBASE[n.type]){const b=byId(URLBASE[n.type](n));return b?urlOf(b)+'/'+(n.v.slug||slugify(n.name)):'(chọn Nhóm chính để có đường dẫn)'}if(n.type==='homePage')return '/';const segs=[];let x=n;while(x&&x.type!=='homePage'&&x.type!=='pagesRoot'){if((T[x.type]||{}).page)segs.unshift(x.v.slug||slugify(x.name));x=byId(x.p)}return '/'+segs.join('/')}
+
+/* ---------- trang Bắt đầu của Quản lý nội dung ---------- */
+function Dash(){
+  const box=(title,sub,...kids)=>h('section',{class:'box'},h('h3',{class:'dh',text:title}),sub?h('p',{class:'dsub',text:sub}):null,...kids);
+  const cards=kids('content').filter(f=>ALLOW[f.type]||f.type==='libraryFolder').map(f=>{const ct=(ALLOW[f.type]||[])[0];const ok=ct&&canDo(T[ct].create);
+    return h('div',{class:'dcard'},h('button',{type:'button',class:'dopen',onclick:()=>go(f.id)},icon(TYPE_ICON[f.type]),h('b',{text:f.name}),h('span',{class:'cnt',text:String(kids(f.id).length)})),
+      h('p',{text:ct?DESC[ct]||'':'Kênh, đối tượng, dấu hiệu, mức độ phổ biến, chuyên đề, thủ đoạn'}),
+      ok?h('button',{type:'button',class:'btn pri',onclick:()=>createChild(f,ct)},icon('plus'),'Thêm '+T[ct].name.toLowerCase()):h('button',{type:'button',class:'btn',onclick:()=>go(f.id)},'Mở danh sách'))});
+  const row=(n,why)=>h('li',null,h('button',{type:'button',class:'drow',onclick:()=>go(n.id)},icon(TYPE_ICON[n.type]),h('span',{text:n.name}),h('small',{text:why})));
+  const old=N.filter(n=>n.type==='alertPage'&&n.st==='pub'&&daysSince(n.v.upd)>90).map(n=>row(n,'Cảnh báo quá 90 ngày'));
+  const rev=N.filter(n=>n.type==='riskArticlePage'&&n.st==='pub'&&(!n.v.rev||daysSince(n.v.rev)>90)).map(n=>row(n,n.v.rev?'Quá hạn rà soát':'Chưa rà soát'));
+  const drafts=N.filter(n=>n.st==='draft'&&FOLDEROF[n.type]).map(n=>row(n,'Bản nháp'));
+  const todo=[...old,...rev,...drafts];
+  const pages=['home','khan-cap','cong-cu','rui-ro','settings'].map(byId).filter(Boolean);
+  return h('div',{class:'dash'},
+    box('Thêm mới','Bài, cảnh báo, danh sách… đều thêm ở đây. Bấm tên để mở danh sách.',h('div',{class:'dgrid'},cards)),
+    box('Cần xử lý',todo.length?todo.length+' mục':'Không có việc tồn',todo.length?h('ul',{class:'dlist'},todo.slice(0,8)):null,todo.length>8?h('p',{class:'dsub',text:'Còn '+(todo.length-8)+' mục; lọc trong từng danh sách để xem hết.'}):null),
+    box('Sửa trang','Chữ cố định trên trang (tiêu đề, câu dẫn, khối trang chủ) nằm ở Quản lý trang.',h('div',{class:'dpages'},pages.map(p=>h('button',{type:'button',class:'btn',onclick:()=>go(p.id)},icon(TYPE_ICON[p.type]),p.name)))))}
 
 /* ---------- cây ---------- */
 function renderTree(){const t=document.getElementById('tree');const sc=t.scrollTop;t.textContent='';t.append(h('h2',{text:'Nội dung'}));
@@ -1227,7 +1257,8 @@ function renderNode(bannerEl){
   if(bannerEl)c.querySelector('#banner').append(bannerEl);
   else if(n.st==='new')c.querySelector('#banner').append(h('div',{class:'banner info'},icon('plus'),h('span',{text:'Đang tạo '+ty.name.toLowerCase()+' mới trong “'+((byId(n.p)||{}).name||'')+'”. Nhập tên ở ô trên cùng, điền các ô có dấu *, rồi Lưu nháp hoặc Lưu và xuất bản.'}),h('button',{type:'button',class:'btn',onclick:()=>{const pid=n.p;N=N.filter(x=>x.id!==n.id);go(pid);toast('Đã hủy, không tạo mục mới.')}},'Hủy')));
   tabs.forEach((t,i)=>{const pn=h('div',{class:'tabpanel',role:'tabpanel','data-tab':i});pn.hidden=i!==TAB;
-    if(t.list)pn.append(Collection(n));
+    if(t.dash)pn.append(Dash());
+    else if(t.list)pn.append(Collection(n));
     else{const ctx={node:n,prefix:'',rerender:()=>rerenderPanel(i),hidden:0};const loose=[];
       t.f.forEach(f=>{const el=fieldEl(f,n.v,ctx);if(!el)return;if(f.g||f.t==='matrix')pn.append(el);else loose.push(el)});
       if(loose.length)pn.prepend(h('section',{class:'box'},loose));
@@ -1244,7 +1275,7 @@ function renderNode(bannerEl){
     foot.append(left,h('button',{type:'button',class:'btn',onclick:()=>toast('Mockup không có trang xem trước.')},icon('eye'),'Xem trước'),h('button',{type:'button',class:'btn',onclick:()=>save('save')},'Lưu nháp'),h('button',{type:'button',class:'btn pri',onclick:()=>save('pub')},'Lưu và xuất bản'));
   }else foot.append(h('span',{class:'left note',text:'Thư mục không có nội dung. Bấm một dòng để mở mục.'}));
 }
-function rerenderPanel(i){const n=CURNODE();const t=tabsOf(n)[i];const old=PANELS[i];if(!old||t.list)return;const sc=document.getElementById('content').scrollTop;
+function rerenderPanel(i){const n=CURNODE();const t=tabsOf(n)[i];const old=PANELS[i];if(!old||t.list||t.dash)return;const sc=document.getElementById('content').scrollTop;
   const pn=h('div',{class:'tabpanel',role:'tabpanel','data-tab':i});pn.hidden=old.hidden;const ctx={node:n,prefix:'',rerender:()=>rerenderPanel(i),hidden:0};const loose=[];
   t.f.forEach(f=>{const el=fieldEl(f,n.v,ctx);if(!el)return;if(f.g||f.t==='matrix')pn.append(el);else loose.push(el)});if(loose.length)pn.prepend(h('section',{class:'box'},loose));
   if(ctx.hidden)pn.append(h('div',{class:'banner info'},icon('lock'),h('span',{text:ctx.hidden+' nhóm hoặc trường chỉ Quản trị viên thấy.'})));
@@ -1284,5 +1315,5 @@ if(start==='selftest'){
   try{const w=byId('wizard').v;const a2=new Set([w.o2[1]._k]);const res=mxCompute(w,w.o1[0]._k,a2,new Set([w.o3[1]._k]));if(!res||res.lv!=='ratCao')errs.push('matrix compute sai: '+JSON.stringify(res&&res.lv))}catch(e){errs.push('matrix: '+e.message)}
   N.forEach(n=>['illus','thumb','logo','logo2'].forEach(k=>{const v=n.v[k];if(v&&!MEDIA.some(m=>m.id===v))errs.push('media '+n.id+'.'+k+' = '+v+' không có trong Phương tiện')}));
   document.body.append(h('pre',{id:'selftest',text:'SELFTEST '+(errs.length?'FAIL':'OK')+' renders='+count+' nodes='+N.length+'\n'+errs.join('\n')}));
-}else go(byId(start)?start:'khan-cap');
+}else go(byId(start)?start:'content');
 </script>
