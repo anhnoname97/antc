@@ -88,7 +88,7 @@ def pol_html(bl):
     return ''.join(out)
 
 # ---- Cai dat website
-LVTXT = {'d': 'Dừng lại. Không làm theo yêu cầu cho tới khi bạn tự kiểm tra qua kênh chính thức.', 'h': 'Tạm hoãn. Kiểm tra lại qua số điện thoại hoặc trang chính thức do bạn tự tìm.', 'n': 'Bình tĩnh, kiểm tra trước khi làm theo.', 'x': 'Chưa khớp tình huống nào trong danh sách. Hãy giữ bốn nguyên tắc dừng lại.'}
+ST = V['STATE']
 node('settings', None, 'siteSettings', 'Cài đặt website', {
     'princ': [{'_k': k(), 'ic': p[0], 't': p[1], 'd': p[2]} for p in V['PRINC']],
     'rev': '2026-10-20', 'next': '2027-01-20',
@@ -101,15 +101,15 @@ node('settings', None, 'siteSettings', 'Cài đặt website', {
     'logo': 'm-logo', 'logoAlt': 'An toàn tài chính', 'logo2': 'm-logo-w', 'logo2Alt': 'An toàn tài chính',
     'bar': 'thu', 'noindex': True, 'contest': True, 'cShort': 'Cuộc thi', 'cFull': 'Cuộc thi trực tuyến tìm hiểu an toàn tài chính',
     'spon': False, 'sName': '', 'sLogo': '', 'sLink': '', 'sNote': '',
-    'resnote': V['RESNOTE'], 'notconc': V['NOTCONC'], 'lvN': LVTXT['n'], 'lvH': LVTXT['h'], 'lvD': LVTXT['d'], 'lvX': LVTXT['x'],
+    'resnote': V['RESNOTE'], 'notconc': V['NOTCONC'], 'stDLab': ST['d']['lab'], 'stDTxt': ST['d']['txt'], 'stHLab': ST['h']['lab'], 'stHTxt': ST['h']['txt'], 'stNLab': ST['n']['lab'], 'stNTxt': ST['n']['txt'],
     'notreport': 'Website không tiếp nhận tố giác, tin báo về tội phạm. Việc trình báo phải thực hiện tại cơ quan Công an.',
-    'noadvice': '', 'banka': V['BANKA'], 'refuse': V['REFUSE']})
+    'noadvice': V['NOADVICE'], 'must': V['MUST'], 'banka': V['BANKA'], 'refuse': V['REFUSE']})
 
 # ---- Trang chu
 node('home', None, 'homePage', 'Trang chủ', {
     'kick': 'Khẩn cấp', 'title': 'Bạn vừa nhận tin nhắn, cuộc gọi hoặc lời mời đáng ngờ?', 'desc': 'Trả lời 3 câu hỏi ngắn để nhận dấu hiệu cảnh báo và việc cần làm ngay.',
-    'btn1': 'Tôi đang gặp chuyện gì?', 'btn2': 'Xem việc cần làm ngay', 'prLead': 'Trong lúc chưa rõ, nhớ bốn điều:', 'img': 'm-phone', 'imgAlt': 'Điện thoại hiện cuộc gọi lạ',
-    'toolsTitle': 'Công cụ & checklist', 'tools': ['tool1', 'tool2', 'tool3'], 'riskTitle': 'Các rủi ro', 'alertTitle': 'Cảnh báo mới', 'alertMore': 'Xem tất cả cảnh báo', 'alertCount': '3', 'pin': ''})
+    'btn1': 'Tôi đang gặp chuyện gì?', 'btn2': 'Xem việc cần làm ngay', 'prLead': 'Trong lúc chưa rõ, nhớ bốn điều:',
+    'toolsTitle': 'Hãy tự kiểm tra', 'tools': ['tool1', 'tool2', 'tool3'], 'riskTitle': 'Các rủi ro', 'alertTitle': 'Cảnh báo mới', 'alertMore': 'Xem tất cả cảnh báo', 'alertCount': '3', 'pin': ''})
 
 # ---- Khan cap
 DD = V['DOORDEF']; DO = V['DOORS']
@@ -165,7 +165,7 @@ node('wizard', 'khan-cap', 'wizardPage', 'Kiểm tra tình huống', {
     'q3': 'Họ nói gì để thuyết phục bạn?', 'h3': 'Chọn tất cả câu bạn đã nghe.', 'o3': opts[3],
     'matrix': mrows, 'r1': 'Mức độ cần thận trọng', 'r2': 'Có thể là', 'r3': 'Dấu hiệu phù hợp', 'r4': 'Việc cần làm ngay', 'maxShow': '3',
     'none': 'Chưa khớp tình huống nào trong danh sách. Hãy giữ bốn nguyên tắc dừng lại.',
-    'b1': 'Xem bài hướng dẫn chi tiết', 'b2': 'Tải checklist PDF', 'b3': 'Gửi cho người thân', 'b4': 'Kiểm tra lại', 'defChk': 'chk1'})
+    'b1': 'Xem bài hướng dẫn chi tiết', 'b2': 'Tải danh sách kiểm tra (PDF)', 'b3': 'Gửi cho người thân', 'b4': 'Kiểm tra lại', 'defChk': 'chk1'})
 
 # ---- Viec can lam
 for i in range(10):
@@ -195,37 +195,62 @@ for i in range(10):
 
 # ---- Cong cu & checklist
 TL = V['TOOLLIST']
-node('cong-cu', 'home', 'congCuPage', 'Công cụ & checklist', {
-    'title': 'Công cụ & checklist', 'lead': 'Tự kiểm tra trước khi chuyển tiền, đầu tư, vay, hoặc khi nghi mình đã bị lừa. Mỗi lần một câu, có kết quả và việc cần làm tiếp theo.',
-    'tools': ['tool1', 'tool2', 'tool3'], 'chkTitle': '8 checklist “Trước khi…”', 'chkLead': 'Lấy nguyên văn từ 8 bài đọc chuyên đề. In hoặc lưu PDF được.',
-    'links': [{'_k': k(), 'nhan': 'Thử sức 8 câu', 'trang': 'cuoc-thi'}, {'_k': k(), 'nhan': 'Tự luyện 200 câu', 'trang': 'cuoc-thi'}]})
-T1 = [('Bạn có biết chắc người nhận không?', 'khong'), ('Có bị yêu cầu chuyển ngay không?', 'co'), ('Có được yêu cầu chuyển sang tài khoản cá nhân không?', 'co'), ('Có được yêu cầu cung cấp OTP hoặc mật khẩu không?', 'co'), ('Có được hứa hoàn tiền, trúng thưởng hoặc lợi nhuận không?', 'co')]
-T2 = [('Có được hứa lợi nhuận bảo đảm hoặc không rủi ro không?', 'co'), ('Có được yêu cầu trả phí trước để nhận vốn/lãi không?', 'co'), ('Có được yêu cầu chuyển tiền vào tài khoản cá nhân không?', 'co'), ('Có được yêu cầu mời người thân tham gia không?', 'co'), ('Có thông tin pháp nhân, giấy phép và hợp đồng rõ ràng không?', 'khong')]
-def bands(labels, colors, descs):
-    return [{'_k': k(), 'from': str(a), 'to': b, 'label': l, 'color': c, 'desc': d} for (a, b), l, c, d in zip([(0, '0'), (1, '1'), (2, '')], labels, colors, descs)]
-node('tool1', 'cong-cu', 'toolPage', 'Trước khi chuyển tiền', {'title': 'Kiểm tra trước khi chuyển tiền', 'slug': TL[0][0], 'icon': 'money', 'card': TL[0][3], 'lead': '5 câu hỏi về khoản tiền bạn sắp chuyển. Mỗi lần một câu.', 'kind': 'dem',
-    'qs': [{'_k': k(), 'q': q, 'help': '', 'sign': s} for q, s in T1], 'bands': bands(['An toàn tương đối', 'Cần kiểm tra thêm', 'Cần dừng lại'], ['xanh', 'vang', 'cam'], ['Không có dấu hiệu cảnh báo.', 'Có 1 dấu hiệu.', 'Có từ 2 dấu hiệu trở lên.']),
-    'acts': A4, 'none': '', 'bq': [], 'chk': 'chk6'})
-node('tool2', 'cong-cu', 'toolPage', 'Trước khi đầu tư, vay', {'title': 'Kiểm tra trước khi đầu tư/vay', 'slug': TL[1][0], 'icon': 'chart', 'card': TL[1][3], 'lead': '5 câu hỏi trước khi góp vốn, đầu tư hoặc ký khoản vay. Mỗi lần một câu.', 'kind': 'dem',
-    'qs': [{'_k': k(), 'q': q, 'help': '', 'sign': s} for q, s in T2], 'bands': bands(['Cần thẩm định kỹ', 'Rủi ro cao', 'Không nên tham gia'], ['vang', 'cam', 'cam'], ['', '', '']),
-    'acts': [], 'none': '', 'bq': [], 'chk': 'chk3'})
-T3 = [('Bạn đã chuyển tiền chưa?', 'Đã chuyển tiền', ['Liên hệ ngân hàng ngay.', 'Yêu cầu khóa/giữ giao dịch.', 'Lưu bằng chứng.'], 2),
-      ('Bạn đã cung cấp OTP/mật khẩu chưa?', 'Đã cung cấp OTP/mật khẩu', ['Đổi mật khẩu.', 'Bật xác thực hai lớp.', 'Khóa thẻ/tài khoản.'], 3),
-      ('Bạn đã bấm link hoặc cài ứng dụng chưa?', 'Đã bấm link/cài app', ['Không nhập thêm thông tin.', 'Gỡ ứng dụng lạ.', 'Quét thiết bị.', 'Đổi mật khẩu.'], 3),
-      ('Bạn đã gửi ảnh CCCD/chữ ký chưa?', 'Đã gửi giấy tờ', ['Theo dõi tài khoản.', 'Cảnh giác với cuộc gọi/tin nhắn mạo danh.', 'Không cung cấp thêm dữ liệu.'], 6)]
-node('tool3', 'cong-cu', 'toolPage', 'Khi nghi ngờ bị lừa', {'title': 'Kiểm tra khi nghi ngờ bị lừa', 'slug': TL[2][0], 'icon': 'alert', 'card': TL[2][3], 'lead': '4 câu hỏi để biết việc nào phải làm trước, theo đúng thứ tự.', 'kind': 'nhanh',
-    'qs': [], 'bands': [], 'acts': [], 'none': 'Bạn chưa làm việc nào trong bốn việc trên. Giữ bốn nguyên tắc dừng lại và tự kiểm tra qua kênh chính thức.',
-    'bq': [{'_k': k(), 'q': q, 'label': l, 'acts': a, 'to': 'p%d' % p} for q, l, a, p in T3], 'chk': 'chk8'})
-CHK = {}
-for kk, doc in R['DOCS'].items():
-    st = [b for b in doc['b'] if b[0] == 'stop']; pk = [b for b in doc['b'] if b[0] == 'pocket']
-    CHK[kk] = (st[0] if st else None, pk[0] if pk else None)
-for kk, b in V['BK'].items():
-    st, pk = CHK.get(kk, (None, None))
-    groups = []
-    if st: groups.append({'_k': k(), 't': st[1].capitalize(), 'items': st[3]})
-    if pk: groups.append({'_k': k(), 't': 'Bảng kiểm bỏ túi', 'items': pk[3]})
-    node('chk' + kk, 'cong-cu', 'checklistPage', b['t'], {'title': b['t'], 'icon': b['i'], 'src': 'doc' + kk, 'groups': groups, 'pdf': '', 'ver': '2.0', 'rev': '2026-10-20'}, st='pub' if kk != '8' else 'draft')
+def bold(t):
+    return t.replace('<b>', '**').replace('</b>', '**')
+def stepno(p, idx):
+    n = V['PB'][str(p)]['stepNo'][idx]
+    assert n, 'khoi %d cua trang p%d khong phai buoc' % (idx, p)
+    return n
+def acts(pairs):
+    return [{'_k': k(), 'page': 'p%d' % p, 'step': str(stepno(p, i))} for p, i in pairs]
+def more(links):
+    return [{'_k': k(), 'ic': ic, 'nhan': t, 'trang': tg} for tg, t, ic in links]
+node('cong-cu', 'home', 'congCuPage', 'Hãy tự kiểm tra', {
+    'title': 'Hãy tự kiểm tra', 'lead': 'Kiểm tra trước khi chuyển tiền, đầu tư, vay, hoặc khi nghi mình bị lừa. Không cần đăng nhập, không lưu câu trả lời.',
+    'toolsTitle': 'Kiểm tra nhanh bằng vài câu hỏi', 'tools': ['tool1', 'tool2', 'tool3'],
+    'chkTitle': 'Danh sách kiểm tra theo việc sắp làm', 'chkLead': 'Mỗi danh sách có hai phần: năm việc phải chặn ngay và bảng kiểm bỏ túi, lấy nguyên văn từ bài đọc chuyên đề. Bản trên website có nút In để in hoặc lưu thành PDF.',
+    'knowTitle': 'Kiểm tra kiến thức', 'know': [{'_k': k(), 'ic': 'question', 'nhan': 'Thử sức: 8 câu', 'desc': 'Mỗi chuyên đề một câu, chọn xong là có giải thích.', 'trang': 'cuoc-thi'},
+                                             {'_k': k(), 'ic': 'book', 'nhan': 'Tự luyện 200 câu', 'desc': 'Toàn bộ ngân hàng câu hỏi 8 chuyên đề. Không tính điểm, không lưu bài.', 'trang': 'cuoc-thi'}]})
+KIND = {'stop': 'phaiDung', 'hold': 'tamHoan', 'check': 'canKiemTra'}
+MEAN = {'y': 'co', 'self': 'co', 'n': 'khong', 'u': 'chuaBiet'}
+def qs(T):
+    return [{'_k': k(), 'kind': KIND[q['k']], 'q': bold(q['q']), 'help': bold(q.get('sub', '')),
+             'opts': [{'_k': k(), 'label': o[1], 'mean': MEAN[o[0]]} for o in q.get('opts', [])]} for q in T['q']]
+TL = V['TOOLLIST']; TQ = V['TQ']
+TOOLACT = {'truoc-khi-chuyen-tien': ([(1, 0), (1, 1), (1, 3)], [(1, 1), (1, 2), (1, 3)], [(7, 0), (7, 1)],
+                                     [('p1', 'Có người đang thúc bạn làm ngay', 'clock'), ('p7', 'Cách tự kiểm chứng trước khi đưa', 'search'), ('chk6', 'Danh sách kiểm tra: ' + V['BK']['6']['t'], 'quiz'), ('p2', 'Nếu đã lỡ chuyển tiền: việc cần làm', 'money')]),
+           'truoc-khi-dau-tu-vay': ([(4, 2), (4, 4), (1, 3)], [(4, 0), (4, 1), (4, 3)], [(4, 3), (4, 4)],
+                                    [('p4', 'Có người mời bạn góp vốn, đầu tư', 'chart'), ('chk3', 'Danh sách kiểm tra: ' + V['BK']['3']['t'], 'quiz'), ('chk4', 'Danh sách kiểm tra: ' + V['BK']['4']['t'], 'quiz'), ('p5', 'Đã góp tiền mà không rút được: việc cần làm', 'doc')])}
+for nid, (slug_, name, icon, card) in zip(['tool1', 'tool2'], TL[:2]):
+    T = TQ[slug_]; d, h_, n_, lk = TOOLACT[slug_]
+    node(nid, 'cong-cu', 'toolCountPage', name, {'title': T['t'], 'slug': slug_, 'icon': icon, 'card': card, 'lead': T['lead'], 'showAdvice': slug_ == 'truoc-khi-dau-tu-vay',
+        'qs': qs(T), 'resD': T['res']['d'], 'resH': T['res']['h'], 'resN': T['res']['n'],
+        'noneMore': 'Qua được các câu này cũng chưa có nghĩa là giao dịch an toàn. Vẫn tự kiểm tra bằng kênh do chính bạn tìm ra.',
+        'actD': acts(d), 'actH': acts(h_), 'actN': acts(n_), 'more': more(lk)})
+node('tool3', 'cong-cu', 'toolBranchPage', TL[2][1], {'title': TL[2][1], 'slug': TL[2][0], 'icon': TL[2][2], 'card': TL[2][3],
+    'lead': '4 câu hỏi để biết việc nào phải làm trước. Trả lời xong, bạn có danh sách việc cần làm theo đúng thứ tự.',
+    'urgT': 'Đang có nguy hiểm tức thời?', 'urg': 'Nếu bạn đang bị đe dọa tính mạng, sức khỏe, hoặc có người tìm đến tận nơi: gọi 113 ngay.',
+    'bq': [{'_k': k(), 'q': q['q'], 'label': q['lab'], 'yes': q.get('yes', ''), 'no': q.get('no', ''), 'to': 'p%d' % q['pb'], 'take': ','.join(str(stepno(q['pb'], i)) for i in q['take'])} for q in V['T3']],
+    'noneT': 'Bạn chưa mất gì', 'none': 'Chưa mất gì là tình thế tốt nhất. Việc cần làm bây giờ là kiểm chứng trước khi đưa bất cứ thứ gì.', 'noneAct': acts([(1, 0), (1, 1), (1, 3)]),
+    'hitT': 'Có {n} việc cần xử lý, làm theo thứ tự dưới đây', 'hitX': 'Làm xong nhóm 1 rồi mới sang nhóm 2. Bạn không có lỗi vì đã gặp chuyện này; việc quan trọng là không xử lý một mình.',
+    'more': more([('p1', 'Có người đang thúc bạn làm ngay: đủ các bước', 'clock'), ('wizard', 'Tôi đang gặp chuyện gì? Trả lời 3 câu', 'quiz')])})
+def part(doc, kind):
+    x = [bl for bl in doc['b'] if bl[0] == kind]
+    return x[0] if x else None
+def strow(doc, lab):
+    st = part(doc, 'st')
+    if not st: return ''
+    for r in st[2]:
+        if r[0] == lab:
+            return dict((f[0], f[1]) for f in r[1]).get('Làm ngay', '')
+    return ''
+for kk, bk in V['BK'].items():
+    doc = R['DOCS'][kk]; st = part(doc, 'stop'); pk = part(doc, 'pocket')
+    node('chk' + kk, 'cong-cu', 'checklistPage', bk['t'], {'title': bk['t'], 'icon': bk['i'],
+        'lead': 'Lấy nguyên văn từ Bài đọc Chuyên đề %s. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.' % kk, 'src': 'doc' + kk,
+        'p1Intro': st[2].rstrip().rstrip(':') + '.', 'p1Qs': st[3][:5], 'p1Note': st[3][5] if len(st[3]) > 5 else '',
+        'p2Intro': ((pk[2] or '') + ' Tích những câu bạn đã tự trả lời được rõ ràng.').strip(), 'p2Items': pk[3],
+        'doD': strow(doc, 'DỪNG'), 'doH': strow(doc, 'HOÃN'), 'pdf': '', 'ver': '2.0', 'rev': '2026-10-20'}, st='pub' if kk != '8' else 'draft')
 
 # ---- Cac rui ro
 RT = V['RTABS']
@@ -234,7 +259,7 @@ node('canh-bao-moi', 'rui-ro', 'alertListPage', 'Cảnh báo mới', {'title': '
 for a in V['ALERTS']:
     node('al%d' % a['id'], 'canh-bao-moi', 'alertPage', a['t'], {
         'title': a['t'], 'desc': a['sum'], 'level': LV[a['st']], 'pop': POPV.get(a['id'], ''), 'popNote': '', 'steps': a['steps'],
-        'signs': [SIGNID[V['SIGNS'][i][0]] for i in a['sg']], 'signs2': [], 'todo': 'p%d' % a['pb'], 'img': '', 'imgAlt': '',
+        'signs': [SIGNID[V['SIGNS'][i][0]] for i in a['sg']], 'signs2': [], 'todo': 'p%d' % a['pb'],
         'agency': '', 'docNo': '', 'docDate': '', 'docUrl': '',
         'ch': [CHS[c] for c in a['ch']], 'aud': [AUDID[g - 1] for g in a['gr']], 'tac': ['t%d' % t for t in a['tac']], 'tabs': ['g-' + t for t in a.get('tabs', [])], 'rel': [],
         'kw': [], 'upd': ddmm(a['d']), 'ttl': '180'}, st='draft' if a['id'] == 10 else 'pub')
@@ -245,13 +270,13 @@ for kk, d in R['DOCS'].items():
     CD.setdefault(kk, d['t'])
 for kk, d in R['DOCS'].items():
     node('doc' + kk, 'g-' + V['DOCTAB'][kk], 'riskArticlePage', 'Bài đọc Chuyên đề %s: %s' % (kk, d['t']), {
-        'title': 'Bài đọc Chuyên đề %s: %s' % (kk, d['t']), 'kind': 'docChuyenDe', 'desc': d.get('meta', ''), 'icon': 'book', 'img': '',
+        'title': 'Bài đọc Chuyên đề %s: %s' % (kk, d['t']), 'kind': 'docChuyenDe', 'desc': d.get('meta', ''), 'icon': 'book',
         'sum': '', 'signs': [], 'scen': [], 'todo': [], 'todoPage': '', 'dont': [], 'body': blocks_html(d['b']), 'srcs': [],
         'topic': 'cd' + kk, 'ch': [], 'aud': [], 'level': '', 'tabs': [], 'kw': [], 'syn': [], 'rel': [], 'chk': 'chk' + kk, 'feat': kk == '1',
         'ver': '2.0', 'rev': '2026-10-20', 'by': 'Công an xã Thiên Lộc'})
 for kk, a in V['ARTS'].items():
     node('ar' + kk.replace('-', '_'), 'g-' + V['ARTTAB'].get(kk, 'lua-dao'), 'riskArticlePage', a['t'], {
-        'title': a['t'], 'kind': 'docThem', 'desc': '', 'icon': 'doc', 'img': '', 'sum': '<p>%s</p>' % a['lede'], 'signs': [], 'scen': [], 'todo': [], 'todoPage': '', 'dont': [],
+        'title': a['t'], 'kind': 'docThem', 'desc': '', 'icon': 'doc', 'sum': '<p>%s</p>' % a['lede'], 'signs': [], 'scen': [], 'todo': [], 'todoPage': '', 'dont': [],
         'body': '', 'srcs': [], 'topic': '', 'ch': [], 'aud': [], 'level': '', 'tabs': [], 'kw': [], 'syn': [], 'rel': [], 'chk': '', 'feat': False,
         'ver': '1.0', 'rev': '', 'by': ''}, st='draft' if kk in ('7', '8') else 'pub')
 
@@ -313,8 +338,33 @@ for key, (src, fn) in SN.items():
         title, body = d.get('h', src), fn(d)
     node('sn-' + key, 'f-snip', 'sharedSnippet', title, {'title': title, 'body': body})
 
-MEDIA = [{'id': 'm-logo', 'name': 'logo-antc.svg', 'icon': 'image', 'sub': 'Logo · 240 × 64'}, {'id': 'm-logo-w', 'name': 'logo-antc-trang.svg', 'icon': 'image', 'sub': 'Logo nền tối · 240 × 64'},
-         {'id': 'm-phone', 'name': 'minh-hoa-dien-thoai.png', 'icon': 'image', 'sub': 'Minh họa · 960 × 1200'}, {'id': 'm-share', 'name': 'anh-chia-se-mac-dinh.png', 'icon': 'image', 'sub': 'Ảnh chia sẻ · 1200 × 630'}]
+# ATTC_IMG_ALT cua ban dung; anh khong co thi dung cau mac dinh cua ban dung
+ALT0 = 'Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính'
+ALT = {'00': 'Năm nhân vật người Việt của bộ ảnh An Toàn Tài Chính', '16': 'Năm người cùng xác minh thông tin và bảo vệ tài chính trên điện thoại',
+       '19': 'Bốn bước qua suối tượng trưng cho chậm lại, xác minh, làm rõ và quyết định', '21': 'Người dân cùng chia sẻ thông tin phòng ngừa lừa đảo',
+       '22': 'Thông tin được gửi kín và chia sẻ có chọn lọc', '23': 'Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại',
+       '29': 'Đọc kỹ điều khoản trước khi ký cam kết', '30': 'Phân biệt rủi ro đầu tư và thủ đoạn gian lận', '31': 'Thời gian quan trọng để ngăn thiệt hại và lưu chứng cứ'}
+DOCIMG = {'1': '19', '2': '29', '3': '13', '4': '06', '5': '12', '6': '11', '7': '14', '8': '31'}
+ARTIMG = {'1': '25', '2': '26', '3-1': '24', '3-2': '23', '3-3': '27', '4': '30', '5': '29', '6': '28', '7': '32', '8': '21'}
+PBIMG = {'1': '10', '2': '31', '3': '39', '4': '40', '5': '13', '6': '41', '7': '15', '8': '37', '9': '11'}
+ILLUS = {'home': '16', 'khan-cap': '35', 'wizard': '10', 'cong-cu': '19', 'tool1': '29', 'tool2': '30', 'tool3': '31', 'canh-bao-moi': '23',
+         'g-lua-dao': '38', 'g-vay-va-no': '06', 'g-dau-tu': '30', 'g-bao-hiem-va-tiet-kiem': '08', 'g-du-lieu-ca-nhan': '39',
+         'info-ve-website': '21', 'info-xac-minh': '27', 'gop-y': '22', 'lien-he': '20'}
+THUMB = {'g-lua-dao': '09', 'g-vay-va-no': '08', 'g-dau-tu': '06', 'g-bao-hiem-va-tiet-kiem': '07', 'g-du-lieu-ca-nhan': '05'}
+for x in N:
+    i_, im = x['id'], None
+    if i_ in ILLUS: im = ILLUS[i_]
+    elif re.fullmatch(r'(doc|chk)[1-8]', i_): im = DOCIMG[i_[3:]]
+    elif i_.startswith('ar'): im = ARTIMG.get(i_[2:].replace('_', '-'), '25')
+    elif re.fullmatch(r'p\d', i_): im = PBIMG.get(i_[1:], '20')
+    elif x['type'] == 'alertPage': im = '23'
+    if im:
+        x['v']['illus'] = 'm-a' + im
+        x['v']['illusAlt'] = ALT.get(im, ALT0)
+    if i_ in THUMB: x['v']['thumb'] = 'm-a' + THUMB[i_]
+USED = sorted({x['v'][f][4:] for x in N for f in ('illus', 'thumb') if x['v'].get(f)})
+MEDIA = [{'id': 'm-a' + n, 'name': 'minh-hoa-%s.jpg' % n, 'icon': 'image', 'sub': 'Ảnh minh họa bản dựng · ' + ALT.get(n, ALT0)} for n in USED] + [{'id': 'm-logo', 'name': 'logo-antc.svg', 'icon': 'image', 'sub': 'Logo · 240 × 64'}, {'id': 'm-logo-w', 'name': 'logo-antc-trang.svg', 'icon': 'image', 'sub': 'Logo nền tối · 240 × 64'},
+         {'id': 'm-share', 'name': 'anh-chia-se-mac-dinh.png', 'icon': 'image', 'sub': 'Ảnh chia sẻ · 1200 × 630'}]
 
 data = json.dumps({'N': N, 'MEDIA': MEDIA}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 src = open(srcpath, encoding='utf-8').read()

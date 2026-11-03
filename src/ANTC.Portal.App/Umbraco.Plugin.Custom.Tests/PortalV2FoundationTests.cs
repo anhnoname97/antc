@@ -38,6 +38,9 @@ public class PortalV2FoundationTests
             var seedItems = list.Value.EnumerateArray().Select(x => (x.GetProperty("code").GetString(), x.GetProperty("label").GetString())).ToArray();
             Assert.Equal(seedItems, mine!.Items.Select(x => ((string?)x.Code, (string?)x.Label)).ToArray());
         }
+        var seedNames = seed.RootElement.GetProperty("fixedLists").EnumerateObject().Select(x => x.Name).ToHashSet();
+        Assert.All(DanhMucCoDinh.All, list => Assert.Contains(list.DataTypeName, seedNames));
+        Assert.All(DanhMucCoDinh.Retired, name => Assert.DoesNotContain(name, seedNames));
     }
 
     [Fact]

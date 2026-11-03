@@ -165,6 +165,12 @@ public static class PortalV2Schema
             "seo", "SEO",
             [new("displayUpdatedDate", "Ngày cập nhật hiển thị", Date, "Hiện dưới tiêu đề trang. Hẹn giờ đăng, gỡ dùng lịch có sẵn của Umbraco.")],
             IsComposition: true);
+        // QD-052: anh minh hoa duoi tieu de trang. Bat buoc van ban thay the khi co anh kiem o V2-10a
+        yield return new("illustrationBase", "Ảnh minh họa", "icon-picture", "Ảnh lớn dưới tiêu đề trang và văn bản thay thế.",
+            "noiDung", "Nội dung",
+            [new("illustration", "Ảnh minh họa", Image, "Ảnh lớn dưới tiêu đề trang."),
+             new("illustrationAlt", "Văn bản thay thế", Text(160), "Tả nội dung ảnh cho người không xem được ảnh. Cần khi có ảnh.")],
+            IsComposition: true);
     }
 
     /// <summary>Truong them vao composition seoBase dang co (giu alias cu, QD ve dat ten muc 2 cua 2-danh-muc...).</summary>

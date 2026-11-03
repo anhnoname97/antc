@@ -26,7 +26,8 @@ public sealed class PortalV2SchemaOptions
 /// <summary>
 /// Dung schema nen Portal v2 bang dich vu Umbraco, de uSync tu xuat file .config (khong viet tay uSync).
 /// Chi chay o Development khi bat PortalV2:SchemaBuilder:Enabled. Tao theo khoa co dinh, chay lai khong tao trung,
-/// khong sua muc da co (tru them truong canonicalUrl vao seoBase).
+/// khong sua muc da co, tru: them truong canonicalUrl vao seoBase; dua muc danh sach co dinh ve dung DanhMucCoDinh,
+/// doi chu cu da luu, xoa data type cua danh sach da bo (V2-01r).
 /// </summary>
 public sealed class PortalV2SchemaBuilder(
     IDataTypeService dataTypes,
@@ -59,9 +60,79 @@ public sealed class PortalV2SchemaBuilder(
         foreach (ContentTypeSpec spec in PortalV2Schema.AllContentTypes())
             if (await EnsureContentType(spec)) createdContentTypes++;
 
+        int synced = await SyncFixedLists();
+        int retired = await RetireDataTypes();
         int seeded = SeedLibrary();
-        logger.LogInformation("PortalV2SchemaBuilder: tạo {DataTypes} data type, {ContentTypes} loại nội dung, {Nodes} nút Thư viện.",
-            createdTypes, createdContentTypes, seeded);
+        logger.LogInformation("PortalV2SchemaBuilder: tạo {DataTypes} data type, {ContentTypes} loại nội dung, {Nodes} nút Thư viện; đồng bộ {Synced} danh sách cố định, xóa {Retired} data type đã bỏ.",
+            createdTypes, createdContentTypes, seeded, synced, retired);
+    }
+
+    // Danh sach co dinh da tao truoc do: dua muc ve dung DanhMucCoDinh va doi chu cu da luu trong noi dung (QD-051).
+    private async Task<int> SyncFixedLists()
+    {
+        int synced = 0;
+        foreach (DanhSachCoDinh list in DanhMucCoDinh.All)
+        {
+            IDataType? dataType = await dataTypes.GetAsync(PortalV2Keys.DataType(list.DataTypeName));
+            if (dataType is null) continue;
+            string[] labels = list.Items.Select(x => x.Label).ToArray();
+            string current = dataType.ConfigurationData.TryGetValue("items", out object? items) ? JsonSerializer.Serialize(items) : "";
+            if (current == JsonSerializer.Serialize(labels)) continue;
+            dataType.ConfigurationData = new Dictionary<string, object>(dataType.ConfigurationData) { ["items"] = labels };
+            var result = await dataTypes.UpdateAsync(dataType, User);
+            if (!result.Success) throw new InvalidOperationException($"Không cập nhật được {list.DataTypeName}: {result.Status}.");
+            synced++;
+        }
+
+        foreach (var (list, oldLabel, code) in DanhMucCoDinh.Renamed)
+        {
+            Guid key = PortalV2Keys.DataType(list.DataTypeName);
+            string newValue = JsonSerializer.Serialize(new[] { list.Label(code) });
+            foreach (IContentType type in contentTypes.GetAll())
+            {
+                string[] aliases = type.CompositionPropertyTypes.Where(p => p.DataTypeKey == key).Select(p => p.Alias).ToArray();
+                if (aliases.Length == 0) continue;
+                foreach (IContent content in contents.GetPagedOfType(type.Id, 0, int.MaxValue, out _, null))
+                {
+                    bool changed = false;
+                    foreach (string alias in aliases)
+                        if (IsSingleLabel(content.GetValue<string>(alias), oldLabel)) { content.SetValue(alias, newValue); changed = true; }
+                    if (!changed) continue;
+                    bool wasPublished = content.Published && !content.Edited;
+                    contents.Save(content);
+                    if (wasPublished) contents.Publish(content, ["*"]);
+                    logger.LogInformation("Đổi \"{Old}\" thành \"{New}\" ở {Name}.", oldLabel, list.Label(code), content.Name);
+                }
+            }
+        }
+        return synced;
+    }
+
+    // Dropdown luu mang JSON chu hien thi; uSync co the ghi lai co xuong dong nen so sau khi doc JSON
+    internal static bool IsSingleLabel(string? stored, string label)
+    {
+        if (string.IsNullOrWhiteSpace(stored)) return false;
+        try { return JsonSerializer.Deserialize<string[]>(stored) is [var only] && only == label; }
+        catch (JsonException) { return false; }
+    }
+
+    private async Task<int> RetireDataTypes()
+    {
+        int retired = 0;
+        foreach (string name in DanhMucCoDinh.Retired)
+        {
+            Guid key = PortalV2Keys.DataType(name);
+            if (await dataTypes.GetAsync(key) is null) continue;
+            if (contentTypes.GetAll().Any(t => t.PropertyTypes.Any(p => p.DataTypeKey == key)))
+            {
+                logger.LogWarning("Không xóa {Name}: còn thuộc tính dùng.", name);
+                continue;
+            }
+            var result = await dataTypes.DeleteAsync(key, User);
+            if (!result.Success) throw new InvalidOperationException($"Không xóa được {name}: {result.Status}.");
+            retired++;
+        }
+        return retired;
     }
 
     private async Task<bool> EnsureDataType(DataTypeSpec spec)

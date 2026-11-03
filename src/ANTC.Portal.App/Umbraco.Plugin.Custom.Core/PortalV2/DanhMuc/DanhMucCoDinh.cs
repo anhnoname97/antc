@@ -25,16 +25,17 @@ public static class DanhMucCoDinh
         => new(id, name, items.Select(x => new MucDanhMuc(x.Code, x.Label)).ToArray());
 
     public static readonly DanhSachCoDinh MucDo = List("mucDo", "Danh mục · Mức độ cần thận trọng",
-        ("thuong", "Thường"), ("cao", "Cao"), ("ratCao", "Rất cao"));
+        ("thuong", "Cần thận trọng"), ("cao", "Cao"), ("ratCao", "Rất cao"));
 
     public static readonly DanhSachCoDinh LoaiBai = List("loaiBai", "Danh mục · Loại bài",
         ("huongDan", "Bài hướng dẫn"), ("docChuyenDe", "Bài đọc chuyên đề"), ("docThem", "Bài đọc thêm"));
 
-    public static readonly DanhSachCoDinh MauKetQua = List("mauKetQua", "Danh mục · Màu kết quả",
-        ("xanh", "Xanh lá"), ("vang", "Vàng"), ("cam", "Cam"));
+    // QD-051: loai cau cua kiem tra nhanh va nghia cua lua chon rieng
+    public static readonly DanhSachCoDinh LoaiCauKiemTra = List("loaiCauKiemTra", "Danh mục · Loại câu kiểm tra",
+        ("phaiDung", "Phải dừng"), ("tamHoan", "Tạm hoãn"), ("canKiemTra", "Cần kiểm tra"));
 
-    public static readonly DanhSachCoDinh TraLoiDauHieu = List("traLoiDauHieu", "Danh mục · Trả lời là dấu hiệu",
-        ("co", "Khi trả lời Có"), ("khong", "Khi trả lời Không"));
+    public static readonly DanhSachCoDinh NghiaCauTraLoi = List("nghiaCauTraLoi", "Danh mục · Nghĩa câu trả lời",
+        ("co", "Có"), ("khong", "Không"), ("chuaBiet", "Chưa biết"));
 
     public static readonly DanhSachCoDinh HinhThucLienHe = List("hinhThucLienHe", "Danh mục · Hình thức liên hệ",
         ("goi", "Gọi"), ("nhanTin", "Nhắn tin"), ("goiVaNhanTin", "Gọi và nhắn tin"));
@@ -61,7 +62,14 @@ public static class DanhMucCoDinh
     }.Select(x => new MucDanhMuc(x.Code, x.Name + " · " + x.Code)).ToArray());
 
     public static IReadOnlyList<DanhSachCoDinh> All { get; } =
-        [MucDo, LoaiBai, MauKetQua, TraLoiDauHieu, HinhThucLienHe, KieuCuaVao, HinhMinhHoaCuaVao, DaiTrenCung, BieuTuong];
+        [MucDo, LoaiBai, HinhThucLienHe, KieuCuaVao, HinhMinhHoaCuaVao, DaiTrenCung, BieuTuong, LoaiCauKiemTra, NghiaCauTraLoi];
 
     public static DanhSachCoDinh? Get(string? id) => All.FirstOrDefault(x => x.Id == id);
+
+    /// <summary>Chu cu da luu trong noi dung, doi sang chu moi cua cung ma (QD-051).</summary>
+    public static IReadOnlyList<(DanhSachCoDinh List, string OldLabel, string Code)> Renamed { get; } =
+        [(MucDo, "Thường", "thuong")];
+
+    /// <summary>Data type cua danh sach da bo (QD-051). Bo dung xoa neu khong con thuoc tinh nao dung.</summary>
+    public static IReadOnlyList<string> Retired { get; } = ["Danh mục · Màu kết quả", "Danh mục · Trả lời là dấu hiệu"];
 }

@@ -33,7 +33,7 @@ const rowKey = (nodeId, k) => uuid5('row:' + nodeId + ':' + k);
 
 // ---- danh sach co dinh theo Phu luc B1 (ma, chu hien thi)
 const CODEMAP = { HT: { ca2: 'goiVaNhanTin', nhan: 'nhanTin' }, DOORKIND: { trang: 'moTrang', luaChon: 'moDanhSach' } };
-const LISTNAME = { LEVEL: 'Danh mục · Mức độ cần thận trọng', KIND: 'Danh mục · Loại bài', COLOR: 'Danh mục · Màu kết quả', YESNO: 'Danh mục · Trả lời là dấu hiệu', HT: 'Danh mục · Hình thức liên hệ', DOORKIND: 'Danh mục · Kiểu cửa vào', ILL: 'Danh mục · Hình minh họa cửa vào', BAR: 'Danh mục · Dải trên cùng', ICONS: 'Danh mục · Biểu tượng' };
+const LISTNAME = { LEVEL: 'Danh mục · Mức độ cần thận trọng', KIND: 'Danh mục · Loại bài', HT: 'Danh mục · Hình thức liên hệ', DOORKIND: 'Danh mục · Kiểu cửa vào', ILL: 'Danh mục · Hình minh họa cửa vào', BAR: 'Danh mục · Dải trên cùng', ICONS: 'Danh mục · Biểu tượng', QKIND: 'Danh mục · Loại câu kiểm tra', ANSMEAN: 'Danh mục · Nghĩa câu trả lời' };
 const fixedLists = {};
 for (const [k, name] of Object.entries(LISTNAME)) {
   fixedLists[name] = FIX[k].map(it => {

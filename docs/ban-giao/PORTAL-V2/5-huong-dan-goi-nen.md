@@ -10,17 +10,17 @@ git switch portal-v2          (hoặc: git worktree add ../26.antc-portal-v2 por
 .\run-local.ps1 -Reset
 ```
 
-uSync tự nhập toàn bộ gói nền vào CSDL mới. Đã thử ngày 2026-11-03 trên CSDL trống, không bật bộ dựng: đủ 64 data type, 17 loại nội dung, `seoBase` 5 trường, 70 nút Thư viện đã xuất bản.
+uSync tự nhập toàn bộ gói nền vào CSDL mới. Đã thử ngày 2026-11-03 trên CSDL trống, không bật bộ dựng: đủ 64 data type, 17 loại nội dung (sau V2-01r: 64 data type, 18 loại), `seoBase` 5 trường, 70 nút Thư viện đã xuất bản.
 
 ## Gói nền có gì
 
 | Phần | Ở đâu |
 |---|---|
-| 9 danh sách cố định `Danh mục · …` (Phụ lục B1) | Cài đặt › Kiểu dữ liệu. Mã và chữ ở `Core/PortalV2/DanhMuc/DanhMucCoDinh.cs` |
+| 9 danh sách cố định `Danh mục · …` (Phụ lục B1; V2-01r đổi "Thường" thành "Cần thận trọng", thêm Loại câu kiểm tra, Nghĩa câu trả lời, bỏ Màu kết quả và Trả lời là dấu hiệu) | Cài đặt › Kiểu dữ liệu. Mã và chữ ở `Core/PortalV2/DanhMuc/DanhMucCoDinh.cs` |
 | 41 data type cơ bản: `Chữ · N`, `Đoạn · N`, `Số · …`, `Ngày`, `Bật/tắt`, `Danh sách dòng · …`, `Thẻ · …`, `Chọn ảnh`, `Chọn tệp PDF` | Cài đặt › Kiểu dữ liệu |
 | 3 data type soạn thảo; `Soạn thảo · Bài đọc` có menu "Kiểu" chèn hộp `k-box`, `k-now`… | Menu ở `Web/App_Plugins/AntcEditors/umbraco-package.json`; màu hộp trong khung soạn ở `Web/wwwroot/css/rte-portal.css` |
 | 6 data type `Chọn · …` cho Thư viện, 8 data type `Danh sách · …` (Collection) | Gốc trình chọn là khóa cố định của thư mục |
-| Composition `taxonomyBase`, `publishMetaBase`; `seoBase` sửa lại | `seoBase`: tab đổi từ `sEO` thành `seo`, khôi phục 4 trường cũ (file uSync cũ gắn chúng vào nhóm không tồn tại nên Umbraco chưa từng nhập), thêm `canonicalUrl` |
+| Composition `taxonomyBase`, `publishMetaBase`, `illustrationBase` (V2-01r, QĐ-052); `seoBase` sửa lại | `seoBase`: tab đổi từ `sEO` thành `seo`, khôi phục 4 trường cũ (file uSync cũ gắn chúng vào nhóm không tồn tại nên Umbraco chưa từng nhập), thêm `canonicalUrl` |
 | Thư viện: `libraryFolder`, 8 thư mục, 6 loại mục danh mục | Cây nội dung › Thư viện. Dữ liệu mẫu: 7 kênh, 5 đối tượng, 6 dấu hiệu, 3 mức độ phổ biến, 8 chuyên đề, 32 thủ đoạn |
 | `Antc.InlineList` phía máy chủ: cấu hình, kiểm khi lưu, báo tham chiếu, value converter `InlineListValue` | `Core/PortalV2/Editors/`. Chưa có data type nào dùng; giao diện tạm là ô nhập JSON thô |
 | Khóa GUID v5 | `Core/PortalV2/PortalV2Keys.cs`, giống `cong-cu/xuat-seed.js` |

@@ -7,7 +7,7 @@
   "Danh mục · Mức độ cần thận trọng": [
    {
     "code": "thuong",
-    "label": "Thường"
+    "label": "Cần thận trọng"
    },
    {
     "code": "cao",
@@ -30,30 +30,6 @@
    {
     "code": "docThem",
     "label": "Bài đọc thêm"
-   }
-  ],
-  "Danh mục · Màu kết quả": [
-   {
-    "code": "xanh",
-    "label": "Xanh lá"
-   },
-   {
-    "code": "vang",
-    "label": "Vàng"
-   },
-   {
-    "code": "cam",
-    "label": "Cam"
-   }
-  ],
-  "Danh mục · Trả lời là dấu hiệu": [
-   {
-    "code": "co",
-    "label": "Khi trả lời Có"
-   },
-   {
-    "code": "khong",
-    "label": "Khi trả lời Không"
    }
   ],
   "Danh mục · Hình thức liên hệ": [
@@ -245,9 +221,77 @@
     "code": "trophy",
     "label": "Cúp · trophy"
    }
+  ],
+  "Danh mục · Loại câu kiểm tra": [
+   {
+    "code": "phaiDung",
+    "label": "Phải dừng"
+   },
+   {
+    "code": "tamHoan",
+    "label": "Tạm hoãn"
+   },
+   {
+    "code": "canKiemTra",
+    "label": "Cần kiểm tra"
+   }
+  ],
+  "Danh mục · Nghĩa câu trả lời": [
+   {
+    "code": "co",
+    "label": "Có"
+   },
+   {
+    "code": "khong",
+    "label": "Không"
+   },
+   {
+    "code": "chuaBiet",
+    "label": "Chưa biết"
+   }
   ]
  },
  "media": [
+  {
+   "name": "minh-hoa-0.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-1.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-2.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-3.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-4.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-5.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-6.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-7.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-8.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
+  {
+   "name": "minh-hoa-9.jpg",
+   "description": "Ảnh minh họa bản dựng · Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+  },
   {
    "name": "logo-antc.svg",
    "description": "Logo · 240 × 64"
@@ -255,10 +299,6 @@
   {
    "name": "logo-antc-trang.svg",
    "description": "Logo nền tối · 240 × 64"
-  },
-  {
-   "name": "minh-hoa-dien-thoai.png",
-   "description": "Minh họa · 960 × 1200"
   },
   {
    "name": "anh-chia-se-mac-dinh.png",
@@ -392,21 +432,29 @@
     "kind": "area",
     "max": 300
    },
-   "levelNormalText": {
-    "kind": "area",
-    "max": 200
+   "stopLabel": {
+    "kind": "text",
+    "max": 40
    },
-   "levelHighText": {
+   "stopText": {
     "kind": "area",
-    "max": 200
+    "max": 300
    },
-   "levelVeryHighText": {
-    "kind": "area",
-    "max": 200
+   "holdLabel": {
+    "kind": "text",
+    "max": 40
    },
-   "cautionText": {
+   "holdText": {
     "kind": "area",
-    "max": 200
+    "max": 300
+   },
+   "clearLabel": {
+    "kind": "text",
+    "max": 40
+   },
+   "clearText": {
+    "kind": "area",
+    "max": 300
    },
    "noReportNote": {
     "kind": "area",
@@ -415,6 +463,10 @@
    "noAdviceNote": {
     "kind": "area",
     "max": 300
+   },
+   "mustRemember": {
+    "kind": "lines",
+    "max": 2
    },
    "bankLookupSteps": {
     "kind": "lines",
@@ -450,13 +502,6 @@
     "kind": "text",
     "max": 80
    },
-   "image": {
-    "kind": "media"
-   },
-   "imageAlt": {
-    "kind": "text",
-    "max": 120
-   },
    "toolsTitle": {
     "kind": "text",
     "max": 60
@@ -486,6 +531,13 @@
     "kind": "content",
     "multiple": false,
     "source": "ALERT"
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "seoTitle": {
     "kind": "text",
@@ -636,6 +688,13 @@
     "multiple": false,
     "source": "PAGES"
    },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
+   },
    "seoTitle": {
     "kind": "text",
     "max": 60
@@ -720,6 +779,13 @@
    "step3Options[].label": {
     "kind": "text",
     "max": 60
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "situationMatrix": {
     "kind": "matrix"
@@ -872,6 +938,13 @@
     "kind": "text",
     "max": 200
    },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
+   },
    "seoTitle": {
     "kind": "text",
     "max": 60
@@ -942,7 +1015,11 @@
    },
    "lead": {
     "kind": "area",
-    "max": 220
+    "max": 240
+   },
+   "toolsTitle": {
+    "kind": "text",
+    "max": 60
    },
    "tools": {
     "kind": "content",
@@ -956,20 +1033,40 @@
    },
    "checklistLead": {
     "kind": "area",
-    "max": 220
+    "max": 300
    },
-   "practiceLinks": {
+   "knowledgeTitle": {
+    "kind": "text",
+    "max": 60
+   },
+   "knowledgeLinks": {
     "kind": "table",
-    "max": 2
+    "max": 4
    },
-   "practiceLinks[].label": {
+   "knowledgeLinks[].icon": {
+    "kind": "fixed",
+    "list": "Danh mục · Biểu tượng",
+    "multiple": false
+   },
+   "knowledgeLinks[].label": {
     "kind": "text",
     "max": 40
    },
-   "practiceLinks[].targetPage": {
+   "knowledgeLinks[].description": {
+    "kind": "area",
+    "max": 140
+   },
+   "knowledgeLinks[].targetPage": {
     "kind": "content",
     "multiple": false,
     "source": "PAGES"
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "seoTitle": {
     "kind": "text",
@@ -1008,68 +1105,121 @@
    },
    "cardText": {
     "kind": "area",
-    "max": 140
+    "max": 160
    },
    "lead": {
     "kind": "area",
-    "max": 220
+    "max": 240
    },
-   "signQuestions": {
-    "kind": "table",
-    "max": 8
+   "showAdviceBox": {
+    "kind": "toggle"
    },
-   "signQuestions[].question": {
-    "kind": "area",
-    "max": 200
-   },
-   "signQuestions[].signAnswer": {
-    "kind": "fixed",
-    "list": "Danh mục · Trả lời là dấu hiệu",
-    "multiple": false
-   },
-   "signQuestions[].hint": {
-    "kind": "text",
-    "max": 200
-   },
-   "branchQuestions": {
+   "questions": {
     "kind": "cards",
     "max": 8
    },
-   "resultBands": {
-    "kind": "table",
-    "max": 4
-   },
-   "resultBands[].fromCount": {
-    "kind": "num"
-   },
-   "resultBands[].toCount": {
-    "kind": "text"
-   },
-   "resultBands[].label": {
-    "kind": "text",
-    "max": 40
-   },
-   "resultBands[].color": {
+   "questions[].questionKind": {
     "kind": "fixed",
-    "list": "Danh mục · Màu kết quả",
+    "list": "Danh mục · Loại câu kiểm tra",
     "multiple": false
    },
-   "resultBands[].description": {
+   "questions[].question": {
+    "kind": "area",
+    "max": 300
+   },
+   "questions[].hint": {
+    "kind": "area",
+    "max": 400
+   },
+   "questions[].answerOptions": {
+    "kind": "table",
+    "max": 5
+   },
+   "questions[].answerOptions[].label": {
     "kind": "text",
-    "max": 200
+    "max": 120
    },
-   "recommendedActions": {
-    "kind": "lines",
-    "max": 6
+   "questions[].answerOptions[].meaning": {
+    "kind": "fixed",
+    "list": "Danh mục · Nghĩa câu trả lời",
+    "multiple": false
    },
-   "allNoText": {
+   "stopResult": {
+    "kind": "text",
+    "max": 60
+   },
+   "holdResult": {
+    "kind": "text",
+    "max": 60
+   },
+   "clearResult": {
+    "kind": "text",
+    "max": 60
+   },
+   "clearNote": {
     "kind": "area",
     "max": 240
    },
-   "checklist": {
+   "stopActions": {
+    "kind": "table",
+    "max": 4
+   },
+   "stopActions[].page": {
     "kind": "content",
     "multiple": false,
-    "source": "CHK"
+    "source": "VCL"
+   },
+   "stopActions[].stepNumber": {
+    "kind": "num"
+   },
+   "holdActions": {
+    "kind": "table",
+    "max": 4
+   },
+   "holdActions[].page": {
+    "kind": "content",
+    "multiple": false,
+    "source": "VCL"
+   },
+   "holdActions[].stepNumber": {
+    "kind": "num"
+   },
+   "clearActions": {
+    "kind": "table",
+    "max": 4
+   },
+   "clearActions[].page": {
+    "kind": "content",
+    "multiple": false,
+    "source": "VCL"
+   },
+   "clearActions[].stepNumber": {
+    "kind": "num"
+   },
+   "readMore": {
+    "kind": "table",
+    "max": 6
+   },
+   "readMore[].icon": {
+    "kind": "fixed",
+    "list": "Danh mục · Biểu tượng",
+    "multiple": false
+   },
+   "readMore[].label": {
+    "kind": "text",
+    "max": 80
+   },
+   "readMore[].targetPage": {
+    "kind": "content",
+    "multiple": false,
+    "source": "PAGES"
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "seoTitle": {
     "kind": "text",
@@ -1108,53 +1258,101 @@
    },
    "cardText": {
     "kind": "area",
-    "max": 140
+    "max": 160
    },
    "lead": {
     "kind": "area",
-    "max": 220
+    "max": 240
    },
-   "signQuestions": {
-    "kind": "table",
-    "max": 8
+   "urgentTitle": {
+    "kind": "text",
+    "max": 80
    },
-   "branchQuestions": {
+   "urgentText": {
+    "kind": "area",
+    "max": 300
+   },
+   "questions": {
     "kind": "cards",
     "max": 8
    },
-   "branchQuestions[].question": {
+   "questions[].question": {
+    "kind": "area",
+    "max": 300
+   },
+   "questions[].situationLabel": {
     "kind": "text",
-    "max": 200
+    "max": 120
    },
-   "branchQuestions[].situationLabel": {
+   "questions[].yesLabel": {
     "kind": "text",
-    "max": 60
+    "max": 20
    },
-   "branchQuestions[].actions": {
-    "kind": "lines",
-    "max": 6
+   "questions[].noLabel": {
+    "kind": "text",
+    "max": 20
    },
-   "branchQuestions[].actionPage": {
+   "questions[].actionPage": {
     "kind": "content",
     "multiple": false,
     "source": "VCL"
    },
-   "resultBands": {
-    "kind": "table",
-    "max": 4
+   "questions[].takeSteps": {
+    "kind": "text",
+    "max": 40
    },
-   "recommendedActions": {
-    "kind": "lines",
-    "max": 6
+   "allNoTitle": {
+    "kind": "text",
+    "max": 80
    },
    "allNoText": {
     "kind": "area",
-    "max": 240
+    "max": 300
    },
-   "checklist": {
+   "allNoActions": {
+    "kind": "table",
+    "max": 4
+   },
+   "allNoActions[].page": {
     "kind": "content",
     "multiple": false,
-    "source": "CHK"
+    "source": "VCL"
+   },
+   "allNoActions[].stepNumber": {
+    "kind": "num"
+   },
+   "hitTitle": {
+    "kind": "text",
+    "max": 120
+   },
+   "hitText": {
+    "kind": "area",
+    "max": 300
+   },
+   "readMore": {
+    "kind": "table",
+    "max": 6
+   },
+   "readMore[].icon": {
+    "kind": "fixed",
+    "list": "Danh mục · Biểu tượng",
+    "multiple": false
+   },
+   "readMore[].label": {
+    "kind": "text",
+    "max": 80
+   },
+   "readMore[].targetPage": {
+    "kind": "content",
+    "multiple": false,
+    "source": "PAGES"
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "seoTitle": {
     "kind": "text",
@@ -1187,22 +1385,42 @@
     "list": "Danh mục · Biểu tượng",
     "multiple": false
    },
+   "lead": {
+    "kind": "area",
+    "max": 240
+   },
    "sourceArticle": {
     "kind": "content",
     "multiple": false,
     "source": "ART"
    },
-   "itemGroups": {
-    "kind": "cards",
+   "stopIntro": {
+    "kind": "area",
+    "max": 500
+   },
+   "stopQuestions": {
+    "kind": "lines",
     "max": 8
    },
-   "itemGroups[].title": {
-    "kind": "text",
-    "max": 80
+   "stopNote": {
+    "kind": "area",
+    "max": 300
    },
-   "itemGroups[].lines": {
+   "pocketIntro": {
+    "kind": "area",
+    "max": 300
+   },
+   "pocketItems": {
     "kind": "lines",
     "max": 15
+   },
+   "stopNow": {
+    "kind": "area",
+    "max": 400
+   },
+   "holdNow": {
+    "kind": "area",
+    "max": 400
    },
    "pdfFile": {
     "kind": "file"
@@ -1213,6 +1431,13 @@
    },
    "reviewDate": {
     "kind": "date"
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "seoTitle": {
     "kind": "text",
@@ -1277,6 +1502,13 @@
    "showSampleNote": {
     "kind": "toggle"
    },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
+   },
    "seoTitle": {
     "kind": "text",
     "max": 60
@@ -1339,12 +1571,12 @@
     "multiple": false,
     "source": "VCL"
    },
-   "image": {
+   "illustration": {
     "kind": "media"
    },
-   "imageAlt": {
+   "illustrationAlt": {
     "kind": "text",
-    "max": 120
+    "max": 160
    },
    "issuingAgency": {
     "kind": "text",
@@ -1435,6 +1667,9 @@
     "list": "Danh mục · Biểu tượng",
     "multiple": false
    },
+   "thumbnail": {
+    "kind": "media"
+   },
    "tactics": {
     "kind": "content",
     "multiple": true,
@@ -1449,6 +1684,13 @@
    "noAnswerNote": {
     "kind": "area",
     "max": 200
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "seoTitle": {
     "kind": "text",
@@ -1490,9 +1732,6 @@
     "list": "Danh mục · Biểu tượng",
     "multiple": false
    },
-   "image": {
-    "kind": "media"
-   },
    "summary": {
     "kind": "rte"
    },
@@ -1523,6 +1762,13 @@
    "references": {
     "kind": "table",
     "max": 10
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "topic": {
     "kind": "content",
@@ -1633,6 +1879,13 @@
    "contactGroups[].checkedDate": {
     "kind": "date"
    },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
+   },
    "seoTitle": {
     "kind": "text",
     "max": 60
@@ -1668,6 +1921,13 @@
    },
    "rewardCriteria": {
     "kind": "rte"
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "seoTitle": {
     "kind": "text",
@@ -1705,6 +1965,13 @@
    "pendingNotes": {
     "kind": "area",
     "max": 300
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
    },
    "seoTitle": {
     "kind": "text",
@@ -2093,11 +2360,18 @@
     "showSponsor": false,
     "resultNote": "Kết quả chỉ mang tính tham khảo, không phải kết luận pháp lý và không thay thế việc liên hệ ngân hàng hoặc cơ quan có thẩm quyền.",
     "notConclusionNote": "Kết quả này dựa trên thông tin bạn vừa nhập. Đây không phải kết luận về bất kỳ cá nhân, tổ chức nào.",
-    "levelNormalText": "Bình tĩnh, kiểm tra trước khi làm theo.",
-    "levelHighText": "Tạm hoãn. Kiểm tra lại qua số điện thoại hoặc trang chính thức do bạn tự tìm.",
-    "levelVeryHighText": "Dừng lại. Không làm theo yêu cầu cho tới khi bạn tự kiểm tra qua kênh chính thức.",
-    "cautionText": "Chưa khớp tình huống nào trong danh sách. Hãy giữ bốn nguyên tắc dừng lại.",
+    "stopLabel": "DỪNG",
+    "stopText": "Dừng giao dịch ngay. Đây là khuyến nghị dừng hành động của bạn, không phải kết luận rằng đã có hành vi lừa đảo.",
+    "holdLabel": "HOÃN VÀ KIỂM CHỨNG",
+    "holdText": "Chưa thực hiện giao dịch cho tới khi bạn đã kiểm chứng bằng một kênh do chính bạn tìm ra.",
+    "clearLabel": "CHƯA PHÁT HIỆN ĐIỂM DỪNG",
+    "clearText": "Chưa phát hiện điểm dừng từ thông tin bạn cung cấp. Kết quả này không có nghĩa giao dịch an toàn.",
     "noReportNote": "Website không tiếp nhận tố giác, tin báo về tội phạm. Việc trình báo phải thực hiện tại cơ quan Công an.",
+    "noAdviceNote": "Website không tư vấn đầu tư, không tư vấn tài chính cá nhân và không giới thiệu sản phẩm tài chính. Nội dung của mục Rủi ro tài chính chỉ nhằm giúp bạn đặt đúng câu hỏi trước khi quyết định.",
+    "mustRemember": [
+     "Có đăng ký doanh nghiệp không đồng nghĩa với được phép cung cấp dịch vụ tài chính. Nhiều dịch vụ tài chính đòi hỏi giấy phép chuyên ngành riêng; kiểm tra đăng ký doanh nghiệp là chưa đủ.",
+     "Một khoản đầu tư có thể làm mất tiền mà không có bất kỳ hành vi gian dối nào. Thua lỗ do biến động thị trường không phải là lừa đảo, và cần được xử lý theo cách khác."
+    ],
     "bankLookupSteps": [
      "<b>Có thẻ ngân hàng:</b> lật mặt sau thẻ, gọi số chăm sóc khách hàng in trên thẻ.",
      "<b>Không có thẻ:</b> mở ứng dụng ngân hàng bạn đã cài từ trước, vào mục Trợ giúp hoặc Liên hệ.",
@@ -2121,11 +2395,7 @@
     "primaryButtonText": "Tôi đang gặp chuyện gì?",
     "secondaryButtonText": "Xem việc cần làm ngay",
     "principlesLead": "Trong lúc chưa rõ, nhớ bốn điều:",
-    "image": {
-     "media": "minh-hoa-dien-thoai.png"
-    },
-    "imageAlt": "Điện thoại hiện cuộc gọi lạ",
-    "toolsTitle": "Công cụ & checklist",
+    "toolsTitle": "Hãy tự kiểm tra",
     "tools": [
      "dfac3974-695c-5416-826f-cfed352fd6a5",
      "83a348c1-4546-52b3-8812-77938ca52c81",
@@ -2134,7 +2404,11 @@
     "riskTitle": "Các rủi ro",
     "alertTitle": "Cảnh báo mới",
     "alertMoreText": "Xem tất cả cảnh báo",
-    "alertCount": "3"
+    "alertCount": "3",
+    "illustration": {
+     "media": "m-a16"
+    },
+    "illustrationAlt": "Năm người cùng xác minh thông tin và bảo vệ tài chính trên điện thoại"
    }
   },
   {
@@ -2280,7 +2554,11 @@
       "label": "Mở Công cụ & checklist",
       "targetPage": "17029f01-72cd-5287-9a0c-0099268a3c1e"
      }
-    ]
+    ],
+    "illustration": {
+     "media": "m-a35"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -2394,6 +2672,10 @@
       "label": "“Cần quyết định ngay hôm nay”"
      }
     ],
+    "illustration": {
+     "media": "m-a10"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "situationMatrix": {
      "rows": [
       {
@@ -2736,7 +3018,7 @@
     "noMatchText": "Chưa khớp tình huống nào trong danh sách. Hãy giữ bốn nguyên tắc dừng lại.",
     "defaultChecklist": "73d32f20-7620-5cc8-a6e3-948225c57744",
     "button1Text": "Xem bài hướng dẫn chi tiết",
-    "button2Text": "Tải checklist PDF",
+    "button2Text": "Tải danh sách kiểm tra (PDF)",
     "button3Text": "Gửi cho người thân",
     "button4Text": "Kiểm tra lại"
    }
@@ -2800,7 +3082,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a20"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -2871,7 +3157,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a10"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -2942,7 +3232,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a31"
+    },
+    "illustrationAlt": "Thời gian quan trọng để ngăn thiệt hại và lưu chứng cứ"
    }
   },
   {
@@ -3034,7 +3328,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a39"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3095,7 +3393,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a40"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3158,7 +3460,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a13"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3248,7 +3554,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a41"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3348,7 +3658,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a15"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3431,7 +3745,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a37"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3496,7 +3814,11 @@
      }
     ],
     "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0"
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "m-a11"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3504,31 +3826,41 @@
    "mockupId": "cong-cu",
    "parentKey": "8a2eec09-55da-582a-b342-537ebd77750d",
    "contentType": "congCuPage",
-   "name": "Công cụ & checklist",
+   "name": "Hãy tự kiểm tra",
    "state": "published",
    "sortOrder": 1,
    "values": {
-    "title": "Công cụ & checklist",
-    "lead": "Tự kiểm tra trước khi chuyển tiền, đầu tư, vay, hoặc khi nghi mình đã bị lừa. Mỗi lần một câu, có kết quả và việc cần làm tiếp theo.",
+    "title": "Hãy tự kiểm tra",
+    "lead": "Kiểm tra trước khi chuyển tiền, đầu tư, vay, hoặc khi nghi mình bị lừa. Không cần đăng nhập, không lưu câu trả lời.",
+    "toolsTitle": "Kiểm tra nhanh bằng vài câu hỏi",
     "tools": [
      "dfac3974-695c-5416-826f-cfed352fd6a5",
      "83a348c1-4546-52b3-8812-77938ca52c81",
      "bcc4cf78-2ef7-58f2-b70c-b2e9e0a0f62b"
     ],
-    "checklistTitle": "8 checklist “Trước khi…”",
-    "checklistLead": "Lấy nguyên văn từ 8 bài đọc chuyên đề. In hoặc lưu PDF được.",
-    "practiceLinks": [
+    "checklistTitle": "Danh sách kiểm tra theo việc sắp làm",
+    "checklistLead": "Mỗi danh sách có hai phần: năm việc phải chặn ngay và bảng kiểm bỏ túi, lấy nguyên văn từ bài đọc chuyên đề. Bản trên website có nút In để in hoặc lưu thành PDF.",
+    "knowledgeTitle": "Kiểm tra kiến thức",
+    "knowledgeLinks": [
      {
       "key": "736d4898-ac9e-515b-bb5e-56ff140f4401",
-      "label": "Thử sức 8 câu",
+      "icon": "question",
+      "label": "Thử sức: 8 câu",
+      "description": "Mỗi chuyên đề một câu, chọn xong là có giải thích.",
       "targetPage": "c06f9837-10e0-53b9-8e65-17a19294923d"
      },
      {
       "key": "c40329a4-f30f-5573-8de9-7a1b9f428075",
+      "icon": "book",
       "label": "Tự luyện 200 câu",
+      "description": "Toàn bộ ngân hàng câu hỏi 8 chuyên đề. Không tính điểm, không lưu bài.",
       "targetPage": "c06f9837-10e0-53b9-8e65-17a19294923d"
      }
-    ]
+    ],
+    "illustration": {
+     "media": "m-a19"
+    },
+    "illustrationAlt": "Bốn bước qua suối tượng trưng cho chậm lại, xác minh, làm rõ và quyết định"
    }
   },
   {
@@ -3540,70 +3872,147 @@
    "state": "published",
    "sortOrder": 0,
    "values": {
-    "title": "Kiểm tra trước khi chuyển tiền",
+    "title": "Trước khi chuyển tiền",
     "umbracoUrlName": "truoc-khi-chuyen-tien",
     "icon": "money",
     "cardText": "5 câu hỏi trước khi bấm chuyển. Biết nên dừng lại, kiểm tra thêm, hay chưa thấy điểm dừng.",
-    "lead": "5 câu hỏi về khoản tiền bạn sắp chuyển. Mỗi lần một câu.",
-    "signQuestions": [
+    "lead": "5 câu hỏi về khoản tiền bạn sắp chuyển. Mỗi lần một câu. Không chắc thì chọn “Tôi chưa biết”.",
+    "showAdviceBox": false,
+    "questions": [
      {
       "key": "cd9a2657-8195-5da3-a101-87e48a928673",
-      "question": "Bạn có biết chắc người nhận không?",
-      "signAnswer": "khong"
+      "questionKind": "phaiDung",
+      "question": "Khoản tiền này là **phí** để lấy lại tiền hoặc hàng **đang bị giữ**: phí rút tiền, phí mở khóa, tiền xác minh, tiền bảo lãnh?",
+      "answerOptions": []
      },
      {
       "key": "9ab5608d-95ab-59fe-8132-5c7945c51c4e",
-      "question": "Có bị yêu cầu chuyển ngay không?",
-      "signAnswer": "co"
+      "questionKind": "phaiDung",
+      "question": "Người nhận bắt bạn chuyển ngay, giữ bí mật, hoặc không cho hỏi người thân?",
+      "answerOptions": []
      },
      {
       "key": "955ea1fe-82ea-51cb-9947-5aabe0e188c0",
-      "question": "Có được yêu cầu chuyển sang tài khoản cá nhân không?",
-      "signAnswer": "co"
+      "questionKind": "phaiDung",
+      "question": "Họ cản bạn tự gọi lại số chính thức hoặc tự mở website chính thức để hỏi?",
+      "answerOptions": []
      },
      {
       "key": "f59b1de3-3137-5938-be89-f096e2339d40",
-      "question": "Có được yêu cầu cung cấp OTP hoặc mật khẩu không?",
-      "signAnswer": "co"
+      "questionKind": "tamHoan",
+      "question": "Tiền chuyển tới một tài khoản cá nhân, hoặc tên chủ tài khoản không khớp với bên bạn đang giao dịch?",
+      "hint": "Tên khớp cũng không chứng minh yêu cầu là thật. Kẻ lừa đảo có thể dùng tài khoản mang đúng tên một doanh nghiệp có thật.",
+      "answerOptions": []
      },
      {
       "key": "99a44428-b18e-59c7-8da5-d9bb3e0bd808",
-      "question": "Có được hứa hoàn tiền, trúng thưởng hoặc lợi nhuận không?",
-      "signAnswer": "co"
+      "questionKind": "canKiemTra",
+      "question": "Bạn đã **tự liên hệ lại** bằng số điện thoại hoặc địa chỉ do chính bạn tìm ra chưa?",
+      "hint": "Số in trên thẻ, ứng dụng bạn đã tự cài và vẫn dùng, địa chỉ bạn tự nhập. Không phải số hay đường dẫn do người kia đưa.",
+      "answerOptions": [
+       {
+        "key": "2ae0c492-fed0-53a2-9a29-e53cb2ab13f5",
+        "label": "Rồi",
+        "meaning": "co"
+       },
+       {
+        "key": "f593771b-e658-5f47-baa8-ccf830cb86eb",
+        "label": "Việc này do chính tôi bắt đầu, trên ứng dụng tôi vẫn dùng, thông tin đều khớp",
+        "meaning": "co"
+       },
+       {
+        "key": "5a7dbb7e-3be3-557a-abe0-0875b3862054",
+        "label": "Chưa",
+        "meaning": "khong"
+       },
+       {
+        "key": "d267e36c-81eb-5a6b-bc5f-5270c4c427fa",
+        "label": "Tôi chưa biết",
+        "meaning": "chuaBiet"
+       }
+      ]
      }
     ],
-    "resultBands": [
+    "stopResult": "Cần dừng lại",
+    "holdResult": "Cần kiểm tra thêm",
+    "clearResult": "Chưa phát hiện điểm dừng",
+    "clearNote": "Qua được các câu này cũng chưa có nghĩa là giao dịch an toàn. Vẫn tự kiểm tra bằng kênh do chính bạn tìm ra.",
+    "stopActions": [
      {
-      "key": "2ae0c492-fed0-53a2-9a29-e53cb2ab13f5",
-      "fromCount": "0",
-      "toCount": "0",
-      "label": "An toàn tương đối",
-      "color": "xanh",
-      "description": "Không có dấu hiệu cảnh báo."
+      "key": "eb868102-3fac-5833-a4c7-3228c2cd92aa",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "1"
      },
      {
-      "key": "f593771b-e658-5f47-baa8-ccf830cb86eb",
-      "fromCount": "1",
-      "toCount": "1",
-      "label": "Cần kiểm tra thêm",
-      "color": "vang",
-      "description": "Có 1 dấu hiệu."
+      "key": "e76260d2-c71b-5560-bdc3-aef83acd078a",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "2"
      },
      {
-      "key": "5a7dbb7e-3be3-557a-abe0-0875b3862054",
-      "fromCount": "2",
-      "label": "Cần dừng lại",
-      "color": "cam",
-      "description": "Có từ 2 dấu hiệu trở lên."
+      "key": "21bfb0e5-42a5-5c6b-b69c-5c64abdd1b64",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "4"
      }
     ],
-    "recommendedActions": [
-     "Không chuyển tiền ngay.",
-     "Gọi lại qua số chính thức.",
-     "Hỏi người thân tin cậy.",
-     "Nếu đã chuyển, liên hệ ngân hàng ngay."
+    "holdActions": [
+     {
+      "key": "2583a7bb-eff6-5cbb-a50f-2a248b70194e",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "2"
+     },
+     {
+      "key": "f6bcd9dd-146d-509f-bd00-d9b845f71d76",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "3"
+     },
+     {
+      "key": "a2a90f43-0832-5bff-a4fd-a3c0232af053",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "4"
+     }
     ],
-    "checklist": "03d15cda-9627-50a5-a621-cfa90156661c"
+    "clearActions": [
+     {
+      "key": "8878c7d4-9e99-56e2-8df5-0ae6b083f15c",
+      "page": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
+      "stepNumber": "1"
+     },
+     {
+      "key": "4400c364-51ff-5999-8868-0baaaecadc10",
+      "page": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
+      "stepNumber": "2"
+     }
+    ],
+    "readMore": [
+     {
+      "key": "47cb8850-1ecf-5539-b27c-be11c7c7bba5",
+      "icon": "clock",
+      "label": "Có người đang thúc bạn làm ngay",
+      "targetPage": "d473400b-dc16-5274-92c2-6bdc670719c5"
+     },
+     {
+      "key": "8e810a21-aad7-586b-bf06-11c4c88d5c52",
+      "icon": "search",
+      "label": "Cách tự kiểm chứng trước khi đưa",
+      "targetPage": "bd846b9c-73d0-506b-b3a8-109cad2a623b"
+     },
+     {
+      "key": "cd00e17c-d94b-5502-a95a-29f730899460",
+      "icon": "quiz",
+      "label": "Danh sách kiểm tra: Trước khi mua, chuyển khoản, đặt cọc",
+      "targetPage": "03d15cda-9627-50a5-a621-cfa90156661c"
+     },
+     {
+      "key": "553500c0-a6db-555a-b875-525a862454a6",
+      "icon": "money",
+      "label": "Nếu đã lỡ chuyển tiền: việc cần làm",
+      "targetPage": "8f95afcc-b47f-5201-9892-a2dcc83563df"
+     }
+    ],
+    "illustration": {
+     "media": "m-a29"
+    },
+    "illustrationAlt": "Đọc kỹ điều khoản trước khi ký cam kết"
    }
   },
   {
@@ -3615,61 +4024,158 @@
    "state": "published",
    "sortOrder": 1,
    "values": {
-    "title": "Kiểm tra trước khi đầu tư/vay",
+    "title": "Trước khi đầu tư, vay",
     "umbracoUrlName": "truoc-khi-dau-tu-vay",
     "icon": "chart",
     "cardText": "5 câu hỏi trước khi góp vốn, đầu tư hoặc ký khoản vay.",
-    "lead": "5 câu hỏi trước khi góp vốn, đầu tư hoặc ký khoản vay. Mỗi lần một câu.",
-    "signQuestions": [
+    "lead": "5 câu hỏi trước khi góp vốn, đầu tư hoặc ký khoản vay. Mỗi lần một câu. Không chắc thì chọn “Tôi chưa biết”.",
+    "showAdviceBox": true,
+    "questions": [
      {
-      "key": "aaea6023-1320-592b-88b9-e50a87cddec7",
-      "question": "Có được hứa lợi nhuận bảo đảm hoặc không rủi ro không?",
-      "signAnswer": "co"
+      "key": "1d8f8199-83d8-5f06-921f-315beeb2c839",
+      "questionKind": "phaiDung",
+      "question": "Bạn bị bắt **nộp phí trước** — phí giải ngân, phí rút tiền, phí mở khóa, phí nâng gói — mới được nhận khoản vay hoặc mới rút được tiền?",
+      "hint": "Xem tiền chảy về phía nào. Bạn phải nộp tiền trước thì dừng lại.",
+      "answerOptions": []
      },
      {
-      "key": "ba6493b8-2059-578c-9c59-31a01057bd6a",
-      "question": "Có được yêu cầu trả phí trước để nhận vốn/lãi không?",
-      "signAnswer": "co"
+      "key": "e6fc115c-afd8-5c8e-bf47-419ab0bd67de",
+      "questionKind": "phaiDung",
+      "question": "Họ thúc bạn quyết định ngay, giữ bí mật, hoặc không cho hỏi người thân?",
+      "answerOptions": []
      },
      {
-      "key": "53554ee6-b71e-53af-b443-8a0b95486772",
-      "question": "Có được yêu cầu chuyển tiền vào tài khoản cá nhân không?",
-      "signAnswer": "co"
+      "key": "26e3b952-d34f-5b64-af7e-6094c2b410fc",
+      "questionKind": "tamHoan",
+      "question": "Họ cam kết lợi nhuận cao, đều đặn, nói “không thể thua lỗ”, hoặc trả thưởng theo số người bạn rủ thêm?",
+      "answerOptions": []
      },
      {
-      "key": "fa8a0e41-4945-55da-a643-6112bd1c12ab",
-      "question": "Có được yêu cầu mời người thân tham gia không?",
-      "signAnswer": "co"
+      "key": "66d2830d-9054-52fc-93fc-25012492d2ed",
+      "questionKind": "canKiemTra",
+      "question": "Bạn đã trả lời được rõ ràng các câu phải hỏi chưa?",
+      "hint": "**Đầu tư:** lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, muốn rút thì rút bằng cách nào. **Vay:** mình nhận về bao nhiêu, tổng cộng phải trả bao nhiêu, mỗi kỳ trả bao nhiêu.",
+      "answerOptions": [
+       {
+        "key": "a7bafb4b-4cc0-558c-9bd3-63d69aeb2136",
+        "label": "Rồi, đã rõ",
+        "meaning": "co"
+       },
+       {
+        "key": "40332b2d-462f-51ad-b888-08533d2bd565",
+        "label": "Chưa rõ",
+        "meaning": "khong"
+       },
+       {
+        "key": "659e4685-832b-5823-95df-aa35a3220b73",
+        "label": "Tôi chưa biết",
+        "meaning": "chuaBiet"
+       }
+      ]
      },
      {
-      "key": "52cd10e0-7f95-5100-ace7-22ddc59da7a6",
-      "question": "Có thông tin pháp nhân, giấy phép và hợp đồng rõ ràng không?",
-      "signAnswer": "khong"
+      "key": "1a043b31-33ae-5549-bc32-8d013958c4d3",
+      "questionKind": "canKiemTra",
+      "question": "Bạn đã kiểm tra bên mời có **giấy phép** làm đúng loại dịch vụ này chưa — không chỉ có đăng ký doanh nghiệp?",
+      "answerOptions": [
+       {
+        "key": "17064709-86fb-5cb8-bbcc-06f5dc679a56",
+        "label": "Rồi",
+        "meaning": "co"
+       },
+       {
+        "key": "0c20284e-c9be-55b7-a532-5b6b0d9484c6",
+        "label": "Chưa",
+        "meaning": "khong"
+       },
+       {
+        "key": "b9174183-9be1-5515-a0c6-c1a1aba3f26e",
+        "label": "Tôi chưa biết",
+        "meaning": "chuaBiet"
+       }
+      ]
      }
     ],
-    "resultBands": [
+    "stopResult": "Không nên tham gia",
+    "holdResult": "Rủi ro cao",
+    "clearResult": "Cần thẩm định kỹ",
+    "clearNote": "Qua được các câu này cũng chưa có nghĩa là giao dịch an toàn. Vẫn tự kiểm tra bằng kênh do chính bạn tìm ra.",
+    "stopActions": [
      {
-      "key": "15b6accd-dac5-58be-af1b-13c394054aed",
-      "fromCount": "0",
-      "toCount": "0",
-      "label": "Cần thẩm định kỹ",
-      "color": "vang"
+      "key": "742fbc97-fa0f-54f4-88f8-7e379cdb8780",
+      "page": "3326906d-b9f7-5757-9ab4-014544319437",
+      "stepNumber": "3"
      },
      {
-      "key": "7e42f402-f8ec-5ab3-869e-39dbdfde116c",
-      "fromCount": "1",
-      "toCount": "1",
-      "label": "Rủi ro cao",
-      "color": "cam"
+      "key": "7f890ec3-c434-5978-aaa7-e44a89e77430",
+      "page": "3326906d-b9f7-5757-9ab4-014544319437",
+      "stepNumber": "5"
      },
      {
-      "key": "8de2632d-3710-552a-a9f3-35ce411b05a1",
-      "fromCount": "2",
-      "label": "Không nên tham gia",
-      "color": "cam"
+      "key": "b891eb3e-fca1-53cf-9b7e-3712df33f884",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "4"
      }
     ],
-    "checklist": "40b15a36-af02-57eb-ac1f-ea7f119a7ad0"
+    "holdActions": [
+     {
+      "key": "84343966-7bc8-5ea8-87f6-f49312061dee",
+      "page": "3326906d-b9f7-5757-9ab4-014544319437",
+      "stepNumber": "1"
+     },
+     {
+      "key": "01ebe9b7-c427-5a47-bb64-4aa126581243",
+      "page": "3326906d-b9f7-5757-9ab4-014544319437",
+      "stepNumber": "2"
+     },
+     {
+      "key": "21513f52-0a86-57ab-bc4f-d30fcd5ba7d7",
+      "page": "3326906d-b9f7-5757-9ab4-014544319437",
+      "stepNumber": "4"
+     }
+    ],
+    "clearActions": [
+     {
+      "key": "ff867aa9-0278-5ff8-8794-5ee956c7635b",
+      "page": "3326906d-b9f7-5757-9ab4-014544319437",
+      "stepNumber": "4"
+     },
+     {
+      "key": "ea5c7313-c4bd-50b5-b7ab-4eed034299fc",
+      "page": "3326906d-b9f7-5757-9ab4-014544319437",
+      "stepNumber": "5"
+     }
+    ],
+    "readMore": [
+     {
+      "key": "202fb126-d674-5696-a49c-cda715c8ad6c",
+      "icon": "chart",
+      "label": "Có người mời bạn góp vốn, đầu tư",
+      "targetPage": "3326906d-b9f7-5757-9ab4-014544319437"
+     },
+     {
+      "key": "46be61b9-ff5c-5e67-be1e-728c3f813af5",
+      "icon": "quiz",
+      "label": "Danh sách kiểm tra: Trước khi đầu tư, góp vốn",
+      "targetPage": "40b15a36-af02-57eb-ac1f-ea7f119a7ad0"
+     },
+     {
+      "key": "7ca5ec82-9e9e-5afc-8c48-4aadd98a6ead",
+      "icon": "quiz",
+      "label": "Danh sách kiểm tra: Trước khi vay, bảo lãnh, đứng tên",
+      "targetPage": "b1e28dba-fa92-5c09-ac90-fcd840cd6425"
+     },
+     {
+      "key": "8771c693-3260-5a88-8f02-7de4da187284",
+      "icon": "doc",
+      "label": "Đã góp tiền mà không rút được: việc cần làm",
+      "targetPage": "c07ba1d5-04dd-5265-824e-63a48c48dd7e"
+     }
+    ],
+    "illustration": {
+     "media": "m-a30"
+    },
+    "illustrationAlt": "Phân biệt rủi ro đầu tư và thủ đoạn gian lận"
    }
   },
   {
@@ -3681,60 +4187,86 @@
    "state": "published",
    "sortOrder": 2,
    "values": {
-    "title": "Kiểm tra khi nghi ngờ bị lừa",
+    "title": "Khi nghi ngờ bị lừa",
     "umbracoUrlName": "khi-nghi-bi-lua",
     "icon": "alert",
     "cardText": "4 câu hỏi để biết việc nào phải làm trước, theo đúng thứ tự.",
-    "lead": "4 câu hỏi để biết việc nào phải làm trước, theo đúng thứ tự.",
-    "branchQuestions": [
+    "lead": "4 câu hỏi để biết việc nào phải làm trước. Trả lời xong, bạn có danh sách việc cần làm theo đúng thứ tự.",
+    "urgentTitle": "Đang có nguy hiểm tức thời?",
+    "urgentText": "Nếu bạn đang bị đe dọa tính mạng, sức khỏe, hoặc có người tìm đến tận nơi: gọi 113 ngay.",
+    "questions": [
      {
-      "key": "950b5df5-9110-5613-9fad-06f6561c3a85",
-      "question": "Bạn đã chuyển tiền chưa?",
-      "situationLabel": "Đã chuyển tiền",
-      "actions": [
-       "Liên hệ ngân hàng ngay.",
-       "Yêu cầu khóa/giữ giao dịch.",
-       "Lưu bằng chứng."
-      ],
-      "actionPage": "8f95afcc-b47f-5201-9892-a2dcc83563df"
+      "key": "20418df1-8241-5972-99af-8dd4008fe3ea",
+      "question": "Có ai đang đe dọa, ép buộc bạn phải trả tiền hoặc phải im lặng không?",
+      "situationLabel": "Bạn đang bị đe dọa, ép buộc",
+      "actionPage": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
+      "takeSteps": "1,2,3,4"
      },
      {
-      "key": "e7a0834c-52fb-5942-8aed-74a2fc881305",
-      "question": "Bạn đã cung cấp OTP/mật khẩu chưa?",
-      "situationLabel": "Đã cung cấp OTP/mật khẩu",
-      "actions": [
-       "Đổi mật khẩu.",
-       "Bật xác thực hai lớp.",
-       "Khóa thẻ/tài khoản."
-      ],
-      "actionPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f"
+      "key": "9a0e80e6-ba1c-5fe3-b829-4ae310955e5d",
+      "question": "Bạn đã đọc mã OTP, đưa mật khẩu, cài ứng dụng theo lời người khác, hoặc cho người khác xem, điều khiển màn hình?",
+      "situationLabel": "Người khác có thể đang có quyền vào tài khoản hoặc điện thoại của bạn",
+      "actionPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
+      "takeSteps": "1,2,4,6"
      },
      {
-      "key": "31b59211-aa21-55eb-858c-7f599069c5e7",
-      "question": "Bạn đã bấm link hoặc cài ứng dụng chưa?",
-      "situationLabel": "Đã bấm link/cài app",
-      "actions": [
-       "Không nhập thêm thông tin.",
-       "Gỡ ứng dụng lạ.",
-       "Quét thiết bị.",
-       "Đổi mật khẩu."
-      ],
-      "actionPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f"
+      "key": "905fd610-69ff-5023-b203-c922c7c6c90a",
+      "question": "Bạn đã chuyển tiền, đưa tiền, hoặc đã giao hàng đi chưa?",
+      "situationLabel": "Bạn đã chuyển tiền hoặc đã giao hàng",
+      "yesLabel": "Rồi",
+      "noLabel": "Chưa",
+      "actionPage": "8f95afcc-b47f-5201-9892-a2dcc83563df",
+      "takeSteps": "1,2,3,4"
      },
      {
-      "key": "b8ffac77-d6f5-5214-9e5f-f9c2f9c47b1a",
-      "question": "Bạn đã gửi ảnh CCCD/chữ ký chưa?",
-      "situationLabel": "Đã gửi giấy tờ",
-      "actions": [
-       "Theo dõi tài khoản.",
-       "Cảnh giác với cuộc gọi/tin nhắn mạo danh.",
-       "Không cung cấp thêm dữ liệu."
-      ],
-      "actionPage": "ced0f2ff-a349-590d-a486-21ac72df96f0"
+      "key": "2cc57af2-395d-5929-9ee8-528bd6472dbd",
+      "question": "Bạn đã gửi ảnh giấy tờ, quét khuôn mặt, ký giấy, hoặc cho mượn tài khoản, SIM?",
+      "situationLabel": "Giấy tờ, chữ ký hoặc tài khoản của bạn đã được đưa đi",
+      "yesLabel": "Rồi",
+      "noLabel": "Chưa",
+      "actionPage": "ced0f2ff-a349-590d-a486-21ac72df96f0",
+      "takeSteps": "1,2,3,8"
      }
     ],
-    "allNoText": "Bạn chưa làm việc nào trong bốn việc trên. Giữ bốn nguyên tắc dừng lại và tự kiểm tra qua kênh chính thức.",
-    "checklist": "cae1df7e-fefb-5b2e-b87f-41ab55b0dc13"
+    "allNoTitle": "Bạn chưa mất gì",
+    "allNoText": "Chưa mất gì là tình thế tốt nhất. Việc cần làm bây giờ là kiểm chứng trước khi đưa bất cứ thứ gì.",
+    "allNoActions": [
+     {
+      "key": "537f2642-4e18-5638-b300-06d67aaf21ac",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "1"
+     },
+     {
+      "key": "e95324b7-8004-5b56-a022-c7dac0c98b62",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "2"
+     },
+     {
+      "key": "b3c24e21-65e0-5b3e-9e5b-6bb9481c00e0",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "4"
+     }
+    ],
+    "hitTitle": "Có {n} việc cần xử lý, làm theo thứ tự dưới đây",
+    "hitText": "Làm xong nhóm 1 rồi mới sang nhóm 2. Bạn không có lỗi vì đã gặp chuyện này; việc quan trọng là không xử lý một mình.",
+    "readMore": [
+     {
+      "key": "01702603-af6e-58ae-85eb-5ae16d596931",
+      "icon": "clock",
+      "label": "Có người đang thúc bạn làm ngay: đủ các bước",
+      "targetPage": "d473400b-dc16-5274-92c2-6bdc670719c5"
+     },
+     {
+      "key": "032b1f7f-7e0d-57d2-a360-5aa4139ec80f",
+      "icon": "quiz",
+      "label": "Tôi đang gặp chuyện gì? Trả lời 3 câu",
+      "targetPage": "620db892-e73b-564c-9553-7c6185e1e04a"
+     }
+    ],
+    "illustration": {
+     "media": "m-a31"
+    },
+    "illustrationAlt": "Thời gian quan trọng để ngăn thiệt hại và lưu chứng cứ"
    }
   },
   {
@@ -3748,34 +4280,33 @@
    "values": {
     "title": "Trước mọi quyết định có dính đến tiền",
     "icon": "clock",
+    "lead": "Lấy nguyên văn từ Bài đọc Chuyên đề 1. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.",
     "sourceArticle": "b0ba33d7-7096-5e42-9694-016bed26caf5",
-    "itemGroups": [
-     {
-      "key": "98f72c51-5ae1-5905-910d-65caee1dad01",
-      "title": "Năm việc phải chặn ngay",
-      "lines": [
-       "Đọc hoặc gửi mã xác thực, mật khẩu.",
-       "Cài ứng dụng theo đường dẫn người khác gửi, hoặc cấp quyền xem màn hình, quyền can thiệp sâu vào máy, quyền điều khiển máy.",
-       "Chuyển tiền để “xác minh”, “mở khóa”, “giải phóng”.",
-       "Quét khuôn mặt hoặc gửi ảnh giấy tờ theo yêu cầu của người chưa xác minh được.",
-       "Bị yêu cầu giữ bí mật, không cho hỏi gia đình, ngân hàng hay cơ quan."
-      ]
-     },
-     {
-      "key": "359b2f2b-8f1a-50bb-a4b6-aa05744cac9b",
-      "title": "Bảng kiểm bỏ túi",
-      "lines": [
-       "Mình đang ở trạng thái nào? Tham, sợ, gấp, quá tin, quá thương hay quá hy vọng?",
-       "Ai đang chọn thời điểm quyết định — mình hay người kia?",
-       "Người này là ai, và mình biết điều đó từ đâu?",
-       "Họ đang bảo mình làm gì?",
-       "Mình sẽ hỏi lại ở đâu — kênh đó do ai đưa?",
-       "Còn điểm nào chưa rõ không? Còn thì hoãn."
-      ]
-     }
+    "stopIntro": "Không đọc mã — Không cài theo đường dẫn — Không cho quyền vào máy — Không chuyển tiền để “xác minh” — Không giữ bí mật với người nhà. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp.",
+    "stopQuestions": [
+     "Đọc hoặc gửi mã xác thực, mật khẩu.",
+     "Cài ứng dụng theo đường dẫn người khác gửi, hoặc cấp quyền xem màn hình, quyền can thiệp sâu vào máy, quyền điều khiển máy.",
+     "Chuyển tiền để “xác minh”, “mở khóa”, “giải phóng”.",
+     "Quét khuôn mặt hoặc gửi ảnh giấy tờ theo yêu cầu của người chưa xác minh được.",
+     "Bị yêu cầu giữ bí mật, không cho hỏi gia đình, ngân hàng hay cơ quan."
     ],
+    "pocketIntro": "Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao. Tích những câu bạn đã tự trả lời được rõ ràng.",
+    "pocketItems": [
+     "Mình đang ở trạng thái nào? Tham, sợ, gấp, quá tin, quá thương hay quá hy vọng?",
+     "Ai đang chọn thời điểm quyết định — mình hay người kia?",
+     "Người này là ai, và mình biết điều đó từ đâu?",
+     "Họ đang bảo mình làm gì?",
+     "Mình sẽ hỏi lại ở đâu — kênh đó do ai đưa?",
+     "Còn điểm nào chưa rõ không? Còn thì hoãn."
+    ],
+    "stopNow": "Cúp máy hoặc thoát trang, chưa đưa gì cả.",
+    "holdNow": "Tự kiểm tra bằng kênh chính thức mình tìm.",
     "version": "2.0",
-    "reviewDate": "2026-10-20"
+    "reviewDate": "2026-10-20",
+    "illustration": {
+     "media": "m-a19"
+    },
+    "illustrationAlt": "Bốn bước qua suối tượng trưng cho chậm lại, xác minh, làm rõ và quyết định"
    }
   },
   {
@@ -3789,37 +4320,36 @@
    "values": {
     "title": "Trước khi ký hợp đồng, bấm đồng ý",
     "icon": "pen",
+    "lead": "Lấy nguyên văn từ Bài đọc Chuyên đề 2. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.",
     "sourceArticle": "a49b7c19-ff8f-5b39-a6d1-981d2e47c64d",
-    "itemGroups": [
-     {
-      "key": "6b57037b-006c-506d-937a-573bb2165b05",
-      "title": "Năm việc phải chặn ngay",
-      "lines": [
-       "Ký vào giấy còn chỗ trống — thiếu số tiền, thiếu ngày, thiếu phụ lục.",
-       "Bấm đồng ý khi chưa mở được, chưa đọc hết hoặc chưa lưu được bản điều khoản.",
-       "Ký biên bản nghiệm thu khi chưa tự kiểm tra xong hàng hóa hoặc công việc.",
-       "Chuyển tiền vào tài khoản không khớp tên bên ký hợp đồng, mà không có căn cứ kiểm tra được.",
-       "Bị giục ký ngay kèm lời khuyên đừng hỏi thêm ai, hoặc đừng mang giấy tờ về nhà đọc.",
-       "Chặn một việc không có nghĩa là cả giao dịch đều hỏng. Chặn xong rồi mới xét lại: có thể vẫn là hoãn, và cũng có thể vẫn ký được."
-      ]
-     },
-     {
-      "key": "20f8e7e9-5d62-5d2e-86f6-ce5ee17b71b8",
-      "title": "Bảng kiểm bỏ túi",
-      "lines": [
-       "Mình ký với ai — tên đầy đủ của bên kia là gì?",
-       "Tổng cộng phải trả bao nhiêu, gồm những khoản nào?",
-       "Mình được nhận gì, và bao giờ nhận?",
-       "Có tự động gia hạn không? Muốn dừng thì làm thế nào?",
-       "Đã cầm và đọc hết phụ lục cùng bảng phí chưa?",
-       "Có ai đang giục, hoặc bảo mình đừng hỏi thêm ai không?",
-       "Còn chỗ nào để trống không? Còn thì chưa ký.",
-       "Ký xong mình có giữ được một bản không?"
-      ]
-     }
+    "stopIntro": "Không ký giấy còn trống — Không bấm đồng ý khi chưa đọc — Không ký nghiệm thu khi chưa kiểm — Không chuyển vào tài khoản lệch tên — Không ký vội vì bị giục. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp.",
+    "stopQuestions": [
+     "Ký vào giấy còn chỗ trống — thiếu số tiền, thiếu ngày, thiếu phụ lục.",
+     "Bấm đồng ý khi chưa mở được, chưa đọc hết hoặc chưa lưu được bản điều khoản.",
+     "Ký biên bản nghiệm thu khi chưa tự kiểm tra xong hàng hóa hoặc công việc.",
+     "Chuyển tiền vào tài khoản không khớp tên bên ký hợp đồng, mà không có căn cứ kiểm tra được.",
+     "Bị giục ký ngay kèm lời khuyên đừng hỏi thêm ai, hoặc đừng mang giấy tờ về nhà đọc."
     ],
+    "stopNote": "Chặn một việc không có nghĩa là cả giao dịch đều hỏng. Chặn xong rồi mới xét lại: có thể vẫn là hoãn, và cũng có thể vẫn ký được.",
+    "pocketIntro": "Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao. Tích những câu bạn đã tự trả lời được rõ ràng.",
+    "pocketItems": [
+     "Mình ký với ai — tên đầy đủ của bên kia là gì?",
+     "Tổng cộng phải trả bao nhiêu, gồm những khoản nào?",
+     "Mình được nhận gì, và bao giờ nhận?",
+     "Có tự động gia hạn không? Muốn dừng thì làm thế nào?",
+     "Đã cầm và đọc hết phụ lục cùng bảng phí chưa?",
+     "Có ai đang giục, hoặc bảo mình đừng hỏi thêm ai không?",
+     "Còn chỗ nào để trống không? Còn thì chưa ký.",
+     "Ký xong mình có giữ được một bản không?"
+    ],
+    "stopNow": "Đặt bút xuống hoặc thoát khỏi trang, chưa đưa gì cả.",
+    "holdNow": "Xin bản đầy đủ mang về đọc.",
     "version": "2.0",
-    "reviewDate": "2026-10-20"
+    "reviewDate": "2026-10-20",
+    "illustration": {
+     "media": "m-a29"
+    },
+    "illustrationAlt": "Đọc kỹ điều khoản trước khi ký cam kết"
    }
   },
   {
@@ -3833,36 +4363,35 @@
    "values": {
     "title": "Trước khi đầu tư, góp vốn",
     "icon": "chart",
+    "lead": "Lấy nguyên văn từ Bài đọc Chuyên đề 3. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.",
     "sourceArticle": "5f835b6b-c66b-594c-816b-8a4530997b3f",
-    "itemGroups": [
-     {
-      "key": "65db7471-34b1-5d4b-8fd2-1b267c158531",
-      "title": "Năm việc phải chặn ngay",
-      "lines": [
-       "Nộp thêm bất kỳ khoản nào để được rút tiền ra.",
-       "Đọc hoặc gửi mã xác thực, mật khẩu; cài ứng dụng hoặc cấp quyền điều khiển máy theo hướng dẫn của nơi mời đầu tư.",
-       "Chuyển tiền vào tài khoản cá nhân trong khi hợp đồng ký với một công ty, mà không có căn cứ thu hộ kiểm tra được.",
-       "Đi vay, thế chấp nhà đất, hoặc dùng tiền dưỡng già để góp thêm.",
-       "Rủ người thân, bạn bè cùng tham gia khi mình chưa tự kiểm tra xong.",
-       "Chặn một việc không có nghĩa là mọi thứ đều hỏng. Chặn xong rồi tự xác minh, lúc đó mới quyết định về cả khoản đầu tư."
-      ]
-     },
-     {
-      "key": "5175c295-8ca1-5bef-bdd5-8d54c4e46411",
-      "title": "Bảng kiểm bỏ túi",
-      "lines": [
-       "Tiền lãi ở đâu ra? Ai làm ra khoản đó, bằng việc gì?",
-       "Ai có nghĩa vụ trả tiền cho mình — tên đơn vị nào?",
-       "Muốn rút thì rút thế nào, mất bao lâu, mất phí gì?",
-       "Tài khoản nhận tiền đứng tên ai, có khớp bên ký hợp đồng không?",
-       "Mình tra được gì ở nơi nằm ngoài chính lời mời này?",
-       "Nếu mất hết khoản này, đời sống gia đình có ổn không?",
-       "Có ai đang giục mình chốt ngay trong hôm nay không?"
-      ]
-     }
+    "stopIntro": "Không nộp thêm để rút — Không đọc mã, không cấp quyền — Không chuyển vào tài khoản cá nhân — Không vay, không thế chấp để góp — Không rủ người nhà khi mình chưa kiểm xong. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp.",
+    "stopQuestions": [
+     "Nộp thêm bất kỳ khoản nào để được rút tiền ra.",
+     "Đọc hoặc gửi mã xác thực, mật khẩu; cài ứng dụng hoặc cấp quyền điều khiển máy theo hướng dẫn của nơi mời đầu tư.",
+     "Chuyển tiền vào tài khoản cá nhân trong khi hợp đồng ký với một công ty, mà không có căn cứ thu hộ kiểm tra được.",
+     "Đi vay, thế chấp nhà đất, hoặc dùng tiền dưỡng già để góp thêm.",
+     "Rủ người thân, bạn bè cùng tham gia khi mình chưa tự kiểm tra xong."
     ],
+    "stopNote": "Chặn một việc không có nghĩa là mọi thứ đều hỏng. Chặn xong rồi tự xác minh, lúc đó mới quyết định về cả khoản đầu tư.",
+    "pocketIntro": "Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao. Tích những câu bạn đã tự trả lời được rõ ràng.",
+    "pocketItems": [
+     "Tiền lãi ở đâu ra? Ai làm ra khoản đó, bằng việc gì?",
+     "Ai có nghĩa vụ trả tiền cho mình — tên đơn vị nào?",
+     "Muốn rút thì rút thế nào, mất bao lâu, mất phí gì?",
+     "Tài khoản nhận tiền đứng tên ai, có khớp bên ký hợp đồng không?",
+     "Mình tra được gì ở nơi nằm ngoài chính lời mời này?",
+     "Nếu mất hết khoản này, đời sống gia đình có ổn không?",
+     "Có ai đang giục mình chốt ngay trong hôm nay không?"
+    ],
+    "stopNow": "Chụp lại lời mời, không tranh luận tiếp trong nhóm.",
+    "holdNow": "Tự tra tên đơn vị, giấy phép và ngành nghề ở nguồn chính thức mình tự tìm.",
     "version": "2.0",
-    "reviewDate": "2026-10-20"
+    "reviewDate": "2026-10-20",
+    "illustration": {
+     "media": "m-a13"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3876,37 +4405,36 @@
    "values": {
     "title": "Trước khi vay, bảo lãnh, đứng tên",
     "icon": "coins",
+    "lead": "Lấy nguyên văn từ Bài đọc Chuyên đề 4. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.",
     "sourceArticle": "d129abd5-0eb0-57b3-8d40-0875027f0c73",
-    "itemGroups": [
-     {
-      "key": "b036fbb4-622d-5e6c-a10b-b3d075bce43a",
-      "title": "Năm việc phải chặn ngay",
-      "lines": [
-       "Đọc hoặc nhập mã xác thực theo yêu cầu của người khác, kể cả để “hoàn tất khoản vay hộ”.",
-       "Ký hoặc gửi hồ sơ bảo lãnh cho người chỉ quen qua mạng; gửi ảnh giấy tờ, chữ ký cho họ.",
-       "Ký vào giấy còn chỗ trống, hoặc giấy ghi vai trò của mình một cách mơ hồ.",
-       "Vay hoặc chuyển tiền trong lúc đang bị thúc và bị bắt giữ bí mật, không cho hỏi người nhà.",
-       "Đứng tên vay hộ người khác, dù là người quen.",
-       "Chặn một việc không có nghĩa là cả khoản vay đều hỏng. Chặn xong rồi tự xác minh bằng kênh chính thức, lúc đó mới quyết định."
-      ]
-     },
-     {
-      "key": "21bd3003-63f4-5422-981a-97b1d1dd7a83",
-      "title": "Bảng kiểm bỏ túi",
-      "lines": [
-       "Mình thật sự nhận về tay bao nhiêu?",
-       "Tổng cộng phải trả bao nhiêu, gồm những khoản gì?",
-       "Mỗi kỳ trả bao nhiêu, trong bao nhiêu kỳ?",
-       "Lãi sau ưu đãi tính thế nào? Chậm một kỳ thì mất thêm bao nhiêu?",
-       "Bên cho vay tên pháp lý là gì, mình tra ở đâu ra?",
-       "Trừ hết chi tiêu và khoản để dành, mình còn đủ trả không?",
-       "Có ai đang giục, hoặc bắt mình giữ bí mật với người nhà không?",
-       "Mình đang ký với vai trò gì — người vay, người bảo lãnh, hay người tham chiếu?"
-      ]
-     }
+    "stopIntro": "Không đọc mã — Không ký bảo lãnh cho người quen qua mạng — Không ký giấy còn trống — Không vay khi đang bị giục và bị bắt giữ bí mật — Không đứng tên vay hộ. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp.",
+    "stopQuestions": [
+     "Đọc hoặc nhập mã xác thực theo yêu cầu của người khác, kể cả để “hoàn tất khoản vay hộ”.",
+     "Ký hoặc gửi hồ sơ bảo lãnh cho người chỉ quen qua mạng; gửi ảnh giấy tờ, chữ ký cho họ.",
+     "Ký vào giấy còn chỗ trống, hoặc giấy ghi vai trò của mình một cách mơ hồ.",
+     "Vay hoặc chuyển tiền trong lúc đang bị thúc và bị bắt giữ bí mật, không cho hỏi người nhà.",
+     "Đứng tên vay hộ người khác, dù là người quen."
     ],
+    "stopNote": "Chặn một việc không có nghĩa là cả khoản vay đều hỏng. Chặn xong rồi tự xác minh bằng kênh chính thức, lúc đó mới quyết định.",
+    "pocketIntro": "Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao. Tích những câu bạn đã tự trả lời được rõ ràng.",
+    "pocketItems": [
+     "Mình thật sự nhận về tay bao nhiêu?",
+     "Tổng cộng phải trả bao nhiêu, gồm những khoản gì?",
+     "Mỗi kỳ trả bao nhiêu, trong bao nhiêu kỳ?",
+     "Lãi sau ưu đãi tính thế nào? Chậm một kỳ thì mất thêm bao nhiêu?",
+     "Bên cho vay tên pháp lý là gì, mình tra ở đâu ra?",
+     "Trừ hết chi tiêu và khoản để dành, mình còn đủ trả không?",
+     "Có ai đang giục, hoặc bắt mình giữ bí mật với người nhà không?",
+     "Mình đang ký với vai trò gì — người vay, người bảo lãnh, hay người tham chiếu?"
+    ],
+    "stopNow": "Cúp máy, nói với một người trong nhà.",
+    "holdNow": "Đòi hồ sơ lưu được, tự cộng lại ba con số.",
     "version": "2.0",
-    "reviewDate": "2026-10-20"
+    "reviewDate": "2026-10-20",
+    "illustration": {
+     "media": "m-a06"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3920,36 +4448,35 @@
    "values": {
     "title": "Trước khi nhận việc, nộp hồ sơ",
     "icon": "brief",
+    "lead": "Lấy nguyên văn từ Bài đọc Chuyên đề 5. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.",
     "sourceArticle": "b657db29-6d04-5efd-9968-d526eb918e8f",
-    "itemGroups": [
-     {
-      "key": "b7751009-4242-59e0-a0f9-a58b90c01ed5",
-      "title": "Năm việc phải chặn ngay",
-      "lines": [
-       "Nạp tiền để kích hoạt gian hàng, mở nhiệm vụ, nâng gói hoặc để được nhận hoa hồng.",
-       "Giao bản chính giấy tờ tùy thân, văn bằng, chứng chỉ cho bên tuyển giữ; hoặc đặt tiền, đặt tài sản để bảo đảm thực hiện hợp đồng lao động.",
-       "Cài ứng dụng tuyển việc từ đường dẫn lạ, hoặc cấp quyền can thiệp sâu vào máy cho nó.",
-       "Mở, cho mượn, cho thuê hoặc bán tài khoản ngân hàng; giao thẻ, SIM, mã xác thực; nhận tiền rồi chuyển hộ.",
-       "Lên xe đi làm xa trong đêm khi chưa biết sẽ đến đâu và gặp ai.",
-       "Chặn một việc không có nghĩa là mọi cơ hội đều hỏng. Chặn xong rồi tự xác minh bằng kênh chính thức, lúc đó mới quyết định."
-      ]
-     },
-     {
-      "key": "105ca770-c882-5d1b-a91f-5981fab77fb0",
-      "title": "Bảng kiểm bỏ túi",
-      "lines": [
-       "Đồng tiền đầu tiên đi theo chiều nào — mình nhận hay mình nộp?",
-       "Công việc cụ thể là gì, làm ở đâu?",
-       "Đơn vị tuyển tên gì? Mình tra ra ở đâu, ngoài chính lời mời này?",
-       "Tiền công bao nhiêu, tính thế nào, trả vào lúc nào?",
-       "Họ đòi mình giao giấy tờ gì, cấp quyền gì trên điện thoại?",
-       "Muốn nghỉ thì làm sao? Khoản đã nộp xử lý thế nào?",
-       "Có ai đang giục mình quyết ngay hôm nay không?"
-      ]
-     }
+    "stopIntro": "Không nạp tiền để có việc — Không giao bản chính giấy tờ — Không cài ứng dụng từ đường dẫn lạ — Không cho mượn tài khoản ngân hàng — Không lên xe đi xa khi chưa rõ đến đâu. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp.",
+    "stopQuestions": [
+     "Nạp tiền để kích hoạt gian hàng, mở nhiệm vụ, nâng gói hoặc để được nhận hoa hồng.",
+     "Giao bản chính giấy tờ tùy thân, văn bằng, chứng chỉ cho bên tuyển giữ; hoặc đặt tiền, đặt tài sản để bảo đảm thực hiện hợp đồng lao động.",
+     "Cài ứng dụng tuyển việc từ đường dẫn lạ, hoặc cấp quyền can thiệp sâu vào máy cho nó.",
+     "Mở, cho mượn, cho thuê hoặc bán tài khoản ngân hàng; giao thẻ, SIM, mã xác thực; nhận tiền rồi chuyển hộ.",
+     "Lên xe đi làm xa trong đêm khi chưa biết sẽ đến đâu và gặp ai."
     ],
+    "stopNote": "Chặn một việc không có nghĩa là mọi cơ hội đều hỏng. Chặn xong rồi tự xác minh bằng kênh chính thức, lúc đó mới quyết định.",
+    "pocketIntro": "Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao. Tích những câu bạn đã tự trả lời được rõ ràng.",
+    "pocketItems": [
+     "Đồng tiền đầu tiên đi theo chiều nào — mình nhận hay mình nộp?",
+     "Công việc cụ thể là gì, làm ở đâu?",
+     "Đơn vị tuyển tên gì? Mình tra ra ở đâu, ngoài chính lời mời này?",
+     "Tiền công bao nhiêu, tính thế nào, trả vào lúc nào?",
+     "Họ đòi mình giao giấy tờ gì, cấp quyền gì trên điện thoại?",
+     "Muốn nghỉ thì làm sao? Khoản đã nộp xử lý thế nào?",
+     "Có ai đang giục mình quyết ngay hôm nay không?"
+    ],
+    "stopNow": "Dừng liên hệ, nói với một người trong nhà.",
+    "holdNow": "Tự tìm tổ chức đó và bộ phận tuyển dụng chính thức để hỏi.",
     "version": "2.0",
-    "reviewDate": "2026-10-20"
+    "reviewDate": "2026-10-20",
+    "illustration": {
+     "media": "m-a12"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3963,36 +4490,35 @@
    "values": {
     "title": "Trước khi mua, chuyển khoản, đặt cọc",
     "icon": "cart",
+    "lead": "Lấy nguyên văn từ Bài đọc Chuyên đề 6. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.",
     "sourceArticle": "db25568f-45a3-58b6-9c7c-becc6c1669d9",
-    "itemGroups": [
-     {
-      "key": "5f6966d1-5c9e-59b2-bcbf-f5a120e63d90",
-      "title": "Năm việc phải chặn ngay",
-      "lines": [
-       "Đọc hoặc gửi mã xác thực cho bất kỳ ai, kể cả người bán, kể cả để “hoàn tiền cho nhanh”.",
-       "Nhập thông tin thẻ hoặc đăng nhập ngân hàng trên một trang tự nhảy sang từ quảng cáo hay đường dẫn.",
-       "Quét mã QR hoặc bấm đường dẫn trong tin nhắn báo “chuyển nhầm tiền” để hoàn lại.",
-       "Ký nhận hàng khi bị từ chối cho kiểm tra, dù lúc đặt đã hứa cho kiểm tra.",
-       "Đặt cọc ngay tại buổi hội thảo khi đang bị giục và chưa bàn với gia đình.",
-       "Chặn một việc không có nghĩa là cả đơn hàng đều hỏng. Chặn xong rồi tự kiểm tra bằng kênh chính thức, lúc đó mới quyết định."
-      ]
-     },
-     {
-      "key": "fbd474f9-2698-5d6f-b9cb-64409bb37dc3",
-      "title": "Bảng kiểm bỏ túi",
-      "lines": [
-       "Tài khoản nhận tiền đứng tên ai? Có khớp với bên bán không?",
-       "Mình nhận đúng món gì — tên và mã hàng có khớp với đơn không?",
-       "Mình trả qua đâu? Kênh đó có chứng từ và có chỗ khiếu nại không?",
-       "Giao nhận thế nào? Mình có được kiểm tra hàng không?",
-       "Muốn trả lại hoặc đòi hoàn tiền thì làm sao, trong bao lâu?",
-       "Mình đang trả trước bao nhiêu, và có cần trả nhiều đến thế không?",
-       "Có ai đang giục mình chốt trong hôm nay không?"
-      ]
-     }
+    "stopIntro": "Không đọc mã cho ai — Không nhập thẻ trên trang tự nhảy sang — Không quét mã QR trong tin “chuyển nhầm” — Không ký nhận khi bị chặn không cho kiểm — Không đặt cọc khi đang bị giục. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp.",
+    "stopQuestions": [
+     "Đọc hoặc gửi mã xác thực cho bất kỳ ai, kể cả người bán, kể cả để “hoàn tiền cho nhanh”.",
+     "Nhập thông tin thẻ hoặc đăng nhập ngân hàng trên một trang tự nhảy sang từ quảng cáo hay đường dẫn.",
+     "Quét mã QR hoặc bấm đường dẫn trong tin nhắn báo “chuyển nhầm tiền” để hoàn lại.",
+     "Ký nhận hàng khi bị từ chối cho kiểm tra, dù lúc đặt đã hứa cho kiểm tra.",
+     "Đặt cọc ngay tại buổi hội thảo khi đang bị giục và chưa bàn với gia đình."
     ],
+    "stopNote": "Chặn một việc không có nghĩa là cả đơn hàng đều hỏng. Chặn xong rồi tự kiểm tra bằng kênh chính thức, lúc đó mới quyết định.",
+    "pocketIntro": "Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao. Tích những câu bạn đã tự trả lời được rõ ràng.",
+    "pocketItems": [
+     "Tài khoản nhận tiền đứng tên ai? Có khớp với bên bán không?",
+     "Mình nhận đúng món gì — tên và mã hàng có khớp với đơn không?",
+     "Mình trả qua đâu? Kênh đó có chứng từ và có chỗ khiếu nại không?",
+     "Giao nhận thế nào? Mình có được kiểm tra hàng không?",
+     "Muốn trả lại hoặc đòi hoàn tiền thì làm sao, trong bao lâu?",
+     "Mình đang trả trước bao nhiêu, và có cần trả nhiều đến thế không?",
+     "Có ai đang giục mình chốt trong hôm nay không?"
+    ],
+    "stopNow": "Đóng trang, chụp lại địa chỉ và tin nhắn.",
+    "holdNow": "Yêu cầu sửa đơn cho khớp, hoặc tự mở kênh chính thức của bên bán để đối chiếu.",
     "version": "2.0",
-    "reviewDate": "2026-10-20"
+    "reviewDate": "2026-10-20",
+    "illustration": {
+     "media": "m-a11"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -4006,35 +4532,34 @@
    "values": {
     "title": "Khi người lạ liên hệ, gửi đường link",
     "icon": "call",
+    "lead": "Lấy nguyên văn từ Bài đọc Chuyên đề 7. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.",
     "sourceArticle": "19709819-f36c-5446-8857-0a286180ceef",
-    "itemGroups": [
-     {
-      "key": "f35dbf47-788a-5a8a-b28c-345076ca86fb",
-      "title": "Năm việc phải chặn ngay",
-      "lines": [
-       "Đọc hoặc gửi mã xác thực, mật khẩu cho người đang liên hệ.",
-       "Cài ứng dụng theo đường dẫn họ gửi, chia sẻ màn hình, hoặc cấp quyền can thiệp sâu vào máy, quyền điều khiển máy.",
-       "Chuyển tiền để “xác minh dòng tiền”, “mở khóa”, “nộp phí nhận thưởng”.",
-       "Quét khuôn mặt hoặc gửi ảnh giấy tờ theo yêu cầu của người chưa xác minh được.",
-       "Làm theo yêu cầu giữ bí mật, không cho hỏi gia đình, ngân hàng hay cơ quan.",
-       "Thấy bất thường thì lưu lại những gì đang có rồi dừng nói chuyện. Đừng cố nói tiếp để moi thêm bằng chứng về họ."
-      ]
-     },
-     {
-      "key": "4999ccaf-171e-56c2-9748-8c5bbd7849c1",
-      "title": "Bảng kiểm bỏ túi",
-      "lines": [
-       "Họ đang bảo mình làm gì — đưa gì, cài gì, cho quyền gì, chuyển cho ai?",
-       "Cuộc liên hệ này do ai bắt đầu — mình hay họ?",
-       "Số máy hoặc đường dẫn này do ai đưa?",
-       "Có ai đang giục, dọa, hay bắt mình giữ bí mật không?",
-       "Mình sẽ kiểm tra lại ở đâu — kênh đó mình tự tìm ra chứ?",
-       "Nếu cúp máy bây giờ thì mình mất gì? Thường là không mất gì."
-      ]
-     }
+    "stopIntro": "Không đọc mã — Không cài theo đường dẫn — Không cho quyền vào máy — Không chuyển tiền để “xác minh” — Không giữ bí mật với người nhà. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp.",
+    "stopQuestions": [
+     "Đọc hoặc gửi mã xác thực, mật khẩu cho người đang liên hệ.",
+     "Cài ứng dụng theo đường dẫn họ gửi, chia sẻ màn hình, hoặc cấp quyền can thiệp sâu vào máy, quyền điều khiển máy.",
+     "Chuyển tiền để “xác minh dòng tiền”, “mở khóa”, “nộp phí nhận thưởng”.",
+     "Quét khuôn mặt hoặc gửi ảnh giấy tờ theo yêu cầu của người chưa xác minh được.",
+     "Làm theo yêu cầu giữ bí mật, không cho hỏi gia đình, ngân hàng hay cơ quan."
     ],
+    "stopNote": "Thấy bất thường thì lưu lại những gì đang có rồi dừng nói chuyện. Đừng cố nói tiếp để moi thêm bằng chứng về họ.",
+    "pocketIntro": "Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao. Tích những câu bạn đã tự trả lời được rõ ràng.",
+    "pocketItems": [
+     "Họ đang bảo mình làm gì — đưa gì, cài gì, cho quyền gì, chuyển cho ai?",
+     "Cuộc liên hệ này do ai bắt đầu — mình hay họ?",
+     "Số máy hoặc đường dẫn này do ai đưa?",
+     "Có ai đang giục, dọa, hay bắt mình giữ bí mật không?",
+     "Mình sẽ kiểm tra lại ở đâu — kênh đó mình tự tìm ra chứ?",
+     "Nếu cúp máy bây giờ thì mình mất gì? Thường là không mất gì."
+    ],
+    "stopNow": "Cúp máy, chụp lại số gọi đến và tin nhắn, chưa đưa gì cả.",
+    "holdNow": "Tự mở ứng dụng chính thức hoặc gọi số in trên thẻ để hỏi lại.",
     "version": "2.0",
-    "reviewDate": "2026-10-20"
+    "reviewDate": "2026-10-20",
+    "illustration": {
+     "media": "m-a14"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -4048,36 +4573,35 @@
    "values": {
     "title": "Khi đã lỡ đưa tiền, mã hoặc giấy tờ",
     "icon": "alert",
+    "lead": "Lấy nguyên văn từ Bài đọc Chuyên đề 8. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.",
     "sourceArticle": "f5bec9f8-aa4b-5481-b06d-a6cebf26779f",
-    "itemGroups": [
-     {
-      "key": "cd365383-998a-5cfb-ba25-a465763fa080",
-      "title": "Năm việc phải chặn ngay",
-      "lines": [
-       "Nộp bất kỳ khoản nào — phí hồ sơ, phí xác minh, phí mở khóa, “thuế” — để lấy lại tiền hoặc để mở tài khoản.",
-       "Đọc mã xác thực cho ai đó, kể cả người tự nhận là đang giúp mình xử lý.",
-       "Cấp quyền vào email, tài khoản ngân hàng hay mạng xã hội cho người tự tìm đến.",
-       "Ký giấy ủy quyền do bên tự tìm đến gửi, trước khi tự kiểm tra được họ là ai ở một nơi khác.",
-       "Xóa máy, xóa tin nhắn hay gỡ ứng dụng trước khi đã lưu xong chứng cứ."
-      ]
-     },
-     {
-      "key": "9ba8e831-c5c3-576f-a077-e0e16f873163",
-      "title": "Bảng kiểm bỏ túi",
-      "lines": [
-       "Mình đã đưa đi thứ gì — tiền, mã, quyền vào máy, hay giấy tờ?",
-       "Cái gì đang còn nguy hiểm ngay lúc này? Đã chặn chưa?",
-       "Đã gọi nơi có thể khóa hoặc kiểm tra giúp chưa — bằng số mình tự tra chứ?",
-       "Đã đổi mật khẩu và đăng xuất khỏi mọi máy khác đang mở tài khoản đó chưa?",
-       "Đã chụp lại tin nhắn, biên lai, tài khoản nhận và mốc thời gian chưa?",
-       "Đã nói với một người trong nhà chưa? Đã trình báo chưa?",
-       "Có ai đang giục, dọa, hay bắt mình giữ bí mật không?",
-       "Có ai vừa tự tìm đến hứa lấy lại tiền giúp mình không?"
-      ]
-     }
+    "stopIntro": "Không nộp thêm khoản nào — Không đọc mã — Không cấp quyền vào tài khoản — Không ký ủy quyền cho người tự tìm đến — Không xóa gì khi chưa lưu chứng cứ. Sau khi đã gặp chuyện, đây là năm việc chặn ngay, không cần dấu hiệu thứ hai.",
+    "stopQuestions": [
+     "Nộp bất kỳ khoản nào — phí hồ sơ, phí xác minh, phí mở khóa, “thuế” — để lấy lại tiền hoặc để mở tài khoản.",
+     "Đọc mã xác thực cho ai đó, kể cả người tự nhận là đang giúp mình xử lý.",
+     "Cấp quyền vào email, tài khoản ngân hàng hay mạng xã hội cho người tự tìm đến.",
+     "Ký giấy ủy quyền do bên tự tìm đến gửi, trước khi tự kiểm tra được họ là ai ở một nơi khác.",
+     "Xóa máy, xóa tin nhắn hay gỡ ứng dụng trước khi đã lưu xong chứng cứ."
     ],
+    "pocketIntro": "Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao. Tích những câu bạn đã tự trả lời được rõ ràng.",
+    "pocketItems": [
+     "Mình đã đưa đi thứ gì — tiền, mã, quyền vào máy, hay giấy tờ?",
+     "Cái gì đang còn nguy hiểm ngay lúc này? Đã chặn chưa?",
+     "Đã gọi nơi có thể khóa hoặc kiểm tra giúp chưa — bằng số mình tự tra chứ?",
+     "Đã đổi mật khẩu và đăng xuất khỏi mọi máy khác đang mở tài khoản đó chưa?",
+     "Đã chụp lại tin nhắn, biên lai, tài khoản nhận và mốc thời gian chưa?",
+     "Đã nói với một người trong nhà chưa? Đã trình báo chưa?",
+     "Có ai đang giục, dọa, hay bắt mình giữ bí mật không?",
+     "Có ai vừa tự tìm đến hứa lấy lại tiền giúp mình không?"
+    ],
+    "stopNow": "Lưu nội dung rồi mới chặn.",
+    "holdNow": "Tự tra ở nguồn chính thức, gọi số lấy từ nguồn độc lập.",
     "version": "2.0",
-    "reviewDate": "2026-10-20"
+    "reviewDate": "2026-10-20",
+    "illustration": {
+     "media": "m-a31"
+    },
+    "illustrationAlt": "Thời gian quan trọng để ngăn thiệt hại và lưu chứng cứ"
    }
   },
   {
@@ -4104,7 +4628,11 @@
    "values": {
     "title": "Cảnh báo mới",
     "lead": "Mỗi cảnh báo dựa trên văn bản của cơ quan nhà nước, ghi rõ nguồn và ngày cập nhật. Website không tổng hợp tin báo chí.",
-    "showSampleNote": true
+    "showSampleNote": true,
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại"
    }
   },
   {
@@ -4131,6 +4659,10 @@
      "f74c57ed-2d94-53a8-ac9e-6d91337edc07"
     ],
     "actionPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
      "f97aea5d-7998-5afb-a72e-b16ab9c09467",
@@ -4174,6 +4706,10 @@
      "92496662-8472-5d56-8bea-6c244bbf57e0"
     ],
     "actionPage": "c07ba1d5-04dd-5265-824e-63a48c48dd7e",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "19576116-c761-5aa9-b178-239b0480748d",
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
@@ -4213,6 +4749,10 @@
      "Đến khi góp số tiền lớn, ứng dụng báo lỗi rút tiền hoặc đòi thêm phí."
     ],
     "actionPage": "3326906d-b9f7-5757-9ab4-014544319437",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
      "19576116-c761-5aa9-b178-239b0480748d"
@@ -4252,6 +4792,10 @@
      "92496662-8472-5d56-8bea-6c244bbf57e0"
     ],
     "actionPage": "c07ba1d5-04dd-5265-824e-63a48c48dd7e",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
      "f97aea5d-7998-5afb-a72e-b16ab9c09467",
@@ -4290,6 +4834,10 @@
      "f74c57ed-2d94-53a8-ac9e-6d91337edc07"
     ],
     "actionPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "f97aea5d-7998-5afb-a72e-b16ab9c09467"
     ],
@@ -4326,6 +4874,10 @@
      "Họ gửi mã QR, đường dẫn, hoặc đưa một số tài khoản khác, đòi bạn hoàn lại ngay, có khi đòi thêm tiền lãi."
     ],
     "actionPage": "d4e2999b-5d4f-59ef-8bf0-adfc55f13bc9",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "f97aea5d-7998-5afb-a72e-b16ab9c09467",
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
@@ -4360,6 +4912,10 @@
      "Họ đưa một số tài khoản cá nhân, bảo chuyển tiền để “tất toán” hoặc “hủy hồ sơ”."
     ],
     "actionPage": "ced0f2ff-a349-590d-a486-21ac72df96f0",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
     ],
@@ -4397,6 +4953,10 @@
      "Người ký chỉ biết khi muốn rút tiền trước hạn."
     ],
     "actionPage": "c07ba1d5-04dd-5265-824e-63a48c48dd7e",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca",
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
@@ -4437,6 +4997,10 @@
      "7b761a74-cde8-5a49-9e52-7c2135041518"
     ],
     "actionPage": "d473400b-dc16-5274-92c2-6bdc670719c5",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
@@ -4478,6 +5042,10 @@
      "cc7eee4f-3ee1-5a85-883a-24a249019f73"
     ],
     "actionPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "channels": [
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
      "f97aea5d-7998-5afb-a72e-b16ab9c09467",
@@ -4510,7 +5078,14 @@
     "cardDescription": "Giả danh, việc làm online, mua bán, đặt cọc",
     "lead": "Không cần nhớ tên từng thủ đoạn. Đừng nghe họ tự xưng là ai, hãy nhìn vào việc họ đang bảo mình làm.",
     "icon": "alert",
-    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp."
+    "thumbnail": {
+     "media": "m-a09"
+    },
+    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp.",
+    "illustration": {
+     "media": "m-a38"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -4526,7 +5101,14 @@
     "cardDescription": "Vay nhanh, phí trước, đứng tên hộ, đòi nợ",
     "lead": "Ghi ra giấy ba con số trước khi vay: mình nhận về bao nhiêu, tổng cộng phải trả bao nhiêu, mỗi kỳ trả bao nhiêu.",
     "icon": "coins",
-    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp."
+    "thumbnail": {
+     "media": "m-a08"
+    },
+    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp.",
+    "illustration": {
+     "media": "m-a06"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -4542,7 +5124,14 @@
     "cardDescription": "Cam kết lợi nhuận, rút thử, hoa hồng theo tầng",
     "lead": "Ba câu trở đi trở lại: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
     "icon": "chart",
-    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp."
+    "thumbnail": {
+     "media": "m-a06"
+    },
+    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp.",
+    "illustration": {
+     "media": "m-a30"
+    },
+    "illustrationAlt": "Phân biệt rủi ro đầu tư và thủ đoạn gian lận"
    }
   },
   {
@@ -4558,7 +5147,14 @@
     "cardDescription": "Hợp đồng, phí định kỳ, nhập nhèm sản phẩm",
     "lead": "Bốn điều phải rõ trước khi ký: ai là bên cung cấp, mình phải trả bao nhiêu, mình được hưởng gì, và muốn dừng thì làm thế nào.",
     "icon": "shield",
-    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp."
+    "thumbnail": {
+     "media": "m-a07"
+    },
+    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp.",
+    "illustration": {
+     "media": "m-a08"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -4574,7 +5170,14 @@
     "cardDescription": "Mã OTP, giấy tờ, tài khoản, SIM",
     "lead": "Mã xác thực, giấy tờ, khuôn mặt, tài khoản ngân hàng và SIM là chìa khóa của bạn. Không ai cần những thứ đó của mình qua điện thoại.",
     "icon": "id",
-    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp."
+    "thumbnail": {
+     "media": "m-a05"
+    },
+    "noAnswerNote": "Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp.",
+    "illustration": {
+     "media": "m-a39"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -4591,6 +5194,10 @@
     "description": "Đọc khoảng 10 phút. Đọc xong rồi hãy làm 19 câu của Chuyên đề 1.",
     "icon": "book",
     "readingBody": "<div class=\"k-now\"><p><b>CHUYỆN ĐANG XẢY RA NGAY LÚC NÀY?</b></p><p>Nếu vừa chuyển tiền, vừa đọc mã, hoặc nghi điện thoại đang bị người khác điều khiển — đọc thẳng mục “Nếu đã lỡ” ở cuối bài trước, rồi quay lại đọc từ đầu sau.</p></div><div class=\"k-box\"><p><b>CÂU HỎI CỦA BÀI</b></p><p>Mình đang quyết định trong trạng thái nào, và đã kiểm tra bằng kênh của ai?</p></div><div class=\"k-box\"><p><b>NHỚ MỘT CÂU</b></p><p>Chưa kiểm tra bằng kênh do mình tự tìm — chưa quyết.</p></div><div class=\"k-box\"><p><b>HIỂU NHANH MẤY TỪ</b></p><p>Kênh chính thức là nơi do chính mình tự tìm ra và kiểm được là đúng tổ chức: số in trên thẻ ngân hàng, ứng dụng chính thức của đúng nhà phát hành mà mình đã dùng từ trước, trang chính thức mình tự gõ địa chỉ và đối chiếu được tên miền, số công bố trên trang đó, hoặc cơ quan Công an nơi gần nhất. Không phải số máy hay đường dẫn do người kia đưa, và cũng không phải ứng dụng mình vừa cài theo lời ai đó.</p><p>Thấy có điểm bất thường thì hoãn lại và tự kiểm tra. Gặp một yêu cầu nguy hiểm thì chặn ngay yêu cầu đó, không chờ dấu hiệu thứ hai.</p></div><h3>Chuyện thường bắt đầu vào lúc mình đang bận</h3><p>Một cuộc gọi đến giữa lúc dở tay. Người bên kia nói đúng tên mình, đúng một thông tin mình tưởng chỉ mình biết. Họ nói có việc cần xử lý ngay. Giọng rành mạch, nghe như người hiểu việc.</p><p>Đến lúc kịp nhận ra thì mình đã làm theo được vài bước rồi. Chuyện đó không xảy ra vì mình kém hiểu biết, mà vì hai lẽ: mình đang bận, và có người vừa chọn giúp mình thời điểm phải quyết định.</p><p>Bài này không dạy nhận mặt từng kiểu lừa. Nó dạy một cách quyết định dùng được cho mọi kiểu — kể cả kiểu chưa ai đặt tên.</p><h3>Vì sao người cẩn thận vẫn quyết định sai</h3><table><tr><th>Điều nhiều người nghĩ</th><th>Thực tế</th></tr><tr><td>“Tôi cẩn thận nên không bị lừa.”</td><td>Người cẩn thận vẫn sai khi đang mệt, đang vội, đang lo. Cái bị nhắm tới là thời điểm, không phải trình độ.</td></tr><tr><td>“Họ đọc đúng tên mình thì chắc là người thật.”</td><td>Thông tin thật làm câu chuyện nghe thật. Nó không cho biết người gọi là ai.</td></tr><tr><td>“Phải thấy đủ hai dấu hiệu mới được dừng.”</td><td>Một yêu cầu nguy hiểm là đủ để chặn ngay yêu cầu đó.</td></tr><tr><td>“Chuyển thử một khoản nhỏ cho chắc.”</td><td>Khoản nhỏ vẫn là làm theo trước khi kiểm tra xong.</td></tr><tr><td>“Hỏi lại chính người đó là đã kiểm tra rồi.”</td><td>Đó vẫn là một nguồn duy nhất. Kiểm tra là hỏi ở một nơi khác.</td></tr></table><h3>Sáu tín hiệu trong lòng mình</h3><p>Kiểu lừa thay đổi từng tháng. Nhưng cái mà chúng nhắm vào thì gần như không đổi — sáu cảm giác dễ làm mình vội tin:</p><div class=\"k-chips\"><p>THAM · SỢ · GẤP · TIN · THƯƠNG · HY VỌNG</p></div><p>Nhớ sáu chữ này bền hơn nhớ tên thủ đoạn. Thủ đoạn mới bao giờ cũng xuất hiện trước, thông báo đến sau; còn sáu cảm giác này thì lặp lại mãi.</p><p>Việc cần làm không phải là dập tắt cảm xúc. Chỉ cần gọi tên nó ra: mình đang nôn nao, mình đang sợ, mình đang bị giục. Gọi tên được thì mình có thêm một cơ hội chậm lại — không phải lúc nào cũng đủ, nhưng thường là đủ.</p><h3>Ba câu hỏi gốc</h3><p>Trước bất kỳ việc gì liên quan đến tiền, giấy tờ hoặc quyền vào điện thoại, tự hỏi ba câu:</p><p>Người này là ai?  ·  Họ bảo mình làm gì?  ·  Mình hỏi lại ở đâu?</p><p>Câu thứ ba quan trọng nhất, và cũng hay bị bỏ nhất.</p><p>Dùng đúng: cúp máy → tự tra số công bố của cơ quan đó → gọi lại bằng số mình vừa tìm.</p><p>Dùng sai: hỏi lại chính người đang gọi cho thật kỹ → thấy trả lời trôi chảy nên yên tâm. Trôi chảy không phải bằng chứng; đó vẫn là lời của cùng một người.</p><h3>Bốn bước khi phải quyết một việc lớn</h3><ol><li>CHẬM LẠI</li><li>XÁC MINH ĐỘC LẬP</li><li>LÀM RÕ ĐIỀU KIỆN</li><li>QUYẾT ĐỊNH</li></ol><p>Đặt điện thoại xuống hai phút cũng đã là chậm lại. Xác minh độc lập là hỏi ở một nơi mình tự tìm. Làm rõ điều kiện là biết mình được gì, mất gì, và rút ra bằng cách nào. Rồi mới quyết định.</p><h3>Ba cách xử lý — và cách thứ ba cũng quan trọng</h3><table><tr><th>Cách xử lý</th><th>Khi nào, và làm ngay gì</th></tr><tr><td><b>DỪNG</b></td><td>Nghĩa là: Không làm theo yêu cầu, và kết thúc cuộc liên hệ đó.<br>Khi nào: Gặp một yêu cầu nguy hiểm, hoặc điều kiện không thể chấp nhận.<br>Làm ngay: Cúp máy hoặc thoát trang, chưa đưa gì cả.</td></tr><tr><td><b>HOÃN</b></td><td>Nghĩa là: Chưa quyết, giữ nguyên đó để hỏi thêm.<br>Khi nào: Còn điểm chưa rõ.<br>Làm ngay: Tự kiểm tra bằng kênh chính thức mình tìm.</td></tr><tr><td><b>CÓ THỂ QUYẾT ĐỊNH</b></td><td>Khi nào: Đã đủ thông tin để tự quyết.<br>Làm ngay: Quyết, và giữ lại giấy tờ.</td></tr></table><p>DỪNG là dừng yêu cầu đang được đưa ra và dừng cuộc liên hệ đó — chứ không có nghĩa cả việc mình đang làm đều hỏng. Chặn xong rồi tự xác minh, lúc đó mới quyết định về cả giao dịch: có thể vẫn hoãn, và cũng có thể vẫn làm tiếp được.</p><p>Bài này không dạy nghi ngờ tất cả. Một thông báo thay đổi cách tính tiền mà đối chiếu với biểu giá niêm yết và với hợp đồng thấy khớp thì cứ làm theo, chỉ cần giữ lại giấy tờ. Phần lớn giao dịch trong đời là bình thường. Biết lúc nào được yên tâm cũng là một phần của việc quyết định cho chắc.</p><div class=\"k-stop\"><p><b>NĂM VIỆC PHẢI CHẶN NGAY</b></p><p>Không đọc mã — Không cài theo đường dẫn — Không cho quyền vào máy — Không chuyển tiền để “xác minh” — Không giữ bí mật với người nhà. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp:</p><ul><li>Đọc hoặc gửi mã xác thực, mật khẩu.</li><li>Cài ứng dụng theo đường dẫn người khác gửi, hoặc cấp quyền xem màn hình, quyền can thiệp sâu vào máy, quyền điều khiển máy.</li><li>Chuyển tiền để “xác minh”, “mở khóa”, “giải phóng”.</li><li>Quét khuôn mặt hoặc gửi ảnh giấy tờ theo yêu cầu của người chưa xác minh được.</li><li>Bị yêu cầu giữ bí mật, không cho hỏi gia đình, ngân hàng hay cơ quan.</li></ul></div><div class=\"k-pocket\"><p><b>BẢNG KIỂM BỎ TÚI — CHỤP LẠI MÀN HÌNH NÀY</b></p><p>Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao.</p><ul><li>Mình đang ở trạng thái nào? Tham, sợ, gấp, quá tin, quá thương hay quá hy vọng?</li><li>Ai đang chọn thời điểm quyết định — mình hay người kia?</li><li>Người này là ai, và mình biết điều đó từ đâu?</li><li>Họ đang bảo mình làm gì?</li><li>Mình sẽ hỏi lại ở đâu — kênh đó do ai đưa?</li><li>Còn điểm nào chưa rõ không? Còn thì hoãn.</li></ul></div><h3>Nếu đã lỡ</h3><div class=\"k-note\"><p>Bị lừa không phải lỗi của người bị hại. Việc lúc này không phải là trách mình, mà là chặn thiệt hại. Làm theo đúng loại việc đã xảy ra:</p></div><div class=\"k-case\"><p><b>Lỡ chuyển tiền rồi.</b> Dừng lại, không chuyển thêm đồng nào. Gọi ngân hàng bằng số in sau thẻ hoặc trong ứng dụng chính thức mình tự mở, đề nghị khóa và kiểm tra giúp khoản vừa chuyển, càng sớm càng tốt. Giữ lại tin nhắn và biên lai.</p><p><b>Đã đọc, đã gửi, hoặc đã nhập mã xác thực theo yêu cầu của ai đó hay theo một liên kết chưa xác minh — kể cả khi tự tay mình nhập.</b> Hoặc đã đưa thông tin thẻ. Liên hệ ngay ngân hàng hoặc ví bằng kênh chính thức để khóa dịch vụ và đổi mật khẩu. Đừng chờ xem mã đó có tự hết tác dụng không.</p><p><b>Đã cài ứng dụng lạ, đã chia sẻ màn hình, hoặc nghi máy đang bị người khác điều khiển.</b> Cắt mạng của chiếc máy đó trước — tắt Wi-Fi và dữ liệu di động, hoặc bật chế độ máy bay. Rồi dùng một thiết bị khác đáng tin để gọi ngân hàng, đổi mật khẩu và đăng xuất khỏi mọi máy khác đang mở tài khoản đó. Giữ chiếc máy kia ở tình trạng cách ly, đừng dùng lại vội. Khi đã lưu xong chứng cứ thì thu hồi các quyền đã cấp, gỡ ứng dụng lạ, và nhờ người có chuyên môn kiểm tra hoặc đặt lại máy trước khi dùng nó trở lại. Cắt mạng là để người ở xa không điều khiển tiếp được; đừng vội xóa máy ngay từ đầu, vì làm vậy là mất luôn bằng chứng.</p></div><p>Sau đó, dù là trường hợp nào: nói với một người trong nhà, và trình báo cơ quan Công an nơi gần nhất.</p><p></p><div class=\"k-note\"><p>Và cảnh giác với người tự tìm đến hứa chắc chắn lấy lại được tiền, chỉ cần nộp trước một khoản. Chuyên đề 8 nói kỹ về việc này.</p></div><p><i>19 câu của Chuyên đề 1. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</i></p>",
+    "illustration": {
+     "media": "m-a19"
+    },
+    "illustrationAlt": "Bốn bước qua suối tượng trưng cho chậm lại, xác minh, làm rõ và quyết định",
     "topic": "d98324b7-3b5e-50e6-b3d2-fdfaf4261abb",
     "checklist": "73d32f20-7620-5cc8-a6e3-948225c57744",
     "isFeatured": true,
@@ -4613,6 +5220,10 @@
     "description": "Đọc khoảng 12 phút. Đọc xong rồi hãy làm 24 câu của Chuyên đề 2.",
     "icon": "book",
     "readingBody": "<div class=\"k-now\"><p><b>CHUYỆN ĐANG XẢY RA NGAY LÚC NÀY?</b></p><p>Nếu đang cầm bút trước một tờ giấy, hay ngón tay đang đặt trên nút “Tôi đồng ý” mà màn hình có đồng hồ đếm ngược — đặt bút xuống, thoát khỏi bước xác nhận đó. Chưa ký thì chưa mất gì. Đọc xong bài này vẫn kịp.</p></div><div class=\"k-box\"><p><b>CÂU HỎI CỦA BÀI</b></p><p>Mình đang cam kết điều gì, trong bao lâu, và giữ được bản nào trong tay?</p></div><div class=\"k-box\"><p><b>NHỚ MỘT CÂU</b></p><p>Còn chỗ quan trọng chưa rõ — chưa ký.</p></div><div class=\"k-box\"><p><b>HIỂU NHANH MẤY TỪ</b></p><p>Bản đầy đủ là hợp đồng chính cùng mọi phụ lục và bảng phí đi kèm, có ngày hoặc số phiên bản, và mình tải hoặc lưu được về máy của mình. Bản tóm tắt do bên bán viết không phải bản đầy đủ; lời hứa miệng của nhân viên cũng không phải.</p><p>Còn điểm chưa rõ thì hoãn lại để làm rõ. Gặp một việc nguy hiểm — như bị bảo ký vào giấy còn để trống — thì chặn ngay việc đó, không chờ dấu hiệu thứ hai.</p></div><h3>Chuyện thường bắt đầu bằng một câu tử tế</h3><p>Người tư vấn nói nhẹ nhàng, giải thích trôi chảy, và bảo phần còn lại “chỉ là quy định chung thôi”. Bộ hồ sơ thì dày, chữ thì nhỏ, mà phòng sắp đóng cửa. Mình gật đầu vì thấy chẳng có gì đáng ngại.</p><p>Vài tháng sau, một khoản tiền bị trừ đều đặn. Mở lại giấy tờ mới thấy nó nằm trong một phụ lục mình chưa từng đọc.</p><p>Chuyện đó thường không phải vì gặp người xấu. Hợp đồng là thứ do một bên soạn, và bên đó soạn theo hướng có lợi cho họ. Việc của người ký là đọc, chứ không phải đoán xem người ngồi đối diện có ý tốt hay không.</p><h3>Vì sao người cẩn thận vẫn ký nhầm</h3><table><tr><th>Điều nhiều người nghĩ</th><th>Thực tế</th></tr><tr><td>“Nhân viên tử tế nên chắc là ổn.”</td><td>Người tử tế vẫn có thể đưa mình một hợp đồng bất lợi. Cái ràng buộc mình là chữ trên giấy, không phải thái độ của người bán.</td></tr><tr><td>“Bản tóm tắt là đủ rồi.”</td><td>Bản tóm tắt do bên bán chọn ghi gì thì mình đọc nấy. Phần bất lợi thường nằm ở chỗ không được tóm tắt.</td></tr><tr><td>“Ký trước cho kịp, giấy tờ bổ sung sau.”</td><td>Ký trước là cam kết trước. Những gì được điền vào sau đó mình không kiểm soát được.</td></tr><tr><td>“Bỏ lỡ ưu đãi thì tiếc lắm.”</td><td>Mất một ưu đãi không làm cho một cam kết chưa rõ trở nên an toàn. Ưu đãi thường còn đợt khác; hợp đồng thì kéo dài nhiều năm.</td></tr><tr><td>“Người quen thì không cần giấy tờ.”</td><td>Ghi thành văn bản là bảo vệ cả hai bên, và thường là cách giữ được quan hệ khi có chuyện.</td></tr></table><h3>Sáu điều phải thấy thành chữ</h3><p>Trước khi ký bất kỳ cam kết dịch vụ nào — gói tập, khóa học, phần mềm trả theo tháng, hợp đồng sửa nhà, bảo hiểm bán kèm khoản vay — phải trả lời được sáu câu, bằng chữ trong giấy tờ chứ không bằng trí nhớ:</p><div class=\"k-chips\"><p>KÝ VỚI AI · TRẢ BAO NHIÊU · ĐƯỢC GÌ · BAO GIỜ NHẬN · GIA HẠN RA SAO · DỪNG BẰNG CÁCH NÀO</p></div><p>Thiếu một trong sáu thì chưa ký. Hai câu hay bị bỏ nhất nằm ở cuối. Gia hạn ra sao — có tự động gia hạn không, gia hạn thì tính giá nào. Dừng bằng cách nào — báo trước bao lâu, mất khoản gì, gửi cho ai.</p><p>Người bán ít khi giấu hai điều đó. Nhưng cũng ít khi nói ra, nếu mình không hỏi.</p><h3>Ba chỗ giấy tờ hay để trống</h3><p>Chỗ trống trên giấy. Ký vào tờ còn thiếu số tiền, thiếu ngày, thiếu tên là trao cho người khác quyền điền phần đó. Yêu cầu điền đủ, nhận bản hoàn chỉnh, đọc xong rồi mới ký.</p><p>Phụ lục chưa được đưa. Phụ lục là một phần của hợp đồng, không phải giấy tờ phụ. Khoản thu định kỳ, điều kiện gia hạn và cách chấm dứt rất hay nằm ở đó. Chưa cầm được phụ lục thì coi như chưa đọc xong hợp đồng.</p><p>Khoản phát sinh không có trần. Với việc sửa chữa, thi công hay dịch vụ tính theo khối lượng, câu “chưa gồm phát sinh” chính là một chỗ trống. Đòi ghi mức trần bằng số tiền hoặc phần trăm, hoặc công thức tính cụ thể, kèm một dòng: mọi khoản phát sinh phải được mình đồng ý bằng văn bản trước khi làm.</p><h3>Khi bị giục</h3><p>Đồng hồ đếm ngược trên trang đăng ký, câu “chỉ còn một suất”, “giá này hết hôm nay”, hay “anh chị ký nhanh giúp em kẻo hết giờ” — tất cả cùng làm một việc: chuyển quyền chọn thời điểm quyết định từ mình sang phía bên kia.</p><p>Cách trả lời gọn nhất là một câu, nói bình thường thôi, không cần khó chịu:</p><p>“Tôi cần đọc hết đã. Ưu đãi hết thì thôi.”</p><p>Nếu ưu đãi thật sự hết, cái mất là một khoản giảm giá. Nếu ký khi chưa đọc xong, cái mất có thể kéo dài nhiều năm.</p><h3>Ký trên mạng cũng là ký</h3><p>Bấm “Tôi đồng ý” ràng buộc như đặt bút. Trước khi bấm, tối thiểu phải làm được ba việc: mở đúng bản điều khoản mình sắp đồng ý, đọc hết, và tải hoặc lưu lại được — ưu tiên bản có ghi ngày hoặc số phiên bản, kèm xác nhận giao kết. Ảnh chụp màn hình chỉ là dự phòng, và phải chụp trọn nội dung.</p><p>Không mở được phụ lục thì đừng bấm đồng ý để xem tiếp, cũng đừng mượn tài khoản người khác để thử. Không lưu được bản đầy đủ thì chưa xác nhận.</p><h3>Vừa ký vừa đặt cọc là hai việc</h3><p>Khi phải vừa ký vừa chuyển tiền, có hai thứ cần kiểm riêng.</p><p>Nội dung hợp đồng: ký với ai, nhận gì, trả gì, dừng thế nào.</p><p>Tài khoản nhận tiền: chuyển cho ai, người đó có căn cứ gì để nhận, và khoản đó là tiền cọc hay tiền trả trước — hai thứ này xử lý khác nhau khi có chuyện.</p><p>Một trong hai còn điểm chưa rõ thì chưa ký, chưa chuyển. Tên chủ tài khoản không khớp với bên ký hợp đồng, mà không có ủy quyền hay căn cứ thu hộ kiểm tra được, là lý do để dừng.</p><h3>Ba cách xử lý</h3><table><tr><th>Cách xử lý</th><th>Khi nào, và làm ngay gì</th></tr><tr><td><b>DỪNG</b></td><td>Nghĩa là: Không ký, không chuyển, và kết thúc bước xác nhận đó.<br>Khi nào: Bị bảo ký vào giấy còn trống, hoặc khi điều kiện không thể chấp nhận.<br>Làm ngay: Đặt bút xuống hoặc thoát khỏi trang, chưa đưa gì cả.</td></tr><tr><td><b>HOÃN</b></td><td>Nghĩa là: Chưa ký, giữ nguyên đó để làm rõ.<br>Khi nào: Còn điểm chưa hiểu, còn thiếu phụ lục hoặc bảng phí.<br>Làm ngay: Xin bản đầy đủ mang về đọc.</td></tr><tr><td><b>CÓ THỂ QUYẾT ĐỊNH</b></td><td>Khi nào: Sáu điều đã rõ và mình đã lưu được bản đầy đủ.<br>Làm ngay: Ký, và giữ lại đúng bản đã ký.</td></tr></table><p>Bài này không dạy nghi ngờ mọi hợp đồng. Một gói dịch vụ tra được đơn vị cung cấp, đối chiếu bảng phí thấy khớp với quảng cáo, điều kiện dừng ghi rõ ràng — thì cứ ký, chỉ cần giữ lại giấy tờ. Phần lớn giao dịch trong đời là bình thường. Biết lúc nào được yên tâm cũng là một phần của việc quyết định cho chắc.</p><div class=\"k-stop\"><p><b>NĂM VIỆC PHẢI CHẶN NGAY</b></p><p>Không ký giấy còn trống — Không bấm đồng ý khi chưa đọc — Không ký nghiệm thu khi chưa kiểm — Không chuyển vào tài khoản lệch tên — Không ký vội vì bị giục. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp:</p><ul><li>Ký vào giấy còn chỗ trống — thiếu số tiền, thiếu ngày, thiếu phụ lục.</li><li>Bấm đồng ý khi chưa mở được, chưa đọc hết hoặc chưa lưu được bản điều khoản.</li><li>Ký biên bản nghiệm thu khi chưa tự kiểm tra xong hàng hóa hoặc công việc.</li><li>Chuyển tiền vào tài khoản không khớp tên bên ký hợp đồng, mà không có căn cứ kiểm tra được.</li><li>Bị giục ký ngay kèm lời khuyên đừng hỏi thêm ai, hoặc đừng mang giấy tờ về nhà đọc.</li><li>Chặn một việc không có nghĩa là cả giao dịch đều hỏng. Chặn xong rồi mới xét lại: có thể vẫn là hoãn, và cũng có thể vẫn ký được.</li></ul></div><div class=\"k-pocket\"><p><b>BẢNG KIỂM BỎ TÚI — CHỤP LẠI MÀN HÌNH NÀY</b></p><p>Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao.</p><ul><li>Mình ký với ai — tên đầy đủ của bên kia là gì?</li><li>Tổng cộng phải trả bao nhiêu, gồm những khoản nào?</li><li>Mình được nhận gì, và bao giờ nhận?</li><li>Có tự động gia hạn không? Muốn dừng thì làm thế nào?</li><li>Đã cầm và đọc hết phụ lục cùng bảng phí chưa?</li><li>Có ai đang giục, hoặc bảo mình đừng hỏi thêm ai không?</li><li>Còn chỗ nào để trống không? Còn thì chưa ký.</li><li>Ký xong mình có giữ được một bản không?</li></ul></div><h3>Nếu đã lỡ ký</h3><div class=\"k-note\"><p>Không tự trách. Ký rồi vẫn còn việc để làm, và làm sớm thì đỡ hơn nhiều.</p></div><div class=\"k-case\"><p><b>Chưa nộp thêm.</b> Không ký bổ sung và chưa nộp khoản mình chưa hiểu, kể cả khi đang bị giục.</p><p><b>Gom đủ giấy tờ.</b> Hợp đồng, phụ lục, bảng phí, tờ quảng cáo, tin nhắn, biên lai — đặt cạnh nhau và so từng mục. Đừng dựa vào trí nhớ hay lời nói lại. Đừng xóa quảng cáo hay tin nhắn cũ, kể cả khi bên kia đề nghị xóa; hãy lưu luôn cả lời đề nghị đó.</p><p><b>Hỏi bằng văn bản.</b> Đề nghị bên cung cấp gửi đúng bản phụ lục, phiên bản và lịch sử mình đã nhận hoặc đã đồng ý. Khiếu nại bằng tin nhắn hoặc thư điện tử, đừng chỉ nói qua điện thoại.</p><p><b>Kiểm tra các mốc.</b> Ngày thu tiền kế tiếp, hạn hủy, hạn gia hạn tự động. Biết mốc thì còn kịp xử lý trước khi bị trừ tiếp.</p><p><b>Nhờ người ngoài đọc.</b> Số tiền lớn hoặc điều khoản khó hiểu thì nhờ một người không dính đến việc bán hàng đọc giúp, hoặc tìm nơi tư vấn đáng tin.</p></div><div class=\"k-note\"><p>Và cảnh giác với người tự tìm đến hứa chắc chắn hủy được hợp đồng, lấy lại toàn bộ tiền, chỉ cần nộp trước một khoản. Không nộp phí, không đưa thông tin đăng nhập, không ký giấy ủy quyền do họ gửi. Chuyên đề 8 nói kỹ về việc này.</p></div><p><i>24 câu của Chuyên đề 2. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</i></p>",
+    "illustration": {
+     "media": "m-a29"
+    },
+    "illustrationAlt": "Đọc kỹ điều khoản trước khi ký cam kết",
     "topic": "92b10ecd-aaa5-50e5-9ba1-8418908cc980",
     "checklist": "15d756fa-99e8-5a4f-8d38-9a03efb55219",
     "isFeatured": false,
@@ -4635,6 +5246,10 @@
     "description": "Đọc khoảng 14 phút. Đọc xong rồi hãy làm 28 câu của Chuyên đề 3.",
     "icon": "book",
     "readingBody": "<div class=\"k-now\"><p><b>CHUYỆN ĐANG XẢY RA NGAY LÚC NÀY?</b></p><p>Nếu đang bị đòi nộp thêm một khoản mới rút tiền ra được — “thuế xác minh”, “phí mở khóa”, “nâng gói VIP” — thì dừng lại, đừng nộp. Đọc thẳng mục “Nếu đã lỡ” ở cuối bài trước, rồi quay lại đọc từ đầu sau.</p></div><div class=\"k-box\"><p><b>CÂU HỎI CỦA BÀI</b></p><p>Tiền lãi ở đâu ra, ai có nghĩa vụ trả cho mình, và muốn rút thì rút bằng cách nào?</p></div><div class=\"k-box\"><p><b>NHỚ MỘT CÂU</b></p><p>Chưa trả lời được ba câu đó — chưa góp tiền.</p></div><div class=\"k-box\"><p><b>HIỂU NHANH MẤY TỪ</b></p><p>Xác minh độc lập là tra ở nơi nằm ngoài chính lời mời: cổng thông tin chính thức mình tự gõ địa chỉ, cơ quan quản lý, hoặc bên thứ ba không dính líu quyền lợi. Hồ sơ đẹp do chính họ soạn, ảnh giấy phép họ gửi, hay con số do chính hệ thống của họ in ra thì không phải xác minh.</p><p>Mức dừng về tiền là mức mà quá đó thì không góp nữa, dù cơ hội nghe hay đến mấy. Đặt ngưỡng lúc đang tỉnh táo, đừng đặt lúc đang nôn nao.</p><p>Kênh chính thức là nơi do chính mình tự tìm ra và kiểm được là đúng tổ chức: số in trên thẻ ngân hàng, ứng dụng chính thức của đúng nhà phát hành mà mình đã dùng từ trước, trang chính thức mình tự gõ địa chỉ và đối chiếu được tên miền, số công bố trên trang đó, hoặc cơ quan Công an nơi gần nhất. Không phải số máy hay đường dẫn do người kia đưa, và cũng không phải ứng dụng mình vừa cài theo lời ai đó.</p></div><h3>Ba câu hỏi, hỏi theo đúng thứ tự</h3><p>Đầu tư có nhiều tên gọi: góp vốn làm ăn, mua trái phiếu, nạp tiền vào nền tảng giao dịch, đặt cọc giữ suất đất. Tên khác nhau, nhưng ba câu phải hỏi thì giống nhau:</p><div class=\"k-chips\"><p>TIỀN LÃI Ở ĐÂU RA · AI PHẢI TRẢ CHO MÌNH · RÚT BẰNG CÁCH NÀO</p></div><p>Câu thứ nhất hỏi về việc làm ăn: có sản phẩm gì, bán cho ai, doanh thu từ đâu. Câu thứ hai hỏi về người chịu trách nhiệm: tên đơn vị nào phải trả tiền cho mình, và nếu họ không trả thì mình có căn cứ gì để đòi. Câu thứ ba hỏi về đường ra: rút thế nào, mất bao lâu, mất phí gì, có bị hạn chế gì không.</p><p>Người mời đầu tư đàng hoàng thường trả lời được cả ba, và trả lời bằng giấy tờ. Người né câu đầu tiên là người mình không nên đưa tiền.</p><h3>Tên trên giấy không quyết định bản chất</h3><p>Một tờ giấy đề là “hợp tác đầu tư”, nhưng lại hứa trả đủ tiền gốc và thêm một khoản cố định hằng tháng, làm ăn lãi hay lỗ cũng vậy. Góp vốn thật thì lãi cùng hưởng, lỗ cùng chịu. Có nghĩa vụ hoàn tiền cố định thì đó là dấu hiệu của một khoản nợ, không phải góp vốn — và phải kiểm tra theo hướng khác: ai phải hoàn, hoàn bằng nguồn nào, có bảo đảm gì, không hoàn thì xử lý ra sao.</p><p>Cũng đừng để nơi bán làm mình yên tâm thay cho việc đọc. Một sản phẩm mua ngay tại quầy ngân hàng vẫn phải xem đó thật ra là thứ gì: trái phiếu do doanh nghiệp nào phát hành thì doanh nghiệp đó là bên có nghĩa vụ trả, chứ không phải ngân hàng đứng ra bán. Hai việc khác nhau: ngân hàng trả thay và ngân hàng chỉ giới thiệu.</p><p>Trước khi chuyển tiền, tự hỏi một câu gọn: mình đang mua một thứ gì đó, hay đang cùng gánh lời lỗ với người ta?</p><h3>Vì sao người tính toán giỏi vẫn góp nhầm</h3><table><tr><th>Điều nhiều người nghĩ</th><th>Thực tế</th></tr><tr><td>“Bán ở quầy ngân hàng thì chắc ngân hàng bảo đảm.”</td><td>Nơi bán không cho biết ai phải trả tiền cho mình. Phải đọc tên bên phát hành — tức bên có nghĩa vụ trả tiền cho mình — và xem có ai bảo lãnh hay có tài sản bảo đảm không.</td></tr><tr><td>“Rút thử được một khoản nhỏ là yên tâm rồi.”</td><td>Nó chỉ chứng minh lần rút đó đã xong. Khoản trả đầu tiên thường chính là tiền mồi.</td></tr><tr><td>“Công ty có đăng ký thật nên không sao.”</td><td>Có đăng ký chỉ nói doanh nghiệp tồn tại. Nó không nói tiền lãi ở đâu ra, cũng không nói tài khoản kia có quyền nhận tiền.</td></tr><tr><td>“Lãi cao mà lại cam kết bảo toàn vốn.”</td><td>Lãi hứa càng cao thì khả năng mất tiền càng lớn. Bốn thứ cùng lúc — lãi cao, cố định, bảo toàn vốn, không rủi ro — là tổ hợp bất thường, phải kiểm tra kỹ nhất.</td></tr><tr><td>“Người rủ mình là chỗ thân quen.”</td><td>Người thân quen có thể cũng đang bị dẫn. Nhiều mô hình sống được chính là nhờ người quen rủ người quen.</td></tr></table><h3>Bốn chỗ phải dừng lại kiểm tra</h3><p>Không rõ tiền lãi ở đâu ra — hỏi thì được trả lời bằng những từ nghe to tát nhưng không nói được ai mua, mua cái gì. Người nhận tiền không đúng tên đơn vị — hợp đồng ký với một công ty, tiền lại chuyển vào tài khoản cá nhân. Thu nhập dựa vào việc kéo thêm người mới — hoa hồng nhiều tầng, thưởng tăng theo số người mới và số tiền họ nạp. Nạp thì dễ mà rút thì khó — nạp xong ngay, còn rút thì phải chờ, phải xin, phải đủ những điều kiện mới lạ nghe lần đầu.</p><p>Mỗi điều chỉ ra một chỗ cần kiểm, chứ chưa phải kết luận. Nhưng có hai việc thì dừng hẳn, không cần dấu hiệu thứ hai: bị đòi mật khẩu, mã xác thực hoặc bắt cài ứng dụng điều khiển máy; và bị bắt nộp thêm mới cho rút tiền.</p><h3>“Nộp thêm mới cho rút” — chỗ này gần như không có ngoại lệ</h3><p>Khi xin rút mà bị báo phải nộp “thuế xác minh”, “phí mở khóa” hay “phí nâng gói VIP” — khoản mới xuất hiện, không có trong hợp đồng hay biểu phí, và phải chuyển riêng — thì đó là lúc dừng. Nộp thêm không mở được gì cả. Nó chỉ mở ra vòng đòi tiếp theo.</p><p>Con số hoa hồng hay số dư hiện trên màn hình cũng không phải bằng chứng có tiền thật. Đó là con số do chính ứng dụng của họ hiển thị.</p><h3>Đất, trái phiếu, nền tảng giao dịch — vẫn ba câu ấy</h3><p>Đất. Trước khi chuyển tiền giữ chỗ, phải rõ bốn điều: đúng thửa đất nào, ai có quyền bán, ai được nhận tiền, và dựa vào giấy tờ gì để nhận cọc. Tự tra hồ sơ và quy hoạch ở cơ quan chính thức, hoặc nhờ người có chuyên môn không dính đến việc bán.</p><p>Trái phiếu. Xác định bên phát hành — đó là bên có nghĩa vụ trả — cùng bên phân phối, bên bảo lãnh hoặc tài sản bảo đảm nếu có, và điều kiện mua lại được ghi trong hợp đồng. Lời hứa miệng kiểu “sau ba mươi mốt ngày sẽ mua lại” mà không có trong hợp đồng thì không tính. Không có điều khoản thì không tự suy ra quyền.</p><p>Nền tảng giao dịch. Đơn vị vận hành là ai, được phép làm gì, tài khoản nhận tiền đứng tên ai, điều kiện rút ghi ở đâu. Nếu tiền trả cho người vào trước chủ yếu lấy từ người vào sau, mà công nghệ, khách hàng thật và doanh thu thì không chứng minh được, thì dừng.</p><p>Góp vốn làm ăn. Yêu cầu giấy tờ có bên nhận vốn ký xác nhận, ghi rõ năm điều: số vốn mình góp, quyền được hưởng, cách chia lãi hoặc lỗ, cách rút vốn hay nhượng lại, và đơn vị chịu trách nhiệm.</p><h3>Tiền nào được phép mang đi góp</h3><p>Chỉ dùng số tiền mà nếu mất thì đời sống gia đình vẫn ổn. Ba nguồn tiền không mang đi góp vốn: tiền đi vay, tiền có được nhờ thế chấp nhà ở hoặc quyền sử dụng đất, và tiền dưỡng già hay tiền dành để chữa bệnh.</p><p>Phải đi vay hoặc phải thế chấp tài sản thiết yếu mới có tiền góp — riêng điều đó đã đủ là lý do để dừng, kể cả khi nơi đó đang trả lãi rất đều.</p><h3>Ba cách xử lý</h3><table><tr><th>Cách xử lý</th><th>Khi nào, và làm ngay gì</th></tr><tr><td><b>DỪNG</b></td><td>Nghĩa là: Không chuyển tiền, không nạp thêm, và kết thúc việc trao đổi đó.<br>Khi nào: Bị đòi nộp thêm để rút, bị đòi mã hoặc quyền vào máy, hoặc khi vừa có chỗ đáng ngại vừa bị thúc chốt trong ngày.<br>Làm ngay: Chụp lại lời mời, không tranh luận tiếp trong nhóm.</td></tr><tr><td><b>HOÃN</b></td><td>Nghĩa là: Chưa góp, giữ nguyên đó để tra thêm.<br>Khi nào: Còn một trong ba câu chưa trả lời được.<br>Làm ngay: Tự tra tên đơn vị, giấy phép và ngành nghề ở nguồn chính thức mình tự tìm.</td></tr><tr><td><b>CÓ THỂ QUYẾT ĐỊNH</b></td><td>Khi nào: Đã kiểm tra xong doanh nghiệp, tài khoản nhận tiền, nguồn lợi nhuận, hợp đồng, cách rút vốn, và khả năng chịu mất khoản tiền đó.<br>Làm ngay: Đối chiếu lần cuối rồi tự quyết, và giữ lại bản đã ký.</td></tr></table><p>Kiểm tra kỹ giúp mình hiểu rủi ro, chứ không bảo đảm có lãi. Một người đã kiểm tra đủ, đã hiểu mình có thể lỗ, rồi một năm sau xưởng làm ăn thua lỗ nên phần vốn giảm — đó là rủi ro kinh doanh đã biết từ đầu, khác với gian dối. Biết phân biệt hai thứ đó cũng là một phần của việc quyết định cho chắc. Gian dối là khi có che giấu báo cáo, giấy tờ giả, dùng tiền sai cam kết, cản quyền tiếp cận thông tin hoặc vi phạm quyền đã thỏa thuận — lúc đó thì giữ hồ sơ và đi tìm tư vấn.</p><div class=\"k-stop\"><p><b>NĂM VIỆC PHẢI CHẶN NGAY</b></p><p>Không nộp thêm để rút — Không đọc mã, không cấp quyền — Không chuyển vào tài khoản cá nhân — Không vay, không thế chấp để góp — Không rủ người nhà khi mình chưa kiểm xong. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp:</p><ul><li>Nộp thêm bất kỳ khoản nào để được rút tiền ra.</li><li>Đọc hoặc gửi mã xác thực, mật khẩu; cài ứng dụng hoặc cấp quyền điều khiển máy theo hướng dẫn của nơi mời đầu tư.</li><li>Chuyển tiền vào tài khoản cá nhân trong khi hợp đồng ký với một công ty, mà không có căn cứ thu hộ kiểm tra được.</li><li>Đi vay, thế chấp nhà đất, hoặc dùng tiền dưỡng già để góp thêm.</li><li>Rủ người thân, bạn bè cùng tham gia khi mình chưa tự kiểm tra xong.</li><li>Chặn một việc không có nghĩa là mọi thứ đều hỏng. Chặn xong rồi tự xác minh, lúc đó mới quyết định về cả khoản đầu tư.</li></ul></div><div class=\"k-pocket\"><p><b>BẢNG KIỂM BỎ TÚI — CHỤP LẠI MÀN HÌNH NÀY</b></p><p>Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao.</p><ul><li>Tiền lãi ở đâu ra? Ai làm ra khoản đó, bằng việc gì?</li><li>Ai có nghĩa vụ trả tiền cho mình — tên đơn vị nào?</li><li>Muốn rút thì rút thế nào, mất bao lâu, mất phí gì?</li><li>Tài khoản nhận tiền đứng tên ai, có khớp bên ký hợp đồng không?</li><li>Mình tra được gì ở nơi nằm ngoài chính lời mời này?</li><li>Nếu mất hết khoản này, đời sống gia đình có ổn không?</li><li>Có ai đang giục mình chốt ngay trong hôm nay không?</li></ul></div><h3>Nếu đã lỡ</h3><div class=\"k-note\"><p>Bị lừa không phải lỗi của người bị hại. Việc lúc này là chặn thiệt hại, không phải trách mình.</p></div><div class=\"k-case\"><p><b>Không nạp thêm.</b> Số tiền đã mất không phải lý do để bỏ thêm tiền mới. Đây là lúc dễ mất nhiều nhất, vì mình vừa tiếc khoản cũ vừa đang bị giục.</p><p><b>Chụp lại trước khi mọi thứ biến mất.</b> Điều kiện rút, tin nhắn, lịch sử nạp và rút, màn hình tài khoản, mã giao dịch, số tài khoản đã nhận tiền, địa chỉ ví nếu có.</p><p><b>Gọi ngay nơi tiền đã đi qua.</b> Ngân hàng, ví điện tử hoặc tổ chức thanh toán đã dùng — bằng số in trên thẻ hoặc trong ứng dụng chính thức mình tự mở. Đề nghị khóa và kiểm tra giúp khoản vừa chuyển, càng sớm càng tốt.</p><p><b>Bảo vệ tài khoản.</b> Đổi mật khẩu và đăng xuất khỏi mọi máy khác đang mở tài khoản đó. Nếu đã cài ứng dụng theo hướng dẫn của họ hoặc nghi máy bị điều khiển thì cắt mạng chiếc máy đó trước, rồi dùng một thiết bị khác đáng tin để xử lý.</p><p><b>Trình báo.</b> Mang giấy tờ đến cơ quan Công an nơi gần nhất khi có dấu hiệu tội phạm. Và nói với một người trong nhà.</p></div><div class=\"k-note\"><p>Cảnh giác với người tự tìm đến hứa chắc chắn thu hồi được tiền, chỉ cần nộp trước một khoản hoặc ký giấy ủy quyền. Chuyên đề 8 nói kỹ về việc này.</p></div><p><i>28 câu của Chuyên đề 3. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</i></p>",
+    "illustration": {
+     "media": "m-a13"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "ead90b7d-153e-50e2-82e1-471131a3fbae",
     "checklist": "40b15a36-af02-57eb-ac1f-ea7f119a7ad0",
     "isFeatured": false,
@@ -4657,6 +5272,10 @@
     "description": "Đọc khoảng 15 phút. Đọc xong rồi hãy làm 27 câu của Chuyên đề 4.",
     "icon": "book",
     "readingBody": "<div class=\"k-now\"><p><b>CHUYỆN ĐANG XẢY RA NGAY LÚC NÀY?</b></p><p>Nếu có người đang giục ký, đang đòi mã xác thực, hoặc đang dọa nợ và bắt giữ kín không cho hỏi người nhà — cúp máy trước đã. Chưa ký, chưa đọc mã thì chưa mất gì. Đọc xong bài này rồi tính tiếp.</p></div><div class=\"k-box\"><p><b>CÂU HỎI CỦA BÀI</b></p><p>Mình nhận về bao nhiêu, tổng cộng phải trả bao nhiêu, và có trả nổi không?</p></div><div class=\"k-box\"><p><b>NHỚ MỘT CÂU</b></p><p>Chưa biết tổng phải trả — chưa ký.</p></div><div class=\"k-box\"><p><b>HIỂU NHANH MẤY TỪ</b></p><p>Ba con số phải ghi ra giấy trước khi quyết: số thực nhận là tiền thật sự về tay sau khi trừ phí, bảo hiểm và khoản giữ lại; tổng phải trả gồm gốc, lãi, phí và bảo hiểm cộng lại; mỗi kỳ trả là số phải nộp mỗi lần theo lịch.</p><p>Còn khoản nào để trống — lãi sau ưu đãi, phí phạt khi chậm, phí bảo hiểm — thì hoãn cho tới khi được điền đủ. Bị đòi mã xác thực, bị bắt ký hộ hay bảo lãnh cho người chỉ quen qua mạng thì chặn ngay.</p><p>Kênh chính thức là nơi do chính mình tự tìm ra và kiểm được là đúng tổ chức: số in trên thẻ ngân hàng, ứng dụng chính thức của đúng nhà phát hành mà mình đã dùng từ trước, trang chính thức mình tự gõ địa chỉ và đối chiếu được tên miền, số công bố trên trang đó, hoặc cơ quan Công an nơi gần nhất. Không phải số máy hay đường dẫn do người kia đưa, và cũng không phải ứng dụng mình vừa cài theo lời ai đó.</p></div><h3>Vay không xấu. Vay mà không biết mình nợ gì mới xấu</h3><p>Vay tiền là việc bình thường: mua nhà, chữa bệnh, xoay vòng vốn làm ăn. Cái làm người ta khổ về sau thường không phải khoản vay, mà là ba chỗ mờ: không biết mình thật sự nhận về bao nhiêu, không biết cộng lại phải trả bao nhiêu, và không tính tới lúc thu nhập thay đổi.</p><p>Trước khi ký, điều đầu tiên cần tự hỏi không phải “nơi này có uy tín không”, mà là: mình có thật sự cần vay không, và có trả nổi không?</p><p>Ghi ba con số ra giấy, rồi đặt cạnh thu nhập thật và các khoản chi cần thiết của gia đình. Làm được việc đó là đã tránh được phần lớn rắc rối.</p><h3>Vì sao người biết tính toán vẫn vay nhầm</h3><table><tr><th>Điều nhiều người nghĩ</th><th>Thực tế</th></tr><tr><td>“Được duyệt tức là mình trả nổi.”</td><td>Được duyệt chỉ nói bên cho vay đồng ý cho vay. Khả năng trả là việc mình phải tự tính, dựa trên thu nhập thật và khoản để dành.</td></tr><tr><td>“Mỗi kỳ trả ít nên rẻ hơn.”</td><td>Kỳ nhỏ mà kéo dài thì tổng trả có thể lớn hơn nhiều. Phải so tổng phải trả trừ đi số thực nhận.</td></tr><tr><td>“Duyệt nhanh, không hỏi gì nhiều là tiện.”</td><td>Không hỏi thu nhập, nghĩa vụ nợ hay nguồn trả là bỏ qua đúng thứ quan trọng nhất. Tiện lúc vay thường đắt lúc trả.</td></tr><tr><td>“Chỉ đứng tên hộ thôi, tiền bạn tiêu.”</td><td>Theo hồ sơ, người đứng tên là người phải trả. Bạn tiêu hết thì nợ vẫn của mình.</td></tr><tr><td>“Cho số điện thoại tham chiếu là thành người bảo lãnh.”</td><td>Không. Trách nhiệm phụ thuộc vào giấy tờ mình đã ký hoặc đã bấm đồng ý, và quy định áp dụng.</td></tr></table><h3>Bên cho vay là ai</h3><p>Ghi lại tên pháp lý đầy đủ, mã số, địa chỉ và loại hình của bên cho vay. Rồi tự mở nguồn chính thức phù hợp để tra tư cách và giấy phép. Không dùng đường dẫn hay ảnh giấy phép do chính họ gửi.</p><p>Không tìm thấy trong một danh sách thì chưa kết luận ngay được điều gì — nhưng không có căn cứ nào về tư cách của họ thì chưa vay.</p><p>Với ứng dụng cho vay, xem thêm quyền mà nó đòi. Bắt cấp quyền vào danh bạ, hình ảnh hay tin nhắn mới cho vay là chuyện đáng ngại: về sau, khi chậm trả, người thân và đồng nghiệp có thể bị làm phiền. Quyền nào không cần cho chức năng rõ ràng thì không cấp.</p><h3>Chỗ để trống trong hồ sơ vay</h3><p>Số thực nhận bị trừ mà không rõ trừ gì. Hồ sơ ghi vay mười lăm triệu, về tay còn mười hai triệu. Ghi khoản bị trừ ra một dòng riêng, để xem nó có bị tính lãi lần nữa không.</p><p>Bảo hiểm bán kèm. Nếu có, phải ghi rõ doanh nghiệp bảo hiểm nào, ai phân phối, quyền lợi và loại trừ ra sao, phí bao nhiêu, có được hủy và hoàn phí không, tất toán sớm thì xử lý thế nào. Cộng phí đó vào tổng chi phí khoản vay rồi mới so.</p><p>Lãi suất sau ưu đãi. Ưu đãi ba tháng đầu mà không ghi lãi suất tham chiếu, biên độ và chu kỳ điều chỉnh thì phần sau là một chỗ trống. Yêu cầu văn bản ghi công thức, ngày điều chỉnh, trần nếu có, và ví dụ lịch trả trong vài trường hợp.</p><p>Khoản phải trả khi chậm hoặc quá hạn. Yêu cầu ghi rõ lãi trên nợ gốc quá hạn, lãi chậm trả đối với tiền lãi, và các khoản phí hay phạt khác nếu có căn cứ — kèm mức, cách tính và một ví dụ chậm một kỳ.</p><p>Ứng dụng chỉ hiện số phải trả mỗi kỳ, không cho lưu hồ sơ, không cho biết tổng cộng bao nhiêu — thì hoãn lại. Đòi bộ hồ sơ tải hoặc lưu được về máy mình, tự cộng lại một lượt, rồi mới đồng ý.</p><h3>So hai khoản vay cho đúng</h3><p>Lấy tổng phải trả trừ đi số thực nhận, để thấy chi phí tuyệt đối của từng khoản. Khi hai khoản khác nhau về số tiền hoặc thời hạn thì đừng chia phần chênh cho số kỳ rồi kết luận — cách đó dễ sai. Hãy yêu cầu lãi suất hoặc chi phí hiệu dụng theo năm, rồi kiểm tra thêm xem số tiền mỗi kỳ có vừa với khả năng trả không.</p><h3>Đứng tên hộ và bảo lãnh</h3><p>Đứng tên vay hộ là mình trở thành người vay. Người kia tiêu hết thì theo giấy tờ, mình vẫn là người phải trả. Nếu đã lỡ ký, hãy theo dõi khoản nợ theo hồ sơ và giữ lại giấy tờ, tin nhắn cùng chứng từ đã giao tiền cho người kia.</p><p>Bảo lãnh là cam kết với bên cho vay rằng mình sẽ thực hiện nghĩa vụ thay nếu đến hạn người vay không thực hiện hoặc thực hiện không đúng. Phạm vi có thể gồm cả gốc, lãi, phạt, bồi thường và lãi chậm trả, trừ khi có thỏa thuận khác. Đó không phải một chữ ký cho có.</p><p>Không ký hay bấm đồng ý vào giấy tờ ghi vai trò mơ hồ. Nếu chỉ là người tham chiếu thì yêu cầu ghi rõ: chỉ là người tham chiếu, không nhận khoản vay và không bảo lãnh — rồi giữ bản đã ký.</p><p>Và tuyệt đối không bảo lãnh, không gửi giấy tờ, chữ ký hay mã xác thực cho người chỉ quen qua mạng.</p><h3>Khi biết sắp không trả kịp</h3><p>Liên hệ trước ngày tới hạn, đừng đợi quá hạn rồi mới nói. Gọi bằng số trong ứng dụng hoặc trong hồ sơ đã ký. Hỏi cách giãn kỳ hoặc chia nhỏ khoản trả, và xin xác nhận bằng văn bản.</p><p>Cho tới khi bên cho vay chấp thuận thay đổi, lịch trả cũ vẫn còn hiệu lực — đừng tự bỏ kỳ. Hỏi thêm một câu: cơ cấu lại có làm tăng lãi, tăng phí, hay ảnh hưởng đến thông tin tín dụng của mình không.</p><h3>Khi bị đòi nợ</h3><p>Người đòi nợ đem chuyện nợ đi làm phiền đồng nghiệp, người thân — tức là những người không có nghĩa vụ trả — là chuyện phải xử lý. Lưu tin nhắn, cuộc gọi và thời gian. Yêu cầu bên đòi nợ xác định rõ tổ chức nào, khoản nợ nào, và chỉ liên hệ đúng người có nghĩa vụ. Khiếu nại tới tổ chức cho vay; trình báo khi có đe dọa hoặc quấy rối.</p><p>Nếu bị đòi một khoản mình không vay: đừng tự nhận chỉ vì họ gọi đúng tên và dọa dẫm. Đừng đọc thêm số căn cước, địa chỉ, số tài khoản hay mã xác thực để họ “đối chiếu”. Ghi lại tên đơn vị họ tự xưng rồi kết thúc cuộc gọi, sau đó tự tìm kênh chính thức của tổ chức được nhắc đến để hỏi căn cứ. Có thể là mạo danh — hãy tự kiểm tra báo cáo tín dụng qua kênh chính thức của CIC.</p><h3>Ba cách xử lý</h3><table><tr><th>Cách xử lý</th><th>Khi nào, và làm ngay gì</th></tr><tr><td><b>DỪNG</b></td><td>Nghĩa là: Không ký, không chuyển tiền, không đọc mã, và kết thúc cuộc liên hệ đó.<br>Khi nào: Bị đòi mã xác thực, bị bắt bảo lãnh cho người quen qua mạng, hoặc vừa bị giục vừa bị bắt giữ bí mật.<br>Làm ngay: Cúp máy, nói với một người trong nhà.</td></tr><tr><td><b>HOÃN</b></td><td>Nghĩa là: Chưa ký, giữ nguyên đó để làm rõ.<br>Khi nào: Hồ sơ còn để trống cách tính lãi, phí phạt, hoặc chưa cho lưu bản đầy đủ.<br>Làm ngay: Đòi hồ sơ lưu được, tự cộng lại ba con số.</td></tr><tr><td><b>CÓ THỂ QUYẾT ĐỊNH</b></td><td>Khi nào: Bên cho vay đã rõ, ba con số đã rõ, và trừ hết chi tiêu cần thiết cùng khoản để dành thì thu nhập vẫn đủ trả.<br>Làm ngay: Nghĩ lại một lượt vay để làm gì, rồi ký và giữ hồ sơ.</td></tr></table><p>Kiểm tra đủ rồi thì mình có quyền quyết định. Nhưng kiểm tra kỹ không đỡ hết khó khăn: thu nhập vẫn có thể thay đổi. Vì vậy hãy tính khoản phải trả trên thu nhập thật, chi tiêu thật, và một khoản để dành phòng khi có việc. Biết lúc nào được yên tâm cũng là một phần của việc quyết định cho chắc.</p><div class=\"k-stop\"><p><b>NĂM VIỆC PHẢI CHẶN NGAY</b></p><p>Không đọc mã — Không ký bảo lãnh cho người quen qua mạng — Không ký giấy còn trống — Không vay khi đang bị giục và bị bắt giữ bí mật — Không đứng tên vay hộ. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp:</p><ul><li>Đọc hoặc nhập mã xác thực theo yêu cầu của người khác, kể cả để “hoàn tất khoản vay hộ”.</li><li>Ký hoặc gửi hồ sơ bảo lãnh cho người chỉ quen qua mạng; gửi ảnh giấy tờ, chữ ký cho họ.</li><li>Ký vào giấy còn chỗ trống, hoặc giấy ghi vai trò của mình một cách mơ hồ.</li><li>Vay hoặc chuyển tiền trong lúc đang bị thúc và bị bắt giữ bí mật, không cho hỏi người nhà.</li><li>Đứng tên vay hộ người khác, dù là người quen.</li><li>Chặn một việc không có nghĩa là cả khoản vay đều hỏng. Chặn xong rồi tự xác minh bằng kênh chính thức, lúc đó mới quyết định.</li></ul></div><div class=\"k-pocket\"><p><b>BẢNG KIỂM BỎ TÚI — CHỤP LẠI MÀN HÌNH NÀY</b></p><p>Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao.</p><ul><li>Mình thật sự nhận về tay bao nhiêu?</li><li>Tổng cộng phải trả bao nhiêu, gồm những khoản gì?</li><li>Mỗi kỳ trả bao nhiêu, trong bao nhiêu kỳ?</li><li>Lãi sau ưu đãi tính thế nào? Chậm một kỳ thì mất thêm bao nhiêu?</li><li>Bên cho vay tên pháp lý là gì, mình tra ở đâu ra?</li><li>Trừ hết chi tiêu và khoản để dành, mình còn đủ trả không?</li><li>Có ai đang giục, hoặc bắt mình giữ bí mật với người nhà không?</li><li>Mình đang ký với vai trò gì — người vay, người bảo lãnh, hay người tham chiếu?</li></ul></div><h3>Nếu đã lỡ</h3><div class=\"k-note\"><p>Không tự trách. Dừng mất thêm trước đã.</p></div><div class=\"k-case\"><p><b>Lỡ đọc hoặc lỡ nhập mã xác thực theo yêu cầu của ai đó.</b> Gọi ngay ngân hàng bằng số in sau thẻ hoặc trong ứng dụng chính thức mình tự mở. Mô tả đúng thứ đã lộ, đề nghị khóa đúng dịch vụ hoặc giao dịch, đóng mọi lần đăng nhập còn đang mở, rồi đổi thông tin bảo mật. Đừng chờ xem mã đó có tự hết tác dụng không.</p><p><b>Lỡ cài ứng dụng lạ, hoặc nghi máy bị điều khiển.</b> Cắt mạng chiếc máy đó trước — tắt Wi-Fi và dữ liệu di động — rồi dùng một thiết bị khác đáng tin để gọi ngân hàng và xử lý.</p><p><b>Nghi có hồ sơ vay mở bằng danh tính của mình.</b> Tự tra tổ chức cho vay và liên hệ bằng số hoặc địa chỉ chính thức. Yêu cầu kiểm tra hồ sơ, ghi nhận rằng mình không đồng ý bảo lãnh hoặc không phải người vay, và gửi xác nhận bằng văn bản. Kiểm tra báo cáo tín dụng qua kênh chính thức của CIC. Lưu tin nhắn, ảnh đã gửi và mã tiếp nhận; trình báo nếu có dấu hiệu mạo danh.</p><p><b>Bị đe dọa hoặc quấy rối.</b> Lưu lại nội dung rồi mới chặn. Khiếu nại tới tổ chức cho vay nếu xác định được, phản ánh cơ quan quản lý, và trình báo Công an. Đừng công khai dữ liệu của người khác lên mạng.</p></div><div class=\"k-note\"><p>Và cảnh giác với người tự tìm đến hứa chắc chắn xóa được nợ hoặc lấy lại tiền, chỉ cần nộp trước một khoản. Chuyên đề 8 nói kỹ về việc này.</p></div><p><i>27 câu của Chuyên đề 4. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</i></p>",
+    "illustration": {
+     "media": "m-a06"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "bbbdef39-c36c-51e3-8374-8625a3c7a8cf",
     "checklist": "b1e28dba-fa92-5c09-ac90-fcd840cd6425",
     "isFeatured": false,
@@ -4679,6 +5298,10 @@
     "description": "Đọc khoảng 14 phút. Đọc xong rồi hãy làm 23 câu của Chuyên đề 5.",
     "icon": "book",
     "readingBody": "<div class=\"k-now\"><p><b>CHUYỆN ĐANG XẢY RA NGAY LÚC NÀY?</b></p><p>Nếu đang bị giục lên xe đi làm xa ngay trong đêm, hoặc đang bị ép giao giấy tờ, hãy báo ngay cho người nhà và gọi Công an nơi gần nhất, hoặc gọi 113. Nếu vừa nạp tiền vào một ứng dụng nhiệm vụ — đọc thẳng mục “Nếu đã lỡ” ở cuối bài trước.</p></div><div class=\"k-box\"><p><b>CÂU HỎI CỦA BÀI</b></p><p>Đồng tiền đầu tiên đi theo chiều nào?</p></div><div class=\"k-box\"><p><b>NHỚ MỘT CÂU</b></p><p>Đi làm là được trả tiền, không phải nộp tiền.</p></div><div class=\"k-box\"><p><b>HIỂU NHANH MẤY TỪ</b></p><p>Người lao động được trả công cho việc đã làm. Hễ bị yêu cầu nộp tiền để mở việc, mở nhiệm vụ, giữ chỗ hay bảo đảm thực hiện công việc thì dừng giao dịch, tự xác minh, và không nộp thử.</p><p>Có một trường hợp khác: doanh nghiệp hoạt động dịch vụ việc làm được cấp phép có thể thu phí dịch vụ — nhưng khoản đó phải được công khai, đúng dịch vụ, và có hợp đồng cùng chứng từ rõ ràng. Không rõ thì hoãn.</p><p>Kênh chính thức là nơi do chính mình tự tìm ra và kiểm được là đúng tổ chức: số in trên thẻ ngân hàng, ứng dụng chính thức của đúng nhà phát hành mà mình đã dùng từ trước, trang chính thức mình tự gõ địa chỉ và đối chiếu được tên miền, số công bố trên trang đó, hoặc cơ quan Công an nơi gần nhất. Không phải số máy hay đường dẫn do người kia đưa, và cũng không phải ứng dụng mình vừa cài theo lời ai đó.</p></div><h3>Việc nhẹ, lương cao, và một khoản nhỏ nộp trước</h3><p>Lời mời thường bắt đầu rất dễ chịu. Làm tại nhà, mỗi ngày vài tiếng, thu nhập khá. Vài nhiệm vụ đầu được trả hoa hồng thật, tiền về tài khoản thật. Rồi mới đến câu quan trọng: nạp thêm để mở gói lớn hơn.</p><p>Đến lúc muốn rút thì ứng dụng báo phải nâng gói, phải nộp phí, phải nạp thêm. Con số hoa hồng hiện trên màn hình vẫn còn đó, rất to, và không rút được đồng nào.</p><p>Chuyện này không đòi hỏi phải nhớ tên từng ứng dụng. Chỉ cần một câu hỏi, đặt ngay từ đầu:</p><p>ĐỒNG TIỀN ĐẦU TIÊN ĐI THEO CHIỀU NÀO?</p><p>Viết ra giấy cho rõ: ai trả tiền cho ai, và để làm gì. Tiền công thì phải gắn với việc mình đã làm. Còn khoản nào bắt mình nộp trước thì phải dừng lại xem xét riêng.</p><h3>Vì sao người tỉnh táo vẫn nộp tiền</h3><table><tr><th>Điều nhiều người nghĩ</th><th>Thực tế</th></tr><tr><td>“Họ trả hoa hồng thật rồi mà.”</td><td>Khoản trả đầu chỉ chứng tỏ đã có một khoản được trả. Đó thường là tiền mồi để mình nạp khoản lớn hơn.</td></tr><tr><td>“Bạn cùng phòng đang làm và đang nhận được tiền.”</td><td>Người quen đang nhận tiền chỉ là một đầu mối để tìm hiểu. Họ có thể cũng đang ở khúc đầu của cùng một vòng.</td></tr><tr><td>“Nạp ít thôi, thử xem sao.”</td><td>Nạp thử vẫn là nộp tiền trước khi kiểm tra xong. Và số nạp sau bao giờ cũng lớn hơn số nạp trước.</td></tr><tr><td>“Gọi là đầu tư chứ không phải xin việc.”</td><td>Gọi là “đầu tư”, “cộng tác viên” hay “gian hàng” thì tiền vẫn đang chảy từ người tìm việc sang phía họ.</td></tr><tr><td>“Để lại bằng gốc cho họ giữ là thủ tục bình thường.”</td><td>Người sử dụng lao động không được giữ bản chính giấy tờ tùy thân, văn bằng, chứng chỉ của người lao động — theo khoản 1 Điều 17 Bộ luật Lao động năm 2019.</td></tr></table><h3>Sáu nhóm phải làm rõ trước khi nộp bất cứ thứ gì</h3><div class=\"k-chips\"><p>CHIỀU TIỀN · CÔNG VIỆC · AI TUYỂN · TRẢ CÔNG · GIẤY TỜ VÀ QUYỀN · ĐƯỜNG RA</p></div><p>Chiều tiền: ai trả cho ai. Công việc: làm gì, ở đâu, cho ai. Ai tuyển: tên đơn vị, và người liên hệ có thẩm quyền gì. Trả công: bao nhiêu, tính thế nào, kỳ trả khi nào. Giấy tờ và quyền: phải giao những gì, cấp quyền gì trên điện thoại. Đường ra: hợp đồng loại nào, thời hạn bao lâu, muốn nghỉ thì báo trước thế nào, khoản đã nộp xử lý ra sao.</p><p>Thiếu một nhóm, hoặc các nhóm mâu thuẫn nhau, thì chưa nộp tiền và chưa giao giấy tờ. Đủ sáu nhóm cũng chưa phải là xong — vẫn phải kiểm tra tư cách pháp lý của bên tuyển, điều khoản hợp đồng và đường đi của tiền.</p><h3>Bốn việc không làm, dù lời mời nghe hợp lý đến đâu</h3><p>Không nộp tiền để có việc. Kích hoạt gian hàng, mở nhiệm vụ, nâng gói, đặt cọc giữ chỗ — mọi tên gọi đều là một việc: nộp tiền trước để được giao việc.</p><p>Không giao bản chính giấy tờ. Chỉ đưa ra đối chiếu rồi cầm về ngay. Nếu một thủ tục hợp pháp thật sự cần bản gốc, chỉ giao cho đơn vị đã xác minh, có biên nhận ghi rõ mục đích và ngày trả, và giữ bản sao.</p><p>Không cài ứng dụng ngoài cửa hàng ứng dụng chính thức, không cấp quyền can thiệp sâu vào máy. Quyền can thiệp sâu vào máy (điện thoại thường gọi là Trợ năng) cho phép ứng dụng đọc nội dung màn hình và thao tác thay mình — đủ để đọc thông báo và chiếm mã xác thực. Lời mời việc làm không có lý do gì cần quyền đó.</p><p>Không mở, cho mượn, cho thuê hay bán tài khoản ngân hàng, và không nhận chuyển tiền hộ. Đây là hành vi bị cấm, và nó kéo người đứng tên vào dòng tiền phạm pháp. Lời mời “việc nhẹ” kiểu này thường đi kèm việc phải giao thẻ, SIM hoặc mã xác thực.</p><h3>Khi lời mời đưa mình đi xa</h3><p>Một người lạ rủ đi làm xa, hứa việc nhẹ lương cao, nhưng không cho địa chỉ cụ thể, không nói sẽ gặp ai, mà lại giục lên xe ngay tối nay — thì điều đáng lo nhất không phải mức lương, mà là không biết mình sẽ đến đâu và gặp ai.</p><p>Không lên xe, không đi trong đêm theo người lạ. Chỉ đi khi đã có địa chỉ, tên người tiếp nhận và điều kiện bằng văn bản; nên chủ động phương tiện hoặc đi cùng người tin cậy. Nếu bị ép, bị đe dọa hoặc bị giữ giấy tờ, gọi 113 hoặc Công an nơi gần nhất và báo ngay người thân.</p><p>Với lời mời đi làm ở nước ngoài, yêu cầu rõ: đơn vị tuyển hoặc phái cử nào, doanh nghiệp tiếp nhận nào, làm ở đâu, công việc gì, hợp đồng ra sao, chi phí bao nhiêu và ai chịu trách nhiệm. Tự tra giấy phép ở nguồn chính thức. Không gửi ảnh hộ chiếu hay giao hộ chiếu cho một tài khoản mạng xã hội chưa xác minh được là ai.</p><h3>Học phí kèm lời hứa việc làm</h3><p>Tờ quảng cáo ghi “học xong được giới thiệu việc làm”, nhưng hợp đồng đào tạo lại không ghi điều đó, cũng không ghi khi nào được hoàn học phí — thì hoãn lại. Giữ tiền trong tài khoản, lưu tờ quảng cáo và tin nhắn, rồi yêu cầu hợp đồng ghi rõ: nội dung đào tạo, việc giới thiệu việc làm, tiêu chí hoàn thành, và trường hợp cùng mức và thời hạn hoàn học phí.</p><p>Quảng cáo và lời hứa có thể dùng làm chứng cứ, nhưng một bản hợp đồng rõ ràng bảo vệ quyền lợi tốt hơn nhiều.</p><h3>Ba cách xử lý</h3><table><tr><th>Cách xử lý</th><th>Khi nào, và làm ngay gì</th></tr><tr><td><b>DỪNG</b></td><td>Nghĩa là: Không nộp tiền, không giao giấy tờ, và kết thúc việc trao đổi đó.<br>Khi nào: Bị bắt nạp tiền mới có việc, bị đòi tài khoản ngân hàng, bị bắt cài ứng dụng lạ hoặc cấp quyền can thiệp sâu vào máy, hoặc bị giục đi xa ngay.<br>Làm ngay: Dừng liên hệ, nói với một người trong nhà.</td></tr><tr><td><b>HOÃN</b></td><td>Nghĩa là: Chưa nộp, chưa ký, giữ nguyên đó để tra thêm.<br>Khi nào: Còn thiếu một trong sáu nhóm thông tin, hoặc quảng cáo vênh với hợp đồng.<br>Làm ngay: Tự tìm tổ chức đó và bộ phận tuyển dụng chính thức để hỏi.</td></tr><tr><td><b>CÓ THỂ QUYẾT ĐỊNH</b></td><td>Khi nào: Tra được đơn vị tuyển, đã xem chỗ làm, không ai đòi nộp khoản nào, và hợp đồng ghi rõ công việc, tiền công, kỳ trả cùng cách nghỉ.<br>Làm ngay: Nhận việc, giữ bản hợp đồng đã ký.</td></tr></table><p>Chương trình này không dạy từ chối mọi lời mời việc làm. Một nơi tra được trên cổng thông tin chính thức, có chỗ làm thật, không đòi nộp khoản nào, hợp đồng cho mang về đọc trước — thì cứ nhận việc. Sau đó đối chiếu thực tế với giấy tờ; thấy khác thì lưu bằng chứng và yêu cầu giải thích bằng văn bản. Biết lúc nào được yên tâm cũng là một phần của việc quyết định cho chắc.</p><div class=\"k-stop\"><p><b>NĂM VIỆC PHẢI CHẶN NGAY</b></p><p>Không nạp tiền để có việc — Không giao bản chính giấy tờ — Không cài ứng dụng từ đường dẫn lạ — Không cho mượn tài khoản ngân hàng — Không lên xe đi xa khi chưa rõ đến đâu. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp:</p><ul><li>Nạp tiền để kích hoạt gian hàng, mở nhiệm vụ, nâng gói hoặc để được nhận hoa hồng.</li><li>Giao bản chính giấy tờ tùy thân, văn bằng, chứng chỉ cho bên tuyển giữ; hoặc đặt tiền, đặt tài sản để bảo đảm thực hiện hợp đồng lao động.</li><li>Cài ứng dụng tuyển việc từ đường dẫn lạ, hoặc cấp quyền can thiệp sâu vào máy cho nó.</li><li>Mở, cho mượn, cho thuê hoặc bán tài khoản ngân hàng; giao thẻ, SIM, mã xác thực; nhận tiền rồi chuyển hộ.</li><li>Lên xe đi làm xa trong đêm khi chưa biết sẽ đến đâu và gặp ai.</li><li>Chặn một việc không có nghĩa là mọi cơ hội đều hỏng. Chặn xong rồi tự xác minh bằng kênh chính thức, lúc đó mới quyết định.</li></ul></div><div class=\"k-pocket\"><p><b>BẢNG KIỂM BỎ TÚI — CHỤP LẠI MÀN HÌNH NÀY</b></p><p>Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao.</p><ul><li>Đồng tiền đầu tiên đi theo chiều nào — mình nhận hay mình nộp?</li><li>Công việc cụ thể là gì, làm ở đâu?</li><li>Đơn vị tuyển tên gì? Mình tra ra ở đâu, ngoài chính lời mời này?</li><li>Tiền công bao nhiêu, tính thế nào, trả vào lúc nào?</li><li>Họ đòi mình giao giấy tờ gì, cấp quyền gì trên điện thoại?</li><li>Muốn nghỉ thì làm sao? Khoản đã nộp xử lý thế nào?</li><li>Có ai đang giục mình quyết ngay hôm nay không?</li></ul></div><h3>Nếu đã lỡ</h3><div class=\"k-note\"><p>Bị lừa không phải lỗi của người bị hại — nhất là khi người bị nhắm tới đang cần một việc làm. Việc lúc này là chặn thiệt hại.</p></div><div class=\"k-case\"><p><b>Không nộp thêm.</b> Dừng liên hệ với bên đó. Đừng nạp thêm để nâng gói hay để mở rút tiền.</p><p><b>Giữ bằng chứng.</b> Lưu tin nhắn, địa chỉ trang, tên ứng dụng, số tài khoản đã nhận tiền, biên lai, lịch sử nạp và rút, và ảnh màn hình số dư.</p><p><b>Bảo vệ tài khoản.</b> Gọi ngân hàng hoặc tổ chức thanh toán bằng số chính thức để đề nghị kiểm tra giúp. Nếu đã cài ứng dụng hoặc cấp quyền, cắt mạng chiếc máy đó rồi dùng một thiết bị khác đáng tin để đổi mật khẩu và đăng xuất khỏi mọi máy khác đang mở tài khoản đó. Nếu đã giao thông tin tài khoản hoặc SIM, báo cả ngân hàng và nhà mạng.</p><p><b>Nếu đã giao bản chính giấy tờ và không liên lạc được với họ.</b> Giữ biên nhận, tin nhắn và địa chỉ; gửi yêu cầu trả lại bằng cách lưu lại được. Liên hệ cơ quan quản lý lao động ở địa phương, và trình báo Công an khi có dấu hiệu chiếm giữ hoặc lừa đảo. Đồng thời hỏi nơi đã cấp bằng về thủ tục xin bản sao từ sổ gốc.</p><p><b>Trình báo.</b> Mang giấy tờ đến cơ quan Công an nơi gần nhất, và nói với một người trong nhà.</p></div><div class=\"k-note\"><p>Và cảnh giác với người tự tìm đến hứa chắc chắn lấy lại được tiền, chỉ cần nộp trước một khoản. Chuyên đề 8 nói kỹ về việc này.</p></div><p><i>23 câu của Chuyên đề 5. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</i></p>",
+    "illustration": {
+     "media": "m-a12"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "2f4523a8-e08b-51b3-9f23-dc023d6a9beb",
     "checklist": "320ee0ee-a568-5bac-9835-9a2f749e526d",
     "isFeatured": false,
@@ -4701,6 +5324,10 @@
     "description": "Đọc khoảng 13 phút. Đọc xong rồi hãy làm 23 câu của Chuyên đề 6.",
     "icon": "book",
     "readingBody": "<div class=\"k-now\"><p><b>CHUYỆN ĐANG XẢY RA NGAY LÚC NÀY?</b></p><p>Nếu vừa nhập thông tin thẻ vào một trang lạ, hoặc vừa chuyển tiền cho một người bán mà giờ thấy bất thường — đọc thẳng mục “Nếu đã lỡ” ở cuối bài trước, rồi quay lại đọc từ đầu sau.</p></div><div class=\"k-box\"><p><b>CÂU HỎI CỦA BÀI</b></p><p>Tiền này vào tay ai, mình nhận đúng món gì, và nhận bằng cách nào?</p></div><div class=\"k-box\"><p><b>NHỚ MỘT CÂU</b></p><p>Chưa rõ tiền vào tay ai — chưa chuyển.</p></div><div class=\"k-box\"><p><b>HIỂU NHANH MẤY TỪ</b></p><p>Rủi ro trong mua bán nằm ở khoảng cách giữa lúc trả tiền và lúc nhận hàng. Càng phải trả nhiều trước khi chắc chắn nhận đúng hàng thì càng rủi ro. Vì vậy hãy ưu tiên cách trả trước ít nhất, qua kênh có chứng từ, và có nơi để khiếu nại.</p><p>Còn một trong năm điều chưa rõ — tiền vào tay ai, nhận gì, trả qua đâu, giao thế nào, hoàn trả ra sao — thì hoãn. Bị xin mã xác thực để “hoàn tiền cho nhanh” thì chặn ngay.</p><p>Kênh chính thức là nơi do chính mình tự tìm ra và kiểm được là đúng tổ chức: số in trên thẻ ngân hàng, ứng dụng chính thức của đúng nhà phát hành mà mình đã dùng từ trước, trang chính thức mình tự gõ địa chỉ và đối chiếu được tên miền, số công bố trên trang đó, hoặc cơ quan Công an nơi gần nhất. Không phải số máy hay đường dẫn do người kia đưa, và cũng không phải ứng dụng mình vừa cài theo lời ai đó.</p></div><h3>Chỗ dễ mất tiền nhất là chỗ mình đang vội</h3><p>Một món hời hiện ra đúng lúc đang cần. Giá rẻ hơn hẳn, người bán nhiệt tình, và chỉ còn đúng một suất. Họ nhắn: chuyển khoản giữ hàng ngay kẻo hết.</p><p>Phần lớn giao dịch mua bán trong đời là bình thường. Nhưng chuyện hay hỏng ở một chỗ rất cụ thể: mình đưa tiền đi trước, rồi mới biết mình nhận được gì.</p><p>Trước khi bấm chuyển, tự trả lời thành tiếng năm câu:</p><div class=\"k-chips\"><p>TIỀN VÀO AI · NHẬN GÌ · TRẢ QUA ĐÂU · GIAO THẾ NÀO · HOÀN TRẢ RA SAO</p></div><p>Còn một câu chưa trả lời được thì chưa chuyển — kể cả khi đó mới chỉ là vài trăm nghìn tiền cọc.</p><h3>Vì sao người mua sắm quen tay vẫn bị</h3><table><tr><th>Điều nhiều người nghĩ</th><th>Thực tế</th></tr><tr><td>“Gian hàng nhiều đánh giá tốt thì yên tâm.”</td><td>Đánh giá và lượt bán chỉ là dữ liệu tham khảo. Chúng không bảo đảm người bán này hay đơn hàng này an toàn.</td></tr><tr><td>“Trả khi nhận hàng là chắc chắn rồi.”</td><td>Trả khi nhận chỉ giảm số tiền đưa trước. Nó không bảo đảm món trong gói đúng như mô tả.</td></tr><tr><td>“Trả riêng cho người bán thì rẻ hơn.”</td><td>Ra ngoài sàn là mất lịch sử giao dịch, mất cơ chế thanh toán bảo vệ và mất đường khiếu nại. Rẻ hơn một chút, mất chỗ dựa khi có chuyện.</td></tr><tr><td>“Đường dẫn hiện ra trên một trang quen thì chắc là thật.”</td><td>Phải xét riêng cái trang vừa nhảy sang, không tin theo nơi đã đặt đường dẫn đó.</td></tr><tr><td>“Nhân viên nói máy chữa được bệnh thì chắc là chữa được.”</td><td>Tin công dụng ghi trong giấy tờ và trên nhãn chính thức. “Hỗ trợ” không phải “chữa khỏi”.</td></tr></table><h3>Ba cách trả tiền, ba mức rủi ro</h3><p>Trả hết trước. Toàn bộ số tiền nằm ở phía bên kia trước khi mình nhận được gì. Rủi ro cao nhất.</p><p>Đặt cọc một phần. Ít rủi ro hơn, nhưng phải ghi rõ mục đích, số tiền, thời hạn, trường hợp hoàn cọc và trách nhiệm nếu mỗi bên từ chối. Không phải khoản trả trước nào cũng mặc nhiên là đặt cọc.</p><p>Trả khi nhận hàng. Số tiền đưa trước ít nhất, nhưng vẫn phải kiểm tra hàng và điều kiện đổi trả.</p><p>Khác biệt giữa ba cách không nằm ở sự tiện lợi, mà ở số tiền mình đưa vào chỗ rủi ro trước khi nhận được hàng.</p><h3>Bốn dấu hiệu cùng nói một điều</h3><p>Giá rẻ bất thường kèm thúc giục. Điều kiện giao hàng bị đổi vào phút cuối. Người bán rủ trả tiền ra ngoài sàn. Tiền lại chuyển vào tay một người không rõ vai trò gì.</p><p>Bốn điều này khác nhau về hình thức nhưng cùng làm một việc: thúc mình đưa tiền trước khi kịp kiểm tra. Gặp một dấu hiệu thì chậm lại và kiểm tra. Gặp nhiều dấu hiệu cùng lúc thì đừng chuyển tiền để thử.</p><p>Riêng chuyện hứa cho kiểm tra hàng rồi lúc giao lại không cho mở, còn giục ký nhận trước — thì đừng ký, đừng trả theo điều kiện mới. Liên hệ người bán hoặc sàn bằng ứng dụng mình tự mở và yêu cầu làm đúng thỏa thuận ban đầu.</p><h3>Mua ở hội thảo, ở hội trường thuê tạm</h3><p>Hai tháng được mời ngồi thử máy miễn phí, được tặng quà nhỏ, được gọi là “thành viên thân thiết”. Rồi đến một buổi, người tổ chức nói chỗ trải nghiệm sắp đóng cửa, không mua ngay hôm nay là mất cơ hội.</p><p>Quà và hạn chót đang cùng làm một việc: thúc quyết vội. Cách trả lời gọn nhất vẫn là một câu, nói bình thường: “Để tôi về bàn với gia đình đã.” Và chưa đặt cọc đồng nào.</p><p>Ghi lại tên máy, mẫu máy, giá, giấy tờ, công dụng ghi trên nhãn và điều kiện đổi trả, rồi tự so với nơi khác. Nếu đang có bệnh, hoặc thấy trong người khác thường, hãy hỏi bác sĩ — đừng tự bỏ thuốc hay bỏ lịch khám vì lời một người bán hàng.</p><p>Đây là bán hàng không tại địa điểm giao dịch thường xuyên, và trường hợp này có quy định riêng bảo vệ người mua. Giữ hợp đồng, giữ quảng cáo và ghi ngày nhận. Nếu quyết định không mua, gửi thông báo bằng văn bản trong 03 ngày làm việc và giữ bằng chứng đã gửi. Quyền trả hàng trong 30 ngày, nếu đủ điều kiện của Điều 47, được tính từ ngày bán hàng hoặc cung cấp dịch vụ — không phải từ ngày nhận hàng. Chưa rõ thì hỏi Ủy ban nhân dân cấp xã nơi tổ chức.</p><p>Khi khuyên người thân trong nhà, hãy nói nhẹ nhàng là cùng kiểm tra cho chắc. Trách móc chỉ làm người ta ngại kể lần sau.</p><h3>Hai lời nhắn không bao giờ nên làm theo</h3><p>“Có người chuyển nhầm tiền vào tài khoản của bạn, bấm vào đây để hoàn lại.” Không quét mã, không bấm đường dẫn, không tự chuyển theo số tài khoản trong tin nhắn. Tự mở ứng dụng ngân hàng để xem, rồi gọi ngân hàng qua kênh chính thức đề nghị kiểm tra giúp và hướng dẫn hoàn trả có chứng từ. Tiền chuyển nhầm thì phải hoàn, nhưng hoàn qua quy trình đã xác minh, để khỏi nhầm lần thứ hai.</p><p>“Cho xin mã xác thực để hoàn tiền cho nhanh.” Không đọc mã cho ai, kể cả người bán. Chụp lại yêu cầu đó, rồi tự gọi ngân hàng và tự liên hệ người bán qua ứng dụng mình mở.</p><h3>Ba cách xử lý</h3><table><tr><th>Cách xử lý</th><th>Khi nào, và làm ngay gì</th></tr><tr><td><b>DỪNG</b></td><td>Nghĩa là: Không trả tiền, không ký nhận, và thoát khỏi bước thanh toán đó.<br>Khi nào: Bị xin mã xác thực, khi trang tự nhảy sang bắt đăng nhập, hoặc khi điều kiện bị đổi vào phút cuối theo hướng bất lợi.<br>Làm ngay: Đóng trang, chụp lại địa chỉ và tin nhắn.</td></tr><tr><td><b>HOÃN</b></td><td>Nghĩa là: Chưa chuyển, giữ nguyên đó để làm rõ.<br>Khi nào: Người nhận tiền, món hàng hoặc điều kiện hoàn trả chưa khớp nhau.<br>Làm ngay: Yêu cầu sửa đơn cho khớp, hoặc tự mở kênh chính thức của bên bán để đối chiếu.</td></tr><tr><td><b>CÓ THỂ QUYẾT ĐỊNH</b></td><td>Khi nào: Đã đối chiếu người bán, giá, cách trả, cách giao và chính sách đổi trả, và không thấy gì đáng ngờ.<br>Làm ngay: Thanh toán, giữ đơn hàng và chứng từ, kiểm tra hàng khi nhận.</td></tr></table><p>Bài này không dạy nghi ngờ mọi người bán. Mua ở gian hàng chính hãng đã đối chiếu với trang của nhà sản xuất, sàn giữ tiền đến khi giao xong, chính sách đổi trả và quyền kiểm tra hàng đều rõ — thì cứ thanh toán. Biết lúc nào được yên tâm cũng là một phần của việc quyết định cho chắc.</p><div class=\"k-stop\"><p><b>NĂM VIỆC PHẢI CHẶN NGAY</b></p><p>Không đọc mã cho ai — Không nhập thẻ trên trang tự nhảy sang — Không quét mã QR trong tin “chuyển nhầm” — Không ký nhận khi bị chặn không cho kiểm — Không đặt cọc khi đang bị giục. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp:</p><ul><li>Đọc hoặc gửi mã xác thực cho bất kỳ ai, kể cả người bán, kể cả để “hoàn tiền cho nhanh”.</li><li>Nhập thông tin thẻ hoặc đăng nhập ngân hàng trên một trang tự nhảy sang từ quảng cáo hay đường dẫn.</li><li>Quét mã QR hoặc bấm đường dẫn trong tin nhắn báo “chuyển nhầm tiền” để hoàn lại.</li><li>Ký nhận hàng khi bị từ chối cho kiểm tra, dù lúc đặt đã hứa cho kiểm tra.</li><li>Đặt cọc ngay tại buổi hội thảo khi đang bị giục và chưa bàn với gia đình.</li><li>Chặn một việc không có nghĩa là cả đơn hàng đều hỏng. Chặn xong rồi tự kiểm tra bằng kênh chính thức, lúc đó mới quyết định.</li></ul></div><div class=\"k-pocket\"><p><b>BẢNG KIỂM BỎ TÚI — CHỤP LẠI MÀN HÌNH NÀY</b></p><p>Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao.</p><ul><li>Tài khoản nhận tiền đứng tên ai? Có khớp với bên bán không?</li><li>Mình nhận đúng món gì — tên và mã hàng có khớp với đơn không?</li><li>Mình trả qua đâu? Kênh đó có chứng từ và có chỗ khiếu nại không?</li><li>Giao nhận thế nào? Mình có được kiểm tra hàng không?</li><li>Muốn trả lại hoặc đòi hoàn tiền thì làm sao, trong bao lâu?</li><li>Mình đang trả trước bao nhiêu, và có cần trả nhiều đến thế không?</li><li>Có ai đang giục mình chốt trong hôm nay không?</li></ul></div><h3>Nếu đã lỡ</h3><div class=\"k-note\"><p>Không tự trách. Làm sớm thì có ý nghĩa, dù khả năng thu hồi không được bảo đảm.</p></div><div class=\"k-case\"><p><b>Lỡ chuyển tiền cho người bán rồi mới thấy bất thường.</b> Không chuyển thêm đồng nào. Liên hệ ngay ngân hàng, ví điện tử hoặc sàn đã dùng để đề nghị khóa và kiểm tra giúp. Chụp lại đơn hàng, tin nhắn, số tài khoản nhận và mốc thời gian; thiếu gì thì bổ sung sau, đừng vì chưa đủ giấy tờ mà chậm gọi.</p><p><b>Lỡ nhập thông tin thẻ vào một trang lạ.</b> Coi như thẻ đã lộ và xử lý ngay, đừng chờ đến khi bị trừ tiền. Gọi ngân hàng bằng số in sau thẻ hoặc trong ứng dụng chính thức, yêu cầu khóa hoặc thay thẻ và kiểm tra giao dịch. Có giao dịch không do mình thực hiện thì đề nghị ngân hàng kiểm tra giúp giao dịch đó ngay. Đừng quay lại đường dẫn đó và đừng nhập lại gì nữa; lưu địa chỉ trang và thời gian để làm bằng chứng, rồi tiếp tục theo dõi sao kê.</p><p><b>Lỡ đọc mã xác thực cho ai đó.</b> Khóa thẻ hoặc tài khoản có nguy cơ và gọi ngân hàng đề nghị kiểm tra giúp. Đừng chờ xem mã có tự hết hạn không.</p><p><b></b> Nếu là quảng cáo sai hoặc đường dẫn giả, lưu lại rồi phản ánh cho nền tảng, tòa soạn hoặc đơn vị phát hành, và cho cơ quan phù hợp.</p></div><div class=\"k-note\"><p>Và cảnh giác với người tự tìm đến hứa chắc chắn lấy lại được tiền, chỉ cần nộp trước một khoản. Chuyên đề 8 nói kỹ về việc này.</p></div><p><i>23 câu của Chuyên đề 6. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</i></p>",
+    "illustration": {
+     "media": "m-a11"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "c870c4ec-a9db-5c01-91ff-3ffe278b7d7d",
     "checklist": "03d15cda-9627-50a5-a621-cfa90156661c",
     "isFeatured": false,
@@ -4723,6 +5350,10 @@
     "description": "Đọc khoảng 14 phút. Đọc xong rồi hãy làm 28 câu của Chuyên đề 7.",
     "icon": "book",
     "readingBody": "<div class=\"k-now\"><p><b>CHUYỆN ĐANG XẢY RA NGAY LÚC NÀY?</b></p><p>Nếu đang có người trên máy bảo mình cài ứng dụng, chia sẻ màn hình, đọc mã xác thực hoặc chuyển tiền — cúp máy ngay, kể cả khi họ đang nói dở câu. Nếu đã lỡ làm theo, đọc thẳng mục “Nếu đã lỡ” ở cuối bài trước.</p></div><div class=\"k-box\"><p><b>CÂU HỎI CỦA BÀI</b></p><p>Họ đang bảo mình làm gì — và mình có nên làm ngay trong lúc đang nói chuyện với họ không?</p></div><div class=\"k-box\"><p><b>NHỚ MỘT CÂU</b></p><p>Không thao tác theo hướng dẫn trong một cuộc gọi đến.</p></div><div class=\"k-box\"><p><b>HIỂU NHANH MẤY TỪ</b></p><p>Kênh chính thức là nơi do chính mình tự tìm ra và kiểm được là đúng tổ chức: số in trên thẻ ngân hàng, ứng dụng chính thức của đúng nhà phát hành mà mình đã dùng từ trước, trang chính thức mình tự gõ địa chỉ và đối chiếu được tên miền, số công bố trên trang đó, hoặc cơ quan Công an nơi gần nhất. Không phải số máy hay đường dẫn do người kia đưa, và cũng không phải ứng dụng mình vừa cài theo lời ai đó.</p><p>Còn điểm chưa rõ thì cúp máy và hoãn lại để tự kiểm tra. Bị đòi cài ứng dụng, chia sẻ màn hình, đọc mã xác thực hay giữ bí mật thì chặn ngay — không cần dấu hiệu thứ hai.</p></div><h3>Đừng nghe họ tự xưng là ai. Nhìn vào việc họ bảo mình làm</h3><p>Giả công an, giả ngân hàng, giả người thân, giả nhân viên giao hàng, giả thầy bói, giả người yêu quen qua mạng. Danh xưng thì nhiều và còn thay đổi dài dài. Nhưng việc họ cần mình làm thì lặp đi lặp lại, gần như không đổi:</p><div class=\"k-chips\"><p>ĐƯA THÔNG TIN · CÀI CÁI GÌ ĐÓ · CHO QUYỀN VÀO MÁY · CHUYỂN TIỀN</p></div><p>Vì vậy không cần cố nhớ từng kiểu giả mạo. Chỉ cần nhìn vào bốn việc trên. Câu chuyện đổi, yêu cầu thì không.</p><p>Và một điều nữa: họ đọc đúng tên mình, đúng địa chỉ, đúng một thông tin mình tưởng ít người biết — điều đó làm câu chuyện nghe thật, nhưng không cho biết người gọi là ai.</p><h3>Vì sao người cảnh giác vẫn làm theo</h3><table><tr><th>Điều nhiều người nghĩ</th><th>Thực tế</th></tr><tr><td>“Tin nhắn hiện đúng tên ngân hàng, lại nằm chung luồng với tin thật.”</td><td>Tên hiển thị và luồng tin nhắn đều có thể bị lợi dụng. Đừng bấm đường dẫn trong đó; tự mở ứng dụng ngân hàng.</td></tr><tr><td>“Gọi video thấy mặt, nghe đúng giọng thì chắc là người nhà.”</td><td>Khuôn mặt và giọng nói dựng được, đủ để qua mặt một cuộc gọi video. Thấy mặt không phải bằng chứng.</td></tr><tr><td>“Hỏi lại thật kỹ chính người đó là kiểm tra rồi.”</td><td>Trôi chảy không phải bằng chứng. Đó vẫn là lời của cùng một người.</td></tr><tr><td>“Họ nói đang trong quá trình xử lý nên không được kể với ai.”</td><td>Câu đó chính là dấu hiệu nặng nhất: họ đang chặn hết những nơi có thể kiểm tra giúp mình.</td></tr><tr><td>“Nội dung có thật thì đường dẫn kia chắc cũng thật.”</td><td>Không. Việc có thật vẫn phải làm trong ứng dụng hoặc trang chính thức mình tự mở.</td></tr></table><h3>Bốn việc dừng ngay, kể cả khi người gọi có thể là người thật</h3><p>Cài ứng dụng theo đường dẫn họ gửi. Không cơ quan hay ngân hàng nào cần mình cài phần mềm theo hướng dẫn qua điện thoại.</p><p>Chia sẻ màn hình, cấp quyền can thiệp sâu vào máy hoặc quyền điều khiển từ xa. Chia sẻ màn hình cho người khác nhìn thấy nội dung; quyền điều khiển còn cho họ thao tác trên máy. Cả hai đều có thể làm lộ mã xác thực và dữ liệu nhạy cảm.</p><p>Đọc hoặc gửi mã xác thực. Mã có thể dùng để xác nhận đăng nhập, liên kết thiết bị hoặc giao dịch. Chỉ tự nhập trong ứng dụng chính thức mình chủ động mở, cho thao tác do chính mình khởi tạo.</p><p>Bị bắt giữ bí mật. Nghe câu “không được nói với ai”, “không được hỏi ngân hàng hay cơ quan” là cúp máy. Rồi tự gọi cho gia đình, ngân hàng hoặc cơ quan liên quan bằng số mình đã biết.</p><p>Nếu trong cùng một cuộc gọi họ đòi nhiều thứ — gửi ảnh giấy tờ, cài ứng dụng, rồi chuyển tiền — thì đừng xử lý từng yêu cầu một. Làm được một việc là họ sẽ dẫn sang việc kế tiếp. Xử lý chung một cách: cúp máy.</p><h3>Gọi lại bằng số chính thức, rồi hỏi theo thứ tự</h3><p>Cúp máy chưa phải là xong. Nếu muốn biết có việc gì thật hay không, tự tra số tổng đài hoặc tự mở ứng dụng chính thức, rồi hỏi bốn câu theo thứ tự:</p><p>1. Có nhân viên nào tên đó, ở bộ phận nào không? 2. Bộ phận đó có được quyền yêu cầu việc này không? 3. Hồ sơ của tôi có đúng đang cần việc đó không? 4. Nếu có thật thì quy trình đúng là làm ở đâu, làm thế nào?</p><p>Ghi lại tên người trả lời và giờ gọi.</p><p>Nếu xác minh xong và đúng là có việc thật, vẫn làm nốt việc đó trong ứng dụng hoặc trang chính thức mình vừa tự mở. Đừng gọi lại số lạ ban đầu để báo đã xác minh, và đừng bấm lại đường dẫn cũ. Nội dung có thật không làm cho đường dẫn kia trở nên an toàn.</p><p>Khi người nhắn tin là “người thân”</p><p>Tài khoản mạng xã hội của con, của cháu, của bạn thân nhắn nhờ chuyển tiền gấp. Cách kiểm tra đáng tin hơn cả không nằm trong chính cuộc trò chuyện đó: gọi vào số đã lưu từ trước, gặp trực tiếp, hoặc hỏi một người thân thứ ba.</p><p>Ghi âm hay video gửi trong tài khoản đang bị nghi thì không đủ làm căn cứ duy nhất. Câu hỏi xác minh mà cả nhà thống nhất trước cũng chỉ là một lớp phụ — và tuyệt đối không gửi đáp án qua chính kênh đang bị nghi.</p><p>Nặng hơn là kiểu gọi báo con đang gặp chuyện, hoặc tự xưng Công an, dọa liên quan đến một vụ án, bắt ở một mình, cấm nói với gia đình và đòi chuyển tiền để “xác minh dòng tiền”. Việc phải làm: cúp máy, đi tới chỗ có người khác, báo ngay người nhà, và liên hệ Công an địa phương — gọi 113 khi cần hỗ trợ khẩn cấp. Không chuyển tiền, không gửi mã.</p><h3>Khi lời mời đánh vào lòng thương hoặc lòng tin</h3><p>Kêu gọi giúp đỡ. Bài đăng giục chuyển tiền ngay vào một tài khoản cá nhân, kèm câu “ai muốn kiểm tra thì gọi số bệnh viện ở dưới bài”. Số ở dưới bài là số họ đưa. Hãy tự tra ra số bệnh viện hoặc nơi tiếp nhận rồi gọi hỏi về đợt kêu gọi, mã trường hợp và tài khoản tiếp nhận.</p><p>Người tự xưng là “thầy”, nói gia đình sắp gặp nạn, chỉ tối nay mới giải hạn kịp, bảo giữ kín và chuyển sang nhắn riêng. Không chuyển tiền, không gửi ảnh, ngày sinh hay chuyện riêng. Kể với một người mình tin cậy. Nếu lời dọa dính tới bệnh tật, hỏi bác sĩ hoặc cơ sở y tế do mình tự chọn.</p><p>Người quen qua mạng. Sau mấy tháng trò chuyện, họ đề nghị chuyển tiền vào một “tài khoản đầu tư chung”, và dặn giữ kín để gia đình khỏi ngăn. Đừng chuyển tiền để chứng minh tình cảm. Hãy tự kiểm tra họ là ai, và nói chuyện với một người mình tin cậy ở ngoài mối quan hệ đó trước khi quyết bất cứ điều gì về tiền bạc.</p><h3>Ba cách xử lý</h3><table><tr><th>Cách xử lý</th><th>Khi nào, và làm ngay gì</th></tr><tr><td><b>DỪNG</b></td><td>Nghĩa là: Không làm theo, cúp máy hoặc đóng trang.<br>Khi nào: Bị đòi cài ứng dụng, chia sẻ màn hình, đọc mã xác thực, hoặc bị bắt giữ bí mật.<br>Làm ngay: Cúp máy, chụp lại số gọi đến và tin nhắn, chưa đưa gì cả.</td></tr><tr><td><b>HOÃN</b></td><td>Nghĩa là: Chưa làm gì, để tự kiểm tra.<br>Khi nào: Chưa rõ người liên hệ là ai hoặc yêu cầu có thật không.<br>Làm ngay: Tự mở ứng dụng chính thức hoặc gọi số in trên thẻ để hỏi lại.</td></tr><tr><td><b>CÓ THỂ QUYẾT ĐỊNH</b></td><td>Khi nào: Đã tự mở kênh chính thức, thấy đúng việc, đúng hồ sơ, và không ai đòi mã, đòi cài hay đòi thêm tiền.<br>Làm ngay: Làm việc đó ngay trong ứng dụng mình vừa tự mở.</td></tr></table><p>Bài này không dạy từ chối mọi cuộc gọi. Người giao hàng gọi hỏi có gửi đơn ở quầy lễ tân được không — mình tự mở ứng dụng mua hàng, thấy đúng đơn, đúng tên người giao, không ai đòi mã hay đòi thêm tiền — thì cứ xác nhận, ngay trong ứng dụng đó. Chỉ giữ một nguyên tắc: thao tác ở nơi mình tự mở, không thao tác theo hướng dẫn trong cuộc gọi.</p><div class=\"k-stop\"><p><b>NĂM VIỆC PHẢI CHẶN NGAY</b></p><p>Không đọc mã — Không cài theo đường dẫn — Không cho quyền vào máy — Không chuyển tiền để “xác minh” — Không giữ bí mật với người nhà. Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp:</p><ul><li>Đọc hoặc gửi mã xác thực, mật khẩu cho người đang liên hệ.</li><li>Cài ứng dụng theo đường dẫn họ gửi, chia sẻ màn hình, hoặc cấp quyền can thiệp sâu vào máy, quyền điều khiển máy.</li><li>Chuyển tiền để “xác minh dòng tiền”, “mở khóa”, “nộp phí nhận thưởng”.</li><li>Quét khuôn mặt hoặc gửi ảnh giấy tờ theo yêu cầu của người chưa xác minh được.</li><li>Làm theo yêu cầu giữ bí mật, không cho hỏi gia đình, ngân hàng hay cơ quan.</li><li>Thấy bất thường thì lưu lại những gì đang có rồi dừng nói chuyện. Đừng cố nói tiếp để moi thêm bằng chứng về họ.</li></ul></div><div class=\"k-pocket\"><p><b>BẢNG KIỂM BỎ TÚI — CHỤP LẠI MÀN HÌNH NÀY</b></p><p>Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao.</p><ul><li>Họ đang bảo mình làm gì — đưa gì, cài gì, cho quyền gì, chuyển cho ai?</li><li>Cuộc liên hệ này do ai bắt đầu — mình hay họ?</li><li>Số máy hoặc đường dẫn này do ai đưa?</li><li>Có ai đang giục, dọa, hay bắt mình giữ bí mật không?</li><li>Mình sẽ kiểm tra lại ở đâu — kênh đó mình tự tìm ra chứ?</li><li>Nếu cúp máy bây giờ thì mình mất gì? Thường là không mất gì.</li></ul></div><h3>Nếu đã lỡ</h3><div class=\"k-note\"><p>Không tự trách. Dừng mất thêm trước đã.</p></div><div class=\"k-case\"><p><b>Lỡ chuyển tiền rồi.</b> Dừng liên lạc, không chuyển thêm. Gọi ngay ngân hàng bằng số in sau thẻ hoặc trong ứng dụng chính thức mình tự mở, đề nghị khóa giao dịch, khóa thẻ và kiểm tra giúp khoản vừa chuyển. Giữ tin nhắn, số tài khoản nhận, biên lai và mốc thời gian trước khi xóa hay gỡ bất cứ thứ gì.</p><p><b>Lỡ nhập mật khẩu vào một trang lạ.</b> Vào kênh chính thức để đổi mật khẩu, đăng xuất khỏi mọi máy khác đang mở tài khoản đó, bật xác thực hai bước, và đổi cả ở những nơi dùng chung mật khẩu đó. Nếu liên quan ngân hàng thì gọi ngay số chính thức. Lưu địa chỉ trang giả làm bằng chứng.</p><p><b>Lỡ chia sẻ màn hình, lỡ cài ứng dụng, hoặc nghi máy đang bị điều khiển.</b> Làm theo thứ tự: 1. Tắt hẳn Wi-Fi và dữ liệu di động của máy đó. 2. Từ một thiết bị khác đáng tin, gọi ngân hàng để khóa, chặn, kiểm tra giúp và đóng mọi lần đăng nhập còn đang mở; đổi mật khẩu song song. 3. Giữ lại địa chỉ trang, tên ứng dụng, tin nhắn và giao dịch. 4. Sau khi đã lưu chứng cứ mới thu hồi quyền, gỡ ứng dụng, và kiểm tra hoặc đặt lại máy khi cần.</p><p><b>Cắt mạng là để người ở xa không điều khiển tiếp được.</b> Đừng vội xóa máy ngay từ đầu, vì làm vậy là mất luôn bằng chứng.</p></div><p>Sau đó, dù là trường hợp nào: nói với một người trong nhà, và trình báo cơ quan Công an nơi gần nhất.</p><p></p><div class=\"k-note\"><p>Và cảnh giác với người tự tìm đến hứa chắc chắn lấy lại được tiền, chỉ cần nộp trước một khoản. Chuyên đề 8 nói kỹ về việc này.</p></div><p><i>28 câu của Chuyên đề 7. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</i></p>",
+    "illustration": {
+     "media": "m-a14"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "checklist": "b0400eca-232b-5a61-a5fe-ea4d73ff730e",
     "isFeatured": false,
@@ -4745,6 +5376,10 @@
     "description": "Đọc khoảng 14 phút. Đọc xong rồi hãy làm 28 câu của Chuyên đề 8.",
     "icon": "book",
     "readingBody": "<div class=\"k-now\"><p><b>CHUYỆN VỪA XẢY RA NGAY LÚC NÀY?</b></p><p>Nếu việc vừa xảy ra trong ít phút qua, làm ba việc này trước đã, rồi hãy đọc tiếp:</p><p>Nếu đã cài ứng dụng lạ, đã chia sẻ màn hình, hoặc nghi máy đang bị điều khiển: tắt Wi-Fi và dữ liệu di động của chiếc máy đó ngay. Đừng xóa gì cả.</p><p>Gọi ngân hàng bằng số in sau thẻ, hoặc từ một thiết bị khác đáng tin, đề nghị khóa và kiểm tra giúp.</p><p>Đừng chuyển thêm đồng nào, và đừng nộp bất kỳ khoản nào để “lấy lại tiền”.</p></div><div class=\"k-box\"><p><b>CÂU HỎI CỦA BÀI</b></p><p>Mình đã mất hoặc đã đưa đi thứ gì — và việc gì phải làm trước?</p></div><div class=\"k-box\"><p><b>NHỚ MỘT CÂU</b></p><p>Bị lừa không phải lỗi của mình. Việc bây giờ là chặn thiệt hại.</p></div><div class=\"k-box\"><p><b>HIỂU NHANH MẤY TỪ</b></p><p>Cô lập thiết bị là cắt chiếc máy đang có nguy cơ ra khỏi mạng — tắt Wi-Fi và dữ liệu di động, hoặc bật chế độ máy bay — để người ở xa không điều khiển tiếp được. Cô lập là cắt mạng, không phải xóa máy.</p><p>Thiết bị khác đáng tin là điện thoại hoặc máy tính không dính vào sự cố. Dùng nó để đăng nhập, đổi mật khẩu và đăng xuất khỏi mọi máy khác đang mở tài khoản đó, khi máy cũ đã cài hoặc cấp quyền hoặc có nguy cơ bị kiểm soát.</p><p>Kênh chính thức là nơi do chính mình tự tìm ra và kiểm được là đúng tổ chức: số in trên thẻ ngân hàng, ứng dụng chính thức của đúng nhà phát hành mà mình đã dùng từ trước, trang chính thức mình tự gõ địa chỉ và đối chiếu được tên miền, số công bố trên trang đó, hoặc cơ quan Công an nơi gần nhất. Không phải số máy hay đường dẫn do người kia đưa, và cũng không phải ứng dụng mình vừa cài theo lời ai đó.</p></div><h3>Trách mình không cứu được đồng nào</h3><p>Người bị lừa hay mất nhiều thời gian nhất vào một việc vô ích: nghĩ đi nghĩ lại xem tại sao mình lại tin. Trong khi đó thì đồng hồ vẫn chạy, và việc có chặn được hay không phụ thuộc rất nhiều vào mấy giờ đầu tiên.</p><p>Bị lừa không phải lỗi của người bị hại. Những câu chuyện này được dựng ra để qua mặt cả người cẩn thận, và chúng chọn đúng lúc mình đang mệt, đang vội, đang lo. Việc lúc này không phải là trách mình, mà là chặn thiệt hại và giữ lại những gì dễ bị xóa mất.</p><p>Và cũng đừng chờ đến khi biết chắc là lừa đảo mới làm. Đã thấy dấu hiệu bất thường thì xử lý ngay theo mức khẩn.</p><h3>Vì sao xử lý xong vẫn mất thêm</h3><table><tr><th>Điều nhiều người nghĩ</th><th>Thực tế</th></tr><tr><td>“Mã xác thực chắc tự hết hạn thôi.”</td><td>Mã hết hạn không có nghĩa là quyền hay giao dịch đã phát sinh tự biến mất. Chờ chỉ làm việc khóa và chặn bị lùi lại.</td></tr><tr><td>“Xóa sạch máy cho yên tâm.”</td><td>Xóa máy là mất luôn bằng chứng. Cắt mạng trước, giữ chứng cứ, rồi mới làm sạch máy.</td></tr><tr><td>“Mình mất nhiều rồi, nộp thêm một khoản nhỏ thì có sao.”</td><td>Sai. Đây chính là cách người ta mất lần thứ hai. Khoản nhỏ nộp thêm không mở được gì cả.</td></tr><tr><td>“Người này ở trong nhóm nạn nhân nên chắc cùng cảnh.”</td><td>Ở trong nhóm không chứng minh được họ là ai, hay giúp được gì. Nhóm là chỗ trao đổi kinh nghiệm, không phải chỗ giao tiền và giấy tờ.</td></tr><tr><td>“Họ nói tỷ lệ thu hồi thành công 90%.”</td><td>Đó là con số tự công bố. Phải hỏi mẫu số, thế nào là thành công, thời kỳ nào, và có bằng chứng độc lập không.</td></tr></table><h3>Chia theo thứ mình đã mất hoặc đã đưa đi</h3><p>Muốn biết làm gì trước thì đừng chia theo tên thủ đoạn. Chia theo thứ đã ra khỏi tay mình — vì mỗi loại có cách chặn khác nhau:</p><p>Đã chuyển tiền — gọi ngay ngân hàng hoặc tổ chức thanh toán đã dùng, đề nghị kiểm tra giúp, chuẩn bị mã giao dịch, thời gian, số tài khoản nhận và nội dung chuyển.</p><p>Đã lộ mã xác thực hoặc thông tin thẻ — gọi ngân hàng qua kênh chính thức, mô tả chính xác thứ đã lộ, yêu cầu khóa đúng sản phẩm, lần đăng nhập còn đang mở, hoặc giao dịch, và đóng mọi lần đăng nhập còn đang mở.</p><p>Đã cài ứng dụng lạ hoặc đã cấp quyền — cắt mạng máy đó trước, rồi dùng thiết bị khác để xử lý.</p><p>Đã gửi ảnh giấy tờ hoặc video khuôn mặt — giữ toàn bộ trao đổi, trình báo, và theo dõi dấu hiệu bị mạo danh: tài khoản lạ, khoản vay lạ, báo cáo tín dụng. Tự kiểm tra báo cáo tín dụng cá nhân qua kênh chính thức của CIC. Nếu giấy tờ vật lý bị mất thì làm thủ tục báo mất và cấp lại theo hướng dẫn.</p><p>Đã mất quyền vào một tài khoản — lấy lại quyền, đổi mật khẩu, bật xác thực hai bước, và cảnh báo riêng cho người thân rằng có thể có người mạo danh mình liên hệ.</p><h3>Sáu việc khi có sự cố</h3><div class=\"k-chips\"><p>1. DỪNG ĐÚNG NGUY CƠ · 2. LIÊN HỆ CHÍNH THỨC · 3. BẢO VỆ TÀI KHOẢN · 4. LƯU CHỨNG CỨ · 5. CẢNH BÁO VÀ TRÌNH BÁO · 6. THEO DÕI</p></div><p>Đây là khung để khỏi bỏ sót, không phải một hàng đợi cứng nhắc. Nhiều việc làm song song được, và thứ tự phải điều chỉnh theo loại sự cố.</p><p>Dừng đúng nguy cơ nghĩa là chặn đúng cái đang nguy hiểm: cô lập máy nếu đã cài hoặc cấp quyền; dừng chuyển tiền nếu đang bị dẫn dụ; khóa thẻ nếu dữ liệu tài chính đã lộ. Liên hệ chính thức là gọi nơi có thể khóa hoặc chặn — bằng số mình tự tra ra. Lưu chứng cứ phải làm trước khi gỡ ứng dụng hay xóa tin nhắn.</p><p>Nếu có thể, nhờ một người tin cậy ngồi cạnh trong lúc xử lý. Lúc đang hoảng thì rất dễ bỏ sót.</p><h3>Xử lý sớm có ý nghĩa — nhưng đừng hứa chắc lấy lại tiền</h3><p>Báo sớm thì khả năng chặn được cao hơn. Đó là lý do phải gọi ngay, kể cả khi chưa gom đủ giấy tờ — thiếu gì bổ sung sau.</p><p>Nhưng khả năng thu hồi không được bảo đảm. Đừng ai hứa với mình điều đó, và mình cũng đừng hứa với bản thân. Chính cái hy vọng ấy là thứ mà vòng lừa thứ hai nhắm vào.</p><p>Lừa đảo lần hai: vòng “giúp lấy lại tiền”</p><p>Người đã bị lừa một lần có nguy cơ bị nhắm tới lần nữa, và thường là dưới vỏ bọc giúp thu hồi. Họ tự tìm đến — qua tin nhắn, qua nhóm nạn nhân, qua bình luận dưới bài viết — và đề nghị một trong bốn thứ:</p><p>Nộp phí trước. Phí hồ sơ, phí xác minh, phí mở khóa, “thuế”. Nguyên tắc vẫn thế: bị đòi thêm thứ gì đó để lấy lại tài sản thì từ chối.</p><p>Xin mã xác thực để “đảo lại giao dịch”. Không đọc mã cho bất kỳ ai, kể cả người tự nhận là đang giúp mình. Chỉ làm việc qua ngân hàng hoặc cơ quan chính thức.</p><p>Xin quyền vào email hoặc tài khoản để “theo dõi dòng tiền”. Không cấp.</p><p>Đưa giấy ủy quyền ký ngay, có khi còn nói không lấy phí. Chưa ký giấy do bên tự tìm đến gửi, trước khi tự kiểm tra được họ là ai ở một nơi khác. Nếu thật sự cần dịch vụ thì tự đi tìm, và đọc cho rõ: người được ủy quyền làm gì, trong bao lâu, có quyền tới đâu với tài khoản và tài sản của mình, chấm dứt bằng cách nào.</p><p>Có thu phí không tự nó là dấu hiệu lừa đảo — dịch vụ pháp lý hợp pháp vẫn thu phí. Đừng quyết chỉ dựa vào chuyện có phí hay không phí. Hãy xét chính dịch vụ đó: nếu họ tự xưng là công ty luật thì tra tổ chức hành nghề và gọi số lấy từ nguồn độc lập; đọc hợp đồng về phạm vi công việc, phí, dữ liệu và quyền phải giao, cùng giới hạn cam kết. Và không bao giờ cung cấp mã xác thực hay mật khẩu.</p><h3>Cảnh báo người thân, đúng cách</h3><p>Nếu ứng dụng lạ đã đọc được danh bạ, hoặc một tài khoản của mình đã bị chiếm, thì nguy cơ tiếp theo không nhắm vào mình mà nhắm vào người quen: kẻ xấu sẽ mạo danh mình đi hỏi vay tiền.</p><p>Đừng đối đầu hay tranh cãi với kẻ đang đe dọa. Hãy xác định ai có thể bị liên lụy rồi nhắn riêng cho họ: nếu thấy mình hỏi vay tiền, hãy xác minh qua số hoặc kênh đã biết từ trước, hoặc gặp trực tiếp. Nếu chính số điện thoại của mình cũng có nguy cơ bị chiếm thì báo qua kênh khác, hoặc nhờ một người thứ ba nhắn giúp.</p><p>Giữ lại tin nhắn đe dọa và trình báo. Đừng công khai dữ liệu của người khác lên mạng.</p><h3>Ba cách xử lý</h3><table><tr><th>Cách xử lý</th><th>Khi nào, và làm ngay gì</th></tr><tr><td><b>DỪNG</b></td><td>Nghĩa là: Không nộp, không đưa, không ký, và kết thúc cuộc liên hệ đó.<br>Khi nào: Bị đòi thêm tiền, thêm giấy tờ, thêm quyền để “lấy lại tài sản”.<br>Làm ngay: Lưu nội dung rồi mới chặn.</td></tr><tr><td><b>HOÃN</b></td><td>Nghĩa là: Chưa ký, chưa giao gì, để tự tra cứu.<br>Khi nào: Có một lời mời dịch vụ mà mình chưa xác minh được tư cách của bên đó.<br>Làm ngay: Tự tra ở nguồn chính thức, gọi số lấy từ nguồn độc lập.</td></tr><tr><td><b>CÓ THỂ QUYẾT ĐỊNH</b></td><td>Khi nào: Đã xác minh được tư cách bên cung cấp dịch vụ, hợp đồng ghi rõ phạm vi, phí và giới hạn cam kết, và không ai đòi mã hay mật khẩu.<br>Làm ngay: Đọc kỹ hợp đồng, nhờ tư vấn nếu cần, rồi tự quyết.</td></tr></table><div class=\"k-stop\"><p><b>NĂM VIỆC PHẢI CHẶN NGAY</b></p><p>Không nộp thêm khoản nào — Không đọc mã — Không cấp quyền vào tài khoản — Không ký ủy quyền cho người tự tìm đến — Không xóa gì khi chưa lưu chứng cứ. Sau khi đã gặp chuyện, đây là năm việc chặn ngay, không cần dấu hiệu thứ hai:</p><ul><li>Nộp bất kỳ khoản nào — phí hồ sơ, phí xác minh, phí mở khóa, “thuế” — để lấy lại tiền hoặc để mở tài khoản.</li><li>Đọc mã xác thực cho ai đó, kể cả người tự nhận là đang giúp mình xử lý.</li><li>Cấp quyền vào email, tài khoản ngân hàng hay mạng xã hội cho người tự tìm đến.</li><li>Ký giấy ủy quyền do bên tự tìm đến gửi, trước khi tự kiểm tra được họ là ai ở một nơi khác.</li><li>Xóa máy, xóa tin nhắn hay gỡ ứng dụng trước khi đã lưu xong chứng cứ.</li></ul></div><div class=\"k-pocket\"><p><b>BẢNG KIỂM BỎ TÚI — CHỤP LẠI MÀN HÌNH NÀY</b></p><p>Bình tĩnh. Làm từng ô một. Chưa nhớ hết cũng không sao.</p><ul><li>Mình đã đưa đi thứ gì — tiền, mã, quyền vào máy, hay giấy tờ?</li><li>Cái gì đang còn nguy hiểm ngay lúc này? Đã chặn chưa?</li><li>Đã gọi nơi có thể khóa hoặc kiểm tra giúp chưa — bằng số mình tự tra chứ?</li><li>Đã đổi mật khẩu và đăng xuất khỏi mọi máy khác đang mở tài khoản đó chưa?</li><li>Đã chụp lại tin nhắn, biên lai, tài khoản nhận và mốc thời gian chưa?</li><li>Đã nói với một người trong nhà chưa? Đã trình báo chưa?</li><li>Có ai đang giục, dọa, hay bắt mình giữ bí mật không?</li><li>Có ai vừa tự tìm đến hứa lấy lại tiền giúp mình không?</li></ul></div><h3>Việc còn lại: theo dõi</h3><p>Sau khi đã chặn và đã báo, còn một việc kéo dài thêm vài tháng: theo dõi.</p><p>Xem lại sao kê và lịch sử giao dịch. Để ý xem có tài khoản, khoản vay hay dịch vụ nào phát sinh mà mình không mở. Kiểm tra báo cáo tín dụng cá nhân qua kênh chính thức của CIC. Nếu thấy dấu hiệu mạo danh thì báo tổ chức tài chính liên quan và trình báo.</p><p>Gom đủ chứng cứ thì nộp cho ngân hàng và tổ chức liên quan, và trình báo cơ quan Công an khi có dấu hiệu tội phạm — trực tiếp, hoặc qua kênh được hướng dẫn như VNeID.</p><p>Và nói với một người trong nhà. Người bị lừa hay giấu vì ngại; nhưng giấu là điều kiện tốt nhất cho vòng lừa thứ hai. Kể ra sớm là một cách tự bảo vệ, không phải một lời thú nhận.</p><p><i>28 câu của Chuyên đề 8. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</i></p>",
+    "illustration": {
+     "media": "m-a31"
+    },
+    "illustrationAlt": "Thời gian quan trọng để ngăn thiệt hại và lưu chứng cứ",
     "topic": "e729cc31-8ab4-5dbb-a5b6-b6b344600ee3",
     "checklist": "cae1df7e-fefb-5b2e-b87f-41ab55b0dc13",
     "isFeatured": false,
@@ -4766,6 +5401,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Lừa đảo tài chính không chừa một ai. Dù cẩn thận hay có kinh nghiệm, chúng ta vẫn có thể sập bẫy nếu bị đánh đúng vào nỗi lo, lòng tin hoặc sự vội vàng. Bài viết này cùng nhìn lại những cú lừa qua lịch sử để nhận ra các dấu hiệu cảnh báo vẫn còn nguyên giá trị hôm nay.</p>",
+    "illustration": {
+     "media": "m-a25"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4783,6 +5422,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Chiêu trò lừa đảo có thể thay đổi mỗi ngày, nhưng cách chúng vận hành thường rất giống nhau. Khi hiểu được “công thức” chung, người dân sẽ dễ nhận ra điều bất thường và biết dừng lại trước khi chuyển tiền hoặc cung cấp thông tin cá nhân.</p>",
+    "illustration": {
+     "media": "m-a26"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4800,6 +5443,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Không phải cứ mất tiền là gặp lừa đảo. Có những sản phẩm, hợp đồng và giao dịch nhìn bề ngoài hợp pháp, giấy tờ đầy đủ, nhưng người tham gia vẫn có thể thiệt hại nặng vì chưa hiểu rõ rủi ro. Bài viết này giúp người dân nhận diện “vùng xám” tài chính và biết cách tự bảo vệ trước khi ký hoặc chuyển tiền.</p>",
+    "illustration": {
+     "media": "m-a30"
+    },
+    "illustrationAlt": "Phân biệt rủi ro đầu tư và thủ đoạn gian lận",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4817,6 +5464,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Nhiều rủi ro tài chính bắt đầu từ một chữ ký tưởng như “chỉ là thủ tục”. Nhưng khi tranh chấp xảy ra, câu “tôi chưa đọc kỹ” thường không đủ để bảo vệ người ký. Bài viết này giúp người dân hiểu chữ ký có ý nghĩa gì và cần làm gì trước khi đặt bút ký, bấm “đồng ý” hoặc xác nhận giao dịch.</p>",
+    "illustration": {
+     "media": "m-a29"
+    },
+    "illustrationAlt": "Đọc kỹ điều khoản trước khi ký cam kết",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4834,6 +5485,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Có những trường hợp người dân mất tiền và cảm thấy rõ ràng mình đã bị lừa, nhưng vụ việc lại không được kết luận là tội lừa đảo. Hiểu đúng ranh giới này giúp mỗi người thận trọng hơn trước khi ký giấy tờ, chuyển tiền hoặc tham gia một lời mời đầu tư.</p>",
+    "illustration": {
+     "media": "m-a28"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4851,6 +5506,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Khi phát hiện mình hoặc người thân vừa bị lừa, điều quan trọng nhất là hành động nhanh và đúng cách. Trong những giờ đầu, mỗi quyết định đúng có thể giúp giảm thiệt hại, giữ lại bằng chứng và ngăn kẻ xấu tiếp tục lợi dụng.</p>",
+    "illustration": {
+     "media": "m-a32"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4868,6 +5527,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Lừa đảo ngày càng tinh vi, nhưng cách phòng tránh không nhất thiết phải phức tạp. Bài viết này giúp người đọc hiểu một số biện pháp đang được nhiều nước áp dụng, đồng thời ghi nhớ những bước đơn giản để tự bảo vệ trước khi chuyển tiền hoặc cung cấp thông tin cá nhân.</p>",
+    "illustration": {
+     "media": "m-a21"
+    },
+    "illustrationAlt": "Người dân cùng chia sẻ thông tin phòng ngừa lừa đảo",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4885,6 +5548,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Chiêu lừa có thể thay áo mới theo thời gian, nhưng cách đánh vào lòng tin, nỗi sợ và sự vội vàng của con người thì không hề mới. Phần 1 giới thiệu những thủ đoạn đã xuất hiện từ lâu nhưng đến nay vẫn khiến nhiều người mắc bẫy.</p>",
+    "illustration": {
+     "media": "m-a24"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4902,6 +5569,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Phần 1 đã điểm lại những chiêu lừa kinh điển. Phần này tập trung vào các thủ đoạn gắn với điện thoại, ứng dụng, mạng xã hội và chuyển khoản trực tuyến — nhóm đang gây thiệt hại lớn vì diễn ra nhanh, kín và khó kiểm soát.</p>",
+    "illustration": {
+     "media": "m-a23"
+    },
+    "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4919,6 +5590,10 @@
     "articleKind": "docThem",
     "icon": "doc",
     "summary": "<p>Phần 2 đã nói về các thủ đoạn trong kỷ nguyên số. Phần cuối của bài 3 nói về nhóm thay đổi nhanh nhất: khi kẻ lừa đảo dùng trí tuệ nhân tạo để giả giọng nói, giả hình ảnh và viết kịch bản riêng cho từng người.</p>",
+    "illustration": {
+     "media": "m-a27"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -4946,7 +5621,7 @@
     "lead": "Mỗi việc có một nơi nhận. Gọi đúng nơi thì việc được xử lý nhanh hơn.",
     "contactGroups": [
      {
-      "key": "83caf239-51ce-5a89-bf5c-3d89b31ceeb1",
+      "key": "7153da56-7492-5349-828a-81c71c8ed1f2",
       "groupName": "Ngân hàng, ví điện tử của bạn",
       "organization": "Tổng đài in trên thẻ hoặc trong ứng dụng bạn đã cài",
       "contactMethods": [
@@ -4955,7 +5630,7 @@
       ]
      },
      {
-      "key": "1a3ffc4e-1f1d-5af0-b0fe-c567fd5f149a",
+      "key": "4fe939f2-d26d-56e3-ad81-acbeac45662c",
       "groupName": "Phản ánh cuộc gọi, tin nhắn lừa đảo",
       "organization": "Tổng đài 156, 5656",
       "contactMethods": [
@@ -4964,7 +5639,7 @@
       ]
      },
      {
-      "key": "6d34e1ca-9662-5830-ba8f-24eddec0fb49",
+      "key": "3c6ec216-353f-53f5-ba9b-197213ae0595",
       "groupName": "Trình báo sự việc",
       "organization": "Công an xã, phường nơi gần nhất hoặc nơi bạn cư trú",
       "contactMethods": [
@@ -4972,7 +5647,11 @@
        "Gọi 113 khi có nguy hiểm tức thời."
       ]
      }
-    ]
+    ],
+    "illustration": {
+     "media": "m-a20"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -4986,7 +5665,11 @@
    "values": {
     "title": "Góp ý",
     "lead": "Thấy nội dung sai, khó hiểu hoặc đã cũ? Gửi cho Ban biên tập.",
-    "enableReward": false
+    "enableReward": false,
+    "illustration": {
+     "media": "m-a22"
+    },
+    "illustrationAlt": "Thông tin được gửi kín và chia sẻ có chọn lọc"
    }
   },
   {
@@ -4998,7 +5681,11 @@
    "state": "published",
    "sortOrder": 6,
    "values": {
-    "title": "Về website"
+    "title": "Về website",
+    "illustration": {
+     "media": "m-a21"
+    },
+    "illustrationAlt": "Người dân cùng chia sẻ thông tin phòng ngừa lừa đảo"
    }
   },
   {
@@ -5022,7 +5709,11 @@
    "state": "published",
    "sortOrder": 8,
    "values": {
-    "title": "Xác minh đúng trang"
+    "title": "Xác minh đúng trang",
+    "illustration": {
+     "media": "m-a27"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -6383,7 +7074,7 @@
     "question": "Người quen đầu tư lãi nhiều, rủ tôi góp vốn. Có nên theo không?",
     "shortAnswer": "Trước hết hỏi ba câu: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
     "reason": "<p>Người thân quen có thể cũng đang bị dẫn. Nhiều mô hình sống được chính là nhờ người quen rủ người quen. Rút thử được một khoản nhỏ chỉ chứng minh lần rút đó đã xong; khoản trả đầu tiên thường chính là tiền mồi.</p>",
-    "actions": "<p>Dùng công cụ “Trước khi đầu tư, vay”. Không vay, không thế chấp nhà đất, không dùng tiền dưỡng già để góp.</p>",
+    "actions": "<p>Dùng phần kiểm tra nhanh “Trước khi đầu tư, vay”. Không vay, không thế chấp nhà đất, không dùng tiền dưỡng già để góp.</p>",
     "approvedBy": "Ban biên tập"
    }
   },
