@@ -567,5 +567,6 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
   - (2) Nhánh Quản lý nội dung là menu cố định (không xóa, không di chuyển). Bấm một mục thì mở danh sách (Collection) để lọc, thêm, sửa; mục con không hiện trên cây.
   - (3) Đường dẫn công khai giữ theo đặc tả 3.3: cảnh báo `/cac-rui-ro/canh-bao-moi/<tên>`, bài viết `/cac-rui-ro/<nhóm>/<tên>`, việc cần làm `/khan-cap/<tên>`, danh sách kiểm tra `/hay-tu-kiem-tra/<tên>`; trang cố định tính từ Trang chủ, bỏ phần "Quản lý trang". Làm bằng UrlProvider và ContentFinder.
   - (4) Bài viết có trường bắt buộc "Nhóm chính" (một nhóm rủi ro) quyết định đường dẫn; giữ "Hiện thêm ở nhóm".
+  - (5) Bổ sung cùng ngày: Quản lý nội dung ở trên, Quản lý trang ở dưới.
 - Lý do: thêm mới thì vào Quản lý nội dung, sửa trang thì vào Quản lý trang; danh sách nhiều bài không làm dài cây.
 - Ảnh hưởng: thêm các thư mục gốc và thư mục có Collection; bỏ tab Danh sách ở Khẩn cấp, Hãy tự kiểm tra, Cảnh báo mới, nhóm rủi ro; Thư viện của gói nền chuyển vào Quản lý nội dung › Danh mục; thêm task UrlProvider và ContentFinder; QĐ-032 (cây theo đường dẫn) thay một phần.
