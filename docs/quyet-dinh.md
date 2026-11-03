@@ -358,9 +358,145 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 
 ### QĐ-036 · PDF checklist: LibreOffice sinh tự động, lùi về tệp tải lên khi hosting không cho cài
 
-- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Thay một phần bởi QĐ-049 (đợt này dùng tệp tải lên)
 - Phạm vi: `checklistPage`, V2-08b, V2-08c; đặc tả 5.5, 11.1, 11.3
 - Vấn đề: đặc tả cần nút "Tải checklist PDF" và "tải PDF hoặc in"; hạ tầng production chưa rõ, có thể chỉ là gói hosting không cho cài phần mềm.
 - Quyết định: (1) làm trước cách sinh PDF tự động: điền nội dung checklist vào mẫu `.docx` bằng OpenXML, chuyển sang PDF bằng LibreOffice chạy headless, sinh lúc xuất bản qua hàng đợi chạy nền (mỗi lần một tiến trình, có giới hạn thời gian), lưu theo phiên bản. (2) Nếu máy chủ không có LibreOffice thì dùng tệp PDF do biên tập viên tải lên. Chọn chế độ bằng cấu hình; không tìm thấy `soffice` thì tự chuyển sang chế độ tải lên và báo trong backoffice. (3) Bản in A4 luôn có, làm đường lùi cuối cùng và cho nút In.
 - Lý do: tệp luôn khớp nội dung, biên tập viên không phải làm PDF bằng tay; vẫn chạy được khi hạ tầng không cho cài.
 - Ảnh hưởng: thêm trường "Tệp PDF" ở `checklistPage`; thêm dịch vụ sinh PDF, mẫu `.docx`, font Be Vietnam Pro trên máy chủ; cần xác minh hạ tầng production trước khi triển khai.
+
+### QĐ-037 · Portal v2: mã danh mục viết đầy đủ
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: trường `code` của mọi mục danh mục (`PORTAL-V2/2-danh-muc-va-document-type.md` mục 4.3, 4.4), tham số lọc trên địa chỉ trang
+- Vấn đề: bản dựng dùng mã ngắn (`dt`, `mxh`, `tt`); mã này hiện trên địa chỉ khi lọc.
+- Quyết định: mã viết đầy đủ, chữ thường không dấu, nối bằng gạch ngang (`dien-thoai`, `mang-xa-hoi`, `truc-tiep`); duy nhất trong danh mục, khóa sau lần xuất bản đầu.
+- Lý do: đọc được trên địa chỉ trang, không cần tra bảng mã.
+- Ảnh hưởng: khi nhập dữ liệu bản dựng phải ánh xạ mã ngắn sang mã đầy đủ (bảng ở mục 4.4).
+
+### QĐ-038 · Portal v2: "Mức độ phổ biến" là danh mục node, sửa được
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: trường Mức độ phổ biến của `alertPage`; đặc tả 7.4
+- Vấn đề: đặc tả 7.4 có "Mức độ phổ biến" nhưng không nêu giá trị; trước đây đề xuất Dropdown cố định.
+- Quyết định: làm thành danh mục node trong Thư viện (thư mục riêng, loại mục riêng) để Ban biên tập tự thêm, sửa, sắp xếp giá trị. Giá trị mẫu ban đầu: Ít gặp, Thường gặp, Rất phổ biến. "Mức độ cần thận trọng" vẫn cố định theo QĐ-033.
+- Lý do: giá trị chưa có trong đặc tả và có thể đổi theo số liệu của cơ quan chức năng; không gắn với logic code.
+- Ảnh hưởng: thêm `popularityFolder`, `popularityItem`, data type chọn tương ứng; bỏ data type `Danh mục · Mức độ phổ biến`.
+
+### QĐ-039 · Backoffice: mọi ô chọn dùng combobox ngay trên form
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: mọi trường chọn ở mọi loại trang và mục (chọn danh mục, chọn trang, chọn giá trị cố định)
+- Vấn đề: trình chọn nội dung mặc định của Umbraco mở hộp thoại có cây, khó dùng với danh sách ngắn.
+- Quyết định: dùng ô chọn dạng combobox tự viết (`Antc.NodeCombobox`) gắn vào kiểu dữ liệu có sẵn của Umbraco, không mở hộp thoại; áp dụng cho mọi trường chọn. Dữ liệu danh mục vẫn là node; phần lưu giá trị, ghi tham chiếu, chặn xóa dùng của Umbraco.
+- Lý do: chọn nhanh, gõ tìm được, thân thiện với biên tập viên; bỏ được ô chọn tự viết thì dữ liệu không phải chuyển.
+- Ảnh hưởng: thêm việc V2-01e (ô chọn và API danh sách); cần kiểm trên Umbraco 18.2.1 và kiểm lại khi nâng cấp Umbraco.
+
+### QĐ-040 · Portal v2: danh mục biên tập là node, chọn bằng ô thả xuống
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: Kênh tiếp cận, Đối tượng, Dấu hiệu phải dừng, Chuyên đề, Thủ đoạn, Mức độ phổ biến (`PORTAL-V2/2-danh-muc-va-document-type.md` mục 1, 4)
+- Vấn đề: danh mục làm bằng data type Dropdown của Umbraco hay bằng node.
+- Quyết định: mỗi mục là một node trong Thư viện (mỗi danh mục một thư mục), biên tập viên tự thêm, sửa, sắp xếp. Trên form, trường chọn hiện dạng thả xuống (combobox, QĐ-039), không mở hộp thoại. Danh sách gắn với logic code (Mức độ cần thận trọng, Loại bài, Kiểu công cụ, Màu kết quả…) vẫn là data type cố định.
+- Lý do: gắn được biểu tượng, mô tả; sửa tên không mất giá trị ở bài đã gắn; Umbraco chặn được xóa mục đang dùng.
+- Ảnh hưởng: thêm thư mục và loại mục trong Thư viện, dữ liệu mẫu qua uSync; việc V2-01b, V2-01c.
+
+### QĐ-041 · Portal v2: không dùng Block List cho nội dung trang
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: các loại trang và mục của portal v2. Trang Cuộc thi, Hỏi – Đáp đã làm bằng Block Grid giữ nguyên
+- Vấn đề: Block List phải mở hộp thoại cho từng khối, khó dùng với biên tập viên.
+- Quyết định: không dùng Block List. Cách nhập thay thế chốt ở QĐ-042.
+- Lý do: biên tập viên sửa cả trang trên một form, ít thao tác hơn.
+- Ảnh hưởng: các element type `…Block` trong thiết kế không còn dùng; cần cách nhập danh sách thay thế.
+
+
+### QĐ-042 · Portal v2: cách nhập thay Block List
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `docs/ban-giao/PORTAL-V2/3-thay-block-list.md` mục 7; `PORTAL-V2/1-thiet-ke.md` CXN-1; V2-01m → V2-01p
+- Vấn đề: QĐ-041 bỏ Block List nhưng chưa chốt cách nhập thay thế.
+- Quyết định:
+  - (1) Dùng bốn cách nhập: ô chữ hoặc ô đoạn; danh sách dòng (Repeatable textstrings); ô danh sách tự viết `Antc.InlineList` có hai dạng Bảng và Thẻ; ô soạn thảo có menu "Kiểu".
+  - (2) Gộp bốn loại khối của Việc cần làm thành một loại "Bước" có phần "Hỏi thêm" không bắt buộc.
+  - (3) Bài đọc dài dùng ô soạn thảo có menu "Kiểu" (Hộp ghi nhớ, Trường hợp thật, Bỏ túi…), thay sáu loại khối.
+  - (4) Danh sách cố định số mục (4 nguyên tắc, 4 liên kết, 3 cửa vào) dùng bảng hoặc thẻ cố định số dòng.
+  - Hình dạng và thao tác theo `mockup-o-nhap-backoffice.html`.
+- Lý do: sửa cả trang trên một form, không có hộp thoại; anhnn đã duyệt mockup.
+- Ảnh hưởng: QĐ-041 hết phần "chờ xác nhận chi tiết"; luồng `V2-ui` làm `Antc.InlineList`.
+
+### QĐ-043 · Portal v2: thay hẳn cấu trúc cũ trên nhánh `portal-v2`
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: toàn gói PORTAL-V2; `1-thiet-ke.md` CXN-4, CXN-6, mục P1
+- Vấn đề: chuyển từ cấu trúc cũ sang mới theo cách nào.
+- Quyết định:
+  - (1) Làm trên nhánh `portal-v2` tách từ `dev`: thêm loại mới; công cụ `Tools/ImportPortalV2` dựng cây nội dung mới và chuyển 40 bài cũ; xóa cấu trúc cũ ở V2-14b (giữ file uSync `Empty … Change="Delete"`). Không chạy song song hai cây nội dung.
+  - (2) Bảng ánh xạ 10 danh mục bài cũ sang 5 nhóm rủi ro do Claude lập nháp, Ban biên tập duyệt trước V2-12b.
+- Lý do: ít việc nhất, không phải cấu hình định tuyến hai gốc.
+- Ảnh hưởng: CSDL local dựng lại bằng `run-local -Reset`; website cũ chỉ còn ở `dev`, `main` cho tới khi gộp `portal-v2`.
+
+### QĐ-044 · Portal v2: trường điều kiện luôn hiện, tách Công cụ thành hai loại
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `1-thiet-ke.md` CXN-3, mục P2; V2-08a, V2-10a
+- Vấn đề: Umbraco không tự ẩn trường theo giá trị của trường khác; mockup có ẩn, hiện.
+- Quyết định:
+  - (1) Ở form tài liệu, trường có điều kiện luôn hiện, mô tả ghi "Chỉ cần khi…". Bắt buộc theo điều kiện thì kiểm phía máy chủ khi xuất bản. Trong `Antc.InlineList` vẫn ẩn, hiện theo điều kiện.
+  - (2) Tách `toolPage` thành `toolCountPage` (đếm dấu hiệu) và `toolBranchPage` (theo nhánh), dùng chung composition `toolBase`. Không tạo data type `Danh mục · Kiểu công cụ`.
+- Lý do: không phụ thuộc cấu trúc nội bộ form Umbraco, an toàn khi nâng cấp; mỗi loại công cụ chỉ có trường của nó.
+- Ảnh hưởng: Phụ lục A mục `toolPage` chia làm hai loại; `Chọn · Công cụ` lọc cả hai loại.
+
+### QĐ-045 · Portal v2: contract ba API backoffice C1, C3, C4
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `1-thiet-ke.md` mục Contract, CXN-8; V2-01i, V2-01q, V2-10b
+- Vấn đề: QĐ-031 khoản 1 yêu cầu chốt contract trước khi code API mới.
+- Quyết định: dùng đúng contract ở `1-thiet-ke.md` mục Contract. Lỗi theo QĐ-004.
+  - C1: `GET /umbraco/management/api/v1/antc/picker-items`.
+  - C3: `GET …/antc/content-info/{key}`, `POST …/antc/checklists/{key}/pdf/regenerate`; chỉ Quản trị viên được sinh lại.
+  - C4: `GET …/antc/publish-check/{key}`; dùng chung bảng luật với kiểm khi xuất bản.
+  - Cả ba cần đăng nhập backoffice.
+- Lý do: luồng `V2-ui` và luồng `chính` chạy song song được.
+- Ảnh hưởng: đổi contract thì thêm quyết định mới.
+
+### QĐ-046 · Portal v2: bỏ API bài viết cũ sau khi có view mới
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `PublishedArticlesController` (`/api/v1/article-categories`, `/api/v1/articles`), `PublishedArticleContentController` (`/api/v1/article-content/*`), `wwwroot/assets/js/articles.js`; `1-thiet-ke.md` CXN-2, P3; V2-14a
+- Vấn đề: các API này đọc loại `article`, `articleList` sẽ bị xóa; chỉ website đang dùng.
+- Quyết định: website mới render bằng Razor. Xóa hai controller và `articles.js` ở V2-14a, sau khi V2-13i xong. Không giữ đường dẫn cũ cho ứng dụng ngoài.
+- Lý do: không có ứng dụng ngoài nào dùng; bớt một lớp phải bảo trì.
+- Ảnh hưởng: `PublishedArticleService` chỉ giữ phần view mới còn dùng; test liên quan sửa theo.
+
+### QĐ-047 · Portal v2: góp ý lưu ở CSDL ứng dụng như câu hỏi Hỏi – Đáp, không đổi Hỏi – Đáp
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `gopYPage`, API C2 `POST /api/v1/feedback`; `1-thiet-ke.md` CXN-5; V2-09c, V2-13j
+- Vấn đề: biểu mẫu Góp ý lưu ở đâu và quản lý thế nào.
+- Quyết định:
+  - (1) Lưu phía máy chủ trong CSDL ứng dụng, theo đúng cách đang lưu câu hỏi Hỏi – Đáp (`QuestionSubmission`, `QuestionSubmissionService`, `QuestionRetentionPolicy`, `QuestionModerationService`): bảng riêng cho góp ý, có chính sách lưu giữ, xem và xử lý trong khu Hỏi – Đáp của backoffice.
+  - (2) Contract C2 theo `1-thiet-ke.md` mục Contract.
+  - (3) Không đổi luồng, bảng và API của câu hỏi Hỏi – Đáp.
+- Lý do: dùng lại mẫu đã chạy, không ảnh hưởng phần đã có.
+- Ảnh hưởng: thêm entity và migration EF; màn xem góp ý trong khu Hỏi – Đáp.
+
+### QĐ-048 · Portal v2: ngưỡng công cụ 2, liên kết nguồn, tự gỡ cảnh báo
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `toolCountPage` công cụ 2, `alertPage`; `1-phan-tich…` mục 12; `1-thiet-ke.md` CXN-9
+- Quyết định:
+  - (1) Công cụ 2 dùng ngưỡng 0 / 1 / từ 2 dấu hiệu, như công cụ 1; Quản trị viên sửa được trong form.
+  - (2) Liên kết văn bản gốc của cảnh báo chỉ bắt buộc bắt đầu bằng `https://`, không giới hạn `.gov.vn`.
+  - (3) Cảnh báo tự gỡ sau 180 ngày kể từ ngày cập nhật, sửa được từng bài (trường `autoUnpublishDays`).
+- Lý do: đặc tả 6.2 không nêu ngưỡng; nhóm Nguồn không bắt buộc (QĐ-033); README bản dựng mục 8.
+- Ảnh hưởng: dữ liệu mẫu V2-12a theo các giá trị trên.
+
+### QĐ-049 · PDF checklist: dùng tệp tải lên, tạm dừng dịch vụ LibreOffice
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `checklistPage`, V2-00, V2-08b, V2-08c; thay phần (1) của QĐ-036
+- Vấn đề: hosting production có thể không cho cài phần mềm (LibreOffice, font), chưa xác minh được.
+- Quyết định: đợt này PDF checklist dùng tệp do biên tập viên tải lên (chế độ `Upload` mặc định), bản in A4 luôn có làm đường lùi. Không làm dịch vụ sinh PDF bằng LibreOffice (V2-08c tạm dừng). Trường tệp PDF ở `checklistPage` cho Biên tập viên thấy và tải lên. Giữ khóa cấu hình `Checklist:Pdf:Mode` để sau này bật LibreOffice nếu hạ tầng cho phép. V2-00 không còn chặn việc nào.
+- Lý do: không phụ thuộc hạ tầng chưa rõ.
+- Ảnh hưởng: bớt khoảng 2 ngày công; biên tập viên phải tự làm PDF khi sửa checklist; trạng thái "PDF tự sinh" và nút "Sinh lại" chưa làm.

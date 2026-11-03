@@ -576,6 +576,8 @@ Mẫu `.docx` do Ban biên tập sửa bằng Word. Cần cài font Be Vietnam P
 
 ## 13. Chia việc
 
+Đã thay bằng bảng task chi tiết ở `1-thiet-ke.md` (2026-11-03). Bảng dưới giữ để đối chiếu.
+
 | Mã | Việc | Phụ thuộc |
 |---|---|---|
 | V2-01 | Kiểu dữ liệu cố định (Mức độ Thường/Cao/Rất cao, Loại bài, Kiểu công cụ, Mức độ phổ biến…) và danh mục: Kênh, Đối tượng, Dấu hiệu, Chuyên đề | – |
