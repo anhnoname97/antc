@@ -1,0 +1,595 @@
+{
+ "format": "antc-wizard-cases",
+ "version": 1,
+ "rule": "Điểm = 2 × số lựa chọn bước 2, 3 trùng + 3 nếu kênh bước 1 trùng. Chỉ tính hàng đang dùng có ít nhất 1 lựa chọn bước 2 hoặc 3 trùng. Sắp điểm giảm dần, hòa điểm theo thứ tự hàng. Lấy tối đa maxSituations hàng. Mức độ là mức cao nhất trong các hàng lấy ra. Dấu hiệu (tối đa 3) và việc cần làm (tối đa 4) lấy từ hàng đầu. Không hàng nào khớp thì noMatch.",
+ "matrixFrom": {
+  "seed": "seed-portal-v2.json",
+  "node": "620db892-e73b-564c-9553-7c6185e1e04a",
+  "maxSituations": 3
+ },
+ "cases": [
+  {
+   "id": "ngan-hang-otp",
+   "description": "Gọi điện đòi OTP, dọa khóa tài khoản",
+   "input": {
+    "step1": "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
+    "step2": [
+     "350b745c-24f3-53b8-b422-d706ca11b469"
+    ],
+    "step3": [
+     "2f75554e-6116-59b1-8c01-6b0f1922e74e"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Cuộc gọi",
+    "step2": [
+     "Cung cấp OTP, mật khẩu, mã PIN"
+    ],
+    "step3": [
+     "“Tài khoản sẽ bị khóa”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "24cc1d67-3d43-56cd-912f-f193548a6aba",
+      "name": "Giả mạo ngân hàng yêu cầu OTP",
+      "score": 7
+     },
+     {
+      "key": "b8fbc758-7881-5a65-8b2b-8d1cd48f22e4",
+      "name": "Giả mạo bưu điện, giao hàng, hoàn tiền",
+      "score": 5
+     },
+     {
+      "key": "d089d8f2-8339-5106-b144-99620a0082b2",
+      "name": "Mua bán online, người mua giả, QR lừa đảo",
+      "score": 2
+     }
+    ],
+    "signs": [
+     "Người gọi hoặc tin nhắn tự xưng ngân hàng",
+     "Yêu cầu đọc hoặc nhập mã OTP, mật khẩu",
+     "Dọa tài khoản sắp bị khóa"
+    ],
+    "actions": [
+     "Không đọc, không gửi mã OTP cho bất kỳ ai.",
+     "Cúp máy, tự gọi số in ở mặt sau thẻ.",
+     "Không bấm đường link trong tin nhắn.",
+     "Nếu đã đọc mã, gọi ngân hàng ngay để khóa tài khoản."
+    ]
+   }
+  },
+  {
+   "id": "cong-an-chuyen-tien",
+   "description": "Giả công an bắt chuyển tiền gấp",
+   "input": {
+    "step1": "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
+    "step2": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5"
+    ],
+    "step3": [
+     "f865fcc0-6a64-5e9a-8576-3a1e30648131",
+     "caba6979-1395-5ff7-9dda-933ef4066841"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Cuộc gọi",
+    "step2": [
+     "Chuyển tiền hoặc đặt cọc"
+    ],
+    "step3": [
+     "“Cơ quan chức năng đang liên hệ”",
+     "“Cần quyết định ngay hôm nay”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "0a2e0c64-f6d4-5fa2-ba4c-1cf4887d23ca",
+      "name": "Giả mạo công an, thuế, tòa án",
+      "score": 9
+     },
+     {
+      "key": "267f3541-fe72-5c97-93e7-37c695291fb2",
+      "name": "Giả mạo người thân, sếp, khách hàng",
+      "score": 7
+     },
+     {
+      "key": "b8fbc758-7881-5a65-8b2b-8d1cd48f22e4",
+      "name": "Giả mạo bưu điện, giao hàng, hoàn tiền",
+      "score": 5
+     }
+    ],
+    "signs": [
+     "Tự xưng cơ quan chức năng, nói bạn liên quan vụ việc",
+     "Yêu cầu chuyển tiền để “xác minh”",
+     "Bắt giữ bí mật, quyết định ngay"
+    ],
+    "actions": [
+     "Không chuyển tiền.",
+     "Cúp máy, tự liên hệ cơ quan Công an nơi cư trú.",
+     "Kể với người thân trước khi làm gì tiếp.",
+     "Không cài ứng dụng theo yêu cầu."
+    ]
+   }
+  },
+  {
+   "id": "dau-tu-loi-nhuan",
+   "description": "Mạng xã hội mời đầu tư lãi cao",
+   "input": {
+    "step1": "85b1223e-a55e-54ec-808a-25d6e9f725f5",
+    "step2": [
+     "194c7231-c370-5005-867a-4410e65cbc20"
+    ],
+    "step3": [
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Facebook/TikTok/YouTube",
+    "step2": [
+     "Đầu tư, mua coin, mở tài khoản"
+    ],
+    "step3": [
+     "“Lợi nhuận cao, bảo đảm vốn”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "909ca5f4-5d95-5346-a052-a7995a625a92",
+      "name": "Lừa đảo đầu tư crypto, forex, chứng khoán",
+      "score": 7
+     },
+     {
+      "key": "6f77f780-0cd4-514e-9271-ab31ec7ace03",
+      "name": "Bảo hiểm giả, bảo hiểm đầu tư",
+      "score": 7
+     }
+    ],
+    "signs": [
+     "Hứa lợi nhuận cao, bảo đảm vốn",
+     "Mời mở tài khoản trên ứng dụng lạ",
+     "Thúc quyết định ngay hôm nay"
+    ],
+    "actions": [
+     "Không chuyển tiền vào tài khoản cá nhân.",
+     "Kiểm tra giấy phép của bên mời.",
+     "Hỏi người thân tin cậy.",
+     "Nếu đã chuyển, liên hệ ngân hàng ngay."
+    ]
+   }
+  },
+  {
+   "id": "viec-lam-coc",
+   "description": "Việc nhẹ lương cao, bắt đặt cọc",
+   "input": {
+    "step1": "85b1223e-a55e-54ec-808a-25d6e9f725f5",
+    "step2": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5"
+    ],
+    "step3": [
+     "8f769767-f6f9-59cb-8f30-20f3b2f8f97d"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Facebook/TikTok/YouTube",
+    "step2": [
+     "Chuyển tiền hoặc đặt cọc"
+    ],
+    "step3": [
+     "“Việc nhẹ, lương cao”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "f28d47a4-b142-5711-b88b-8a9374c34fa9",
+      "name": "Lừa đảo việc làm online, cọc việc làm",
+      "score": 7
+     },
+     {
+      "key": "909ca5f4-5d95-5346-a052-a7995a625a92",
+      "name": "Lừa đảo đầu tư crypto, forex, chứng khoán",
+      "score": 5
+     },
+     {
+      "key": "267f3541-fe72-5c97-93e7-37c695291fb2",
+      "name": "Giả mạo người thân, sếp, khách hàng",
+      "score": 5
+     }
+    ],
+    "signs": [
+     "Việc nhẹ, lương cao, làm tại nhà",
+     "Bắt nạp tiền hoặc đặt cọc để nhận việc",
+     "Trả hoa hồng vài lần đầu rồi đòi nạp thêm"
+    ],
+    "actions": [
+     "Không nạp, không đặt cọc để nhận việc.",
+     "Tra tên công ty qua kênh do bạn tự tìm.",
+     "Hỏi người thân tin cậy.",
+     "Nếu đã chuyển, liên hệ ngân hàng ngay."
+    ]
+   }
+  },
+  {
+   "id": "vay-phi-truoc",
+   "description": "Website cho vay đòi phí trước, thúc gấp",
+   "input": {
+    "step1": "639267ed-f021-51da-aaf5-dbb0f6c1e36d",
+    "step2": [
+     "3ec30f57-36be-560c-8335-605143736de1"
+    ],
+    "step3": [
+     "caba6979-1395-5ff7-9dda-933ef4066841"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Website hoặc quảng cáo",
+    "step2": [
+     "Vay tiền hoặc trả phí trước"
+    ],
+    "step3": [
+     "“Cần quyết định ngay hôm nay”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "a1cc5db9-bd3e-52fd-9a96-62231968d19f",
+      "name": "App vay, phí trước, vay nhanh",
+      "score": 7
+     },
+     {
+      "key": "909ca5f4-5d95-5346-a052-a7995a625a92",
+      "name": "Lừa đảo đầu tư crypto, forex, chứng khoán",
+      "score": 5
+     },
+     {
+      "key": "0a2e0c64-f6d4-5fa2-ba4c-1cf4887d23ca",
+      "name": "Giả mạo công an, thuế, tòa án",
+      "score": 2
+     }
+    ],
+    "signs": [
+     "Vay nhanh, duyệt trong vài phút",
+     "Đòi phí trước khi giải ngân",
+     "Xin quyền danh bạ, ảnh, giấy tờ"
+    ],
+    "actions": [
+     "Không trả phí trước khi nhận tiền vay.",
+     "Không gửi ảnh giấy tờ cho ứng dụng lạ.",
+     "Hỏi người thân tin cậy.",
+     "Chỉ vay ở tổ chức có giấy phép."
+    ]
+   }
+  },
+  {
+   "id": "nguoi-than-can-tien",
+   "description": "Tin nhắn người quen cần tiền gấp",
+   "input": {
+    "step1": "028a1fbb-7121-5d28-9e76-75bd2ce25d3f",
+    "step2": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5"
+    ],
+    "step3": [
+     "caba6979-1395-5ff7-9dda-933ef4066841"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Tin nhắn SMS/Zalo/WhatsApp",
+    "step2": [
+     "Chuyển tiền hoặc đặt cọc"
+    ],
+    "step3": [
+     "“Cần quyết định ngay hôm nay”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "0a2e0c64-f6d4-5fa2-ba4c-1cf4887d23ca",
+      "name": "Giả mạo công an, thuế, tòa án",
+      "score": 7
+     },
+     {
+      "key": "909ca5f4-5d95-5346-a052-a7995a625a92",
+      "name": "Lừa đảo đầu tư crypto, forex, chứng khoán",
+      "score": 7
+     },
+     {
+      "key": "267f3541-fe72-5c97-93e7-37c695291fb2",
+      "name": "Giả mạo người thân, sếp, khách hàng",
+      "score": 7
+     }
+    ],
+    "signs": [
+     "Tự xưng cơ quan chức năng, nói bạn liên quan vụ việc",
+     "Yêu cầu chuyển tiền để “xác minh”",
+     "Bắt giữ bí mật, quyết định ngay"
+    ],
+    "actions": [
+     "Không chuyển tiền.",
+     "Cúp máy, tự liên hệ cơ quan Công an nơi cư trú.",
+     "Kể với người thân trước khi làm gì tiếp.",
+     "Không cài ứng dụng theo yêu cầu."
+    ]
+   }
+  },
+  {
+   "id": "giay-to",
+   "description": "Người quen xin ảnh CCCD",
+   "input": {
+    "step1": "ffec5f18-e82b-5e7d-be3e-9a5acd8791ee",
+    "step2": [
+     "6bc5293d-905b-5e1e-8919-62704403d55d"
+    ],
+    "step3": []
+   },
+   "inputLabels": {
+    "step1": "Người quen giới thiệu",
+    "step2": [
+     "Gửi ảnh CCCD, ảnh khuôn mặt, chữ ký"
+    ],
+    "step3": []
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "6eee1044-26d2-5513-abae-0db07c9e302b",
+      "name": "Lộ CCCD, ảnh khuôn mặt, chữ ký",
+      "score": 5
+     },
+     {
+      "key": "0a2e0c64-f6d4-5fa2-ba4c-1cf4887d23ca",
+      "name": "Giả mạo công an, thuế, tòa án",
+      "score": 2
+     },
+     {
+      "key": "a1cc5db9-bd3e-52fd-9a96-62231968d19f",
+      "name": "App vay, phí trước, vay nhanh",
+      "score": 2
+     }
+    ],
+    "signs": [
+     "Bị yêu cầu gửi ảnh giấy tờ hoặc quét khuôn mặt cho người lạ"
+    ],
+    "actions": [
+     "Không gửi thêm giấy tờ.",
+     "Theo dõi tài khoản ngân hàng, ví điện tử.",
+     "Cảnh giác với cuộc gọi mạo danh sau đó."
+    ]
+   }
+  },
+  {
+   "id": "hoan-tien-qr",
+   "description": "Mạng xã hội gửi link hoàn tiền",
+   "input": {
+    "step1": "85b1223e-a55e-54ec-808a-25d6e9f725f5",
+    "step2": [
+     "75de4617-259e-5e6c-8494-aad99d95652c"
+    ],
+    "step3": [
+     "eca00f11-f2df-56c8-ad4f-f3191a483eb5"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Facebook/TikTok/YouTube",
+    "step2": [
+     "Cài ứng dụng hoặc nhấn link"
+    ],
+    "step3": [
+     "“Hoàn tiền, trúng thưởng, hỗ trợ hoàn vốn”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "d089d8f2-8339-5106-b144-99620a0082b2",
+      "name": "Mua bán online, người mua giả, QR lừa đảo",
+      "score": 7
+     },
+     {
+      "key": "f28d47a4-b142-5711-b88b-8a9374c34fa9",
+      "name": "Lừa đảo việc làm online, cọc việc làm",
+      "score": 5
+     },
+     {
+      "key": "909ca5f4-5d95-5346-a052-a7995a625a92",
+      "name": "Lừa đảo đầu tư crypto, forex, chứng khoán",
+      "score": 5
+     }
+    ],
+    "signs": [
+     "Người mua gửi mã QR hoặc link để “nhận tiền”",
+     "Yêu cầu nhập OTP để nhận thanh toán",
+     "Nói đã chuyển thừa, đòi hoàn lại"
+    ],
+    "actions": [
+     "Không quét mã QR người lạ gửi để nhận tiền.",
+     "Tự mở ứng dụng ngân hàng xem tiền đã về chưa.",
+     "Không đọc mã OTP.",
+     "Hỏi người thân tin cậy."
+    ]
+   }
+  },
+  {
+   "id": "toi-da-ba-tinh-huong",
+   "description": "Chọn rất nhiều: chỉ hiện tối đa maxSituations tình huống",
+   "input": {
+    "step1": "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
+    "step2": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "350b745c-24f3-53b8-b422-d706ca11b469",
+     "75de4617-259e-5e6c-8494-aad99d95652c",
+     "6bc5293d-905b-5e1e-8919-62704403d55d"
+    ],
+    "step3": [
+     "2f75554e-6116-59b1-8c01-6b0f1922e74e",
+     "f865fcc0-6a64-5e9a-8576-3a1e30648131",
+     "caba6979-1395-5ff7-9dda-933ef4066841"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Cuộc gọi",
+    "step2": [
+     "Chuyển tiền hoặc đặt cọc",
+     "Cung cấp OTP, mật khẩu, mã PIN",
+     "Cài ứng dụng hoặc nhấn link",
+     "Gửi ảnh CCCD, ảnh khuôn mặt, chữ ký"
+    ],
+    "step3": [
+     "“Tài khoản sẽ bị khóa”",
+     "“Cơ quan chức năng đang liên hệ”",
+     "“Cần quyết định ngay hôm nay”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "0a2e0c64-f6d4-5fa2-ba4c-1cf4887d23ca",
+      "name": "Giả mạo công an, thuế, tòa án",
+      "score": 13
+     },
+     {
+      "key": "24cc1d67-3d43-56cd-912f-f193548a6aba",
+      "name": "Giả mạo ngân hàng yêu cầu OTP",
+      "score": 9
+     },
+     {
+      "key": "b8fbc758-7881-5a65-8b2b-8d1cd48f22e4",
+      "name": "Giả mạo bưu điện, giao hàng, hoàn tiền",
+      "score": 9
+     }
+    ],
+    "signs": [
+     "Tự xưng cơ quan chức năng, nói bạn liên quan vụ việc",
+     "Yêu cầu chuyển tiền để “xác minh”",
+     "Bắt giữ bí mật, quyết định ngay"
+    ],
+    "actions": [
+     "Không chuyển tiền.",
+     "Cúp máy, tự liên hệ cơ quan Công an nơi cư trú.",
+     "Kể với người thân trước khi làm gì tiếp.",
+     "Không cài ứng dụng theo yêu cầu."
+    ]
+   }
+  },
+  {
+   "id": "chi-co-kenh",
+   "description": "Chỉ chọn kênh, không chọn bước 2, 3: không khớp",
+   "input": {
+    "step1": "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
+    "step2": [],
+    "step3": []
+   },
+   "inputLabels": {
+    "step1": "Cuộc gọi",
+    "step2": [],
+    "step3": []
+   },
+   "expect": {
+    "noMatch": true
+   }
+  },
+  {
+   "id": "chi-buoc-3",
+   "description": "Chỉ chọn bước 3, kênh không trùng: vẫn khớp, 2 điểm",
+   "input": {
+    "step1": "ffec5f18-e82b-5e7d-be3e-9a5acd8791ee",
+    "step2": [],
+    "step3": [
+     "8f769767-f6f9-59cb-8f30-20f3b2f8f97d"
+    ]
+   },
+   "inputLabels": {
+    "step1": "Người quen giới thiệu",
+    "step2": [],
+    "step3": [
+     "“Việc nhẹ, lương cao”"
+    ]
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "ratCao",
+    "situations": [
+     {
+      "key": "f28d47a4-b142-5711-b88b-8a9374c34fa9",
+      "name": "Lừa đảo việc làm online, cọc việc làm",
+      "score": 2
+     }
+    ],
+    "signs": [
+     "Việc nhẹ, lương cao, làm tại nhà",
+     "Bắt nạp tiền hoặc đặt cọc để nhận việc",
+     "Trả hoa hồng vài lần đầu rồi đòi nạp thêm"
+    ],
+    "actions": [
+     "Không nạp, không đặt cọc để nhận việc.",
+     "Tra tên công ty qua kênh do bạn tự tìm.",
+     "Hỏi người thân tin cậy.",
+     "Nếu đã chuyển, liên hệ ngân hàng ngay."
+    ]
+   }
+  },
+  {
+   "id": "kenh-khong-trung",
+   "description": "Lựa chọn trùng nhưng kênh không trùng: vẫn khớp, ít điểm hơn",
+   "input": {
+    "step1": "6c160825-3d84-53ff-ae8b-ce9788494353",
+    "step2": [
+     "3ec30f57-36be-560c-8335-605143736de1"
+    ],
+    "step3": []
+   },
+   "inputLabels": {
+    "step1": "Email",
+    "step2": [
+     "Vay tiền hoặc trả phí trước"
+    ],
+    "step3": []
+   },
+   "expect": {
+    "noMatch": false,
+    "cautionLevel": "cao",
+    "situations": [
+     {
+      "key": "a1cc5db9-bd3e-52fd-9a96-62231968d19f",
+      "name": "App vay, phí trước, vay nhanh",
+      "score": 2
+     }
+    ],
+    "signs": [
+     "Vay nhanh, duyệt trong vài phút",
+     "Đòi phí trước khi giải ngân",
+     "Xin quyền danh bạ, ảnh, giấy tờ"
+    ],
+    "actions": [
+     "Không trả phí trước khi nhận tiền vay.",
+     "Không gửi ảnh giấy tờ cho ứng dụng lạ.",
+     "Hỏi người thân tin cậy.",
+     "Chỉ vay ở tổ chức có giấy phép."
+    ]
+   }
+  }
+ ]
+}
