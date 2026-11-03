@@ -158,6 +158,7 @@ svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .infov b{color:var(--fg);font-weight:500}
 .filebox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .filebox .cb{flex:1;min-width:220px}
+.mprev{flex-basis:100%;display:block;width:100%;max-width:360px;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
 .upl{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);border-radius:6px;padding:7px 12px;cursor:pointer;background:var(--panel)}
 .upl:hover{background:var(--panel-2)}
 .upl input{position:absolute;opacity:0;width:1px;height:1px}
@@ -858,8 +859,9 @@ function fieldEl(f,obj,ctx){
     case 'media':case 'file':{const list=f.t==='file'?PDFS:MEDIA;
       const cb=Combobox({id,items:()=>list,label:f.l,ph:f.t==='file'?'Chọn tệp PDF đã có…':'Chọn ảnh trong Phương tiện…',value:obj[f.k]?[obj[f.k]]:[],onChange:v=>{obj[f.k]=v;liveCheck(f,obj,key);re()}});
       const up=h('input',{type:'file',accept:f.t==='file'?'application/pdf':'image/*'});
-      up.addEventListener('change',()=>{const fl=up.files[0];if(!fl)return;const it={id:uid(),name:fl.name,icon:f.t==='file'?'file':'image',sub:'Vừa tải lên · '+Math.max(1,Math.round(fl.size/1024))+' KB'};list.unshift(it);obj[f.k]=it.id;markDirty();toast('Đã tải lên “'+fl.name+'” (chỉ trong mockup).');ctx.rerender?ctx.rerender():null});
-      return prop(f,h('div',{class:'filebox'},cb.el,h('label',{class:'upl'},icon('upload'),f.t==='file'?'Tải tệp lên':'Tải ảnh lên',up)),key,{for:id})}
+      up.addEventListener('change',()=>{const fl=up.files[0];if(!fl)return;const it={id:uid(),name:fl.name,icon:f.t==='file'?'file':'image',sub:'Vừa tải lên · '+Math.max(1,Math.round(fl.size/1024))+' KB'};if(f.t!=='file')it.src=URL.createObjectURL(fl);list.unshift(it);obj[f.k]=it.id;markDirty();toast('Đã tải lên “'+fl.name+'” (chỉ trong mockup).');ctx.rerender?ctx.rerender():null});
+      const sel=list.find(x=>x.id===obj[f.k]);
+      return prop(f,h('div',{class:'filebox'},cb.el,h('label',{class:'upl'},icon('upload'),f.t==='file'?'Tải tệp lên':'Tải ảnh lên',up),sel&&sel.src?h('img',{class:'mprev',src:sel.src,alt:''}):null),key,{for:id})}
     case 'lines':return prop(f,LineList({arr:obj[f.k]||(obj[f.k]=[]),min:f.min,max:f.max,label:f.l,ph:f.ph,onChange:()=>{liveCheck(f,obj,key);any()}}).el,key,{top:f.top});
     case 'table':return prop(f,TableList(f,obj[f.k]||(obj[f.k]=[]),ctx),key,{top:true});
     case 'cards':return prop(f,CardList(f,obj[f.k]||(obj[f.k]=[]),ctx),key,{top:true});
@@ -1267,6 +1269,7 @@ if(start==='selftest'){
       document.querySelectorAll('.card .card-h').forEach((c,i)=>{if(i<6)c.click()});}catch(e){errs.push(r+' '+n.id+' '+n.type+': '+e.message)}})});
   try{ROLE='qt';Object.keys(ALLOW).forEach(pt=>{const par=N.find(x=>x.type===pt);if(!par)return;ALLOW[pt].forEach(ct=>{createChild(par,ct);const nn=CURNODE();if(nn.type!==ct)errs.push('create '+ct+' fail');save('save');if(!ERR.name)errs.push('create '+ct+' thiếu báo tên');nn.name='Thử';save('save');PANELS.forEach((p2,i)=>SHOWTAB(i));count++})})}catch(e){errs.push('create: '+e.message)}
   try{const w=byId('wizard').v;const a2=new Set([w.o2[1]._k]);const res=mxCompute(w,w.o1[0]._k,a2,new Set([w.o3[1]._k]));if(!res||res.lv!=='ratCao')errs.push('matrix compute sai: '+JSON.stringify(res&&res.lv))}catch(e){errs.push('matrix: '+e.message)}
+  N.forEach(n=>['illus','thumb','logo','logo2'].forEach(k=>{const v=n.v[k];if(v&&!MEDIA.some(m=>m.id===v))errs.push('media '+n.id+'.'+k+' = '+v+' không có trong Phương tiện')}));
   document.body.append(h('pre',{id:'selftest',text:'SELFTEST '+(errs.length?'FAIL':'OK')+' renders='+count+' nodes='+N.length+'\n'+errs.join('\n')}));
 }else go(byId(start)?start:'khan-cap');
 </script>

@@ -16,12 +16,12 @@ Bộ script dựng mockup backoffice, phụ lục trường, dữ liệu mẫu (
 
 ## Chạy lại
 
-Chạy trong thư mục này. `v2data.json` là file trung gian, không commit.
+Chạy trong thư mục này. File bản dựng `antoantaichinh_co_anh_nen_sang.html` nằm ở `docs/ban-giao/PORTAL-V2/` (commit trên `dev`). Tham số cuối của `build_bo.py` là tùy chọn: có thì nhúng ảnh thu nhỏ để xem trước trong ô chọn ảnh, cần Pillow nên chạy bằng `python` thường. `v2data.json` là file trung gian, không commit.
 
 ```
-node tach-ban-dung-don.js <đường dẫn>/antoantaichinh_co_anh_nen_sang.html ban-dung-moi
+node tach-ban-dung-don.js ../antoantaichinh_co_anh_nen_sang.html ban-dung-moi
 node tach-du-lieu-ban-dung.js ban-dung-moi/build v2data.json
-python -I build_bo.py v2data.json ban-dung-moi/build/data.json mockup-src.html ../mockup-o-nhap-backoffice.html
+python build_bo.py v2data.json ban-dung-moi/build/data.json mockup-src.html ../mockup-o-nhap-backoffice.html ban-dung-moi/anh
 node dump_schema.js ../mockup-o-nhap-backoffice.html phu-luc-a.md
 node xuat-seed.js ../mockup-o-nhap-backoffice.html seed-portal-v2.json
 python make_xlsx.py ../1-thiet-ke.md ../../../quyet-dinh.md ../Ke-hoach-portal-v2.xlsx

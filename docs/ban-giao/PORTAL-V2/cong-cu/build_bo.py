@@ -2,6 +2,7 @@
 import json, sys, re, unicodedata, html as H
 
 v2path, djpath, srcpath, outpath = sys.argv[1:5]
+imgdir = sys.argv[5] if len(sys.argv) > 5 else None  # ban-dung-moi/anh: nhung anh thu nho de xem truoc
 V = json.load(open(v2path, encoding='utf-8'))
 R = json.load(open(djpath, encoding='utf-8'))
 
@@ -362,10 +363,19 @@ for x in N:
         x['v']['illus'] = 'm-a' + im
         x['v']['illusAlt'] = ALT.get(im, ALT0)
     if i_ in THUMB: x['v']['thumb'] = 'm-a' + THUMB[i_]
-USED = sorted({x['v'][f][4:] for x in N for f in ('illus', 'thumb') if x['v'].get(f)})
+USED = sorted({x['v'][f][3:] for x in N for f in ('illus', 'thumb') if x['v'].get(f)})
 MEDIA = [{'id': 'm-a' + n, 'name': 'minh-hoa-%s.jpg' % n, 'icon': 'image', 'sub': 'Ảnh minh họa bản dựng · ' + ALT.get(n, ALT0)} for n in USED] + [{'id': 'm-logo', 'name': 'logo-antc.svg', 'icon': 'image', 'sub': 'Logo · 240 × 64'}, {'id': 'm-logo-w', 'name': 'logo-antc-trang.svg', 'icon': 'image', 'sub': 'Logo nền tối · 240 × 64'},
          {'id': 'm-share', 'name': 'anh-chia-se-mac-dinh.png', 'icon': 'image', 'sub': 'Ảnh chia sẻ · 1200 × 630'}]
 
+if imgdir:
+    import base64, io, os
+    from PIL import Image
+    for m in MEDIA:
+        fn = os.path.join(imgdir, m['name'])
+        if not m['id'].startswith('m-a') or not os.path.exists(fn): continue
+        im = Image.open(fn).convert('RGB'); im.thumbnail((640, 640))
+        buf = io.BytesIO(); im.save(buf, 'JPEG', quality=72)
+        m['src'] = 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode()
 data = json.dumps({'N': N, 'MEDIA': MEDIA}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 src = open(srcpath, encoding='utf-8').read()
 out = src.replace('__DATA__', data)
