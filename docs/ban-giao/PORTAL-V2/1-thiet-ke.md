@@ -12,7 +12,7 @@ Cách dùng file này:
 
 ## Mục tiêu và phạm vi
 
-Mục tiêu: dựng lại website antoantaichinh.vn theo cấu trúc 3 mục của khách (Khẩn cấp · Công cụ & checklist · Các rủi ro), gồm hai phần:
+Mục tiêu: dựng lại website antoantaichinh.vn theo cấu trúc 3 mục của khách (Khẩn cấp · Công cụ & checklist, nay gọi "Hãy tự kiểm tra" theo QĐ-050 · Các rủi ro), gồm hai phần:
 - Phần quản trị: Biên tập viên tự sửa mọi câu chữ, danh mục và quy tắc trên một form, không có hộp thoại.
 - Phần website: hiển thị theo mockup portal.
 
@@ -100,7 +100,7 @@ Mọi task phải đạt các điều sau. Tiêu chí riêng của từng task g
 | Lựa chọn của trình hỏi bị xóa ở tab Câu hỏi nhưng ma trận còn trỏ tới | Ma trận cảnh báo. Xuất bản thì ô đó bị bỏ qua và ghi log |
 | Không tình huống nào khớp | Trình hỏi hiện trạng thái "Cần thận trọng" và 4 nguyên tắc dừng |
 | Cảnh báo quá 90 ngày | Ra khỏi khối trang chủ. Quá "Tự gỡ sau" thì tác vụ nền tự hủy xuất bản |
-| Checklist chưa có tệp PDF | Nút "Tải checklist PDF" mở bản in A4 (QĐ-049) |
+| Danh sách kiểm tra chưa có tệp PDF | Nút "Tải danh sách kiểm tra (PDF)" mở bản in A4 (QĐ-049) |
 | Dán từ Word hoặc Excel vào bảng, danh sách dòng | Tách dòng, tách cột. Phần vượt số tối đa bị bỏ, có thông báo |
 | Ô soạn thảo nhận HTML lạ khi dán | Chỉ giữ chữ. Phía máy chủ lọc HTML theo `ArticleHtmlSanitizer` đang có |
 | Biên tập viên mở trang chỉ Quản trị viên được sửa | Thấy thông báo, không thấy form (trình hỏi), hoặc không thấy tab hay trường (Cài đặt website) |
@@ -202,6 +202,7 @@ Quy ước trong bảng:
 | V2-01k | `Antc.NodeCombobox`: trạng thái và giới hạn (0,5) | V2-ui | • Giới hạn số mục ("Đã chọn 3/4", làm mờ khi đủ).<br>• Kéo thẻ để sắp.<br>• Nhãn "Nháp".<br>• Mục ngừng dùng hiện chữ xám.<br>• Danh sách lớn: 20 mục đầu, gõ thì tìm phía máy chủ.<br>• Dòng phụ ghi tên mục cha.<br>• Thư mục rỗng<br>• `aria` cho combobox, listbox | V2-01j | Đủ mọi tình huống ở bảng "Hành vi" của `2-danh-muc…` mục 4.7 | Thử theo bảng đó | Làm được |
 | V2-01l | Combobox cho danh sách cố định và thẻ (0,5) | V2-ui | Property editor UI gắn schema `Umbraco.DropDown.Flexible` (hiện chấm màu hoặc biểu tượng: tách tên biểu tượng sau dấu "·") và `Umbraco.Tags` (gõ rồi Enter để thêm thẻ mới, gợi ý thẻ đã có) | V2-01j | 9 data type `Danh mục · …` và 2 data type `Thẻ · …` dùng được giao diện mới; giá trị lưu không đổi định dạng | Lưu, mở lại; xem giá trị trong CSDL không đổi | Làm được |
 | V2-01m | `Antc.InlineList` phía máy chủ (1) | V2-ui | `Core/PortalV2/Editors/InlineList*.cs`:<br>• `DataEditor` `Antc.InlineList`.<br>• Cấu hình: danh sách ô (alias, nhãn, kiểu, bắt buộc, giới hạn, điều kiện hiện), số dòng tối thiểu và tối đa, cho sắp hay không, dạng Bảng hay Thẻ, ô tóm tắt, phần tùy chọn.<br>• Giá trị là JSON, mỗi dòng có `key` GUID.<br>• Kiểm khi lưu theo cấu hình.<br>• `IDataValueReferenceFactory` cho ô chọn nút.<br>• Value converter trả `InlineListValue` có hàm đọc chữ, đọc nút, đọc danh sách dòng | V2-00b | Theo `3-thay-block-list.md` mục 3.3. Tham chiếu hiện ở mục "Đang dùng ở" của nút được chọn | `dotnet test` (kiểm, tham chiếu, chuyển đổi); thử xóa nút được chọn trong một bảng thì bị chặn | Đã làm khung 2026-11-03 (f31889da): cấu hình, kiểm, tham chiếu UDI, converter, 7 test. Giao diện tạm là ô JSON |
+| V2-01r | Danh mục và ảnh theo QĐ-051, QĐ-052 (0,5) | chính | `DanhMucCoDinh`: nhãn `thuong` thành "Cần thận trọng"; thêm `LoaiCauKiemTra`, `NghiaCauTraLoi`; bỏ `MauKetQua`, `TraLoiDauHieu`.<br>• Bộ dựng đồng bộ mục của dropdown đã có và đổi giá trị đã lưu "Thường" thành "Cần thận trọng" (32 thủ đoạn ở Thư viện).<br>• Xóa hai data type bỏ (uSync ghi file `Change="Delete"`).<br>• Composition `illustrationBase`: `illustration` (Chọn ảnh), `illustrationAlt` (Chữ · 160, bắt buộc khi có ảnh, kiểm ở V2-10a) | V2-01a, V2-01d | Test danh mục khớp seed; dropdown trong backoffice hiện chữ mới; không còn giá trị "Thường" | `dotnet test`; chạy bộ dựng trên CSDL có dữ liệu cũ; xem thủ đoạn trong backoffice | Đã làm 2026-11-03 (portal-v2): bộ dựng đổi 4 thủ đoạn "Thường" → "Cần thận trọng", xóa 2 data type |
 | V2-01n | `Antc.InlineList` dạng Bảng (1) | V2-ui | `Web/App_Plugins/AntcEditors/inline-list.js`, `inline-list.css`.<br>• Ô chữ, ô đoạn tự cao lên, ô số, ô ngày.<br>• Ô chọn dùng combobox của V2-01j, V2-01l.<br>• Dòng mở rộng ▸.<br>• Thêm dòng; xóa có Hoàn tác 8 giây; kéo ⋮⋮ và bàn phím để sắp.<br>• Bảng cố định số dòng.<br>• Lỗi hiện dưới từng ô.<br>• Khung hẹp hơn 720 px chuyển sang thẻ | V2-01m, V2-01l | Thao tác giống màn Khẩn cấp và Cài đặt website trong mockup | Gắn vào một data type thử; làm theo khung "Thử trong màn này" của mockup v1 | Làm được |
 | V2-01o | `Antc.InlineList` dạng Thẻ (1) | V2-ui | Thẻ có dòng tóm tắt và nhãn đặc điểm; mở, thu; Mở hết, Thu hết; nhân bản; chèn giữa; xóa có Hoàn tác.<br>Trong thẻ: danh sách dòng, bảng nhỏ (một cấp), phần tùy chọn bật tắt (ví dụ "Hỏi thêm"), ô hiện theo điều kiện trong dòng (ví dụ cửa vào "Mở trang" hay "Mở danh sách") | V2-01n | Thao tác giống màn Việc cần làm, Khẩn cấp (Ba cửa vào) và Checklist trong mockup | Như trên | Làm được |
 | V2-01p | `Antc.InlineList`: dán, bàn phím, so sánh phiên bản (0,5) | V2-ui | • Dán nhiều dòng (Tab tách cột) từ Excel hoặc Word.<br>• Enter ở ô cuối thì thêm dòng.<br>• Danh sách dòng: Enter thêm dòng, Backspace ở dòng trống thì xóa, Alt + ↑ ↓ để chuyển dòng.<br>• Hiện dạng bảng ở màn so sánh phiên bản; không làm được thì ghi giới hạn | V2-01o | Dán 5 dòng 3 cột vào bảng số đường dây nóng thì ra 5 dòng | Thử dán | Làm được |
@@ -231,7 +232,7 @@ Mỗi task dưới đây gồm:
 | V2-07b | Ma trận phía máy chủ và hàm tính điểm (1) | V2-ui | `Core/PortalV2/Wizard/`: `WizardMatrixEditor` (`DataEditor` `Antc.WizardMatrix`), kiểm cấu trúc JSON, `IDataValueReferenceFactory` (bài và checklist trong từng hàng), value converter.<br>`WizardScoring.cs`: điểm = 2 × số lựa chọn bước 2, 3 trùng, cộng 3 nếu kênh trùng; chỉ tính hàng có ít nhất một lựa chọn bước 2 hoặc 3 trùng; lấy tối đa `maxSituations` hàng; mức độ cao nhất; hòa điểm thì theo thứ tự hàng | V2-07a | Theo `1-phan-tich…` mục 6.4. Bộ ca kiểm dùng chung với JS (V2-07d, V2-13d) đặt ở `docs/ban-giao/PORTAL-V2/cong-cu/wizard-cases.json` | `dotnet test` với ít nhất 6 ca, trong đó có: ngân hàng và OTP; đầu tư crypto; không khớp | Chờ I-01 |
 | V2-07c | Ma trận: bảng (1) | V2-ui | `Web/App_Plugins/AntcEditors/wizard-matrix.js`:<br>• Cột đầu cố định khi cuộn; tiêu đề cột viết dọc; nhóm 3 bước theo màu; bấm ô để bật, tắt.<br>• Tìm, lọc mức độ, "Chỉ hàng có cảnh báo".<br>• Kéo để sắp.<br>• Khối cảnh báo: hàng thiếu thông tin, lựa chọn chưa thuộc hàng nào, ô trỏ tới lựa chọn đã xóa | V2-07b | Giống tab Ma trận trong mockup (`#qt.wizard`) | Bật, tắt ô; lưu; mở lại | Làm được |
 | V2-07d | Ma trận: ngăn chi tiết và "Thử kết quả" (1) | V2-ui | Ngăn bên phải sửa tên, mức độ, dấu hiệu (1–3), việc cần làm (1–4), bài, checklist, "Đang dùng"; nhân bản; xóa có Hoàn tác.<br>Khung "Thử kết quả" tính bằng JS theo cùng bộ ca kiểm | V2-07c | Kết quả JS khớp `WizardScoring` trên mọi ca trong `wizard-cases.json` | Chạy bộ ca bằng `node`; thử tay trên màn | Làm được |
-| V2-08a | `congCuPage`, công cụ, `checklistPage` (1) | chính | • `congCuPage` có tab Danh sách (công cụ và checklist, kéo sắp).<br>• Công cụ: `toolCountPage`, `toolBranchPage` dùng chung composition `toolBase` (QĐ-044).<br>• `checklistPage`: `itemGroups` (Thẻ), `pdfFile` (Biên tập viên tải lên, QĐ-049).<br>• `Chọn · Công cụ`, `Chọn · Checklist`.<br>• Thêm `topicItem.checklist`; thêm checklist vào `Chọn · Bài liên quan` | V2-03a | Đúng Phụ lục A | Tạo checklist mới bằng nút Tạo của trang cha | Làm được |
+| V2-08a | `congCuPage`, kiểm tra nhanh, `checklistPage` (1) | chính | • `congCuPage` "Hãy tự kiểm tra": ba nhóm Kiểm tra nhanh, Danh sách kiểm tra, Kiểm tra kiến thức (`knowledgeLinks`); tab Danh sách kéo sắp.<br>• `toolCountPage`: `questions` (Thẻ: `questionKind`, `question`, `hint`, `answerOptions`), nhãn ba mức, `stopActions`/`holdActions`/`clearActions` (trang việc cần làm + số bước), `readMore`, `showAdviceBox`.<br>• `toolBranchPage`: `questions` (Thẻ: câu, nhãn tình huống, chữ nút, trang việc cần làm, `takeSteps`), hộp nguy hiểm tức thời, `allNoActions`, `hitTitle` có `{n}`.<br>• `checklistPage`: phần 1 `stopQuestions` (≤ 8), phần 2 `pocketItems` (≤ 15), `stopNow`, `holdNow`, `pdfFile` (QĐ-049).<br>• Kiểm máy chủ: số bước tồn tại trong trang việc cần làm.<br>• `Chọn · Kiểm tra nhanh`, `Chọn · Danh sách kiểm tra`; thêm `topicItem.checklist`; thêm danh sách kiểm tra vào `Chọn · Bài liên quan`. Gắn `illustrationBase` (QĐ-052) | V2-03a, V2-01r | Đúng Phụ lục A; số bước sai bị chặn khi lưu | Tạo danh sách mới bằng nút Tạo của trang cha; nhập số bước 9 ở trang 5 bước | Làm được |
 | V2-06a | `khanCapPage` (1) | chính | Tab Danh sách (trang Việc cần làm, ngày rà soát).<br>• `doors`: Thẻ cố định 3, trong thẻ có bảng `options`; hiện `targetPage` hay `options` theo `openMode`.<br>• `stateHotlines`, `bankHotlines`: Bảng.<br>• `typicalSituations`.<br>• `Chọn · Việc cần làm hoặc trình hỏi` | V2-05a, V2-07a | Đúng Phụ lục A | Điền thử ba cửa vào hai kiểu | Chờ I-01 |
 | V2-06b | `homePage` (0,5) | chính | Bốn nhóm khối; `tools` đúng 3, sắp được; `pinnedAlert`. Cho tạo con `infoPage`, `policyPage` (chỉ Quản trị) | V2-04a, V2-08a | Đúng Phụ lục A | Tạo nút trang chủ mới | Làm được |
 | V2-08b | Bản in A4, tệp thay thế, đường tải PDF (1,5) | chính | `Core/PortalV2/Pdf/ChecklistPdfResolver.cs`.<br>Đường tải `/{checklist}/tai-pdf`: có `pdfFile` thì trả tệp; không có thì chuyển sang bản in A4.<br>Cấu hình `Checklist:Pdf:Mode`, mặc định `Upload` (QĐ-049). Giữ chỗ nhánh `LibreOffice` để bật sau. View in A4 làm ở V2-13g | V2-08a | Có tệp thì tải tệp, không có thì mở bản in | `curl -I` đường tải ở hai trường hợp | Làm được |
@@ -261,8 +262,8 @@ Mỗi task dưới đây gồm:
 | V2-13c | Khẩn cấp (1) | V2-web | `khanCapPage.cshtml`.<br>• Lối vào trình hỏi.<br>• Ba cửa: mở trang ngay, hoặc mở danh sách tại chỗ.<br>• Tình huống điển hình.<br>• Số tổng đài; dấu "chưa kiểm chứng" khi thiếu nguồn.<br>• Hộp tự tìm số ngân hàng | V2-06a | Như mockup `#khan-cap` | Chụp; bấm cửa vào | Chờ I-01 |
 | V2-13d | Trình hỏi (1,5) | V2-web | `wizardPage.cshtml` và `wwwroot/assets/js/wizard.js`.<br>• Quy tắc nhúng trong HTML; tính trên trình duyệt; không gửi máy chủ.<br>• 3 bước, quay lại được.<br>• Kết quả 4 khối, 4 nút; trạng thái "Cần thận trọng".<br>• Câu bắt buộc dưới kết quả | V2-07d | Kết quả khớp `wizard-cases.json`. Không có request mạng khi trả lời | `node` chạy bộ ca trên `wizard.js`; DevTools: không có request | Làm được |
 | V2-13e | Việc cần làm (1) | V2-web | `viecCanLamPage.cshtml`.<br>• Bước có ô đánh dấu (lưu trên máy người xem).<br>• Diễn giải, câu nói mẫu, hộp số ngân hàng.<br>• Điều kiện, đoạn dùng chung, hộp "Hỏi thêm".<br>• Trang hỏi nhanh với câu sàng lọc.<br>• Dấu quá 90 ngày rà soát | V2-05a | Như mockup `#viec.N` | Chụp trang 0, 2, 3 | Chờ I-01 |
-| V2-13f | Công cụ & checklist, công cụ (1,5) | V2-web | `congCuPage.cshtml`; view cho hai kiểu công cụ; `wwwroot/assets/js/tool.js`.<br>• Mỗi lần một câu, quay lại được.<br>• Đếm dấu hiệu theo `signAnswer`; mức kết quả theo màu.<br>• Theo nhánh: nhóm hành động theo thứ tự câu.<br>• Nút Tải PDF, In, Chép đường dẫn | V2-08a | Ba công cụ cho đúng kết quả ở mọi tổ hợp 0, 1, 2+ dấu hiệu | Thử tay; chạy bộ ca bằng `node` | Làm được |
-| V2-13g | Checklist và bản in A4 (1) | V2-web | `checklistPage.cshtml`; `wwwroot/assets/css/print.css` dùng chung cho checklist, kết quả công cụ, kết quả trình hỏi: ô vuông, ngày cập nhật, 4 nguyên tắc, câu bắt buộc, tên website | V2-08b | In ra đủ 1–2 trang A4, không vỡ trang giữa nhóm | Chrome "In", lưu PDF xem | Làm được |
+| V2-13f | Hãy tự kiểm tra, kiểm tra nhanh (1,5) | V2-web | `congCuPage.cshtml`; view cho hai kiểu kiểm tra nhanh; `wwwroot/assets/js/tool.js`. Theo bản dựng `antoantaichinh_co_anh_nen_sang.html` (QĐ-051):<br>• Mỗi lần một câu, có "Tôi chưa biết", quay lại được, sửa câu trả lời, làm lại.<br>• Kiểm tra nhanh: câu Phải dừng trả lời Có thì kết luận ngay mức Rất cao; còn lại lý do (Phải dừng chưa biết; Tạm hoãn Có hoặc chưa biết; Cần kiểm tra Không hoặc chưa biết) thì mức Cao, không lý do thì Cần thận trọng. Hiện lý do, việc nên làm lấy nguyên văn bước của trang việc cần làm, đọc thêm.<br>• Theo nhánh: Có hoặc chưa biết mở nhóm việc theo thứ tự câu; "(nếu đúng như vậy)" khi chưa biết; không nhóm nào thì "Bạn chưa mất gì".<br>• Nhãn và câu khuyến nghị theo mức lấy ở Cài đặt website. Ảnh minh họa dưới tiêu đề | V2-08a | Đúng kết quả ở mọi tổ hợp trả lời của ba kiểm tra nhanh, khớp bản dựng | Thử tay; chạy bộ ca bằng `node`, so với hàm `tsResult`, `t3Result` của bản dựng | Làm được |
+| V2-13g | Danh sách kiểm tra và bản in A4 (1) | V2-web | `checklistPage.cshtml`: phần 1 chọn Có / Không / Tôi chưa biết, phần 2 ô tích, nút Xem kết quả: có câu Có thì Rất cao kèm `stopNow`; có câu chưa biết hoặc ô chưa tích thì Cao kèm `holdNow`; còn lại Cần thận trọng. Báo lỗi khi phần 1 còn câu chưa chọn.<br>`wwwroot/assets/css/print.css` dùng chung cho danh sách kiểm tra, kết quả kiểm tra nhanh, kết quả trình hỏi: ô vuông, ngày cập nhật, 4 nguyên tắc, câu bắt buộc, tên website | V2-08b | Kết quả khớp hàm `bkResult` của bản dựng; in ra đủ 1–2 trang A4, không vỡ trang giữa phần | Thử tay ba mức; Chrome "In", lưu PDF xem | Làm được |
 | V2-13h | Các rủi ro: danh sách (1,5) | V2-web | • `ruiRoPage` chuyển hướng 301.<br>• `alertListPage.cshtml`: dòng "Mẫu trình bày", lọc theo ngày cập nhật.<br>• `riskCategoryPage.cshtml`: tab 6 mục; lọc `?kenh=`, `?doi-tuong=` theo `code`; thẻ thủ đoạn; bài ghim; phân trang; "Không thấy câu trả lời?" | V2-04a, V2-03b | Như mockup `#cac-rui-ro.*`. Mục ngừng dùng không hiện ở bộ lọc | Chụp; thử bộ lọc qua địa chỉ | Chờ I-01 |
 | V2-13i | Trang cảnh báo, trang bài viết (1,5) | V2-web | `alertPage.cshtml`: nguồn (nếu có), mức độ, mức độ phổ biến, kịch bản, dấu hiệu, việc cần làm.<br>`riskArticlePage.cshtml`:<br>• 7 phần mẫu bài;<br>• hộp `k-*`;<br>• tô sáng kịch bản theo neo khi mở từ thẻ thủ đoạn;<br>• bài liên quan (tự lấy cùng nhóm khi trống);<br>• dấu quá hạn rà soát; thời gian đọc;<br>• `canonical` theo nhóm chính | V2-03a, V2-04a | Như mockup `#canh-bao.N`, `#bai.*`, `#doc.N` | Chụp 3 bề rộng | Chờ I-01 |
 | V2-13j | Trang còn lại (1) | V2-web | `infoPage`, `policyPage`, `lienHePage`, `gopYPage` (form gọi C2, báo lỗi theo trường).<br>Thêm danh sách hỏi – đáp nhanh dạng accordion vào `hoiDapPage.cshtml` | V2-09a, V2-09b, V2-09c | Như mockup `#trang.*` | Gửi góp ý thật lên API local | Làm được |
@@ -282,7 +283,7 @@ Mỗi task dưới đây gồm:
 Tổng ước lượng khoảng 57 ngày công (62 task), chưa tính việc của Ban biên tập. Chạy hai luồng song song thì rút được khoảng 10 ngày theo lịch.
 
 Đường găng:
-V2-00b → V2-01a…f → I-01 → V2-03a → V2-05a → V2-07a → (V2-07b…d) → V2-08a → V2-10a → V2-11a → V2-12a → website → I-02.
+V2-00b → V2-01a…f → V2-01r → I-01 → V2-03a → V2-05a → V2-07a → (V2-07b…d) → V2-08a → V2-10a → V2-11a → V2-12a → website → I-02.
 
 Luồng `V2-ui` (V2-01i đến V2-01q, V2-07b đến V2-07d, V2-10b) chạy song song với luồng `chính` ngay, vì contract đã chốt ở QĐ-045. Luồng `V2-web` bắt đầu khi loại tương ứng đã gộp.
 
@@ -388,12 +389,8 @@ Cách đọc:
 - "khi đăng": lưu nháp được, chặn xuất bản.
 - "có điều kiện": bắt buộc theo điều kiện ở cột Ghi chú.
 - "hiện có điều kiện": trường luôn hiện, mô tả ghi "Chỉ cần khi…" (QĐ-044); trong `InlineList` thì ẩn, hiện thật.
-- `toolPage` dưới đây giữ dạng một loại như mockup. Khi làm, tách theo QĐ-044:
-  - `toolBase`: tên, đường dẫn, biểu tượng, mô tả thẻ, câu dẫn, checklist liên quan;
-  - `toolCountPage`: `signQuestions`, `resultBands`, `recommendedActions`;
-  - `toolBranchPage`: `branchQuestions`, `allNoText`;
-  - bỏ trường `toolKind`.
-
+- Phần Hãy tự kiểm tra (`congCuPage`, `toolCountPage`, `toolBranchPage`, `checklistPage`) theo logic của bản dựng mới (QĐ-051): câu hỏi có loại Phải dừng / Tạm hoãn / Cần kiểm tra, trả lời Có / Không / Tôi chưa biết; bỏ đếm dấu hiệu, bỏ dải kết quả.
+- `illustration`, `illustrationAlt` thuộc composition `illustrationBase` (QĐ-052), gắn vào 15 loại trang; liệt kê lại ở từng loại cho dễ tra.
 
 #### `siteSettings` · Cài đặt website
 
@@ -434,12 +431,15 @@ Không có trang · Không xóa (trang cố định)
 | Tài trợ (chỉ Quản trị) | Khu tài trợ | `sponsorNote` | Câu “không phải khuyến nghị” | Textstring | ✔ | hiện có điều kiện |
 | Câu cố định (chỉ Quản trị) | Câu dưới kết quả tự kiểm tra | `resultNote` | Câu dưới mọi kết quả | Đoạn · 300 | ✔ | Đặc tả 5.6 |
 | Câu cố định (chỉ Quản trị) | Câu dưới kết quả tự kiểm tra | `notConclusionNote` | Câu “không phải kết luận” | Đoạn · 300 | ✔ |  |
-| Câu cố định (chỉ Quản trị) | Giải thích mức độ | `levelNormalText` | Mức Thường | Đoạn · 200 | ✔ |  |
-| Câu cố định (chỉ Quản trị) | Giải thích mức độ | `levelHighText` | Mức Cao | Đoạn · 200 | ✔ |  |
-| Câu cố định (chỉ Quản trị) | Giải thích mức độ | `levelVeryHighText` | Mức Rất cao | Đoạn · 200 | ✔ |  |
-| Câu cố định (chỉ Quản trị) | Giải thích mức độ | `cautionText` | Trạng thái “Cần thận trọng” | Đoạn · 200 | ✔ | Khi không khớp tình huống nào |
+| Câu cố định (chỉ Quản trị) | Mức độ và khuyến nghị | `stopLabel` | Nhãn khuyến nghị mức Rất cao | Chữ · 40 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Mức độ và khuyến nghị | `stopText` | Câu giải thích mức Rất cao | Đoạn · 300 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Mức độ và khuyến nghị | `holdLabel` | Nhãn khuyến nghị mức Cao | Chữ · 40 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Mức độ và khuyến nghị | `holdText` | Câu giải thích mức Cao | Đoạn · 300 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Mức độ và khuyến nghị | `clearLabel` | Nhãn khuyến nghị mức Cần thận trọng | Chữ · 40 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Mức độ và khuyến nghị | `clearText` | Câu giải thích mức Cần thận trọng | Đoạn · 300 | ✔ | Cũng dùng khi trình hỏi không khớp tình huống nào |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `noReportNote` | Câu không nhận tố giác | Đoạn · 300 | ✔ |  |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `noAdviceNote` | Câu miễn trừ tư vấn | Đoạn · 300 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `mustRemember` | Hai điều phải nhớ | Danh sách dòng (0–2) | ✔ | Hiện ở kiểm tra nhanh có bật hộp lưu ý |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `bankLookupSteps` | Cách tự tìm số ngân hàng | Danh sách dòng (0–5) | ✔ |  |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `refuseLendingNote` | Câu từ chối cho mượn tài khoản | Đoạn · 300 | ✔ |  |
 
@@ -455,16 +455,16 @@ Có template và đường dẫn · Không xóa (trang cố định) · Con đư
 | Nội dung | Khối Khẩn cấp | `primaryButtonText` | Chữ nút chính | Chữ · 32 | ✔ | Mở trình hỏi |
 | Nội dung | Khối Khẩn cấp | `secondaryButtonText` | Chữ nút phụ | Chữ · 32 | ✔ | Mở mục Việc cần làm ngay |
 | Nội dung | Khối Khẩn cấp | `principlesLead` | Câu dẫn bốn nguyên tắc | Chữ · 80 |  | Bốn nguyên tắc lấy từ Cài đặt website |
-| Nội dung | Khối Khẩn cấp | `image` | Hình minh họa | Chọn ảnh |  |  |
-| Nội dung | Khối Khẩn cấp | `imageAlt` | Văn bản thay thế của hình | Chữ · 120 | có điều kiện | hiện có điều kiện |
-| Nội dung | Khối Công cụ & checklist | `toolsTitle` | Tiêu đề khối | Chữ · 60 | ✔ |  |
-| Nội dung | Khối Công cụ & checklist | `tools` | Ba thẻ công cụ | Chọn · Công cụ (nhiều, ≤ 3, sắp được) | ✔ | Kéo thẻ để sắp thứ tự |
+| Nội dung | Khối Hãy tự kiểm tra | `toolsTitle` | Tiêu đề khối | Chữ · 60 | ✔ |  |
+| Nội dung | Khối Hãy tự kiểm tra | `tools` | Ba thẻ kiểm tra nhanh | Chọn · Kiểm tra nhanh (nhiều, ≤ 3, sắp được) | ✔ | Kéo thẻ để sắp thứ tự |
 | Nội dung | Khối Các rủi ro | `riskTitle` | Tiêu đề khối | Chữ · 60 | ✔ |  |
 | Nội dung | Khối Các rủi ro | — (không lưu) | Thẻ nhóm | Không lưu (hiển thị) |  |  |
 | Nội dung | Khối Cảnh báo mới | `alertTitle` | Tiêu đề khối | Chữ · 60 | ✔ |  |
 | Nội dung | Khối Cảnh báo mới | `alertMoreText` | Chữ nút “Xem tất cả” | Chữ · 40 | ✔ |  |
 | Nội dung | Khối Cảnh báo mới | `alertCount` | Số cảnh báo hiện | Số 1–3 | ✔ | Chỉ lấy cảnh báo cập nhật trong 90 ngày; không có thì khối ẩn |
 | Nội dung | Khối Cảnh báo mới | `pinnedAlert` | Cảnh báo ghim | Chọn · Cảnh báo (một) |  | Hết 90 ngày thì tự bỏ ghim |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `khanCapPage` · Khẩn cấp
@@ -506,6 +506,8 @@ Có template và đường dẫn · Không xóa (trang cố định) · Con đư
 | Nội dung | Cuối trang | `footerButtons` | Hai nút cuối trang | InlineList · Bảng |  |  |
 | | ↳ cột | `footerButtons[].label` | Chữ trên nút | Chữ · 40 | ✔ |  |
 | | ↳ cột | `footerButtons[].targetPage` | Trang | Chọn · Trang trong website (một) | ✔ |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `wizardPage` · Kiểm tra tình huống
@@ -529,13 +531,15 @@ Có template và đường dẫn · Không xóa (trang cố định) · Chỉ Qu
 | Câu hỏi | Bước 3 | `step3Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Sửa nhãn không làm hỏng ma trận, vì ma trận trỏ tới mã của từng dòng |
 | | ↳ cột | `step3Options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
 | | ↳ cột | `step3Options[].label` | Nhãn | Chữ · 60 | ✔ |  |
+| Câu hỏi | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Câu hỏi | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | Ma trận |  | `situationMatrix` | Ma trận tình huống | Antc.WizardMatrix | ✔ |  |
 |  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].name` | Tên tình huống | Chữ · 80 | ✔ |  |
 |  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | ✔ |  |
 |  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].signs` | Dấu hiệu phù hợp | Danh sách dòng (1–3) | ✔ |  |
 |  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].actions` | Việc cần làm ngay | Danh sách dòng (1–4) | ✔ |  |
 |  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].guideArticle` | Bài hướng dẫn chi tiết | Chọn · Bài hoặc cảnh báo (một) | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].checklist` | Checklist | Chọn · Checklist (một) |  | Trống thì dùng checklist mặc định ở tab Kết quả |
+|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].checklist` | Danh sách kiểm tra | Chọn · Danh sách kiểm tra (một) |  | Trống thì dùng danh sách mặc định ở tab Kết quả |
 |  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].enabled` | Đang dùng | Bật/tắt |  |  |
 | Kết quả | Tiêu đề 4 khối kết quả | `resultHeading1` | Khối 1 | Chữ · 40 | ✔ |  |
 | Kết quả | Tiêu đề 4 khối kết quả | `resultHeading2` | Khối 2 | Chữ · 40 | ✔ |  |
@@ -543,7 +547,7 @@ Có template và đường dẫn · Không xóa (trang cố định) · Chỉ Qu
 | Kết quả | Tiêu đề 4 khối kết quả | `resultHeading4` | Khối 4 | Chữ · 40 | ✔ |  |
 | Kết quả | Cách hiện | `maxSituations` | Số tình huống hiện tối đa | Số 1–3 | ✔ |  |
 | Kết quả | Cách hiện | `noMatchText` | Câu khi không khớp | Đoạn · 200 | ✔ | Hiện cùng trạng thái “Cần thận trọng” và 4 nguyên tắc dừng |
-| Kết quả | Cách hiện | `defaultChecklist` | Checklist mặc định | Chọn · Checklist (một) | ✔ |  |
+| Kết quả | Cách hiện | `defaultChecklist` | Danh sách kiểm tra mặc định | Chọn · Danh sách kiểm tra (một) | ✔ |  |
 | Kết quả | Chữ trên 4 nút | `button1Text` | Nút 1 | Chữ · 40 | ✔ |  |
 | Kết quả | Chữ trên 4 nút | `button2Text` | Nút 2 | Chữ · 40 | ✔ |  |
 | Kết quả | Chữ trên 4 nút | `button3Text` | Nút 3 | Chữ · 40 | ✔ |  |
@@ -579,73 +583,132 @@ Có template và đường dẫn · Tạo: chỉ Quản trị viên · Xóa: ch�
 |  | ↳ phần "Hỏi thêm" (bật bằng `hasFollowUp`) | `steps[].followUpPage` | Trang đích | Chọn · Việc cần làm (một) | ✔ |  |
 | Nội dung | Rà soát | `reviewDate` | Ngày rà soát | Ngày | khi đăng | Quá 90 ngày tự hiện cảnh báo |
 | Nội dung | Rà soát | `verificationSource` | Nguồn kiểm chứng | Chữ · 200 | khi đăng |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
-#### `congCuPage` · Công cụ & checklist
+#### `congCuPage` · Hãy tự kiểm tra
 
 Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `checklistPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Loại, Trạng thái; lọc Loại
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
-| Nội dung | Nội dung | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
-| Nội dung | Nội dung | `lead` | Mô tả | Đoạn · 220 | ✔ |  |
-| Nội dung | Nội dung | `tools` | Ba công cụ theo thứ tự | Chọn · Công cụ (nhiều, ≤ 3, sắp được) | ✔ |  |
-| Nội dung | Nội dung | `checklistTitle` | Tiêu đề phần checklist | Chữ · 60 | ✔ |  |
-| Nội dung | Nội dung | `checklistLead` | Câu dẫn phần checklist | Đoạn · 220 | ✔ |  |
-| Nội dung | Nội dung | — (không lưu) | Thứ tự checklist | Không lưu (hiển thị) |  |  |
-| Nội dung | Nội dung | `practiceLinks` | Lối sang Thử sức, Tự luyện | InlineList · Bảng |  |  |
-| | ↳ cột | `practiceLinks[].label` | Chữ trên nút | Chữ · 40 | ✔ |  |
-| | ↳ cột | `practiceLinks[].targetPage` | Trang | Chọn · Trang trong website (một) | ✔ |  |
+| Nội dung | Đầu trang | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
+| Nội dung | Đầu trang | `lead` | Mô tả | Đoạn · 240 | ✔ |  |
+| Nội dung | Kiểm tra nhanh | `toolsTitle` | Tiêu đề phần | Chữ · 60 | ✔ |  |
+| Nội dung | Kiểm tra nhanh | `tools` | Ba kiểm tra nhanh theo thứ tự | Chọn · Kiểm tra nhanh (nhiều, ≤ 3, sắp được) | ✔ |  |
+| Nội dung | Danh sách kiểm tra | `checklistTitle` | Tiêu đề phần | Chữ · 60 | ✔ |  |
+| Nội dung | Danh sách kiểm tra | `checklistLead` | Câu dẫn | Đoạn · 300 | ✔ |  |
+| Nội dung | Danh sách kiểm tra | — (không lưu) | Thứ tự | Không lưu (hiển thị) |  |  |
+| Nội dung | Kiểm tra kiến thức | `knowledgeTitle` | Tiêu đề phần | Chữ · 60 | ✔ |  |
+| Nội dung | Kiểm tra kiến thức | `knowledgeLinks` | Các lối vào | InlineList · Bảng |  |  |
+| | ↳ cột | `knowledgeLinks[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
+| | ↳ cột | `knowledgeLinks[].label` | Tên | Chữ · 40 | ✔ |  |
+| | ↳ cột | `knowledgeLinks[].description` | Mô tả | Đoạn · 140 |  |  |
+| | ↳ cột | `knowledgeLinks[].targetPage` | Trang | Chọn · Trang trong website (một) | ✔ |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
-#### `toolPage` · Công cụ
+#### `toolCountPage` · Kiểm tra nhanh
 
 Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
-| Nội dung | Nội dung | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
-| Nội dung | Nội dung | `umbracoUrlName` | Đường dẫn | Chữ · 60 | ✔ |  |
-| Nội dung | Nội dung | `icon` | Biểu tượng | Danh mục · Biểu tượng | ✔ |  |
-| Nội dung | Nội dung | `cardText` | Mô tả ngắn trên thẻ | Đoạn · 140 | ✔ |  |
-| Nội dung | Nội dung | `lead` | Câu dẫn | Đoạn · 220 | ✔ |  |
-| Nội dung | Nội dung | `toolKind` | Kiểu công cụ | Danh mục · Kiểu công cụ | ✔ | chỉ Quản trị; Đổi kiểu sẽ đổi các trường bên dưới |
-| Nội dung | Câu hỏi | `signQuestions` | Câu hỏi | InlineList · Bảng | ✔ | hiện có điều kiện; Người dân trả lời Có / Không, mỗi lần một câu |
-| | ↳ cột | `signQuestions[].question` | Câu hỏi | Đoạn · 200 | ✔ |  |
-| | ↳ cột | `signQuestions[].signAnswer` | Là dấu hiệu | Danh mục · Trả lời là dấu hiệu | ✔ |  |
-| | ↳ cột | `signQuestions[].hint` | Giải thích phụ | Chữ · 200 |  | ở dòng mở rộng |
-| Nội dung | Câu hỏi | `branchQuestions` | Câu hỏi theo nhánh | InlineList · Thẻ | ✔ | hiện có điều kiện |
-|  | ↳ ô trong thẻ | `branchQuestions[].question` | Câu hỏi | Chữ · 200 | ✔ |  |
-|  | ↳ ô trong thẻ | `branchQuestions[].situationLabel` | Nhãn tình huống | Chữ · 60 | ✔ | Ví dụ “Đã chuyển tiền” |
-|  | ↳ ô trong thẻ | `branchQuestions[].actions` | Hành động | Danh sách dòng (0–6) | ✔ |  |
-|  | ↳ ô trong thẻ | `branchQuestions[].actionPage` | Trang việc cần làm liên quan | Chọn · Việc cần làm (một) |  |  |
-| Nội dung | Kết quả | `resultBands` | Mức kết quả | InlineList · Bảng | ✔ | chỉ Quản trị; hiện có điều kiện; Các khoảng phải phủ hết từ 0 tới số câu hỏi |
-| | ↳ cột | `resultBands[].fromCount` | Từ | Số | ✔ |  |
-| | ↳ cột | `resultBands[].toCount` | Đến | Textstring |  |  |
-| | ↳ cột | `resultBands[].label` | Nhãn | Chữ · 40 | ✔ |  |
-| | ↳ cột | `resultBands[].color` | Màu | Danh mục · Màu kết quả | ✔ |  |
-| | ↳ cột | `resultBands[].description` | Mô tả | Chữ · 200 |  | ở dòng mở rộng |
-| Nội dung | Kết quả | `recommendedActions` | Hành động khuyến nghị | Danh sách dòng (0–6) | có điều kiện | hiện có điều kiện |
-| Nội dung | Kết quả | `allNoText` | Câu khi trả lời “Không” hết | Đoạn · 240 | ✔ | hiện có điều kiện |
-| Nội dung | Kết quả | `checklist` | Checklist liên quan | Chọn · Checklist (một) | ✔ | Nút Tải PDF, In, Chép đường dẫn là phần cố định của giao diện |
+| Nội dung | Đầu trang | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
+| Nội dung | Đầu trang | `umbracoUrlName` | Đường dẫn | Chữ · 60 | ✔ |  |
+| Nội dung | Đầu trang | `icon` | Biểu tượng | Danh mục · Biểu tượng | ✔ |  |
+| Nội dung | Đầu trang | `cardText` | Mô tả ngắn trên thẻ | Đoạn · 160 | ✔ |  |
+| Nội dung | Đầu trang | `lead` | Câu dẫn | Đoạn · 240 | ✔ |  |
+| Nội dung | Đầu trang | `showAdviceBox` | Hộp lưu ý trước câu hỏi | Bật/tắt |  | Câu chữ sửa ở Cài đặt website › Câu cố định |
+| Nội dung | Câu hỏi | — (không lưu) | Cách tính | Không lưu (hiển thị) |  |  |
+| Nội dung | Câu hỏi | `questions` | Câu hỏi | InlineList · Thẻ | ✔ |  |
+|  | ↳ ô trong thẻ | `questions[].questionKind` | Loại câu | Danh mục · Loại câu kiểm tra | ✔ |  |
+|  | ↳ ô trong thẻ | `questions[].question` | Câu hỏi | Đoạn · 300 | ✔ | Viết **chữ** để in đậm |
+|  | ↳ ô trong thẻ | `questions[].hint` | Giải thích phụ | Đoạn · 400 |  | Viết **chữ** để in đậm |
+|  | ↳ ô trong thẻ | `questions[].answerOptions` | Lựa chọn riêng | InlineList · Bảng |  | Để trống thì dùng Có / Không / Tôi chưa biết |
+| | ↳ cột | `questions[].answerOptions[].label` | Chữ trên nút | Chữ · 120 | ✔ |  |
+| | ↳ cột | `questions[].answerOptions[].meaning` | Được hiểu là | Danh mục · Nghĩa câu trả lời | ✔ |  |
+| Nội dung | Kết quả | `stopResult` | Nhãn kết quả mức Rất cao | Chữ · 60 | ✔ |  |
+| Nội dung | Kết quả | `holdResult` | Nhãn kết quả mức Cao | Chữ · 60 | ✔ |  |
+| Nội dung | Kết quả | `clearResult` | Nhãn kết quả mức Cần thận trọng | Chữ · 60 | ✔ |  |
+| Nội dung | Kết quả | `clearNote` | Câu thêm khi chưa phát hiện điểm dừng | Đoạn · 240 |  |  |
+| Nội dung | Kết quả | `stopActions` | Việc nên làm: mức Rất cao | InlineList · Bảng | ✔ | Lấy nguyên văn bước của trang Việc cần làm |
+| | ↳ cột | `stopActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) | ✔ |  |
+| | ↳ cột | `stopActions[].stepNumber` | Bước số | Số | ✔ |  |
+| Nội dung | Kết quả | `holdActions` | Việc nên làm: mức Cao | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `holdActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) | ✔ |  |
+| | ↳ cột | `holdActions[].stepNumber` | Bước số | Số | ✔ |  |
+| Nội dung | Kết quả | `clearActions` | Việc nên làm: mức Cần thận trọng | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `clearActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) | ✔ |  |
+| | ↳ cột | `clearActions[].stepNumber` | Bước số | Số | ✔ |  |
+| Nội dung | Kết quả | `readMore` | Đọc thêm | InlineList · Bảng |  |  |
+| | ↳ cột | `readMore[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
+| | ↳ cột | `readMore[].label` | Chữ trên liên kết | Chữ · 80 | ✔ |  |
+| | ↳ cột | `readMore[].targetPage` | Trang | Chọn · Trang trong website (một) | ✔ |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
-#### `checklistPage` · Checklist
+#### `toolBranchPage` · Kiểm tra nhanh theo nhánh
+
+Có template và đường dẫn · Không xóa (trang cố định)
+
+| Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
+|---|---|---|---|---|---|---|
+| Nội dung | Đầu trang | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
+| Nội dung | Đầu trang | `umbracoUrlName` | Đường dẫn | Chữ · 60 | ✔ |  |
+| Nội dung | Đầu trang | `icon` | Biểu tượng | Danh mục · Biểu tượng | ✔ |  |
+| Nội dung | Đầu trang | `cardText` | Mô tả ngắn trên thẻ | Đoạn · 160 | ✔ |  |
+| Nội dung | Đầu trang | `lead` | Câu dẫn | Đoạn · 240 | ✔ |  |
+| Nội dung | Đầu trang | `urgentTitle` | Tiêu đề hộp nguy hiểm tức thời | Chữ · 80 |  |  |
+| Nội dung | Đầu trang | `urgentText` | Câu trong hộp nguy hiểm tức thời | Đoạn · 300 | có điều kiện | Hộp đỏ trên câu hỏi đầu. Để trống thì không hiện |
+| Nội dung | Câu hỏi | `questions` | Câu hỏi | InlineList · Thẻ | ✔ |  |
+|  | ↳ ô trong thẻ | `questions[].question` | Câu hỏi | Đoạn · 300 | ✔ |  |
+|  | ↳ ô trong thẻ | `questions[].situationLabel` | Nhãn tình huống | Chữ · 120 | ✔ | Tiêu đề nhóm việc khi trả lời Có |
+|  | ↳ ô trong thẻ | `questions[].yesLabel` | Chữ nút Có | Chữ · 20 |  |  |
+|  | ↳ ô trong thẻ | `questions[].noLabel` | Chữ nút Không | Chữ · 20 |  |  |
+|  | ↳ ô trong thẻ | `questions[].actionPage` | Trang việc cần làm | Chọn · Việc cần làm (một) | ✔ |  |
+|  | ↳ ô trong thẻ | `questions[].takeSteps` | Các bước lấy từ trang | Chữ · 40 | ✔ | Số thứ tự bước, cách nhau dấu phẩy, ví dụ 1,2,4. Lấy nguyên văn |
+| Nội dung | Kết quả | `allNoTitle` | Tiêu đề khi trả lời Không hết | Chữ · 80 | ✔ |  |
+| Nội dung | Kết quả | `allNoText` | Câu khi trả lời Không hết | Đoạn · 300 | ✔ |  |
+| Nội dung | Kết quả | `allNoActions` | Việc nên làm khi trả lời Không hết | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `allNoActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) | ✔ |  |
+| | ↳ cột | `allNoActions[].stepNumber` | Bước số | Số | ✔ |  |
+| Nội dung | Kết quả | `hitTitle` | Tiêu đề khi có việc cần xử lý | Chữ · 120 | ✔ | Dùng {n} cho số việc |
+| Nội dung | Kết quả | `hitText` | Câu dẫn khi có việc cần xử lý | Đoạn · 300 | ✔ |  |
+| Nội dung | Kết quả | `readMore` | Đọc thêm | InlineList · Bảng |  |  |
+| | ↳ cột | `readMore[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
+| | ↳ cột | `readMore[].label` | Chữ trên liên kết | Chữ · 80 | ✔ |  |
+| | ↳ cột | `readMore[].targetPage` | Trang | Chọn · Trang trong website (một) | ✔ |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
+| SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
+
+#### `checklistPage` · Danh sách kiểm tra
 
 Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tập viên
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
-| Nội dung | Nội dung | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
-| Nội dung | Nội dung | `icon` | Biểu tượng | Danh mục · Biểu tượng | ✔ |  |
-| Nội dung | Nội dung | `sourceArticle` | Bài đọc nguồn | Chọn · Bài viết (một) | khi đăng | Rà lại checklist khi bài đọc đổi phiên bản |
-| Nội dung | Nội dung | `itemGroups` | Nhóm mục | InlineList · Thẻ | ✔ |  |
-|  | ↳ ô trong thẻ | `itemGroups[].title` | Tiêu đề nhóm | Chữ · 80 | ✔ |  |
-|  | ↳ ô trong thẻ | `itemGroups[].lines` | Các dòng | Danh sách dòng (0–15) | ✔ | Mỗi dòng có một ô vuông trên bản in |
-| Nội dung | Tệp PDF | `pdfFile` | Tệp PDF | Chọn tệp PDF |  | Tải tệp PDF của checklist. Chưa có tệp thì nút “Tải checklist PDF” mở bản in A4 |
+| Nội dung | Đầu trang | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
+| Nội dung | Đầu trang | `icon` | Biểu tượng | Danh mục · Biểu tượng | ✔ |  |
+| Nội dung | Đầu trang | `lead` | Câu dẫn | Đoạn · 240 | ✔ |  |
+| Nội dung | Đầu trang | `sourceArticle` | Bài đọc nguồn | Chọn · Bài viết (một) | khi đăng | Câu chữ lấy nguyên văn từ bài đọc; rà lại khi bài đọc đổi phiên bản |
+| Nội dung | Phần 1 · Có việc nào dưới đây không? | `stopIntro` | Câu dẫn | Đoạn · 500 | ✔ |  |
+| Nội dung | Phần 1 · Có việc nào dưới đây không? | `stopQuestions` | Các câu | Danh sách dòng (1–8) | ✔ | Mỗi câu trả lời Có / Không / Tôi chưa biết. Có một câu “Có” là mức Rất cao |
+| Nội dung | Phần 1 · Có việc nào dưới đây không? | `stopNote` | Câu cuối phần | Đoạn · 300 |  |  |
+| Nội dung | Phần 2 · Bảng kiểm bỏ túi | `pocketIntro` | Câu dẫn | Đoạn · 300 |  |  |
+| Nội dung | Phần 2 · Bảng kiểm bỏ túi | `pocketItems` | Các ô tích | Danh sách dòng (0–15) | ✔ | Còn ô chưa tích, hoặc câu phần 1 chưa biết, thì mức Cao |
+| Nội dung | Kết quả | `stopNow` | Làm ngay khi mức Rất cao | Đoạn · 400 | khi đăng | Lấy từ dòng DỪNG, cột “Làm ngay” trong bảng Cách xử lý của bài đọc |
+| Nội dung | Kết quả | `holdNow` | Làm ngay khi mức Cao | Đoạn · 400 | khi đăng | Lấy từ dòng HOÃN |
+| Nội dung | Tệp PDF | `pdfFile` | Tệp PDF | Chọn tệp PDF |  | Tải tệp PDF của danh sách. Chưa có tệp thì nút “Tải danh sách kiểm tra (PDF)” mở bản in A4 |
 | Nội dung | Tệp PDF | — (không lưu) | Nút tải trên website | Không lưu (hiển thị) |  |  |
 | Nội dung | Rà soát | `version` | Phiên bản | Chữ · 20 | khi đăng |  |
 | Nội dung | Rà soát | `reviewDate` | Ngày rà soát | Ngày | khi đăng |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `ruiRoPage` · Các rủi ro
@@ -668,6 +731,8 @@ Có template và đường dẫn · Không xóa (trang cố định) · Con đư
 | Nội dung | Nội dung | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
 | Nội dung | Nội dung | `lead` | Câu dẫn | Đoạn · 220 | ✔ |  |
 | Nội dung | Nội dung | `showSampleNote` | Dòng “Mẫu trình bày” | Bật/tắt |  |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `alertPage` · Cảnh báo
@@ -685,8 +750,8 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 | Nội dung | Nội dung | `stopSigns` | Dấu hiệu nhận biết | Chọn · Dấu hiệu phải dừng (nhiều) |  |  |
 | Nội dung | Nội dung | `otherSigns` | Dấu hiệu khác | Danh sách dòng (0–4) |  | Khi không có trong danh mục |
 | Nội dung | Nội dung | `actionPage` | Việc cần làm: trang | Chọn · Việc cần làm (một) | khi đăng |  |
-| Nội dung | Nội dung | `image` | Ảnh minh họa | Chọn ảnh |  |  |
-| Nội dung | Nội dung | `imageAlt` | Văn bản thay thế | Chữ · 120 | có điều kiện | hiện có điều kiện |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | Nguồn | Nguồn | `issuingAgency` | Cơ quan ban hành | Chữ · 120 |  |  |
 | Nguồn | Nguồn | `documentNumber` | Số văn bản | Chữ · 40 |  |  |
 | Nguồn | Nguồn | `documentDate` | Ngày văn bản | Ngày |  |  |
@@ -713,9 +778,12 @@ Có template và đường dẫn · Không xóa (trang cố định) · Con đư
 | Nội dung | Nội dung | `cardDescription` | Mô tả ngắn trên thẻ trang chủ | Chữ · 60 | ✔ |  |
 | Nội dung | Nội dung | `lead` | Câu dẫn đầu trang | Đoạn · 220 | ✔ |  |
 | Nội dung | Nội dung | `icon` | Biểu tượng | Danh mục · Biểu tượng | ✔ |  |
+| Nội dung | Nội dung | `thumbnail` | Ảnh thu nhỏ | Chọn ảnh |  | Ảnh trên thẻ nhóm ở trang chủ và Các rủi ro (QĐ-052) |
 | Nội dung | Nội dung | `tactics` | Thủ đoạn hiện trong nhóm | Chọn · Thủ đoạn (nhiều, sắp được) |  |  |
 | Nội dung | Nội dung | `pinnedArticles` | Bài ghim đầu danh sách | Chọn · Bài viết (nhiều, ≤ 2) |  |  |
 | Nội dung | Nội dung | `noAnswerNote` | Câu “Không thấy câu trả lời?” | Đoạn · 200 |  |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `riskArticlePage` · Bài viết
@@ -728,7 +796,6 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 | Nội dung | Thông tin bài | `articleKind` | Loại bài | Danh mục · Loại bài | ✔ | Bài hướng dẫn cần đủ Dấu hiệu và Việc cần làm ngay |
 | Nội dung | Thông tin bài | `description` | Mô tả 1 dòng | Đoạn · 160 | ✔ | Hiện trên thẻ bài |
 | Nội dung | Thông tin bài | `icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
-| Nội dung | Thông tin bài | `image` | Ảnh thẻ | Chọn ảnh |  | Dùng ảnh hoặc biểu tượng |
 | Nội dung | Theo mẫu bài | `summary` | Tóm tắt | Soạn thảo · Chỉ in đậm | khi đăng |  |
 | Nội dung | Theo mẫu bài | `warningSigns` | Dấu hiệu cảnh báo | Danh sách dòng (0–8) | có điều kiện |  |
 | Nội dung | Theo mẫu bài | `scenarios` | Kịch bản thường gặp | InlineList · Thẻ |  |  |
@@ -743,6 +810,8 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 | | ↳ cột | `references[].organization` | Đơn vị | Chữ · 120 |  |  |
 | | ↳ cột | `references[].url` | Liên kết | Chữ · Liên kết https |  |  |
 | | ↳ cột | `references[].accessedDate` | Ngày truy cập | Ngày |  | ở dòng mở rộng |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | Phân loại | Phân loại | `topic` | Chuyên đề | Chọn · Chuyên đề (một) |  |  |
 | Phân loại | Phân loại | `channels` | Kênh | Chọn · Kênh (nhiều) | có điều kiện |  |
 | Phân loại | Phân loại | `audiences` | Đối tượng | Chọn · Đối tượng (nhiều) | có điều kiện |  |
@@ -751,7 +820,7 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 | Phân loại | Phân loại | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  |  |
 | Phân loại | Phân loại | `synonyms` | Từ đồng nghĩa | Thẻ · Từ khóa |  | Ví dụ: “otp” cho “mã xác thực” |
 | Phân loại | Phân loại | `relatedItems` | Bài liên quan | Chọn · Bài liên quan (nhiều, ≤ 4) |  | Để trống thì lấy tự động cùng nhóm |
-| Phân loại | Phân loại | `checklist` | Checklist PDF | Chọn · Checklist (một) |  |  |
+| Phân loại | Phân loại | `checklist` | Danh sách kiểm tra | Chọn · Danh sách kiểm tra (một) |  |  |
 | Phân loại | Phân loại | `isFeatured` | Nổi bật | Bật/tắt |  |  |
 | Thẩm định | Thẩm định | `version` | Phiên bản | Chữ · 20 |  |  |
 | Thẩm định | Thẩm định | `reviewDate` | Ngày rà soát | Ngày | khi đăng |  |
@@ -797,6 +866,8 @@ Có template và đường dẫn · Không xóa (trang cố định)
 |  | ↳ ô trong thẻ | `contactGroups[].contactMethods` | Cách liên hệ | Danh sách dòng (0–6) | ✔ |  |
 |  | ↳ ô trong thẻ | `contactGroups[].source` | Nguồn | Chữ · 200 |  |  |
 |  | ↳ ô trong thẻ | `contactGroups[].checkedDate` | Ngày kiểm | Ngày | khi đăng |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `gopYPage` · Góp ý
@@ -810,6 +881,8 @@ Có template và đường dẫn · Không xóa (trang cố định)
 | Nội dung | Nội dung | `enableReward` | Bật xét thưởng | Bật/tắt |  |  |
 | Nội dung | Nội dung | `rewardCriteria` | Tiêu chí xét thưởng | Soạn thảo · Rút gọn | ✔ | hiện có điều kiện |
 | Nội dung | Nội dung | — (không lưu) | Biểu mẫu | Không lưu (hiển thị) |  |  |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `infoPage` · Trang thông tin
@@ -822,6 +895,8 @@ Có template và đường dẫn · Tạo: chỉ Quản trị viên · Xóa: ch�
 | Nội dung | Nội dung | `lead` | Câu dẫn | Đoạn · 220 | khi đăng |  |
 | Nội dung | Nội dung | `bodyText` | Nội dung | Soạn thảo · Bài đọc | khi đăng |  |
 | Nội dung | Nội dung | `pendingNotes` | Mục còn chỗ trống | Đoạn · 300 |  | Ghi những chỗ còn chờ khách cung cấp, không hiện ra website |
+| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `policyPage` · Chính sách
@@ -929,7 +1004,7 @@ Không có trang · Tạo: chỉ Quản trị viên · Xóa: chỉ Quản trị 
 | Nội dung | Chuyên đề | `topicNumber` | Số chuyên đề | Số 1–8 | ✔ | duy nhất; khóa sau xuất bản |
 | Nội dung | Chuyên đề | `shortName` | Tên ngắn | Chữ · 40 | khi đăng |  |
 | Nội dung | Chuyên đề | `readingArticle` | Bài đọc chuyên đề | Chọn · Bài viết (một) | khi đăng |  |
-| Nội dung | Chuyên đề | `checklist` | Checklist | Chọn · Checklist (một) |  |  |
+| Nội dung | Chuyên đề | `checklist` | Danh sách kiểm tra | Chọn · Danh sách kiểm tra (một) |  |  |
 
 #### `tacticItem` · Thủ đoạn
 
@@ -977,11 +1052,13 @@ Giá trị lưu là chữ hiển thị. Không sửa chữ của mục đã có 
 
 | Data type | Giá trị theo thứ tự | Mã trong `DanhMucCoDinh` |
 |---|---|---|
-| `Danh mục · Mức độ cần thận trọng` | Thường · Cao · Rất cao | `thuong`, `cao`, `ratCao` |
+| `Danh mục · Mức độ cần thận trọng` | Cần thận trọng · Cao · Rất cao (QĐ-051; chữ cũ "Thường" chuyển ở V2-01r) | `thuong`, `cao`, `ratCao` |
 | `Danh mục · Loại bài` | Bài hướng dẫn · Bài đọc chuyên đề · Bài đọc thêm | `huongDan`, `docChuyenDe`, `docThem` |
 | ~~`Danh mục · Kiểu công cụ`~~ | Không tạo: đã tách hai loại công cụ (QĐ-044) | – |
-| `Danh mục · Màu kết quả` | Xanh lá · Vàng · Cam | `xanh`, `vang`, `cam` |
-| `Danh mục · Trả lời là dấu hiệu` | Khi trả lời Có · Khi trả lời Không | `co`, `khong` |
+| ~~`Danh mục · Màu kết quả`~~ | Bỏ: không còn dải kết quả (QĐ-051). Gói nền đã tạo, V2-01r xóa | – |
+| ~~`Danh mục · Trả lời là dấu hiệu`~~ | Bỏ: thay bằng loại câu (QĐ-051). Gói nền đã tạo, V2-01r xóa | – |
+| `Danh mục · Loại câu kiểm tra` | Phải dừng · Tạm hoãn · Cần kiểm tra | `phaiDung`, `tamHoan`, `canKiemTra` |
+| `Danh mục · Nghĩa câu trả lời` | Có · Không · Chưa biết | `co`, `khong`, `chuaBiet` |
 | `Danh mục · Hình thức liên hệ` | Gọi · Nhắn tin · Gọi và nhắn tin | `goi`, `nhanTin`, `goiVaNhanTin` |
 | `Danh mục · Kiểu cửa vào` | Mở trang ngay · Mở danh sách lựa chọn | `moTrang`, `moDanhSach` |
 | `Danh mục · Hình minh họa cửa vào` | Bị đe dọa · Đã có chuyện · Chưa có chuyện | `threat`, `harm`, `check` |
@@ -993,7 +1070,7 @@ Giá trị lưu là chữ hiển thị. Không sửa chữ của mục đã có 
 | Nhóm | Data type | Editor | Cấu hình |
 |---|---|---|---|
 | Chữ | `Chữ · 20`, `· 28`, `· 30`, `· 32`, `· 40`, `· 60`, `· 70`, `· 80`, `· 90`, `· 110`, `· 120`, `· 140`, `· 160`, `· 200` | Textstring | `maxChars` bằng số trong tên. Trường ghi "Textstring" ở Phụ lục A dùng `Textstring` có sẵn |
-| Đoạn | `Đoạn · 120`, `· 140`, `· 160`, `· 200`, `· 220`, `· 240`, `· 300` | Textarea, 3 dòng | `maxChars` |
+| Đoạn | `Đoạn · 120`, `· 140`, `· 160`, `· 200`, `· 220`, `· 240`, `· 300`, `· 400`, `· 500` | Textarea, 3 dòng | `maxChars`. `· 400`, `· 500` thêm ở V2-08a (QĐ-051) |
 | Mã | `Chữ · Mã danh mục` | Textstring, `maxChars` 40 | Regex đặt ở trường: `^[a-z0-9]+(-[a-z0-9]+)*$` |
 | Liên kết | `Chữ · Liên kết https` | Textstring | Regex ở trường: `^https://` |
 | Số | `Số · 1–3`, `Số · 1–8`, `Số · 30–720` | Integer | `min`, `max` |
@@ -1006,7 +1083,7 @@ Giá trị lưu là chữ hiển thị. Không sửa chữ của mục đã có 
 
 ### B3. Chọn nút (Multinode Treepicker, giao diện combobox)
 
-Gốc đặt bằng Dynamic Root: bắt đầu từ gốc site, rồi lấy con gần nhất có loại ghi ở cột Gốc. "Bắt buộc" đặt ở trường, không đặt ở data type.
+Gốc là khóa cố định của nút ghi ở cột Gốc (V2-01f: Dynamic Root tính từ trang đang sửa nên không tới được Thư viện). "Bắt buộc" đặt ở trường, không đặt ở data type.
 
 | Data type | Gốc | Chỉ chọn loại | Số lượng | Task tạo |
 |---|---|---|---|---|
@@ -1024,8 +1101,8 @@ Gốc đặt bằng Dynamic Root: bắt đầu từ gốc site, rồi lấy con 
 | `Chọn · Bài liên quan` | `homePage` | `riskArticlePage`, `alertPage`, `checklistPage` | 0–4 | V2-04a, thêm checklist ở V2-08a |
 | `Chọn · Việc cần làm` | `khanCapPage` | `viecCanLamPage` | 0–1; bản nhiều: 0–10 | V2-05a |
 | `Chọn · Việc cần làm hoặc trình hỏi` | `khanCapPage` | `viecCanLamPage`, `wizardPage` | 0–1 | V2-06a |
-| `Chọn · Công cụ` | `congCuPage` | loại công cụ | 3–3 | V2-08a |
-| `Chọn · Checklist` | `congCuPage` | `checklistPage` | 0–1 | V2-08a |
+| `Chọn · Kiểm tra nhanh` | `congCuPage` | `toolCountPage`, `toolBranchPage` | 3–3 | V2-08a |
+| `Chọn · Danh sách kiểm tra` | `congCuPage` | `checklistPage` | 0–1 | V2-08a |
 | `Chọn · Bài hoặc cảnh báo` | `homePage` | `riskArticlePage`, `alertPage`, `viecCanLamPage` | 0–1 | Dùng trong ma trận (V2-07d) |
 
 ### B4. Thành phần tự viết
