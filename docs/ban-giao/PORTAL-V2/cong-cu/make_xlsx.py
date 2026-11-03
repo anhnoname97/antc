@@ -103,7 +103,7 @@ ov['A1'] = 'Kế hoạch Portal v2 · antoantaichinh.vn'
 ov['A1'].font = Font(name=F, bold=True, size=14, color='0B3B3A')
 info = [
     ('Lập ngày', '03/11/2026'),
-    ('Nguồn', 'docs/ban-giao/PORTAL-V2/1-thiet-ke.md (thiết kế, chia việc, Phụ lục A, B). Quyết định QĐ-032 → QĐ-048 trong docs/quyet-dinh.md'),
+    ('Nguồn', 'docs/ban-giao/PORTAL-V2/1-thiet-ke.md (thiết kế, chia việc, Phụ lục A, B). Quyết định từ QĐ-032 trong docs/quyet-dinh.md'),
     ('Mockup', 'mockup-o-nhap-backoffice.html (backoffice), mockup-portal-v2.html (website)'),
     ('Cách cập nhật', 'Chỉ sửa các cột nền vàng ở sheet "Công việc": Người làm, Tiến độ (chọn trong danh sách), Ngày bắt đầu, Ngày xong, Ghi chú. Bảng dưới tự tính lại.'),
     ('Ước lượng', 'Ngày công của một người, lấy từ 1-thiet-ke.md. Chưa gồm việc của Ban biên tập (sheet "Việc ngoài dev").'),
@@ -204,7 +204,7 @@ write_table(wapi, ['Mã', 'Phương thức', 'Đường dẫn', 'Nội dung', 'L
 
 # ---------- Quyet dinh
 qrows = []
-for m in re.finditer(r'### (QĐ-0(3[2-9]|4\d)) · (.+)\n\n- Ngày: ([^·]+)· Người xác nhận: ([^·]+)· Trạng thái: (.+)', qd):
+for m in re.finditer(r'### (QĐ-0(3[2-9]|[4-9]\d)) · (.+)\n\n- Ngày: ([^·]+)· Người xác nhận: ([^·]+)· Trạng thái: (.+)', qd):
     qrows.append([m.group(1), clean(m.group(3)), m.group(4).strip(), m.group(5).strip(), m.group(6).strip()])
 wq = wb.create_sheet('Quyết định')
 write_table(wq, ['Mã', 'Nội dung', 'Ngày', 'Người xác nhận', 'Trạng thái'], qrows, [10, 90, 13, 14, 12])

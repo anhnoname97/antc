@@ -90,7 +90,11 @@ def pol_html(bl):
 
 # ---- Cai dat website
 ST = V['STATE']
-node('settings', None, 'siteSettings', 'Cài đặt website', {
+node('pages', None, 'pagesRoot', 'Quản lý trang', {})
+node('content', None, 'contentRoot', 'Quản lý nội dung', {})
+for fid, ftype, fname in [('c-alert', 'alertFolder', 'Cảnh báo'), ('c-art', 'articleFolder', 'Bài viết'), ('c-vcl', 'actionFolder', 'Việc cần làm'), ('c-chk', 'checklistFolder', 'Danh sách kiểm tra')]:
+    node(fid, 'content', ftype, fname, {})
+node('settings', 'pages', 'siteSettings', 'Cài đặt website', {
     'princ': [{'_k': k(), 'ic': p[0], 't': p[1], 'd': p[2]} for p in V['PRINC']],
     'rev': '2026-10-20', 'next': '2027-01-20',
     'disc': 'Thông tin trên website chỉ để tham khảo, giúp bạn tự kiểm tra và tự quyết định. Website không tiếp nhận tố giác và không thay cho tư vấn pháp lý, tài chính.',
@@ -107,7 +111,7 @@ node('settings', None, 'siteSettings', 'Cài đặt website', {
     'noadvice': V['NOADVICE'], 'must': V['MUST'], 'banka': V['BANKA'], 'refuse': V['REFUSE']})
 
 # ---- Trang chu
-node('home', None, 'homePage', 'Trang chủ', {
+node('home', 'pages', 'homePage', 'Trang chủ', {
     'kick': 'Khẩn cấp', 'title': 'Bạn vừa nhận tin nhắn, cuộc gọi hoặc lời mời đáng ngờ?', 'desc': 'Trả lời 3 câu hỏi ngắn để nhận dấu hiệu cảnh báo và việc cần làm ngay.',
     'btn1': 'Tôi đang gặp chuyện gì?', 'btn2': 'Xem việc cần làm ngay', 'prLead': 'Trong lúc chưa rõ, nhớ bốn điều:',
     'toolsTitle': 'Hãy tự kiểm tra', 'tools': ['tool1', 'tool2', 'tool3'], 'riskTitle': 'Các rủi ro', 'alertTitle': 'Cảnh báo mới', 'alertMore': 'Xem tất cả cảnh báo', 'alertCount': '3', 'pin': ''})
@@ -190,7 +194,7 @@ for i in range(10):
             key = next(iter(b))
             if steps:
                 steps[-1]['snip'] = 'sn-' + key
-    node('p%d' % i, 'khan-cap', 'viecCanLamPage', p['title'].replace(' — ', ', '), {
+    node('p%d' % i, 'c-vcl', 'viecCanLamPage', p['title'].replace(' — ', ', '), {
         'title': p['title'].replace(' — ', ', '), 'slug': PBSLUG[i], 'icon': PBICON[i], 'lead': p['lead'], 'hide': bool(p.get('nop')),
         'steps': steps, 'screen': screen, 'rev': '2026-10-20', 'src': 'Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0'})
 
@@ -247,7 +251,7 @@ def strow(doc, lab):
     return ''
 for kk, bk in V['BK'].items():
     doc = R['DOCS'][kk]; st = part(doc, 'stop'); pk = part(doc, 'pocket')
-    node('chk' + kk, 'cong-cu', 'checklistPage', bk['t'], {'title': bk['t'], 'icon': bk['i'],
+    node('chk' + kk, 'c-chk', 'checklistPage', bk['t'], {'title': bk['t'], 'icon': bk['i'],
         'lead': 'Lấy nguyên văn từ Bài đọc Chuyên đề %s. Trả lời phần 1, tích phần 2, rồi bấm xem kết quả.' % kk, 'src': 'doc' + kk,
         'p1Intro': st[2].rstrip().rstrip(':') + '.', 'p1Qs': st[3][:5], 'p1Note': st[3][5] if len(st[3]) > 5 else '',
         'p2Intro': ((pk[2] or '') + ' Tích những câu bạn đã tự trả lời được rõ ràng.').strip(), 'p2Items': pk[3],
@@ -258,7 +262,7 @@ RT = V['RTABS']
 node('rui-ro', 'home', 'ruiRoPage', 'Các rủi ro', {'title': 'Các rủi ro', 'lead': 'Chọn một nhóm để xem cảnh báo và bài hướng dẫn.'})
 node('canh-bao-moi', 'rui-ro', 'alertListPage', 'Cảnh báo mới', {'title': 'Cảnh báo mới', 'lead': RT[0]['lead'], 'sample': True})
 for a in V['ALERTS']:
-    node('al%d' % a['id'], 'canh-bao-moi', 'alertPage', a['t'], {
+    node('al%d' % a['id'], 'c-alert', 'alertPage', a['t'], {
         'title': a['t'], 'desc': a['sum'], 'level': LV[a['st']], 'pop': POPV.get(a['id'], ''), 'popNote': '', 'steps': a['steps'],
         'signs': [SIGNID[V['SIGNS'][i][0]] for i in a['sg']], 'signs2': [], 'todo': 'p%d' % a['pb'],
         'agency': '', 'docNo': '', 'docDate': '', 'docUrl': '',
@@ -270,15 +274,15 @@ CD = {**{kk: v.split(' — ')[1] for kk, v in V['CD'].items()}}
 for kk, d in R['DOCS'].items():
     CD.setdefault(kk, d['t'])
 for kk, d in R['DOCS'].items():
-    node('doc' + kk, 'g-' + V['DOCTAB'][kk], 'riskArticlePage', 'Bài đọc Chuyên đề %s: %s' % (kk, d['t']), {
+    node('doc' + kk, 'c-art', 'riskArticlePage', 'Bài đọc Chuyên đề %s: %s' % (kk, d['t']), {
         'title': 'Bài đọc Chuyên đề %s: %s' % (kk, d['t']), 'kind': 'docChuyenDe', 'desc': d.get('meta', ''), 'icon': 'book',
         'sum': '', 'signs': [], 'scen': [], 'todo': [], 'todoPage': '', 'dont': [], 'body': blocks_html(d['b']), 'srcs': [],
-        'topic': 'cd' + kk, 'ch': [], 'aud': [], 'level': '', 'tabs': [], 'kw': [], 'syn': [], 'rel': [], 'chk': 'chk' + kk, 'feat': kk == '1',
+        'grp': 'g-' + V['DOCTAB'][kk], 'topic': 'cd' + kk, 'ch': [], 'aud': [], 'level': '', 'tabs': [], 'kw': [], 'syn': [], 'rel': [], 'chk': 'chk' + kk, 'feat': kk == '1',
         'ver': '2.0', 'rev': '2026-10-20', 'by': 'Công an xã Thiên Lộc'})
 for kk, a in V['ARTS'].items():
-    node('ar' + kk.replace('-', '_'), 'g-' + V['ARTTAB'].get(kk, 'lua-dao'), 'riskArticlePage', a['t'], {
+    node('ar' + kk.replace('-', '_'), 'c-art', 'riskArticlePage', a['t'], {
         'title': a['t'], 'kind': 'docThem', 'desc': '', 'icon': 'doc', 'sum': '<p>%s</p>' % a['lede'], 'signs': [], 'scen': [], 'todo': [], 'todoPage': '', 'dont': [],
-        'body': '', 'srcs': [], 'topic': '', 'ch': [], 'aud': [], 'level': '', 'tabs': [], 'kw': [], 'syn': [], 'rel': [], 'chk': '', 'feat': False,
+        'body': '', 'srcs': [], 'grp': 'g-' + V['ARTTAB'].get(kk, 'lua-dao'), 'topic': '', 'ch': [], 'aud': [], 'level': '', 'tabs': [], 'kw': [], 'syn': [], 'rel': [], 'chk': '', 'feat': False,
         'ver': '1.0', 'rev': '', 'by': ''}, st='draft' if kk in ('7', '8') else 'pub')
 
 # ---- trang khac
@@ -297,7 +301,7 @@ node('tim-kiem', 'home', 'searchPage', 'Tìm kiếm', {})
 node('404', 'home', 'notFoundPage', 'Không tìm thấy trang', {})
 
 # ---- Thu vien
-node('lib', None, 'libraryFolder', 'Thư viện', {})
+node('lib', 'content', 'libraryFolder', 'Danh mục', {})
 node('f-ch', 'lib', 'channelFolder', 'Kênh tiếp cận', {})
 for c in V['CHANNELS']:
     node(CHS[c['k']], 'f-ch', 'channelItem', c['t'], {'code': CHS[c['k']], 'icon': c['i'], 'active': True})
@@ -321,10 +325,10 @@ for i, t in enumerate(V['TACTICS']):
     node('t%d' % i, 'f-tac', 'tacticItem', t['t'], {'code': slug(t['t'])[:40].strip('-'), 'active': True, 'topic': 'cd%d' % t['cd'], 'article': 'doc%d' % t['cd'], 'anchor': '',
          'ch': [CHS[c] for c in V['TCH'][str(i)]], 'level': LV[V['TLV'][str(i)]], 'kw': []})
 node('t-cu', 'f-tac', 'tacticItem', 'Tin nhắn trúng thưởng, nhận quà tri ân', {'code': 'tin-nhan-trung-thuong', 'active': False, 'topic': 'cd7', 'article': 'doc7', 'anchor': '', 'ch': ['tin-nhan'], 'level': 'cao', 'kw': ['trúng thưởng']})
-node('f-qa', 'lib', 'quickQaFolder', 'Hỏi – đáp nhanh', {})
+node('f-qa', 'content', 'quickQaFolder', 'Hỏi – đáp nhanh', {})
 for i, q in enumerate(V['QA']):
     node('qa%d' % i, 'f-qa', 'quickQaItem', q['q'], {'q': q['q'], 'a': q['a'], 'why': '<p>%s</p>' % q['why'], 'todo': '<p>%s</p>' % q['todo'], 'pages': [], 'by': 'Ban biên tập'})
-node('f-snip', 'lib', 'snippetFolder', 'Đoạn dùng chung', {})
+node('f-snip', 'content', 'snippetFolder', 'Đoạn dùng chung', {})
 SN = {'bankbox': ('BANKBOX', lambda d: '<ul>%s</ul>' % lines_html(d['rows'])), 'recov': ('RECOV', None), 'cover': ('COVER', lambda d: '<p>%s</p>' % d['b']), 'legit': ('LEGIT', None), 'cond': ('COND', lambda d: '<ul>%s</ul>' % lines_html(d['items']))}
 for key, (src, fn) in SN.items():
     d = R[src]
@@ -376,6 +380,7 @@ if imgdir:
         im = Image.open(fn).convert('RGB'); im.thumbnail((640, 640))
         buf = io.BytesIO(); im.save(buf, 'JPEG', quality=72)
         m['src'] = 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode()
+N.append(N.pop(next(i for i, x in enumerate(N) if x['id'] == 'lib')))
 data = json.dumps({'N': N, 'MEDIA': MEDIA}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 src = open(srcpath, encoding='utf-8').read()
 out = src.replace('__DATA__', data)

@@ -1878,6 +1878,11 @@
     "list": "Danh mục · Mức độ cần thận trọng",
     "multiple": false
    },
+   "primaryGroup": {
+    "kind": "content",
+    "multiple": false,
+    "source": "GRP"
+   },
    "alsoInCategories": {
     "kind": "content",
     "multiple": true,
@@ -2300,6 +2305,12 @@
   }
  },
  "counts": {
+  "pagesRoot": 1,
+  "contentRoot": 1,
+  "alertFolder": 1,
+  "articleFolder": 1,
+  "actionFolder": 1,
+  "checklistFolder": 1,
   "siteSettings": 1,
   "homePage": 1,
   "khanCapPage": 1,
@@ -2322,7 +2333,6 @@
   "thiPage": 1,
   "searchPage": 1,
   "notFoundPage": 1,
-  "libraryFolder": 1,
   "channelFolder": 1,
   "channelItem": 7,
   "audienceFolder": 1,
@@ -2338,13 +2348,74 @@
   "quickQaFolder": 1,
   "quickQaItem": 7,
   "snippetFolder": 1,
-  "sharedSnippet": 5
+  "sharedSnippet": 5,
+  "libraryFolder": 1
  },
  "nodes": [
   {
+   "key": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
+   "mockupId": "pages",
+   "parentKey": null,
+   "contentType": "pagesRoot",
+   "name": "Quản lý trang",
+   "state": "published",
+   "sortOrder": 0,
+   "values": {}
+  },
+  {
+   "key": "02308def-050d-5f02-901f-d457d298ec5e",
+   "mockupId": "content",
+   "parentKey": null,
+   "contentType": "contentRoot",
+   "name": "Quản lý nội dung",
+   "state": "published",
+   "sortOrder": 1,
+   "values": {}
+  },
+  {
+   "key": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
+   "mockupId": "c-alert",
+   "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
+   "contentType": "alertFolder",
+   "name": "Cảnh báo",
+   "state": "published",
+   "sortOrder": 0,
+   "values": {}
+  },
+  {
+   "key": "77e2e4a9-012b-5566-8542-d033c9c38827",
+   "mockupId": "c-art",
+   "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
+   "contentType": "articleFolder",
+   "name": "Bài viết",
+   "state": "published",
+   "sortOrder": 1,
+   "values": {}
+  },
+  {
+   "key": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "mockupId": "c-vcl",
+   "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
+   "contentType": "actionFolder",
+   "name": "Việc cần làm",
+   "state": "published",
+   "sortOrder": 2,
+   "values": {}
+  },
+  {
+   "key": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
+   "mockupId": "c-chk",
+   "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
+   "contentType": "checklistFolder",
+   "name": "Danh sách kiểm tra",
+   "state": "published",
+   "sortOrder": 3,
+   "values": {}
+  },
+  {
    "key": "a60f81d4-ea51-5082-8795-f87afe1a2e05",
    "mockupId": "settings",
-   "parentKey": null,
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "siteSettings",
    "name": "Cài đặt website",
    "state": "published",
@@ -2471,7 +2542,7 @@
   {
    "key": "8a2eec09-55da-582a-b342-537ebd77750d",
    "mockupId": "home",
-   "parentKey": null,
+   "parentKey": "9d4fca78-55d4-5a18-b77b-1eb268d447bd",
    "contentType": "homePage",
    "name": "Trang chủ",
    "state": "published",
@@ -3114,11 +3185,11 @@
   {
    "key": "d0ed3e7f-415e-5109-8906-5f47e134faf3",
    "mockupId": "p0",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Trả lời vài câu hỏi ngắn",
    "state": "published",
-   "sortOrder": 1,
+   "sortOrder": 0,
    "values": {
     "title": "Trả lời vài câu hỏi ngắn",
     "umbracoUrlName": "tra-loi-nhanh",
@@ -3180,11 +3251,11 @@
   {
    "key": "d473400b-dc16-5274-92c2-6bdc670719c5",
    "mockupId": "p1",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Có người đang thúc bạn làm ngay, bạn chưa đưa gì",
    "state": "published",
-   "sortOrder": 2,
+   "sortOrder": 1,
    "values": {
     "title": "Có người đang thúc bạn làm ngay, bạn chưa đưa gì",
     "umbracoUrlName": "dang-bi-thuc-ep",
@@ -3255,11 +3326,11 @@
   {
    "key": "8f95afcc-b47f-5201-9892-a2dcc83563df",
    "mockupId": "p2",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Bạn vừa chuyển tiền, hoặc vừa giao hàng đi",
    "state": "published",
-   "sortOrder": 3,
+   "sortOrder": 2,
    "values": {
     "title": "Bạn vừa chuyển tiền, hoặc vừa giao hàng đi",
     "umbracoUrlName": "da-chuyen-tien",
@@ -3330,11 +3401,11 @@
   {
    "key": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
    "mockupId": "p3",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Người khác đang có quyền vào tài khoản hoặc điện thoại của bạn",
    "state": "published",
-   "sortOrder": 4,
+   "sortOrder": 3,
    "values": {
     "title": "Người khác đang có quyền vào tài khoản hoặc điện thoại của bạn",
     "umbracoUrlName": "bi-chiem-quyen-tai-khoan",
@@ -3426,11 +3497,11 @@
   {
    "key": "3326906d-b9f7-5757-9ab4-014544319437",
    "mockupId": "p4",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Có người mời bạn góp vốn, đầu tư, làm ăn hoặc mời việc làm",
    "state": "published",
-   "sortOrder": 5,
+   "sortOrder": 4,
    "values": {
     "title": "Có người mời bạn góp vốn, đầu tư, làm ăn hoặc mời việc làm",
     "umbracoUrlName": "duoc-moi-dau-tu",
@@ -3491,11 +3562,11 @@
   {
    "key": "c07ba1d5-04dd-5265-824e-63a48c48dd7e",
    "mockupId": "p5",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Tiền đã đưa đi nhưng không lấy lại được, hoặc hợp đồng phát sinh vấn đề",
    "state": "published",
-   "sortOrder": 6,
+   "sortOrder": 5,
    "values": {
     "title": "Tiền đã đưa đi nhưng không lấy lại được, hoặc hợp đồng phát sinh vấn đề",
     "umbracoUrlName": "khong-lay-lai-duoc-tien",
@@ -3558,11 +3629,11 @@
   {
    "key": "ced0f2ff-a349-590d-a486-21ac72df96f0",
    "mockupId": "p6",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Giấy tờ, chữ ký hoặc tên của bạn đã được gửi đi, hoặc bị người khác dùng",
    "state": "published",
-   "sortOrder": 7,
+   "sortOrder": 6,
    "values": {
     "title": "Giấy tờ, chữ ký hoặc tên của bạn đã được gửi đi, hoặc bị người khác dùng",
     "umbracoUrlName": "lo-giay-to-chu-ky",
@@ -3652,11 +3723,11 @@
   {
    "key": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
    "mockupId": "p7",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Cách tự kiểm chứng trước khi đưa",
    "state": "published",
-   "sortOrder": 8,
+   "sortOrder": 7,
    "values": {
     "title": "Cách tự kiểm chứng trước khi đưa",
     "umbracoUrlName": "tu-kiem-chung",
@@ -3756,11 +3827,11 @@
   {
    "key": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
    "mockupId": "p8",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Có người đang đe dọa, ép buộc bạn",
    "state": "published",
-   "sortOrder": 9,
+   "sortOrder": 8,
    "values": {
     "title": "Có người đang đe dọa, ép buộc bạn",
     "umbracoUrlName": "bi-de-doa",
@@ -3843,11 +3914,11 @@
   {
    "key": "d4e2999b-5d4f-59ef-8bf0-adfc55f13bc9",
    "mockupId": "p9",
-   "parentKey": "068097f9-11b9-5810-be40-c37cff1aa894",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
    "contentType": "viecCanLamPage",
    "name": "Tự nhiên có tiền lạ chuyển vào tài khoản của bạn",
    "state": "published",
-   "sortOrder": 10,
+   "sortOrder": 9,
    "values": {
     "title": "Tự nhiên có tiền lạ chuyển vào tài khoản của bạn",
     "umbracoUrlName": "tien-la-chuyen-vao",
@@ -4360,11 +4431,11 @@
   {
    "key": "73d32f20-7620-5cc8-a6e3-948225c57744",
    "mockupId": "chk1",
-   "parentKey": "17029f01-72cd-5287-9a0c-0099268a3c1e",
+   "parentKey": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
    "contentType": "checklistPage",
    "name": "Trước mọi quyết định có dính đến tiền",
    "state": "published",
-   "sortOrder": 3,
+   "sortOrder": 0,
    "values": {
     "title": "Trước mọi quyết định có dính đến tiền",
     "icon": "clock",
@@ -4400,11 +4471,11 @@
   {
    "key": "15d756fa-99e8-5a4f-8d38-9a03efb55219",
    "mockupId": "chk2",
-   "parentKey": "17029f01-72cd-5287-9a0c-0099268a3c1e",
+   "parentKey": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
    "contentType": "checklistPage",
    "name": "Trước khi ký hợp đồng, bấm đồng ý",
    "state": "published",
-   "sortOrder": 4,
+   "sortOrder": 1,
    "values": {
     "title": "Trước khi ký hợp đồng, bấm đồng ý",
     "icon": "pen",
@@ -4443,11 +4514,11 @@
   {
    "key": "40b15a36-af02-57eb-ac1f-ea7f119a7ad0",
    "mockupId": "chk3",
-   "parentKey": "17029f01-72cd-5287-9a0c-0099268a3c1e",
+   "parentKey": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
    "contentType": "checklistPage",
    "name": "Trước khi đầu tư, góp vốn",
    "state": "published",
-   "sortOrder": 5,
+   "sortOrder": 2,
    "values": {
     "title": "Trước khi đầu tư, góp vốn",
     "icon": "chart",
@@ -4485,11 +4556,11 @@
   {
    "key": "b1e28dba-fa92-5c09-ac90-fcd840cd6425",
    "mockupId": "chk4",
-   "parentKey": "17029f01-72cd-5287-9a0c-0099268a3c1e",
+   "parentKey": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
    "contentType": "checklistPage",
    "name": "Trước khi vay, bảo lãnh, đứng tên",
    "state": "published",
-   "sortOrder": 6,
+   "sortOrder": 3,
    "values": {
     "title": "Trước khi vay, bảo lãnh, đứng tên",
     "icon": "coins",
@@ -4528,11 +4599,11 @@
   {
    "key": "320ee0ee-a568-5bac-9835-9a2f749e526d",
    "mockupId": "chk5",
-   "parentKey": "17029f01-72cd-5287-9a0c-0099268a3c1e",
+   "parentKey": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
    "contentType": "checklistPage",
    "name": "Trước khi nhận việc, nộp hồ sơ",
    "state": "published",
-   "sortOrder": 7,
+   "sortOrder": 4,
    "values": {
     "title": "Trước khi nhận việc, nộp hồ sơ",
     "icon": "brief",
@@ -4570,11 +4641,11 @@
   {
    "key": "03d15cda-9627-50a5-a621-cfa90156661c",
    "mockupId": "chk6",
-   "parentKey": "17029f01-72cd-5287-9a0c-0099268a3c1e",
+   "parentKey": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
    "contentType": "checklistPage",
    "name": "Trước khi mua, chuyển khoản, đặt cọc",
    "state": "published",
-   "sortOrder": 8,
+   "sortOrder": 5,
    "values": {
     "title": "Trước khi mua, chuyển khoản, đặt cọc",
     "icon": "cart",
@@ -4612,11 +4683,11 @@
   {
    "key": "b0400eca-232b-5a61-a5fe-ea4d73ff730e",
    "mockupId": "chk7",
-   "parentKey": "17029f01-72cd-5287-9a0c-0099268a3c1e",
+   "parentKey": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
    "contentType": "checklistPage",
    "name": "Khi người lạ liên hệ, gửi đường link",
    "state": "published",
-   "sortOrder": 9,
+   "sortOrder": 6,
    "values": {
     "title": "Khi người lạ liên hệ, gửi đường link",
     "icon": "call",
@@ -4653,11 +4724,11 @@
   {
    "key": "cae1df7e-fefb-5b2e-b87f-41ab55b0dc13",
    "mockupId": "chk8",
-   "parentKey": "17029f01-72cd-5287-9a0c-0099268a3c1e",
+   "parentKey": "7833fd8f-9efa-51cf-ba6b-9d27e42d9998",
    "contentType": "checklistPage",
    "name": "Khi đã lỡ đưa tiền, mã hoặc giấy tờ",
    "state": "draft",
-   "sortOrder": 10,
+   "sortOrder": 7,
    "values": {
     "title": "Khi đã lỡ đưa tiền, mã hoặc giấy tờ",
     "icon": "alert",
@@ -4726,7 +4797,7 @@
   {
    "key": "9b9a9c66-3068-5c65-9dff-17172e9a4a90",
    "mockupId": "al1",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Ứng dụng giả mạo dịch vụ công dụ người dân cài đặt",
    "state": "published",
@@ -4774,7 +4845,7 @@
   {
    "key": "dc0cbe24-a881-5d60-b813-7554fff68b22",
    "mockupId": "al2",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Ứng dụng vay nhanh đòi nộp phí trước khi giải ngân",
    "state": "published",
@@ -4820,7 +4891,7 @@
   {
    "key": "9364424e-2f80-5e9a-bf26-ea0054768942",
    "mockupId": "al3",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Mời góp vốn qua ứng dụng, cam kết lợi nhuận cố định",
    "state": "published",
@@ -4860,7 +4931,7 @@
   {
    "key": "1a0efbfd-ffd7-5dd8-b38f-d20e3b2df93b",
    "mockupId": "al4",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Nhiệm vụ trực tuyến trả hoa hồng vài lần đầu rồi bắt nạp thêm",
    "state": "published",
@@ -4903,7 +4974,7 @@
   {
    "key": "89006bd0-5eb5-51fb-9ff9-3259ac901f20",
    "mockupId": "al5",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Tin nhắn mạo danh ngân hàng chen vào luồng tin thật, báo tài khoản sắp bị khóa",
    "state": "published",
@@ -4946,7 +5017,7 @@
   {
    "key": "3a0461ea-5bf1-54b9-8655-9e2de5b2dcc2",
    "mockupId": "al6",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Chuyển nhầm tiền vào tài khoản, kèm mã QR hoặc đường dẫn để hoàn lại",
    "state": "published",
@@ -4984,7 +5055,7 @@
   {
    "key": "6d71d516-22b3-53d4-94d0-ec303a92f9e2",
    "mockupId": "al7",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Gọi điện báo có khoản vay quá hạn mang tên bạn, đòi chuyển tiền để “tất toán”",
    "state": "published",
@@ -5025,7 +5096,7 @@
   {
    "key": "fb34e743-bf37-55eb-a276-12290efce04c",
    "mockupId": "al8",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Giới thiệu hợp đồng bảo hiểm như một khoản gửi tiết kiệm lãi cao",
    "state": "published",
@@ -5066,7 +5137,7 @@
   {
    "key": "1271e228-8409-5cba-90d8-c7ae5f82bafc",
    "mockupId": "al9",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Cuộc gọi video giả người thân, nhắn cần tiền gấp và dặn đừng hỏi ai",
    "state": "published",
@@ -5110,7 +5181,7 @@
   {
    "key": "6db0ff54-57da-55d8-a9d9-4f0bc83639d0",
    "mockupId": "al10",
-   "parentKey": "23afa1ca-4cf5-5dd4-80da-74ed301f09db",
+   "parentKey": "dbeceecd-9e82-5d65-a310-6f0d2b15b38c",
    "contentType": "alertPage",
    "name": "Giả người mua, người giao hàng để chiếm tài khoản của người bán",
    "state": "draft",
@@ -5271,7 +5342,7 @@
   {
    "key": "b0ba33d7-7096-5e42-9694-016bed26caf5",
    "mockupId": "doc1",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Bài đọc Chuyên đề 1: Những điều nền tảng và cách quyết định cho chắc",
    "state": "published",
@@ -5287,6 +5358,7 @@
     },
     "illustrationAlt": "Bốn bước qua suối tượng trưng cho chậm lại, xác minh, làm rõ và quyết định",
     "topic": "d98324b7-3b5e-50e6-b3d2-fdfaf4261abb",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "checklist": "73d32f20-7620-5cc8-a6e3-948225c57744",
     "isFeatured": true,
     "version": "2.0",
@@ -5297,11 +5369,11 @@
   {
    "key": "a49b7c19-ff8f-5b39-a6d1-981d2e47c64d",
    "mockupId": "doc2",
-   "parentKey": "da460604-2dc8-5415-8eb2-641e7f605625",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Bài đọc Chuyên đề 2: Ký hợp đồng và cam kết dịch vụ",
    "state": "published",
-   "sortOrder": 0,
+   "sortOrder": 1,
    "values": {
     "title": "Bài đọc Chuyên đề 2: Ký hợp đồng và cam kết dịch vụ",
     "articleKind": "docChuyenDe",
@@ -5313,6 +5385,7 @@
     },
     "illustrationAlt": "Đọc kỹ điều khoản trước khi ký cam kết",
     "topic": "92b10ecd-aaa5-50e5-9ba1-8418908cc980",
+    "primaryGroup": "da460604-2dc8-5415-8eb2-641e7f605625",
     "checklist": "15d756fa-99e8-5a4f-8d38-9a03efb55219",
     "isFeatured": false,
     "version": "2.0",
@@ -5323,11 +5396,11 @@
   {
    "key": "5f835b6b-c66b-594c-816b-8a4530997b3f",
    "mockupId": "doc3",
-   "parentKey": "d2cd3ec7-f8f6-58cc-ac93-3c27eab1fc44",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Bài đọc Chuyên đề 3: Đầu tư, góp vốn và tài sản",
    "state": "published",
-   "sortOrder": 0,
+   "sortOrder": 2,
    "values": {
     "title": "Bài đọc Chuyên đề 3: Đầu tư, góp vốn và tài sản",
     "articleKind": "docChuyenDe",
@@ -5339,6 +5412,7 @@
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "ead90b7d-153e-50e2-82e1-471131a3fbae",
+    "primaryGroup": "d2cd3ec7-f8f6-58cc-ac93-3c27eab1fc44",
     "checklist": "40b15a36-af02-57eb-ac1f-ea7f119a7ad0",
     "isFeatured": false,
     "version": "2.0",
@@ -5349,11 +5423,11 @@
   {
    "key": "d129abd5-0eb0-57b3-8d40-0875027f0c73",
    "mockupId": "doc4",
-   "parentKey": "1c5053b8-9624-5f97-a544-5786c005a633",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Bài đọc Chuyên đề 4: Vay, cho vay và bảo lãnh",
    "state": "published",
-   "sortOrder": 0,
+   "sortOrder": 3,
    "values": {
     "title": "Bài đọc Chuyên đề 4: Vay, cho vay và bảo lãnh",
     "articleKind": "docChuyenDe",
@@ -5365,6 +5439,7 @@
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "bbbdef39-c36c-51e3-8374-8625a3c7a8cf",
+    "primaryGroup": "1c5053b8-9624-5f97-a544-5786c005a633",
     "checklist": "b1e28dba-fa92-5c09-ac90-fcd840cd6425",
     "isFeatured": false,
     "version": "2.0",
@@ -5375,11 +5450,11 @@
   {
    "key": "b657db29-6d04-5efd-9968-d526eb918e8f",
    "mockupId": "doc5",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Bài đọc Chuyên đề 5: Việc làm, tuyển dụng và nhiệm vụ trực tuyến",
    "state": "published",
-   "sortOrder": 1,
+   "sortOrder": 4,
    "values": {
     "title": "Bài đọc Chuyên đề 5: Việc làm, tuyển dụng và nhiệm vụ trực tuyến",
     "articleKind": "docChuyenDe",
@@ -5391,6 +5466,7 @@
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "2f4523a8-e08b-51b3-9f23-dc023d6a9beb",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "checklist": "320ee0ee-a568-5bac-9835-9a2f749e526d",
     "isFeatured": false,
     "version": "2.0",
@@ -5401,11 +5477,11 @@
   {
    "key": "db25568f-45a3-58b6-9c7c-becc6c1669d9",
    "mockupId": "doc6",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Bài đọc Chuyên đề 6: Mua bán, đặt cọc và dịch vụ tiêu dùng",
    "state": "published",
-   "sortOrder": 2,
+   "sortOrder": 5,
    "values": {
     "title": "Bài đọc Chuyên đề 6: Mua bán, đặt cọc và dịch vụ tiêu dùng",
     "articleKind": "docChuyenDe",
@@ -5417,6 +5493,7 @@
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "c870c4ec-a9db-5c01-91ff-3ffe278b7d7d",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "checklist": "03d15cda-9627-50a5-a621-cfa90156661c",
     "isFeatured": false,
     "version": "2.0",
@@ -5427,11 +5504,11 @@
   {
    "key": "19709819-f36c-5446-8857-0a286180ceef",
    "mockupId": "doc7",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Bài đọc Chuyên đề 7: Cuộc gọi, tin nhắn, đường dẫn và giả mạo",
    "state": "published",
-   "sortOrder": 3,
+   "sortOrder": 6,
    "values": {
     "title": "Bài đọc Chuyên đề 7: Cuộc gọi, tin nhắn, đường dẫn và giả mạo",
     "articleKind": "docChuyenDe",
@@ -5443,6 +5520,7 @@
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
     "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "checklist": "b0400eca-232b-5a61-a5fe-ea4d73ff730e",
     "isFeatured": false,
     "version": "2.0",
@@ -5453,11 +5531,11 @@
   {
    "key": "f5bec9f8-aa4b-5481-b06d-a6cebf26779f",
    "mockupId": "doc8",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Bài đọc Chuyên đề 8: Xử lý, phục hồi và phòng lừa đảo lần hai",
    "state": "published",
-   "sortOrder": 4,
+   "sortOrder": 7,
    "values": {
     "title": "Bài đọc Chuyên đề 8: Xử lý, phục hồi và phòng lừa đảo lần hai",
     "articleKind": "docChuyenDe",
@@ -5469,6 +5547,7 @@
     },
     "illustrationAlt": "Thời gian quan trọng để ngăn thiệt hại và lưu chứng cứ",
     "topic": "e729cc31-8ab4-5dbb-a5b6-b6b344600ee3",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "checklist": "cae1df7e-fefb-5b2e-b87f-41ab55b0dc13",
     "isFeatured": false,
     "version": "2.0",
@@ -5479,11 +5558,11 @@
   {
    "key": "ecb2a46e-be8e-55ed-b9d7-d665a33769d0",
    "mockupId": "ar1",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Ai cũng có thể trở thành nạn nhân của lừa đảo tài chính",
    "state": "published",
-   "sortOrder": 5,
+   "sortOrder": 8,
    "values": {
     "title": "Ai cũng có thể trở thành nạn nhân của lừa đảo tài chính",
     "articleKind": "docThem",
@@ -5493,6 +5572,7 @@
      "media": "minh-hoa-25.jpg"
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5500,11 +5580,11 @@
   {
    "key": "43004bf7-11a7-518b-b8e5-9b25f48ac1ee",
    "mockupId": "ar2",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Vì sao nhiều người vẫn mắc bẫy lừa đảo và cách dừng lại đúng lúc",
    "state": "published",
-   "sortOrder": 6,
+   "sortOrder": 9,
    "values": {
     "title": "Vì sao nhiều người vẫn mắc bẫy lừa đảo và cách dừng lại đúng lúc",
     "articleKind": "docThem",
@@ -5514,6 +5594,7 @@
      "media": "minh-hoa-26.jpg"
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5521,11 +5602,11 @@
   {
    "key": "1dadb6bf-5097-58d9-a18d-bb127aec5e2b",
    "mockupId": "ar4",
-   "parentKey": "d2cd3ec7-f8f6-58cc-ac93-3c27eab1fc44",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Hợp pháp mà vẫn mất tiền – Vùng xám của rủi ro tài chính",
    "state": "published",
-   "sortOrder": 1,
+   "sortOrder": 10,
    "values": {
     "title": "Hợp pháp mà vẫn mất tiền – Vùng xám của rủi ro tài chính",
     "articleKind": "docThem",
@@ -5535,6 +5616,7 @@
      "media": "minh-hoa-30.jpg"
     },
     "illustrationAlt": "Phân biệt rủi ro đầu tư và thủ đoạn gian lận",
+    "primaryGroup": "d2cd3ec7-f8f6-58cc-ac93-3c27eab1fc44",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5542,11 +5624,11 @@
   {
    "key": "dd824bab-9480-5ee7-bf77-2789d07bd0b0",
    "mockupId": "ar5",
-   "parentKey": "da460604-2dc8-5415-8eb2-641e7f605625",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Chữ ký của bạn có ý nghĩa gì trước pháp luật?",
    "state": "published",
-   "sortOrder": 1,
+   "sortOrder": 11,
    "values": {
     "title": "Chữ ký của bạn có ý nghĩa gì trước pháp luật?",
     "articleKind": "docThem",
@@ -5556,6 +5638,7 @@
      "media": "minh-hoa-29.jpg"
     },
     "illustrationAlt": "Đọc kỹ điều khoản trước khi ký cam kết",
+    "primaryGroup": "da460604-2dc8-5415-8eb2-641e7f605625",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5563,11 +5646,11 @@
   {
    "key": "2b31608e-5a71-5f8e-952f-35f0d3b80ced",
    "mockupId": "ar6",
-   "parentKey": "d2cd3ec7-f8f6-58cc-ac93-3c27eab1fc44",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Vì sao bị mất tiền nhưng không phải vụ nào cũng là lừa đảo?",
    "state": "published",
-   "sortOrder": 2,
+   "sortOrder": 12,
    "values": {
     "title": "Vì sao bị mất tiền nhưng không phải vụ nào cũng là lừa đảo?",
     "articleKind": "docThem",
@@ -5577,6 +5660,7 @@
      "media": "minh-hoa-28.jpg"
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+    "primaryGroup": "d2cd3ec7-f8f6-58cc-ac93-3c27eab1fc44",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5584,11 +5668,11 @@
   {
    "key": "19828fc0-130d-515f-bd50-bf0d0d199921",
    "mockupId": "ar7",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Sau cú lừa: 72 giờ vàng để giảm thiệt hại và bảo vệ bản thân",
    "state": "draft",
-   "sortOrder": 7,
+   "sortOrder": 13,
    "values": {
     "title": "Sau cú lừa: 72 giờ vàng để giảm thiệt hại và bảo vệ bản thân",
     "articleKind": "docThem",
@@ -5598,6 +5682,7 @@
      "media": "minh-hoa-32.jpg"
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5605,11 +5690,11 @@
   {
    "key": "e8df8344-88d2-51da-a1fd-d7ce26c3d07d",
    "mockupId": "ar8",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Thế giới đang chống lừa đảo tài chính ra sao?",
    "state": "draft",
-   "sortOrder": 8,
+   "sortOrder": 14,
    "values": {
     "title": "Thế giới đang chống lừa đảo tài chính ra sao?",
     "articleKind": "docThem",
@@ -5619,6 +5704,7 @@
      "media": "minh-hoa-21.jpg"
     },
     "illustrationAlt": "Người dân cùng chia sẻ thông tin phòng ngừa lừa đảo",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5626,11 +5712,11 @@
   {
    "key": "7b2288ed-a372-5a04-9628-0b6e35c14a09",
    "mockupId": "ar3_1",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Những chiêu lừa kinh điển vẫn còn hiệu quả",
    "state": "published",
-   "sortOrder": 9,
+   "sortOrder": 15,
    "values": {
     "title": "Những chiêu lừa kinh điển vẫn còn hiệu quả",
     "articleKind": "docThem",
@@ -5640,6 +5726,7 @@
      "media": "minh-hoa-24.jpg"
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5647,11 +5734,11 @@
   {
    "key": "f1f30a0b-eae2-53ee-bc6e-3dbc020d8988",
    "mockupId": "ar3_2",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Những thủ đoạn lừa đảo trong kỷ nguyên số",
    "state": "published",
-   "sortOrder": 10,
+   "sortOrder": 16,
    "values": {
     "title": "Những thủ đoạn lừa đảo trong kỷ nguyên số",
     "articleKind": "docThem",
@@ -5661,6 +5748,7 @@
      "media": "minh-hoa-23.jpg"
     },
     "illustrationAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5668,11 +5756,11 @@
   {
    "key": "1021c999-0840-5119-91c1-6aea51822179",
    "mockupId": "ar3_3",
-   "parentKey": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
+   "parentKey": "77e2e4a9-012b-5566-8542-d033c9c38827",
    "contentType": "riskArticlePage",
    "name": "Khi kẻ lừa đảo dùng AI và deepfake",
    "state": "published",
-   "sortOrder": 11,
+   "sortOrder": 17,
    "values": {
     "title": "Khi kẻ lừa đảo dùng AI và deepfake",
     "articleKind": "docThem",
@@ -5682,6 +5770,7 @@
      "media": "minh-hoa-27.jpg"
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+    "primaryGroup": "22aa7ac5-c85e-5ef3-887c-c29582076dce",
     "isFeatured": false,
     "version": "1.0"
    }
@@ -5907,16 +5996,6 @@
    "name": "Không tìm thấy trang",
    "state": "published",
    "sortOrder": 16,
-   "values": {}
-  },
-  {
-   "key": "46207bd9-7334-58d3-a56c-44660e190621",
-   "mockupId": "lib",
-   "parentKey": null,
-   "contentType": "libraryFolder",
-   "name": "Thư viện",
-   "state": "published",
-   "sortOrder": 2,
    "values": {}
   },
   {
@@ -7111,11 +7190,11 @@
   {
    "key": "f71ab491-9f0c-592b-a25f-1c61da77dcf4",
    "mockupId": "f-qa",
-   "parentKey": "46207bd9-7334-58d3-a56c-44660e190621",
+   "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
    "contentType": "quickQaFolder",
    "name": "Hỏi – đáp nhanh",
    "state": "published",
-   "sortOrder": 6,
+   "sortOrder": 4,
    "values": {}
   },
   {
@@ -7233,11 +7312,11 @@
   {
    "key": "ce68012e-e6e5-53db-9edd-27cb86f92cdf",
    "mockupId": "f-snip",
-   "parentKey": "46207bd9-7334-58d3-a56c-44660e190621",
+   "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
    "contentType": "snippetFolder",
    "name": "Đoạn dùng chung",
    "state": "published",
-   "sortOrder": 7,
+   "sortOrder": 5,
    "values": {}
   },
   {
@@ -7304,6 +7383,16 @@
     "title": "Chỉ làm các bước dưới đây nếu bạn nghi tài khoản, điện thoại hoặc máy tính của mình đã bị người khác kiểm soát:",
     "bodyText": "<ul><li>Nếu đã dùng cùng mật khẩu ở nơi khác, hãy đổi các mật khẩu đó bằng một thiết bị bạn tin cậy.</li><li>Đăng xuất những điện thoại, máy tính đang đăng nhập tài khoản mà bạn không nhận ra.</li><li>Nếu nghi Zalo, Facebook hoặc email đã bị chiếm: đổi mật khẩu từ một máy khác, đăng xuất những máy lạ, và báo người thân đừng làm theo tin nhắn gửi từ tài khoản mang tên bạn.</li></ul>"
    }
+  },
+  {
+   "key": "46207bd9-7334-58d3-a56c-44660e190621",
+   "mockupId": "lib",
+   "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
+   "contentType": "libraryFolder",
+   "name": "Danh mục",
+   "state": "published",
+   "sortOrder": 6,
+   "values": {}
   }
  ]
 }

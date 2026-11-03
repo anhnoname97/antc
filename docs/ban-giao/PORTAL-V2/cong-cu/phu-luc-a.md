@@ -76,10 +76,11 @@ Có template và đường dẫn · Không xóa (trang cố định) · Con đư
 
 #### `khanCapPage` · Khẩn cấp
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `viecCanLamPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Loại, Ngày rà soát, Trạng thái
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Nội dung | Việc cần làm | — (không lưu) | Việc cần làm | Không lưu (hiển thị) |  |  |
 | Nội dung | Đầu trang | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
 | Nội dung | Đầu trang | `lead` | Mô tả | Đoạn · 220 | ✔ |  |
 | Nội dung | Lối vào trình hỏi | `wizardTitle` | Tiêu đề | Chữ · 60 | ✔ |  |
@@ -196,7 +197,7 @@ Có template và đường dẫn · Tạo: chỉ Quản trị viên · Xóa: ch�
 
 #### `congCuPage` · Hãy tự kiểm tra
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `checklistPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Loại, Trạng thái; lọc Loại
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
@@ -331,10 +332,11 @@ Có template và đường dẫn · Không xóa (trang cố định)
 
 #### `alertListPage` · Cảnh báo mới
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `alertPage` · Có Collection (tab danh sách): cột Tiêu đề, Mức độ, Phổ biến, Ngày cập nhật, Còn mới, Trạng thái; lọc Trạng thái, Mức độ, Mức độ phổ biến, Kênh
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Nội dung | Nội dung | — (không lưu) | Cảnh báo | Không lưu (hiển thị) |  |  |
 | Nội dung | Nội dung | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
 | Nội dung | Nội dung | `lead` | Câu dẫn | Đoạn · 220 | ✔ |  |
 | Nội dung | Nội dung | `showSampleNote` | Dòng “Mẫu trình bày” | Bật/tắt |  |  |
@@ -377,10 +379,11 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 
 #### `riskCategoryPage` · Nhóm rủi ro
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `riskArticlePage` · Có Collection (tab danh sách): cột Tiêu đề, Loại bài, Mức độ, Ngày rà soát, Trạng thái; lọc Loại bài, Trạng thái
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Nội dung | Nội dung | — (không lưu) | Bài viết | Không lưu (hiển thị) |  |  |
 | Nội dung | Nội dung | `tabName` | Tên tab | Chữ · 28 | ✔ |  |
 | Nội dung | Nội dung | `cardDescription` | Mô tả ngắn trên thẻ trang chủ | Chữ · 60 | ✔ |  |
 | Nội dung | Nội dung | `lead` | Câu dẫn đầu trang | Đoạn · 220 | ✔ |  |
@@ -423,6 +426,7 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 | Phân loại | Phân loại | `channels` | Kênh | Chọn · Kênh (nhiều) | có điều kiện |  |
 | Phân loại | Phân loại | `audiences` | Đối tượng | Chọn · Đối tượng (nhiều) | có điều kiện |  |
 | Phân loại | Phân loại | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | có điều kiện |  |
+| Phân loại | Phân loại | `primaryGroup` | Nhóm chính | Chọn · Nhóm rủi ro (một) | ✔ | Quyết định đường dẫn /cac-rui-ro/<nhóm>/<tên> và đường dẫn đầu trang |
 | Phân loại | Phân loại | `alsoInCategories` | Hiện thêm ở nhóm | Chọn · Nhóm rủi ro (nhiều) |  |  |
 | Phân loại | Phân loại | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  |  |
 | Phân loại | Phân loại | `synonyms` | Từ đồng nghĩa | Thẻ · Từ khóa |  | Ví dụ: “otp” cho “mã xác thực” |
@@ -518,9 +522,33 @@ Có template và đường dẫn · Tạo: chỉ Quản trị viên · Xóa: ch�
 | Nội dung | Nội dung | `bodyText` | Nội dung | Soạn thảo · Bài đọc | ✔ |  |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
-#### `libraryFolder` · Thư viện
+#### `pagesRoot` · Quản lý trang
 
-Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Danh mục, Số mục, Biên tập viên
+Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Tên, Loại
+
+#### `contentRoot` · Quản lý nội dung
+
+Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Mục, Số mục, Ai thêm được
+
+#### `alertFolder` · Cảnh báo
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `alertPage` · Có Collection (tab danh sách): cột Tiêu đề, Mức độ, Phổ biến, Ngày cập nhật, Còn mới, Trạng thái; lọc Trạng thái, Mức độ, Mức độ phổ biến, Kênh
+
+#### `articleFolder` · Bài viết
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `riskArticlePage` · Có Collection (tab danh sách): cột Tiêu đề, Nhóm chính, Loại bài, Mức độ, Ngày rà soát, Trạng thái; lọc Nhóm chính, Loại bài, Trạng thái
+
+#### `actionFolder` · Việc cần làm
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `viecCanLamPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Loại, Ngày rà soát, Trạng thái
+
+#### `checklistFolder` · Danh sách kiểm tra
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `checklistPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Bài đọc nguồn, Trạng thái
+
+#### `libraryFolder` · Danh mục
+
+Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Danh mục, Số mục, Ai thêm được
 
 #### `channelFolder` · Kênh tiếp cận
 
