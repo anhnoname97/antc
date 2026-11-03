@@ -7,6 +7,7 @@
 
 ## Việc khác đang làm
 
+- **Portal v2 theo đặc tả 3 mục của khách** (từ 2026-11-02): đã chốt QĐ-032 → QĐ-049; danh mục cấu hình Umbraco, form và chia việc V2-00 → V2-13 ở `docs/ban-giao/PORTAL-V2/1-phan-tich-cau-hinh-umbraco.md`; mockup `PORTAL-V2/mockup-portal-v2.html`; danh mục chọn và chuẩn document type ở `PORTAL-V2/2-danh-muc-va-document-type.md`; đề xuất thay Block List ở `PORTAL-V2/3-thay-block-list.md` (chốt QĐ-042). Thiết kế và chia việc (62 task, khoảng 57 ngày công, alias từng trường) ở `PORTAL-V2/1-thiet-ke.md`; mọi CXN đã chốt (QĐ-042 → QĐ-048); kế hoạch Excel `PORTAL-V2/Ke-hoach-portal-v2.xlsx`. V2-00b đã làm (2026-11-03) ở worktree C:/Project/DMST/26.antc-portal-v2, nhánh portal-v2 từ dev, chưa commit. PDF dùng tệp tải lên (QĐ-049), V2-00 không còn chặn. Việc tiếp theo: commit V2-00b khi anhnn đồng ý, rồi giao V2-01a, V2-01b, V2-01c (làm song song được) và V2-01m (luồng V2-ui).
 - **Làm mới giao diện backoffice** (từ 2026-10-27): review, mockup, chạy thử sửa core Umbraco. Trạng thái và việc tiếp theo xem `docs/ban-giao/BACKOFFICE-UI/0-tong-hop.md`.
 
 ## Tình hình
