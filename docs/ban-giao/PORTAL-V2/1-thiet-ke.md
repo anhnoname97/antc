@@ -193,7 +193,7 @@ Quy ước trong bảng:
 | V2-01b | Data type cơ bản (0,5) | chính | Theo Phụ lục B, mục B2:<br>• `Chữ · N` và `Đoạn · N` (một data type cho mỗi giới hạn);<br>• `Chữ · Mã danh mục`, `Chữ · Liên kết https`;<br>• `Số · 1–3`, `Số · 1–8`, `Số · 30–720`;<br>• `Ngày`, `Bật/tắt`;<br>• `Danh sách dòng (min–max)`: Repeatable textstrings;<br>• `Thẻ · Từ khóa` (nhóm `tuKhoa`), `Thẻ · Từ đồng nghĩa` (nhóm `dongNghia`);<br>• `Chọn ảnh`, `Chọn tệp PDF` | V2-00b | Mọi data type Phụ lục A cần đều có. Tên theo mẫu "Nhóm · Tên" | Mở từng data type trong backoffice; uSync xuất file | Đã làm 2026-11-03 (c2fe4684) |
 | V2-01c | Ba data type soạn thảo (0,5) | chính | `Soạn thảo · Chỉ in đậm`, `Soạn thảo · Rút gọn` (đậm, danh sách), `Soạn thảo · Bài đọc` (tiêu đề phụ, đậm, nghiêng, danh sách, liên kết, bảng, menu Kiểu với 7 lớp `k-box`, `k-now`, `k-chips`, `k-case`, `k-pocket`, `k-stop`, `k-note`).<br>`Web/wwwroot/assets/css/rte-portal.css` cho khung soạn | V2-00b | Chèn được hộp theo menu Kiểu. Khung soạn hiện màu hộp giống website. Dán từ Word: ghi rõ Tiptap có giữ định dạng lạ không; nếu có thì lọc ở máy chủ bằng `Core/Articles/ArticleHtmlSanitizer.cs` (V2-10a) | Soạn thử trong một trang test; xem HTML lưu ra | Đã làm 2026-11-03 (c2fe4684). Chưa xem menu Kiểu trong backoffice bằng mắt |
 | V2-01d | Ba composition (0,5) | chính | `seoBase`: giữ alias đang có, thêm `canonicalUrl`, sửa alias tab không dấu.<br>`publishMetaBase`: thêm `displayUpdatedDate`.<br>`taxonomyBase`: `code`, `icon`, `isActive` (Phụ lục A, mục `channelItem`) | V2-01a, V2-01b | Ba composition có đúng trường. Trang cũ đang dùng `seoBase` vẫn mở và lưu được | Mở một bài `article` cũ, lưu lại, không lỗi | Đã làm 2026-11-03 (c2fe4684). seoBase: sửa tab sEO→seo, khôi phục 4 trường cũ chưa từng được nhập |
-| V2-01e | Thư viện: 9 loại thư mục (0,5) | chính | `libraryFolder` (cho tạo ở gốc) và 8 thư mục: `channelFolder`, `audienceFolder`, `stopSignFolder`, `popularityFolder`, `topicFolder`, `tacticFolder`, `quickQaFolder`, `snippetFolder`.<br>Mỗi thư mục chỉ cho tạo một loại con.<br>Collection (list view) theo Phụ lục A: cột, lọc, cho kéo sắp | V2-01d | Đúng cây ở `2-danh-muc…` mục 4.1. Hộp "Tạo" trong mỗi thư mục chỉ hiện đúng một loại | Tạo thử trong từng thư mục | Đã làm 2026-11-03 (c2fe4684). libraryFolder chưa có Collection, xem bằng cây |
+| V2-01e | Thư viện: 9 loại thư mục (0,5) | chính | `libraryFolder` (cho tạo ở gốc) và 8 thư mục: `channelFolder`, `audienceFolder`, `stopSignFolder`, `popularityFolder`, `topicFolder`, `tacticFolder`, `quickQaFolder`, `snippetFolder`.<br>Mỗi thư mục chỉ cho tạo một loại con.<br>Collection (list view) theo Phụ lục A: cột, lọc, cho kéo sắp<br>• QĐ-053: các thư mục này vào dưới Quản lý nội dung và bật ẩn mục con ở V2-01s | V2-01d | Đúng cây ở `2-danh-muc…` mục 4.1. Hộp "Tạo" trong mỗi thư mục chỉ hiện đúng một loại | Tạo thử trong từng thư mục | Đã làm 2026-11-03 (c2fe4684). libraryFolder chưa có Collection, xem bằng cây |
 | V2-01f | Sáu loại mục danh mục và data type chọn (1) | chính | `channelItem`, `audienceItem`, `stopSignItem`, `popularityItem`, `topicItem` (chưa có `readingArticle`, `checklist`), `tacticItem` (chưa có `containingArticle`).<br>Data type `Chọn · Kênh`, `Chọn · Đối tượng`, `Chọn · Dấu hiệu phải dừng`, `Chọn · Mức độ phổ biến`, `Chọn · Chuyên đề`, `Chọn · Thủ đoạn`: Multinode Treepicker, gốc Dynamic Root tới đúng thư mục, lọc đúng loại, số lượng theo Phụ lục B. Tạm dùng giao diện mặc định | V2-01e | Trường đúng Phụ lục A. Trình chọn chỉ thấy đúng thư mục trên hai máy có CSDL khác nhau | `run-local -Reset` trên máy thứ hai; mở trình chọn | Đã làm 2026-11-03 (c2fe4684). Trình chọn trỏ khóa cố định của thư mục thay Dynamic Root (Dynamic Root tính gốc từ trang đang sửa, không tới được Thư viện) |
 | V2-01g | Công cụ nhập: khung và phần danh mục (1) | chính | `src/ANTC.Portal.App/Tools/ImportPortalV2/`, theo mẫu `Tools/SeedContests`.<br>Đọc `seed-portal-v2.json`; tạo hoặc cập nhật nút theo khóa cố định, chạy lại không nhân đôi; đặt trạng thái nháp hoặc đăng theo seed.<br>Đợt này chỉ nạp Thư viện: 9 thư mục; 7 kênh, 5 đối tượng, 6 dấu hiệu, 3 mức độ phổ biến, 8 chuyên đề, 32 thủ đoạn (1 thủ đoạn ngừng dùng) | V2-01f | Đúng số nút từng thư mục. Chạy hai lần không đổi số nút | Chạy công cụ hai lần; đếm trong backoffice | Đã làm phần Thư viện 2026-11-03 (bộ dựng nạp 70 nút từ seed); phần trang còn lại thuộc V2-12a |
 | V2-01h | Quy tắc máy chủ cho danh mục và cây (1) | chính | `Core/PortalV2/Rules/TaxonomySavingHandler.cs` (`ContentSavingNotification`):<br>• `code` duy nhất trong cùng loại;<br>• khóa `code` sau lần xuất bản đầu;<br>• `topicNumber` từ 1 đến 8, duy nhất, khóa sau xuất bản;<br>• độ dài tên nút theo "Tên node ≤" ở Phụ lục A.<br>Mở rộng `Core/Content/PageTreeRules.cs` cho mọi loại mới: cha và con hợp lệ, trang cố định chỉ có một | V2-01g | Thông báo lỗi tiếng Việt, đúng câu ở `2-danh-muc…` mục 6 | Test trong `Tests/`; thử trong backoffice: trùng mã, đổi mã sau đăng, số chuyên đề 9 | Làm được sau V2-01g |
@@ -203,6 +203,8 @@ Quy ước trong bảng:
 | V2-01l | Combobox cho danh sách cố định và thẻ (0,5) | V2-ui | Property editor UI gắn schema `Umbraco.DropDown.Flexible` (hiện chấm màu hoặc biểu tượng: tách tên biểu tượng sau dấu "·") và `Umbraco.Tags` (gõ rồi Enter để thêm thẻ mới, gợi ý thẻ đã có) | V2-01j | 9 data type `Danh mục · …` và 2 data type `Thẻ · …` dùng được giao diện mới; giá trị lưu không đổi định dạng | Lưu, mở lại; xem giá trị trong CSDL không đổi | Làm được |
 | V2-01m | `Antc.InlineList` phía máy chủ (1) | V2-ui | `Core/PortalV2/Editors/InlineList*.cs`:<br>• `DataEditor` `Antc.InlineList`.<br>• Cấu hình: danh sách ô (alias, nhãn, kiểu, bắt buộc, giới hạn, điều kiện hiện), số dòng tối thiểu và tối đa, cho sắp hay không, dạng Bảng hay Thẻ, ô tóm tắt, phần tùy chọn.<br>• Giá trị là JSON, mỗi dòng có `key` GUID.<br>• Kiểm khi lưu theo cấu hình.<br>• `IDataValueReferenceFactory` cho ô chọn nút.<br>• Value converter trả `InlineListValue` có hàm đọc chữ, đọc nút, đọc danh sách dòng | V2-00b | Theo `3-thay-block-list.md` mục 3.3. Tham chiếu hiện ở mục "Đang dùng ở" của nút được chọn | `dotnet test` (kiểm, tham chiếu, chuyển đổi); thử xóa nút được chọn trong một bảng thì bị chặn | Đã làm khung 2026-11-03 (f31889da): cấu hình, kiểm, tham chiếu UDI, converter, 7 test. Giao diện tạm là ô JSON |
 | V2-01r | Danh mục và ảnh theo QĐ-051, QĐ-052 (0,5) | chính | `DanhMucCoDinh`: nhãn `thuong` thành "Cần thận trọng"; thêm `LoaiCauKiemTra`, `NghiaCauTraLoi`; bỏ `MauKetQua`, `TraLoiDauHieu`.<br>• Bộ dựng đồng bộ mục của dropdown đã có và đổi giá trị đã lưu "Thường" thành "Cần thận trọng" (32 thủ đoạn ở Thư viện).<br>• Xóa hai data type bỏ (uSync ghi file `Change="Delete"`).<br>• Composition `illustrationBase`: `illustration` (Chọn ảnh), `illustrationAlt` (Chữ · 160, bắt buộc khi có ảnh, kiểm ở V2-10a) | V2-01a, V2-01d | Test danh mục khớp seed; dropdown trong backoffice hiện chữ mới; không còn giá trị "Thường" | `dotnet test`; chạy bộ dựng trên CSDL có dữ liệu cũ; xem thủ đoạn trong backoffice | Đã làm 2026-11-03 (portal-v2): bộ dựng đổi 4 thủ đoạn "Thường" → "Cần thận trọng", xóa 2 data type |
+| V2-01s | Cây Quản lý trang, Quản lý nội dung (1) | chính | QĐ-053. Loại `pagesRoot` "Quản lý trang" và `contentRoot` "Quản lý nội dung" (thư mục gốc, không template, không xóa).<br>• Thư mục có Collection, mục con không hiện trên cây: `alertFolder` Cảnh báo, `articleFolder` Bài viết, `actionFolder` Việc cần làm, `checklistFolder` Danh sách kiểm tra; `quickQaFolder`, `snippetFolder` chuyển lên thẳng dưới Quản lý nội dung; `libraryFolder` đổi tên "Danh mục", vào cuối Quản lý nội dung.<br>• Các thư mục danh mục của gói nền bật ẩn mục con.<br>• Chuyển 70 nút Thư viện đang có (giữ khóa) theo cây mới; `Cài đặt website`, `Trang chủ` nằm dưới Quản lý trang.<br>• Phân quyền: thư mục cố định chỉ Quản trị sửa được tên | V2-01e | Cây đúng mockup `#content`, `#pages`; bấm thư mục mở danh sách | Xem cây trong backoffice; tạo một mục trong mỗi thư mục | Làm được |
+| V2-01t | Đường dẫn công khai theo đặc tả 3.3 (1) | chính | QĐ-053 khoản 3. `Core/PortalV2/Routing/PortalV2UrlProvider.cs` (IUrlProvider) và `PortalV2ContentFinder.cs` (IContentFinder), đăng ký ở `CustomCoreComposer`.<br>• Trang trong Quản lý trang: đường dẫn tính từ Trang chủ (`/`), bỏ đoạn "Quản lý trang".<br>• Cảnh báo `/cac-rui-ro/canh-bao-moi/<tên>`, bài viết `/cac-rui-ro/<nhóm chính>/<tên>`, việc cần làm `/khan-cap/<tên>`, danh sách kiểm tra `/hay-tu-kiem-tra/<tên>`; gốc lấy theo đường dẫn hiện tại của trang tương ứng.<br>• Thư mục Quản lý nội dung không có đường dẫn (404).<br>• Trùng tên trong cùng gốc: Umbraco báo trùng khi lưu (kiểm ở `ContentSavingNotification`).<br>• Đổi Nhóm chính: đường dẫn cũ vào bảng chuyển hướng của Umbraco | V2-01s, V2-03a | Mọi trang và mục mở được bằng đường dẫn đặc tả; xem trước trong backoffice đúng đường dẫn | Gọi thử từng loại bằng `Invoke-WebRequest`; đổi nhóm chính rồi mở đường dẫn cũ | Làm được |
 | V2-01n | `Antc.InlineList` dạng Bảng (1) | V2-ui | `Web/App_Plugins/AntcEditors/inline-list.js`, `inline-list.css`.<br>• Ô chữ, ô đoạn tự cao lên, ô số, ô ngày.<br>• Ô chọn dùng combobox của V2-01j, V2-01l.<br>• Dòng mở rộng ▸.<br>• Thêm dòng; xóa có Hoàn tác 8 giây; kéo ⋮⋮ và bàn phím để sắp.<br>• Bảng cố định số dòng.<br>• Lỗi hiện dưới từng ô.<br>• Khung hẹp hơn 720 px chuyển sang thẻ | V2-01m, V2-01l | Thao tác giống màn Khẩn cấp và Cài đặt website trong mockup | Gắn vào một data type thử; làm theo khung "Thử trong màn này" của mockup v1 | Làm được |
 | V2-01o | `Antc.InlineList` dạng Thẻ (1) | V2-ui | Thẻ có dòng tóm tắt và nhãn đặc điểm; mở, thu; Mở hết, Thu hết; nhân bản; chèn giữa; xóa có Hoàn tác.<br>Trong thẻ: danh sách dòng, bảng nhỏ (một cấp), phần tùy chọn bật tắt (ví dụ "Hỏi thêm"), ô hiện theo điều kiện trong dòng (ví dụ cửa vào "Mở trang" hay "Mở danh sách") | V2-01n | Thao tác giống màn Việc cần làm, Khẩn cấp (Ba cửa vào) và Checklist trong mockup | Như trên | Làm được |
 | V2-01p | `Antc.InlineList`: dán, bàn phím, so sánh phiên bản (0,5) | V2-ui | • Dán nhiều dòng (Tab tách cột) từ Excel hoặc Word.<br>• Enter ở ô cuối thì thêm dòng.<br>• Danh sách dòng: Enter thêm dòng, Backspace ở dòng trống thì xóa, Alt + ↑ ↓ để chuyển dòng.<br>• Hiện dạng bảng ở màn so sánh phiên bản; không làm được thì ghi giới hạn | V2-01o | Dán 5 dòng 3 cột vào bảng số đường dây nóng thì ra 5 dòng | Thử dán | Làm được |
@@ -223,16 +225,16 @@ Mỗi task dưới đây gồm:
 | # | Task | Luồng | Phạm vi / file dự kiến | Phụ thuộc | Tiêu chí hoàn thành | Cách kiểm chứng | Trạng thái |
 |---|---|---|---|---|---|---|---|
 | V2-02a | `siteSettings` (1) | chính | Loại mới cho phép ở gốc, 6 tab. Ba bảng `InlineList`: `stopPrinciples` (cố định 4 dòng), `mainLinks` (cố định 4), `extraLinks`.<br>`Chọn · Trang trong website` (lọc mọi loại `…Page`).<br>`antc` giữ tới V2-14b | V2-01d, I-01 | Đúng Phụ lục A. Biên tập viên chưa bị ẩn tab (việc đó ở V2-11a) | Tạo nút, điền đủ, xuất bản | Chờ I-01 |
-| V2-03a | `riskArticlePage` (1) | chính | Ba tab và SEO.<br>• `scenarios`: Thẻ.<br>• `references`: Bảng, ngày truy cập ở dòng mở rộng.<br>• `readingBody`: `Soạn thảo · Bài đọc`; `summary`: `Soạn thảo · Chỉ in đậm`.<br>• `Chọn · Bài viết`.<br>Thêm `tacticItem.containingArticle`, `topicItem.readingArticle`.<br>Mẫu nội dung (blueprint) cho ba loại bài | V2-01c, I-01 | Đúng Phụ lục A. Tạo bài từ blueprint thì có sẵn khung | Tạo ba bài ba loại | Chờ I-01 |
-| V2-03b | `ruiRoPage`, `riskCategoryPage` (0,5) | chính | `riskCategoryPage` có tab Danh sách (Collection bài viết: cột, lọc theo Phụ lục A). `Chọn · Nhóm rủi ro` | V2-03a | Trang nhóm hiện danh sách bài con, lọc theo loại bài, trạng thái | Tạo 5 nhóm thử | Chờ I-01 |
-| V2-04a | `alertListPage`, `alertPage` (1) | chính | `alertPage` có 4 tab và SEO. `alertListPage` có tab Danh sách: cột Mức độ (chấm màu), Phổ biến, Ngày cập nhật, Còn mới, Trạng thái; lọc Trạng thái, Mức độ, Mức độ phổ biến, Kênh.<br>`Chọn · Cảnh báo`.<br>`Chọn · Bài liên quan` (tạm gồm bài viết, cảnh báo; thêm checklist ở V2-08a) | V2-03b | Đúng Phụ lục A | Tạo, lọc, xuất bản hàng loạt trong Collection | Chờ I-01 |
+| V2-03a | `riskArticlePage` (1) | chính | Ba tab và SEO.<br>• `scenarios`: Thẻ.<br>• `references`: Bảng, ngày truy cập ở dòng mở rộng.<br>• `readingBody`: `Soạn thảo · Bài đọc`; `summary`: `Soạn thảo · Chỉ in đậm`.<br>• `Chọn · Bài viết`.<br>Thêm `tacticItem.containingArticle`, `topicItem.readingArticle`.<br>Mẫu nội dung (blueprint) cho ba loại bài<br>• QĐ-053: thêm `primaryGroup` "Nhóm chính" (Chọn · Nhóm rủi ro, bắt buộc) quyết định đường dẫn; bài viết tạo trong Quản lý nội dung › Bài viết | V2-01c, I-01 | Đúng Phụ lục A. Tạo bài từ blueprint thì có sẵn khung | Tạo ba bài ba loại | Chờ I-01 |
+| V2-03b | `ruiRoPage`, `riskCategoryPage` (0,5) | chính | `riskCategoryPage` có tab Danh sách (Collection bài viết: cột, lọc theo Phụ lục A). `Chọn · Nhóm rủi ro`<br>• QĐ-053: bỏ tab Danh sách của `riskCategoryPage`; Collection bài viết (thêm cột, lọc Nhóm chính) đặt ở `articleFolder`; trang nhóm chỉ hiện dòng đếm bài | V2-03a | Trang nhóm hiện danh sách bài con, lọc theo loại bài, trạng thái | Tạo 5 nhóm thử | Chờ I-01 |
+| V2-04a | `alertListPage`, `alertPage` (1) | chính | `alertPage` có 4 tab và SEO. `alertListPage` có tab Danh sách: cột Mức độ (chấm màu), Phổ biến, Ngày cập nhật, Còn mới, Trạng thái; lọc Trạng thái, Mức độ, Mức độ phổ biến, Kênh.<br>`Chọn · Cảnh báo`.<br>`Chọn · Bài liên quan` (tạm gồm bài viết, cảnh báo; thêm checklist ở V2-08a)<br>• QĐ-053: tab Danh sách chuyển sang `alertFolder`; `alertListPage` chỉ còn trường của trang | V2-03b | Đúng Phụ lục A | Tạo, lọc, xuất bản hàng loạt trong Collection | Chờ I-01 |
 | V2-04b | Cảnh báo theo thời gian (1) | chính | `Core/PortalV2/Alerts/AlertFreshness.cs`: còn mới khi `updatedDate` không quá 90 ngày; ghim ở trang chủ tự bỏ sau 90 ngày.<br>`AlertAutoUnpublishJob.cs` (`IRecurringBackgroundJob`, mỗi ngày): hủy xuất bản khi quá `autoUnpublishDays`, ghi log và lịch sử nút | V2-04a | Cảnh báo quá hạn tự gỡ. Hàm "còn mới" dùng chung cho view và `InfoPanel` | `dotnet test` (mốc 89, 90, 91 ngày); sửa ngày của một cảnh báo thử rồi chạy job | Chờ I-01 |
-| V2-05a | `sharedSnippet`, `viecCanLamPage` (1) | chính | • `Chọn · Đoạn dùng chung`.<br>• `viecCanLamPage`: `steps` (Thẻ, phần tùy chọn "Hỏi thêm" bật bằng `hasFollowUp`), `screeningQuestions` (Bảng).<br>• `Chọn · Việc cần làm` (một, nhiều).<br>• Đường dẫn dùng `umbracoUrlName` | V2-03a | Đúng Phụ lục A. Đổi `umbracoUrlName` thì bộ chuyển hướng có sẵn ghi 301 | Đổi đường dẫn một trang, mở đường dẫn cũ | Chờ I-01 |
+| V2-05a | `sharedSnippet`, `viecCanLamPage` (1) | chính | • `Chọn · Đoạn dùng chung`.<br>• `viecCanLamPage`: `steps` (Thẻ, phần tùy chọn "Hỏi thêm" bật bằng `hasFollowUp`), `screeningQuestions` (Bảng).<br>• `Chọn · Việc cần làm` (một, nhiều).<br>• Đường dẫn dùng `umbracoUrlName`<br>• QĐ-053: `viecCanLamPage` tạo trong Quản lý nội dung › Việc cần làm (`actionFolder`, kéo sắp); `khanCapPage` bỏ tab Danh sách | V2-03a | Đúng Phụ lục A. Đổi `umbracoUrlName` thì bộ chuyển hướng có sẵn ghi 301 | Đổi đường dẫn một trang, mở đường dẫn cũ | Chờ I-01 |
 | V2-07a | `wizardPage`: tab Câu hỏi, tab Kết quả (0,5) | chính | Ba bảng lựa chọn `step1Options`…`step3Options`, mỗi dòng có `key` cố định. Tab Kết quả theo Phụ lục A. Tab Ma trận để trống tới V2-07b | V2-05a | Đúng Phụ lục A. Sửa nhãn lựa chọn không đổi `key` | Sửa nhãn, xem JSON | Chờ I-01 |
 | V2-07b | Ma trận phía máy chủ và hàm tính điểm (1) | V2-ui | `Core/PortalV2/Wizard/`: `WizardMatrixEditor` (`DataEditor` `Antc.WizardMatrix`), kiểm cấu trúc JSON, `IDataValueReferenceFactory` (bài và checklist trong từng hàng), value converter.<br>`WizardScoring.cs`: điểm = 2 × số lựa chọn bước 2, 3 trùng, cộng 3 nếu kênh trùng; chỉ tính hàng có ít nhất một lựa chọn bước 2 hoặc 3 trùng; lấy tối đa `maxSituations` hàng; mức độ cao nhất; hòa điểm thì theo thứ tự hàng | V2-07a | Theo `1-phan-tich…` mục 6.4. Bộ ca kiểm dùng chung với JS (V2-07d, V2-13d) đặt ở `docs/ban-giao/PORTAL-V2/cong-cu/wizard-cases.json` | `dotnet test` với ít nhất 6 ca, trong đó có: ngân hàng và OTP; đầu tư crypto; không khớp | Chờ I-01 |
 | V2-07c | Ma trận: bảng (1) | V2-ui | `Web/App_Plugins/AntcEditors/wizard-matrix.js`:<br>• Cột đầu cố định khi cuộn; tiêu đề cột viết dọc; nhóm 3 bước theo màu; bấm ô để bật, tắt.<br>• Tìm, lọc mức độ, "Chỉ hàng có cảnh báo".<br>• Kéo để sắp.<br>• Khối cảnh báo: hàng thiếu thông tin, lựa chọn chưa thuộc hàng nào, ô trỏ tới lựa chọn đã xóa | V2-07b | Giống tab Ma trận trong mockup (`#qt.wizard`) | Bật, tắt ô; lưu; mở lại | Làm được |
 | V2-07d | Ma trận: ngăn chi tiết và "Thử kết quả" (1) | V2-ui | Ngăn bên phải sửa tên, mức độ, dấu hiệu (1–3), việc cần làm (1–4), bài, checklist, "Đang dùng"; nhân bản; xóa có Hoàn tác.<br>Khung "Thử kết quả" tính bằng JS theo cùng bộ ca kiểm | V2-07c | Kết quả JS khớp `WizardScoring` trên mọi ca trong `wizard-cases.json` | Chạy bộ ca bằng `node`; thử tay trên màn | Làm được |
-| V2-08a | `congCuPage`, kiểm tra nhanh, `checklistPage` (1) | chính | • `congCuPage` "Hãy tự kiểm tra": ba nhóm Kiểm tra nhanh, Danh sách kiểm tra, Kiểm tra kiến thức (`knowledgeLinks`); tab Danh sách kéo sắp.<br>• `toolCountPage`: `questions` (Thẻ: `questionKind`, `question`, `hint`, `answerOptions`), nhãn ba mức, `stopActions`/`holdActions`/`clearActions` (trang việc cần làm + số bước), `readMore`, `showAdviceBox`.<br>• `toolBranchPage`: `questions` (Thẻ: câu, nhãn tình huống, chữ nút, trang việc cần làm, `takeSteps`), hộp nguy hiểm tức thời, `allNoActions`, `hitTitle` có `{n}`.<br>• `checklistPage`: phần 1 `stopQuestions` (≤ 8), phần 2 `pocketItems` (≤ 15), `stopNow`, `holdNow`, `pdfFile` (QĐ-049).<br>• Kiểm máy chủ: số bước tồn tại trong trang việc cần làm.<br>• `Chọn · Kiểm tra nhanh`, `Chọn · Danh sách kiểm tra`; thêm `topicItem.checklist`; thêm danh sách kiểm tra vào `Chọn · Bài liên quan`. Gắn `illustrationBase` (QĐ-052) | V2-03a, V2-01r | Đúng Phụ lục A; số bước sai bị chặn khi lưu | Tạo danh sách mới bằng nút Tạo của trang cha; nhập số bước 9 ở trang 5 bước | Làm được |
+| V2-08a | `congCuPage`, kiểm tra nhanh, `checklistPage` (1) | chính | • `congCuPage` "Hãy tự kiểm tra": ba nhóm Kiểm tra nhanh, Danh sách kiểm tra, Kiểm tra kiến thức (`knowledgeLinks`); tab Danh sách kéo sắp.<br>• `toolCountPage`: `questions` (Thẻ: `questionKind`, `question`, `hint`, `answerOptions`), nhãn ba mức, `stopActions`/`holdActions`/`clearActions` (trang việc cần làm + số bước), `readMore`, `showAdviceBox`.<br>• `toolBranchPage`: `questions` (Thẻ: câu, nhãn tình huống, chữ nút, trang việc cần làm, `takeSteps`), hộp nguy hiểm tức thời, `allNoActions`, `hitTitle` có `{n}`.<br>• `checklistPage`: phần 1 `stopQuestions` (≤ 8), phần 2 `pocketItems` (≤ 15), `stopNow`, `holdNow`, `pdfFile` (QĐ-049).<br>• Kiểm máy chủ: số bước tồn tại trong trang việc cần làm.<br>• `Chọn · Kiểm tra nhanh`, `Chọn · Danh sách kiểm tra`; thêm `topicItem.checklist`; thêm danh sách kiểm tra vào `Chọn · Bài liên quan`. Gắn `illustrationBase` (QĐ-052)<br>• QĐ-053: `checklistPage` tạo trong Quản lý nội dung › Danh sách kiểm tra (`checklistFolder`, kéo sắp, thứ tự hiện ở Hãy tự kiểm tra); `congCuPage` bỏ tab Danh sách; 3 kiểm tra nhanh vẫn là trang con của Hãy tự kiểm tra | V2-03a, V2-01r | Đúng Phụ lục A; số bước sai bị chặn khi lưu | Tạo danh sách mới bằng nút Tạo của trang cha; nhập số bước 9 ở trang 5 bước | Làm được |
 | V2-06a | `khanCapPage` (1) | chính | Tab Danh sách (trang Việc cần làm, ngày rà soát).<br>• `doors`: Thẻ cố định 3, trong thẻ có bảng `options`; hiện `targetPage` hay `options` theo `openMode`.<br>• `stateHotlines`, `bankHotlines`: Bảng.<br>• `typicalSituations`.<br>• `Chọn · Việc cần làm hoặc trình hỏi` | V2-05a, V2-07a | Đúng Phụ lục A | Điền thử ba cửa vào hai kiểu | Chờ I-01 |
 | V2-06b | `homePage` (0,5) | chính | Bốn nhóm khối; `tools` đúng 3, sắp được; `pinnedAlert`. Cho tạo con `infoPage`, `policyPage` (chỉ Quản trị) | V2-04a, V2-08a | Đúng Phụ lục A | Tạo nút trang chủ mới | Làm được |
 | V2-08b | Bản in A4, tệp thay thế, đường tải PDF (1,5) | chính | `Core/PortalV2/Pdf/ChecklistPdfResolver.cs`.<br>Đường tải `/{checklist}/tai-pdf`: có `pdfFile` thì trả tệp; không có thì chuyển sang bản in A4.<br>Cấu hình `Checklist:Pdf:Mode`, mặc định `Upload` (QĐ-049). Giữ chỗ nhánh `LibreOffice` để bật sau. View in A4 làm ở V2-13g | V2-08a | Có tệp thì tải tệp, không có thì mở bản in | `curl -I` đường tải ở hai trường hợp | Làm được |
@@ -283,7 +285,7 @@ Mỗi task dưới đây gồm:
 Tổng ước lượng khoảng 57 ngày công (62 task), chưa tính việc của Ban biên tập. Chạy hai luồng song song thì rút được khoảng 10 ngày theo lịch.
 
 Đường găng:
-V2-00b → V2-01a…f → V2-01r → I-01 → V2-03a → V2-05a → V2-07a → (V2-07b…d) → V2-08a → V2-10a → V2-11a → V2-12a → website → I-02.
+V2-00b → V2-01a…f → V2-01r → V2-01s → I-01 → V2-03a → V2-05a → V2-07a → (V2-07b…d) → V2-08a → V2-10a → V2-11a → V2-12a → website → I-02.
 
 Luồng `V2-ui` (V2-01i đến V2-01q, V2-07b đến V2-07d, V2-10b) chạy song song với luồng `chính` ngay, vì contract đã chốt ở QĐ-045. Luồng `V2-web` bắt đầu khi loại tương ứng đã gộp.
 
@@ -391,6 +393,7 @@ Cách đọc:
 - "hiện có điều kiện": trường luôn hiện, mô tả ghi "Chỉ cần khi…" (QĐ-044); trong `InlineList` thì ẩn, hiện thật.
 - Phần Hãy tự kiểm tra (`congCuPage`, `toolCountPage`, `toolBranchPage`, `checklistPage`) theo logic của bản dựng mới (QĐ-051): câu hỏi có loại Phải dừng / Tạm hoãn / Cần kiểm tra, trả lời Có / Không / Tôi chưa biết; bỏ đếm dấu hiệu, bỏ dải kết quả.
 - `illustration`, `illustrationAlt` thuộc composition `illustrationBase` (QĐ-052), gắn vào 15 loại trang; liệt kê lại ở từng loại cho dễ tra.
+- Cây nội dung chia "Quản lý trang" và "Quản lý nội dung" (QĐ-053); thư mục có Collection không hiện mục con trên cây.
 
 #### `siteSettings` · Cài đặt website
 
@@ -469,10 +472,11 @@ Có template và đường dẫn · Không xóa (trang cố định) · Con đư
 
 #### `khanCapPage` · Khẩn cấp
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `viecCanLamPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Loại, Ngày rà soát, Trạng thái
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Nội dung | Việc cần làm | — (không lưu) | Việc cần làm | Không lưu (hiển thị) |  |  |
 | Nội dung | Đầu trang | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
 | Nội dung | Đầu trang | `lead` | Mô tả | Đoạn · 220 | ✔ |  |
 | Nội dung | Lối vào trình hỏi | `wizardTitle` | Tiêu đề | Chữ · 60 | ✔ |  |
@@ -589,7 +593,7 @@ Có template và đường dẫn · Tạo: chỉ Quản trị viên · Xóa: ch�
 
 #### `congCuPage` · Hãy tự kiểm tra
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `checklistPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Loại, Trạng thái; lọc Loại
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
@@ -724,10 +728,11 @@ Có template và đường dẫn · Không xóa (trang cố định)
 
 #### `alertListPage` · Cảnh báo mới
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `alertPage` · Có Collection (tab danh sách): cột Tiêu đề, Mức độ, Phổ biến, Ngày cập nhật, Còn mới, Trạng thái; lọc Trạng thái, Mức độ, Mức độ phổ biến, Kênh
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Nội dung | Nội dung | — (không lưu) | Cảnh báo | Không lưu (hiển thị) |  |  |
 | Nội dung | Nội dung | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
 | Nội dung | Nội dung | `lead` | Câu dẫn | Đoạn · 220 | ✔ |  |
 | Nội dung | Nội dung | `showSampleNote` | Dòng “Mẫu trình bày” | Bật/tắt |  |  |
@@ -770,10 +775,11 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 
 #### `riskCategoryPage` · Nhóm rủi ro
 
-Có template và đường dẫn · Không xóa (trang cố định) · Con được tạo: `riskArticlePage` · Có Collection (tab danh sách): cột Tiêu đề, Loại bài, Mức độ, Ngày rà soát, Trạng thái; lọc Loại bài, Trạng thái
+Có template và đường dẫn · Không xóa (trang cố định)
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Nội dung | Nội dung | — (không lưu) | Bài viết | Không lưu (hiển thị) |  |  |
 | Nội dung | Nội dung | `tabName` | Tên tab | Chữ · 28 | ✔ |  |
 | Nội dung | Nội dung | `cardDescription` | Mô tả ngắn trên thẻ trang chủ | Chữ · 60 | ✔ |  |
 | Nội dung | Nội dung | `lead` | Câu dẫn đầu trang | Đoạn · 220 | ✔ |  |
@@ -816,6 +822,7 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 | Phân loại | Phân loại | `channels` | Kênh | Chọn · Kênh (nhiều) | có điều kiện |  |
 | Phân loại | Phân loại | `audiences` | Đối tượng | Chọn · Đối tượng (nhiều) | có điều kiện |  |
 | Phân loại | Phân loại | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | có điều kiện |  |
+| Phân loại | Phân loại | `primaryGroup` | Nhóm chính | Chọn · Nhóm rủi ro (một) | ✔ | Quyết định đường dẫn /cac-rui-ro/<nhóm>/<tên> và đường dẫn đầu trang |
 | Phân loại | Phân loại | `alsoInCategories` | Hiện thêm ở nhóm | Chọn · Nhóm rủi ro (nhiều) |  |  |
 | Phân loại | Phân loại | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  |  |
 | Phân loại | Phân loại | `synonyms` | Từ đồng nghĩa | Thẻ · Từ khóa |  | Ví dụ: “otp” cho “mã xác thực” |
@@ -911,9 +918,33 @@ Có template và đường dẫn · Tạo: chỉ Quản trị viên · Xóa: ch�
 | Nội dung | Nội dung | `bodyText` | Nội dung | Soạn thảo · Bài đọc | ✔ |  |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
-#### `libraryFolder` · Thư viện
+#### `pagesRoot` · Quản lý trang
 
-Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Danh mục, Số mục, Biên tập viên
+Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Tên, Loại
+
+#### `contentRoot` · Quản lý nội dung
+
+Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Mục, Số mục, Ai thêm được
+
+#### `alertFolder` · Cảnh báo
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `alertPage` · Có Collection (tab danh sách): cột Tiêu đề, Mức độ, Phổ biến, Ngày cập nhật, Còn mới, Trạng thái; lọc Trạng thái, Mức độ, Mức độ phổ biến, Kênh
+
+#### `articleFolder` · Bài viết
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `riskArticlePage` · Có Collection (tab danh sách): cột Tiêu đề, Nhóm chính, Loại bài, Mức độ, Ngày rà soát, Trạng thái; lọc Nhóm chính, Loại bài, Trạng thái
+
+#### `actionFolder` · Việc cần làm
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `viecCanLamPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Loại, Ngày rà soát, Trạng thái
+
+#### `checklistFolder` · Danh sách kiểm tra
+
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `checklistPage` · Có Collection (tab danh sách), kéo sắp thứ tự: cột Tên, Bài đọc nguồn, Trạng thái
+
+#### `libraryFolder` · Danh mục
+
+Thư mục, không có trang · Không xóa (trang cố định) · Có Collection (tab danh sách): cột Danh mục, Số mục, Ai thêm được
 
 #### `channelFolder` · Kênh tiếp cận
 

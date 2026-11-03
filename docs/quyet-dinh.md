@@ -322,7 +322,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 
 ### QĐ-032 · Portal v2: chuyển sang cấu trúc 3 mục, bỏ Block Grid ở các trang chính
 
-- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực (cây nội dung thay một phần bởi QĐ-053)
 - Phạm vi: toàn bộ document type, view Razor, nội dung mẫu trong `uSync/v18`; `docs/ban-giao/PORTAL-V2/1-phan-tich-cau-hinh-umbraco.md` mục 4–7, 10
 - Vấn đề: đặc tả của khách (`docs/ban-dung-v2/Cấu trúc website theo hướng sau.docx` › 3. Sitemap) và bản dựng v2 dùng menu đúng 3 mục Khẩn cấp · Công cụ & checklist · Các rủi ro; Umbraco hiện có 22 loại trang theo cấu trúc cũ (Ứng phó, Thủ đoạn, Tham gia…), các trang chính chỉ có một trường `layout` kiểu Block Grid (`ContentTypes/home.config`, `thuDoanPage.config`…).
 - Quyết định: dựng lại cây nội dung và document type theo cấu trúc 3 mục và đường dẫn của đặc tả 3.3. Các trang chính dùng trường riêng theo từng khối của đặc tả, không dùng Block Grid. Trang Cuộc thi và Hỏi – Đáp giữ như hiện có.
@@ -556,3 +556,16 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
   - hiệu ứng (hiện dần khi cuộn, thẻ nghiêng khi rê chuột) làm ở website, tắt khi người xem bật giảm chuyển động.
 - Lý do: giống bản dựng mới.
 - Ảnh hưởng: thêm trường; Phương tiện có sẵn ảnh mẫu.
+
+### QĐ-053 · Portal v2: cây nội dung chia Quản lý trang và Quản lý nội dung
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: cây nội dung backoffice, đường dẫn công khai, `riskArticlePage`, `alertPage`, `viecCanLamPage`, `checklistPage`, Thư viện
+- Vấn đề: cây hiện tại trộn trang cố định với nội dung biên tập viên thêm hằng ngày (cảnh báo, bài viết nằm dưới trang cha), khó biết thêm ở đâu. Mockup backoffice cũ (`BACKOFFICE-UI/anh/07-noi-dung-soan-bai.png`) chia hai nhánh.
+- Quyết định:
+  - (1) Gốc cây có hai nhánh. "Quản lý trang": Cài đặt website và các trang cố định (Trang chủ, Khẩn cấp, Kiểm tra tình huống, Hãy tự kiểm tra và 3 kiểm tra nhanh, Các rủi ro, Cảnh báo mới, 5 nhóm rủi ro, Hỏi – Đáp, Liên hệ, Góp ý, trang thông tin, chính sách, Cuộc thi, Tìm kiếm, 404). "Quản lý nội dung": mọi thứ thêm được: Cảnh báo, Bài viết, Việc cần làm, Danh sách kiểm tra, Hỏi – đáp nhanh, Đoạn dùng chung, Danh mục (kênh, đối tượng, dấu hiệu phải dừng, mức độ phổ biến, chuyên đề, thủ đoạn).
+  - (2) Nhánh Quản lý nội dung là menu cố định (không xóa, không di chuyển). Bấm một mục thì mở danh sách (Collection) để lọc, thêm, sửa; mục con không hiện trên cây.
+  - (3) Đường dẫn công khai giữ theo đặc tả 3.3: cảnh báo `/cac-rui-ro/canh-bao-moi/<tên>`, bài viết `/cac-rui-ro/<nhóm>/<tên>`, việc cần làm `/khan-cap/<tên>`, danh sách kiểm tra `/hay-tu-kiem-tra/<tên>`; trang cố định tính từ Trang chủ, bỏ phần "Quản lý trang". Làm bằng UrlProvider và ContentFinder.
+  - (4) Bài viết có trường bắt buộc "Nhóm chính" (một nhóm rủi ro) quyết định đường dẫn; giữ "Hiện thêm ở nhóm".
+- Lý do: thêm mới thì vào Quản lý nội dung, sửa trang thì vào Quản lý trang; danh sách nhiều bài không làm dài cây.
+- Ảnh hưởng: thêm các thư mục gốc và thư mục có Collection; bỏ tab Danh sách ở Khẩn cấp, Hãy tự kiểm tra, Cảnh báo mới, nhóm rủi ro; Thư viện của gói nền chuyển vào Quản lý nội dung › Danh mục; thêm task UrlProvider và ContentFinder; QĐ-032 (cây theo đường dẫn) thay một phần.
