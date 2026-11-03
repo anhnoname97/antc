@@ -77,19 +77,19 @@ Mảng các dòng, theo thứ tự hiện. Mỗi dòng có `key` GUID, sinh khi 
 | `date` | chuỗi `yyyy-MM-dd` |
 | `toggle` | `true` \| `false` |
 | `fixed` | **mã** (`goi`, `ratCao`…), không phải chữ hiển thị. Đổi chữ ở `DanhMucCoDinh` không làm hỏng dữ liệu |
-| `content` | khóa GUID của nút (chuỗi), hoặc mảng khóa khi `multiple` |
+| `content` | UDI `umb://document/<khóa 32 ký tự hex, không gạch>` (chuỗi), hoặc mảng UDI khi `multiple`. Lý do: `IDataValueReference.GetReferences` của Umbraco chỉ nhận giá trị, không nhận cấu hình, nên phải nhận ra tham chiếu từ chính giá trị. `seed-portal-v2.json` giữ GUID; công cụ nhập đổi sang UDI |
 | `lines` | mảng chuỗi, bỏ dòng trống |
 | `table` | mảng dòng con, mỗi dòng có `key` |
 | phần tùy chọn | ô `toggleAlias` là `true` \| `false`; tắt thì các ô của phần đó không lưu |
 
-Ô rỗng thì bỏ khỏi dòng, không lưu `""` hay `null`. Dữ liệu mẫu `seed-portal-v2.json` theo đúng định dạng này.
+Ô rỗng thì bỏ khỏi dòng, không lưu `""` hay `null`. `seed-portal-v2.json` theo định dạng này, trừ ô `content` (GUID thay cho UDI).
 
 ### Phía máy chủ
 
 | Phần | Hành vi |
 |---|---|
 | Kiểm khi lưu | JSON đúng cấu trúc; số dòng trong `minRows`–`maxRows`; ô `required` đang hiện có giá trị; `maxChars`; `pattern`; `number` trong khoảng; mã `fixed` có trong danh sách; khóa `content` đúng định dạng GUID. Lỗi trả về theo đường dẫn ô, ví dụ `stateHotlines[1].number` |
-| Tham chiếu | `IDataValueReferenceFactory` báo mọi khóa ở ô `content`, kể cả trong bảng lồng, để `DisableDeleteWhenReferenced` chặn xóa |
+| Tham chiếu | Value editor cài `IDataValueReference`: báo mọi chuỗi UDI `umb://document/…` trong giá trị, kể cả trong bảng lồng, để `DisableDeleteWhenReferenced` chặn xóa |
 | Đọc trong view | Value converter trả `InlineListValue`: danh sách `InlineListRow` có `Key`, `GetString(alias)`, `GetBool`, `GetNumber`, `GetDate`, `GetCode`, `GetLines`, `GetKey`, `GetKeys`, `GetRows(alias)` |
 | Chưa có giao diện riêng | Khung V2-01m đăng ký editor với giao diện tạm là ô JSON thô, để luồng `chính` tạo được loại nội dung trước khi luồng `V2-ui` làm xong Bảng và Thẻ |
 
@@ -101,7 +101,7 @@ Schema riêng, kiểu giá trị JSON, dùng ở `wizardPage.situationMatrix`. L
 {
   "rows": [
     { "key": "24cc1d67-…", "name": "Giả mạo ngân hàng yêu cầu OTP", "cautionLevel": "ratCao",
-      "signs": ["…", "…"], "actions": ["…"], "guideArticle": "<khóa bài hoặc cảnh báo>", "checklist": "<khóa checklist>",
+      "signs": ["…", "…"], "actions": ["…"], "guideArticle": "umb://document/…", "checklist": "umb://document/…",
       "enabled": true,
       "match": { "step1": ["<key dòng step1Options>"], "step2": ["…"], "step3": ["…"] } }
   ]
@@ -114,7 +114,7 @@ Schema riêng, kiểu giá trị JSON, dùng ở `wizardPage.situationMatrix`. L
 | `cautionLevel` | Mã `thuong`, `cao`, `ratCao` |
 | `signs` | 1–3 dòng |
 | `actions` | 1–4 dòng |
-| `guideArticle` | Bắt buộc, khóa `riskArticlePage`, `alertPage` hoặc `viecCanLamPage` |
+| `guideArticle` | Bắt buộc, UDI của `riskArticlePage`, `alertPage` hoặc `viecCanLamPage` |
 | `checklist` | Không bắt buộc. Trống thì dùng `defaultChecklist` của trang |
 | `enabled` | Hàng tắt thì không tính, không kiểm |
 | `match` | Khi xuất bản, hàng đang dùng phải có ít nhất một khóa ở `step2` hoặc `step3`. Khóa trỏ tới lựa chọn đã xóa thì bỏ qua và ghi log |
