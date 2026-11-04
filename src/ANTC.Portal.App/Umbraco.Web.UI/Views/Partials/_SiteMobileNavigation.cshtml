@@ -1,0 +1,13 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
+@{
+    var site = Model.Root();
+    var menu = site.Value<BlockListModel>("menu");
+}
+@if (site.Value<bool>("showMobileNavigation") && menu?.Any() == true)
+{
+    <nav class="site-mobile-nav" aria-label="Danh mục chính trên điện thoại" data-mobile-navigation>
+        @await Html.PartialAsync("~/Views/Partials/_SiteNavigation.cshtml", (menu.AsEnumerable(), (IPublishedContent)Model, true))
+    </nav>
+}
