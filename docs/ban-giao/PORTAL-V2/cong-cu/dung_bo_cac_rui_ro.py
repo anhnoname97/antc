@@ -88,6 +88,18 @@ SCREENS = [
    (19, 'Bài liên quan', [], 'tu', 'Danh sách kiểm tra và kiểm tra nhanh cùng chuyên đề, bài hướng dẫn cùng nhóm, 3 bài đọc thêm mới nhất của nhóm. Không còn ô chọn.'),
    (20, 'Nguồn, rà soát gần nhất', ['references', 'reviewDate', 'reviewer'], 'nhap', ''),
   ]},
+ {'id': 'td', 'nav': 'Thủ đoạn', 'url': 'không có trang riêng', 'forms': ['tacticItem'],
+  'what': 'Thủ đoạn không có trang riêng. Nó hiện ở hai chỗ: thẻ trong danh sách của trang nhóm, và mục “Thủ đoạn thường gặp” trong bài hướng dẫn chứa nó. Nhập ở Danh mục › Thủ đoạn; trong form bài hướng dẫn có khối “Thủ đoạn trong bài” liệt kê và nút thêm.',
+  'where': ['Quản lý nội dung', 'Danh mục', 'Thủ đoạn'],
+  'imgs': [('nhom-lua-dao', 'Trang nhóm Lừa đảo: thẻ thủ đoạn', [(1, 64.3, 14)]),
+           ('huong-dan-6', 'Bài hướng dẫn Mua bán, đặt cọc: mục Thủ đoạn thường gặp', [(2, 39.0, 10), (3, 40.4, 12)])],
+  'rows': [
+   (1, 'Thẻ “Thủ đoạn” trong danh sách trang nhóm', ['containingArticle', 'channels', 'cautionLevel'], 'khac', 'Tên thủ đoạn; dòng phụ là tên ngắn chuyên đề và các kênh; mức độ; thời gian đọc của bài chứa. Thẻ hiện ở nhóm của bài chứa thủ đoạn. Bấm thẻ thì mở bài đó, cuộn tới mục 2 và tô sáng dòng của thủ đoạn.'),
+   (2, 'Mục “Thủ đoạn thường gặp” cuối phần Kịch bản', ['containingArticle'], 'tu', 'Không có ô trong form bài viết. Website liệt kê mọi thủ đoạn có “Bài viết chứa thủ đoạn” là bài này, theo thứ tự kéo ở Danh mục › Thủ đoạn.'),
+   (3, 'Một dòng: tên thủ đoạn, mức độ', ['cautionLevel'], 'khac', 'Dòng được tô sáng khi người đọc đến từ thẻ thủ đoạn hoặc từ “Bài liên quan” của cảnh báo.'),
+   (None, 'Thủ đoạn ở chỗ khác', ['searchKeywords'], 'tu', 'Bài liên quan của cảnh báo (dòng “Thủ đoạn”), kết quả tìm kiếm theo Từ khóa, bộ lọc Kênh và Mức độ ở trang nhóm.'),
+   (None, 'Thủ đoạn ngừng dùng', ['isActive'], 'khac', 'Tắt “Đang dùng” thì thẻ và dòng biến mất khỏi website; cảnh báo cũ vẫn giữ liên kết tới bài.'),
+  ]},
  {'id': 'cd', 'nav': 'Bài đọc chuyên đề', 'url': '/cac-rui-ro/<nhóm>/bai-doc-chuyen-de-<số>', 'forms': ['riskArticlePage'], 'kind': 'Bài đọc chuyên đề',
   'what': '8 bài, mỗi chuyên đề một bài.',
   'where': ['Quản lý nội dung', 'Bài viết', 'một bài, Loại bài = Bài đọc chuyên đề'],
@@ -134,9 +146,10 @@ FORMS = {
                      ('Cột phải · Xuất bản', [('primaryGroup', 'Đăng ở nhóm', 'Chọn · Nhóm rủi ro', '*', 0), ('articleKind', 'Loại bài', 'Thẻ chọn: 3 loại', '*', 0), ('topic', 'Chuyên đề', 'Chọn · Chuyên đề', 'hướng dẫn, chuyên đề', 0), ('actionPage', 'Dẫn tới trang việc cần làm', 'Chọn · Việc cần làm', '', 0), ('isFeatured', 'Ghim đầu nhóm', 'Bật/tắt', '', 0)]),
                      ('Cột phải · Thẩm định', [('reviewDate', 'Ngày rà soát', 'Ngày', 'khi đăng', 0), ('reviewer', 'Người thẩm định', 'Chữ · 120', 'khi đăng', 0), ('version', 'Phiên bản', 'Chữ · 20', '', 0)]),
                      ('Thêm chi tiết (thu gọn)', [('alsoInCategories', 'Hiện thêm ở nhóm', 'Chọn · Nhóm rủi ro', '', 0), ('searchKeywords', 'Từ người dân hay gõ khi tìm', 'Thẻ', '', 0), ('synonyms', 'Từ cùng nghĩa', 'Thẻ', '', 0), ('illustration', 'Ảnh minh họa', 'Chọn ảnh', '', 0), ('illustrationAlt', 'Văn bản thay thế', 'Chữ · 160', 'khi có ảnh', 0)])],
+ 'tacticItem': [('Thủ đoạn', [('name', 'Tên thủ đoạn', 'Tên mục', '*', 0), ('code', 'Mã', 'Chữ · Mã danh mục', '*', 0), ('isActive', 'Đang dùng', 'Bật/tắt', '', 0), ('containingArticle', 'Bài viết chứa thủ đoạn', 'Chọn · Bài viết (bài hướng dẫn)', 'khi đăng', 0), ('topic', 'Chuyên đề', 'Chọn · Chuyên đề', '*', 0), ('channels', 'Kênh', 'Chọn · Kênh', '*', 0), ('cautionLevel', 'Mức độ', 'Danh mục · Mức độ', '*', 0), ('searchKeywords', 'Từ khóa tìm kiếm', 'Thẻ', '', 0), ('anchor', 'Neo trong bài', 'Chữ · 40', '', 0)])],
  'topicItem': [('Danh mục › Chuyên đề · thêm 4 trường, nhập một lần cho cả chuyên đề', [('rememberLine', 'Nhớ một câu', 'Chữ · 140', '', 1), ('mustAsk', 'Câu hỏi phải hỏi', 'Đoạn · 200', '', 1), ('stopWhen', 'Khi nào phải dừng', 'Đoạn · 300', '', 1), ('holdWhen', 'Khi nào cần hoãn để kiểm chứng', 'Đoạn · 300', '', 1)])],
 }
-TYPENAME = {'riskCategoryPage': 'Nhóm rủi ro', 'alertListPage': 'Cảnh báo mới', 'alertPage': 'Cảnh báo', 'riskArticlePage': 'Bài viết', 'topicItem': 'Chuyên đề'}
+TYPENAME = {'tacticItem': 'Thủ đoạn', 'riskCategoryPage': 'Nhóm rủi ro', 'alertListPage': 'Cảnh báo mới', 'alertPage': 'Cảnh báo', 'riskArticlePage': 'Bài viết', 'topicItem': 'Chuyên đề'}
 
 # Doi so voi Phu luc A hien tai
 DROP = [

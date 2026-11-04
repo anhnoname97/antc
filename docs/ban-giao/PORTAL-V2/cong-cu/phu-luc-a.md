@@ -412,6 +412,7 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 |  | ↳ ô trong thẻ | `scenarios[].tacticName` | Tên kịch bản | Chữ · 140 |  |  |
 |  | ↳ ô trong thẻ | `scenarios[].steps` | Diễn biến từng bước | Danh sách dòng (0–8) | ✔ |  |
 | Viết bài | Nhận ra và xử lý | `avoidActions` | Việc không nên làm | Danh sách dòng (0–6) |  |  |
+| Viết bài | Thủ đoạn trong bài | — (không lưu) | Thủ đoạn | Không lưu (hiển thị) |  |  |
 | Viết bài | Nội dung bài | `readingBody` | Nội dung | Soạn thảo · Bài đọc |  | Menu “Kiểu” chèn Hộp ghi nhớ, Trường hợp thật, Bỏ túi; nút Bảng chèn bảng |
 | Viết bài | Nguồn tham khảo | `references` | Nguồn | InlineList · Bảng | khi đăng |  |
 | | ↳ cột | `references[].title` | Tên tài liệu | Chữ · 200 | ✔ |  |
@@ -661,6 +662,7 @@ Không có trang · Tạo: Biên tập viên · Xóa: Biên tập viên · Tên 
 | Nội dung | Thủ đoạn | `channels` | Kênh | Chọn · Kênh (nhiều) | ✔ |  |
 | Nội dung | Thủ đoạn | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | ✔ |  |
 | Nội dung | Thủ đoạn | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  |  |
+| Nội dung | Hiện trên website ở đâu | — (không lưu) | Nơi hiện | Không lưu (hiển thị) |  |  |
 
 #### `quickQaItem` · Hỏi – đáp nhanh
 

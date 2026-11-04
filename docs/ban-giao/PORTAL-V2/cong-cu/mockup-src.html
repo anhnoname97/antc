@@ -181,6 +181,7 @@ svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .box.fold{display:block}.box.fold > summary{cursor:pointer;display:flex;gap:10px;align-items:baseline;list-style:none}.box.fold > summary::-webkit-details-marker{display:none}
 .box.fold > summary::before{content:'▸';color:var(--muted)}.box.fold[open] > summary::before{content:'▾'}.box.fold > summary small{color:var(--muted);font-size:var(--fs-xs)}
 .box.fold[open]{display:grid;gap:18px}
+.tacl{display:grid;gap:10px}.tacl ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}.tacl .drow{border:1px solid var(--line);border-radius:8px}
 .autol{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:var(--fs-s)}.autol li{display:grid;gap:1px}.autol b{font-weight:500;color:var(--muted);font-size:var(--fs-xs)}
 .apl-bar{height:6px;border-radius:3px;background:var(--panel-2);overflow:hidden;margin-bottom:8px}.apl-bar i{display:block;height:100%;background:var(--sel-fg)}
 .docside .choice{grid-template-columns:1fr;gap:6px}.docside .chc{padding:8px 10px}.docside .chc small{display:none}.docside .chc[aria-checked="true"] small{display:block}
@@ -1090,13 +1091,19 @@ const maxLv=tl=>{let r='';tl.forEach(t=>{if((LVRANK[t.v.level]||0)>(LVRANK[r]||0
 const names=ids=>ids.map(byId).filter(Boolean).map(x=>x.name);
 const uniq=a=>[...new Set(a)];
 function autoBox(rows){return h('ul',{class:'autol'},rows.filter(r=>r[1]!=null).map(([l,v])=>h('li',null,h('b',{text:l}),h('span',{text:Array.isArray(v)?(v.length?v.join(' · '):'Chưa có'):v||'Chưa có'}))))}
+function TacList(n){const tl=tacOfArt(n.id).sort((a,b)=>a.o-b.o);
+  const add=h('button',{type:'button',class:'btn',onclick:()=>{const art=n.id,tp=n.v.topic||'';createChild(byId('f-tac'),'tacticItem');const nn=CURNODE();nn.v.article=art;nn.v.topic=tp;renderNode();toast('Thủ đoạn mới đã gắn sẵn vào bài này.')}},icon('plus'),'Thêm thủ đoạn cho bài này');
+  return h('div',{class:'tacl'},tl.length?h('ul',null,tl.map(t=>h('li',null,h('button',{type:'button',class:'drow',onclick:()=>go(t.id)},icon('alert'),h('span',{text:t.name}),h('small',{text:(LEVEL.find(l=>l.id===t.v.level)||{}).name||''}))))):h('p',{class:'small',text:'Chưa có thủ đoạn nào gắn vào bài này.'}),
+    h('div',{class:'xlink'},add,h('span',{class:'small',text:'Thứ tự hiện trên website theo thứ tự kéo ở Danh mục › Thủ đoạn.'})))}
+function TacWhere(v,n){const a=byId(v.article),g=a&&byId(a.v.grp);
+  return autoBox([['Trong bài',a?a.name+' › mục “Thủ đoạn thường gặp”':'Chưa chọn bài viết chứa thủ đoạn'],['Thẻ ở trang nhóm',g?g.name:'–'],['Bấm thẻ','Mở bài, cuộn tới mục và tô sáng dòng này'],
+    ['Cảnh báo dùng thủ đoạn này',N.filter(x=>x.type==='alertPage'&&(x.v.tac||[]).includes(n.id)).map(x=>x.name)]])}
 function ArtAuto(v,n){const tl=tacOfArt(n.id),lv=maxLv(tl),grp=v.grp;
   const chs=uniq(tl.flatMap(t=>t.v.ch||[])),auds=N.filter(x=>x.type==='audienceItem'&&(x.v.tactics||[]).some(t=>tl.some(y=>y.id===t))).map(x=>x.name);
   const topic=byId(v.topic),chk=N.find(x=>x.type==='checklistPage'&&x.v.src&&byId(x.v.src)&&byId(x.v.src).v.topic===v.topic);
   const same=N.filter(x=>x.type==='riskArticlePage'&&x.id!==n.id&&x.v.grp===grp);
   const series=(v.series||[])[0],inS=series?N.filter(x=>x.type==='riskArticlePage'&&(x.v.series||[])[0]===series).sort((a,b)=>a.o-b.o):[],pos=inS.findIndex(x=>x.id===n.id);
   return autoBox([
-    v.kind==='huongDan'?['Thủ đoạn trong bài',tl.map(t=>t.name)]:[null,null],
     v.kind==='huongDan'?['Mức độ',lv?(LEVEL.find(l=>l.id===lv)||{}).name:'Chưa có thủ đoạn']:[null,null],
     v.kind==='huongDan'?['Kênh',names(chs)]:[null,null],
     v.kind==='huongDan'?['Ai thường bị nhắm đến',auds]:[null,null],
@@ -1226,6 +1233,7 @@ const T={
         F('todo','Việc cần làm ngay','lines',{req:huong,max:6,ph:'Ví dụ: Cúp máy. Tự gọi lại số in trên thẻ ngân hàng'}),
         F('scen','Kịch bản thường gặp','cards',{max:6,unit:'kịch bản',sum:'name',flags:it=>[(it.steps||[]).length+' bước'],fields:[F('name','Tên kịch bản','text',{max:140}),F('steps','Diễn biến từng bước','lines',{req:1,max:8})]}),
         F('dont','Việc không nên làm','lines',{max:6,ph:'Ví dụ: Không đọc mã OTP cho bất kỳ ai'})]},
+      {g:'Thủ đoạn trong bài',when:v=>v.kind==='huongDan',lead:'Hiện thành mục “Thủ đoạn thường gặp” ở cuối phần Kịch bản, và thành thẻ “Thủ đoạn” trong danh sách của nhóm. Mỗi thủ đoạn là một mục ở Danh mục › Thủ đoạn.',f:[F('tacs','Thủ đoạn','info',{wide:1,fn:(v,n)=>TacList(n)})]},
       {g:'Nội dung bài',f:[F('body','Nội dung','rte',{help:'Menu “Kiểu” chèn Hộp ghi nhớ, Trường hợp thật, Bỏ túi; nút Bảng chèn bảng',ph:'Gõ hoặc dán nội dung. Dán từ Word chỉ giữ chữ.'})]},
       {g:'Nguồn tham khảo',lead:'Cần ít nhất một nguồn trước khi đăng.',f:[F('srcs','Nguồn','table',{req:'xb',max:10,cols:[{k:'t',l:'Tên tài liệu',req:1,max:200},{k:'unit',l:'Đơn vị',max:120,w:'24%'},{k:'url',l:'Liên kết',t:'url',w:'26%',ph:'https://'}],extra:[{k:'date',l:'Ngày truy cập',t:'date'}]})]},
       {g:'Thêm chi tiết',fold:1,gh:'không bắt buộc · nhóm khác, từ khóa',f:[F('tabs','Hiện thêm ở nhóm','multi',{src:'GRP'}),F('kw','Từ người dân hay gõ khi tìm','tags',{help:'Ví dụ: “gọi điện công an”'}),F('syn','Từ cùng nghĩa','tags',{help:'Ví dụ: “otp” cho “mã xác thực”'})]},
@@ -1266,7 +1274,7 @@ const T={
   popularityItem:{name:'Mức độ phổ biến',create:'bt',del:'bt',nameMax:40,sub:n=>n.v.code,defaults:()=>({code:'',icon:'chart',active:true,desc:''}),tabs:[{t:'Nội dung',f:[{g:'Mức độ phổ biến',f:taxBase.concat([F('desc','Giải thích ngắn','area',{max:160,help:'Hiện khi rê chuột vào nhãn trên website'})])}]}]},
   topicItem:{name:'Chuyên đề',create:'qt',del:'qt',nameMax:80,sub:n=>'Chuyên đề '+n.v.number,defaults:()=>({code:'',icon:'',active:true,number:'',short:'',read:'',chk:''}),tabs:[{t:'Nội dung',f:[{g:'Chuyên đề',f:taxBase.concat([F('number','Số chuyên đề','num',{req:1,lo:1,hi:8,unique:true,lockPub:'Khóa sau xuất bản: là khóa nối với ngân hàng câu hỏi Cuộc thi.'}),F('short','Tên ngắn','text',{req:'xb',max:40}),F('read','Bài đọc chuyên đề','pick',{src:'ART',req:'xb',showDraft:1}),F('chk','Danh sách kiểm tra','pick',{src:'CHK'})])},
     {g:'Dùng chung cho các bài của chuyên đề',lead:'Nhập một lần; hiện ở bài hướng dẫn, bài đọc và danh sách kiểm tra cùng chuyên đề (QĐ-054).',f:[F('remember','Nhớ một câu','text',{max:140,req:'xb'}),F('mustAsk','Câu hỏi phải hỏi','area',{max:200,req:'xb'}),F('stopWhen','Khi nào phải dừng','area',{max:300}),F('holdWhen','Khi nào cần hoãn để kiểm chứng','area',{max:300})]}]}]},
-  tacticItem:{name:'Thủ đoạn',create:'bt',del:'bt',nameMax:140,sub:n=>{const t=byId(n.v.topic);return t?'Chuyên đề '+t.v.number:''},defaults:()=>({code:'',active:true,topic:'',article:'',anchor:'',ch:[],level:'',kw:[]}),tabs:[{t:'Nội dung',f:[{g:'Thủ đoạn',f:[taxBase[0],taxBase[2],F('topic','Chuyên đề','pick',{src:'TOPIC',req:1}),F('article','Bài viết chứa thủ đoạn','pick',{src:'ART',req:'xb',showDraft:1}),F('anchor','Neo trong bài','text',{max:40,help:'Mã kịch bản trong bài, để tô sáng khi mở'}),F('ch','Kênh','multi',{src:'CH',req:1}),F('level','Mức độ','pick',{src:'LEVEL',req:1}),F('kw','Từ khóa tìm kiếm','tags')]}]}]},
+  tacticItem:{name:'Thủ đoạn',create:'bt',del:'bt',nameMax:140,sub:n=>{const t=byId(n.v.topic);return t?'Chuyên đề '+t.v.number:''},defaults:()=>({code:'',active:true,topic:'',article:'',anchor:'',ch:[],level:'',kw:[]}),tabs:[{t:'Nội dung',f:[{g:'Thủ đoạn',f:[taxBase[0],taxBase[2],F('topic','Chuyên đề','pick',{src:'TOPIC',req:1}),F('article','Bài viết chứa thủ đoạn','pick',{src:'ART',req:'xb',showDraft:1}),F('anchor','Neo trong bài','text',{max:40,help:'Mã kịch bản trong bài, để tô sáng khi mở'}),F('ch','Kênh','multi',{src:'CH',req:1}),F('level','Mức độ','pick',{src:'LEVEL',req:1}),F('kw','Từ khóa tìm kiếm','tags')]},{g:'Hiện trên website ở đâu',f:[F('where','Nơi hiện','info',{wide:1,fn:(v,n)=>TacWhere(v,n)})]}]}]},
   quickQaItem:{name:'Hỏi – đáp nhanh',create:'bt',del:'bt',nameMax:200,sub:n=>n.v.by?'Duyệt: '+n.v.by:'Chưa duyệt',defaults:()=>({q:'',a:'',why:'',todo:'',pages:[],by:''}),tabs:[{t:'Nội dung',f:[{g:'Câu hỏi',f:[F('q','Câu hỏi','area',{req:1,max:200}),F('a','Trả lời ngắn','area',{req:1,max:300}),F('why','Vì sao','rte',{mode:'limited'}),F('todo','Việc cần làm','rte',{mode:'limited',lists:1}),F('pages','Trang liên quan','multi',{src:'PAGES',max:2}),F('by','Đã duyệt bởi','text',{req:'xb',max:80})]}]}]},
   sharedSnippet:{name:'Đoạn dùng chung',create:'qt',del:'qt',nameMax:120,sub:()=>'Đoạn dùng chung',defaults:()=>({title:'',body:''}),tabs:[{t:'Nội dung',f:[{g:'Đoạn dùng chung',f:[F('title','Tiêu đề hộp','text',{req:1,max:120}),F('body','Nội dung','rte',{mode:'limited',lists:1,req:1}),F('used','Đang dùng ở','info',{fn:(v,n)=>{const r=refs(n.id);return r.length?r.map(x=>x.name).join(' · '):'Chưa trang nào dùng'}})]}]}]}
 };
