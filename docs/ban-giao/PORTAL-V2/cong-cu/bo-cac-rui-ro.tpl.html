@@ -86,7 +86,7 @@ table.gaps{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
 .foot{padding-block:24px 40px;color:var(--muted);font-size:var(--fs-s)}
 </style>
 
-<header class="top"><div class="wrap"><b>Các rủi ro</b><nav aria-label="Các màn">{{NAV}}<a href="#de-xuat">Đổi trường QĐ-054</a></nav></div></header>
+<header class="top"><div class="wrap"><b>Các rủi ro</b><nav aria-label="Các màn">{{NAV}}<a href="#de-xuat">Đổi trường</a></nav></div></header>
 <main class="wrap">
   <section class="intro">
     <h1>Các rủi ro: website và backoffice</h1>
@@ -101,7 +101,7 @@ table.gaps{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
   </section>
   {{SCREENS}}
   <section class="screen" id="de-xuat">
-    <header class="sh"><h2>Đổi trường theo QĐ-054 (đã duyệt)</h2><p>Nguyên tắc: cái gì suy ra được từ dữ liệu đã có thì website tự lấy; form chỉ giữ những gì chỉ người viết mới biết. So với Phụ lục A hiện tại: bỏ {{NDROP}} ô, thêm {{NADD}} mục.</p></header>
+    <header class="sh"><h2>Đổi trường theo QĐ-054, QĐ-055 (đã duyệt)</h2><p>Nguyên tắc: cái gì suy ra được từ dữ liệu đã có thì website tự lấy; form chỉ giữ những gì chỉ người viết mới biết. So với Phụ lục A hiện tại: bỏ {{NDROP}} ô, thêm {{NADD}} mục.</p></header>
     <div class="card tblwrap"><h3>Bỏ khỏi form ({{NDROP}})</h3><table class="gaps"><thead><tr><th>Trường</th><th>Tên</th><th>Thay bằng</th></tr></thead><tbody>{{DROP}}</tbody></table></div>
     <div class="card tblwrap"><h3>Thêm ({{NADD}})</h3><table class="gaps"><thead><tr><th>Trường</th><th>Tên</th><th>Kiểu</th></tr></thead><tbody>{{ADD}}</tbody></table></div>
     <div class="card tblwrap"><h3>Luật tự lấy cho dev</h3><p class="small">Viết thành một dịch vụ phía máy chủ, dùng cho view Razor; không cần API công khai. Kết quả nên lưu đệm và xóa khi lưu bài, cảnh báo, thủ đoạn.</p><table class="gaps"><thead><tr><th>Khối</th><th>Luật</th></tr></thead><tbody>{{RULES}}</tbody></table></div>

@@ -2049,19 +2049,10 @@
    "isActive": {
     "kind": "toggle"
    },
-   "topic": {
-    "kind": "content",
-    "multiple": false,
-    "source": "TOPIC"
-   },
    "containingArticle": {
     "kind": "content",
     "multiple": false,
     "source": "ART"
-   },
-   "anchor": {
-    "kind": "text",
-    "max": 40
    },
    "channels": {
     "kind": "content",
@@ -6724,7 +6715,6 @@
    "values": {
     "code": "ep-ky-ep-bam-dong-y-khi-ban-chua-doc-het",
     "isActive": true,
-    "topic": "92b10ecd-aaa5-50e5-9ba1-8418908cc980",
     "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca",
@@ -6744,7 +6734,6 @@
    "values": {
     "code": "quang-cao-mot-dang-hop-dong-mot-neo",
     "isActive": true,
-    "topic": "92b10ecd-aaa5-50e5-9ba1-8418908cc980",
     "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca",
@@ -6765,7 +6754,6 @@
    "values": {
     "code": "bao-ban-ky-vao-giay-con-cho-trong-thieu",
     "isActive": true,
-    "topic": "92b10ecd-aaa5-50e5-9ba1-8418908cc980",
     "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca"
@@ -6784,7 +6772,6 @@
    "values": {
     "code": "phi-dinh-ky-va-tu-dong-gia-han-giau-tron",
     "isActive": true,
-    "topic": "92b10ecd-aaa5-50e5-9ba1-8418908cc980",
     "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca",
@@ -6804,7 +6791,6 @@
    "values": {
     "code": "san-dau-tu-cam-ket-loi-nhuan-cho-rut-thu",
     "isActive": true,
-    "topic": "ead90b7d-153e-50e2-82e1-471131a3fbae",
     "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
@@ -6824,7 +6810,6 @@
    "values": {
     "code": "hoa-hong-theo-tang-thuong-tinh-theo-so-n",
     "isActive": true,
-    "topic": "ead90b7d-153e-50e2-82e1-471131a3fbae",
     "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca",
@@ -6844,7 +6829,6 @@
    "values": {
     "code": "nhap-nhem-giua-gop-von-cho-vay-va-tien-g",
     "isActive": true,
-    "topic": "ead90b7d-153e-50e2-82e1-471131a3fbae",
     "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca"
@@ -6863,7 +6847,6 @@
    "values": {
     "code": "chan-khong-cho-rut-roi-de-them-dieu-kien",
     "isActive": true,
-    "topic": "ead90b7d-153e-50e2-82e1-471131a3fbae",
     "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
     "channels": [
      "19576116-c761-5aa9-b178-239b0480748d"
@@ -6882,7 +6865,6 @@
    "values": {
     "code": "dat-coc-dat-suat-noi-bo-tien-chuyen-vao",
     "isActive": true,
-    "topic": "ead90b7d-153e-50e2-82e1-471131a3fbae",
     "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca",
@@ -6902,7 +6884,6 @@
    "values": {
     "code": "ung-dung-vay-nhanh-doi-quyen-vao-danh-ba",
     "isActive": true,
-    "topic": "bbbdef39-c36c-51e3-8374-8625a3c7a8cf",
     "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
     "channels": [
      "19576116-c761-5aa9-b178-239b0480748d"
@@ -6921,7 +6902,6 @@
    "values": {
     "code": "khau-tru-khi-giai-ngan-ho-so-ghi-mot-so",
     "isActive": true,
-    "topic": "bbbdef39-c36c-51e3-8374-8625a3c7a8cf",
     "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca",
@@ -6941,7 +6921,6 @@
    "values": {
     "code": "nho-ban-dung-ten-vay-ho-hoac-bao-lanh-ch",
     "isActive": true,
-    "topic": "bbbdef39-c36c-51e3-8374-8625a3c7a8cf",
     "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
@@ -6961,7 +6940,6 @@
    "values": {
     "code": "doi-no-sai-nguoi-goi-vao-danh-ba-de-gay",
     "isActive": true,
-    "topic": "bbbdef39-c36c-51e3-8374-8625a3c7a8cf",
     "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
     "channels": [
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
@@ -6980,7 +6958,6 @@
    "values": {
     "code": "bi-doi-mot-khoan-vay-mang-ten-minh-ma-mi",
     "isActive": true,
-    "topic": "bbbdef39-c36c-51e3-8374-8625a3c7a8cf",
     "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
     "channels": [
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
@@ -7000,7 +6977,6 @@
    "values": {
     "code": "nhiem-vu-truc-tuyen-cong-tac-vien-nap-ti",
     "isActive": true,
-    "topic": "2f4523a8-e08b-51b3-9f23-dc023d6a9beb",
     "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
@@ -7021,7 +6997,6 @@
    "values": {
     "code": "viec-nhe-luong-cao-dua-di-lam-xa-hoac-di",
     "isActive": true,
-    "topic": "2f4523a8-e08b-51b3-9f23-dc023d6a9beb",
     "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
@@ -7041,7 +7016,6 @@
    "values": {
     "code": "giu-ban-chinh-bang-cap-giay-to-tuy-than",
     "isActive": true,
-    "topic": "2f4523a8-e08b-51b3-9f23-dc023d6a9beb",
     "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca"
@@ -7060,7 +7034,6 @@
    "values": {
     "code": "du-mo-cho-muon-cho-thue-hoac-ban-tai-kho",
     "isActive": true,
-    "topic": "2f4523a8-e08b-51b3-9f23-dc023d6a9beb",
     "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
@@ -7081,7 +7054,6 @@
    "values": {
     "code": "bao-cai-ung-dung-tuyen-viec-tu-duong-dan",
     "isActive": true,
-    "topic": "2f4523a8-e08b-51b3-9f23-dc023d6a9beb",
     "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
     "channels": [
      "f97aea5d-7998-5afb-a72e-b16ab9c09467",
@@ -7101,7 +7073,6 @@
    "values": {
     "code": "chuyen-khoan-truoc-roi-khoi-san-roi-khon",
     "isActive": true,
-    "topic": "c870c4ec-a9db-5c01-91ff-3ffe278b7d7d",
     "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
     "channels": [
      "140e127b-2fd1-54b5-87eb-9c39e0abf402",
@@ -7121,7 +7092,6 @@
    "values": {
     "code": "dat-coc-dich-vu-thue-tai-san-khong-co-ch",
     "isActive": true,
-    "topic": "c870c4ec-a9db-5c01-91ff-3ffe278b7d7d",
     "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
@@ -7141,7 +7111,6 @@
    "values": {
     "code": "hoi-thao-ban-hang-luu-dong-ep-mua-hoac-e",
     "isActive": true,
-    "topic": "c870c4ec-a9db-5c01-91ff-3ffe278b7d7d",
     "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca"
@@ -7160,7 +7129,6 @@
    "values": {
     "code": "gia-bien-lai-chuyen-khoan-roi-doi-hoan-l",
     "isActive": true,
-    "topic": "c870c4ec-a9db-5c01-91ff-3ffe278b7d7d",
     "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
     "channels": [
      "f97aea5d-7998-5afb-a72e-b16ab9c09467",
@@ -7180,7 +7148,6 @@
    "values": {
     "code": "chuyen-nham-tien-vao-tai-khoan-cua-ban-k",
     "isActive": true,
-    "topic": "c870c4ec-a9db-5c01-91ff-3ffe278b7d7d",
     "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
     "channels": [
      "f97aea5d-7998-5afb-a72e-b16ab9c09467",
@@ -7200,7 +7167,6 @@
    "values": {
     "code": "gia-danh-co-quan-ngan-hang-nguoi-giao-ha",
     "isActive": true,
-    "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
     "channels": [
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
@@ -7219,7 +7185,6 @@
    "values": {
     "code": "bat-coc-online-gia-co-quan-to-tung-ep-o",
     "isActive": true,
-    "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
     "channels": [
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
@@ -7238,7 +7203,6 @@
    "values": {
     "code": "ghep-hinh-anh-giong-noi-nguoi-than-trong",
     "isActive": true,
-    "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
@@ -7258,7 +7222,6 @@
    "values": {
     "code": "tin-nhan-gia-chen-vao-dung-luong-tin-tha",
     "isActive": true,
-    "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
     "channels": [
      "f97aea5d-7998-5afb-a72e-b16ab9c09467"
@@ -7277,7 +7240,6 @@
    "values": {
     "code": "chiem-tai-khoan-mang-xa-hoi-roi-gia-nguo",
     "isActive": true,
-    "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
     "channels": [
      "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
@@ -7297,7 +7259,6 @@
    "values": {
     "code": "du-chia-se-man-hinh-hoac-cai-cong-cu-die",
     "isActive": true,
-    "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
     "channels": [
      "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
@@ -7317,7 +7278,6 @@
    "values": {
     "code": "tam-linh-giai-han-doa-gia-dinh-sap-gap-n",
     "isActive": true,
-    "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
     "channels": [
      "76b7a1cc-28b4-5785-a044-8759bd2954ca",
@@ -7337,7 +7297,6 @@
    "values": {
     "code": "tin-nhan-trung-thuong",
     "isActive": false,
-    "topic": "d801e674-c71b-5822-83b5-8ee15eeeafa7",
     "containingArticle": "19709819-f36c-5446-8857-0a286180ceef",
     "channels": [
      "f97aea5d-7998-5afb-a72e-b16ab9c09467"

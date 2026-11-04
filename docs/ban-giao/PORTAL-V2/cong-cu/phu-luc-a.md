@@ -656,9 +656,8 @@ Không có trang · Tạo: Biên tập viên · Xóa: Biên tập viên · Tên 
 |---|---|---|---|---|---|---|
 | Nội dung | Thủ đoạn | `code` | Mã | Chữ · Mã danh mục | ✔ | duy nhất; khóa sau xuất bản; Chữ thường không dấu, gạch ngang. Dùng trên địa chỉ lọc, ví dụ ?kenh=mang-xa-hoi |
 | Nội dung | Thủ đoạn | `isActive` | Đang dùng | Bật/tắt |  | Tắt thay cho xóa khi mục còn được dùng |
-| Nội dung | Thủ đoạn | `topic` | Chuyên đề | Chọn · Chuyên đề (một) | ✔ |  |
-| Nội dung | Thủ đoạn | `containingArticle` | Bài viết chứa thủ đoạn | Chọn · Bài viết (một) | khi đăng |  |
-| Nội dung | Thủ đoạn | `anchor` | Neo trong bài | Chữ · 40 |  | Mã kịch bản trong bài, để tô sáng khi mở |
+| Nội dung | Thủ đoạn | `containingArticle` | Bài viết chứa thủ đoạn | Chọn · Bài viết (một) | khi đăng | Bài hướng dẫn có mục “Thủ đoạn thường gặp” chứa thủ đoạn này |
+| Nội dung | Thủ đoạn | — (không lưu) | Chuyên đề | Không lưu (hiển thị) |  |  |
 | Nội dung | Thủ đoạn | `channels` | Kênh | Chọn · Kênh (nhiều) | ✔ |  |
 | Nội dung | Thủ đoạn | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | ✔ |  |
 | Nội dung | Thủ đoạn | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  |  |

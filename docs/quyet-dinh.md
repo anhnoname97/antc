@@ -583,3 +583,12 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
   - (4) "Ghim đầu nhóm" dùng `riskArticlePage.isFeatured`.
 - Lý do: ít ô hơn, ít sai lệch giữa các trang; dữ liệu dùng chung nhập một lần (thủ đoạn, chuyên đề).
 - Ảnh hưởng: sửa Phụ lục A; thêm task dịch vụ tự lấy; form cảnh báo chuyển sang bố cục hai cột như bài viết.
+
+### QĐ-055 · Portal v2: thủ đoạn bỏ "Neo trong bài", chuyên đề theo bài chứa
+
+- Ngày: 2026-11-04 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `tacticItem`, mục "Thủ đoạn thường gặp" của bài hướng dẫn
+- Vấn đề: form thủ đoạn có ô "Neo trong bài" (mã kịch bản để tô sáng) và ô "Chuyên đề" chọn riêng, có thể lệch với chuyên đề của bài chứa thủ đoạn.
+- Quyết định: bỏ `tacticItem.anchor` (website tô sáng theo chính thủ đoạn trong mục "Thủ đoạn thường gặp"); `tacticItem.topic` không còn là ô nhập, lấy theo `topic` của bài ở `containingArticle`. Form bài hướng dẫn có khối "Thủ đoạn trong bài" liệt kê thủ đoạn và nút tạo thủ đoạn gắn sẵn bài.
+- Lý do: ít ô, không lệch dữ liệu; biên tập viên thấy thủ đoạn ngay trong bài.
+- Ảnh hưởng: gói nền đã tạo `topic`, `anchor` trên `tacticItem` (V2-01f); V2-03c gỡ hai thuộc tính và chuyển giá trị chuyên đề sang suy ra.

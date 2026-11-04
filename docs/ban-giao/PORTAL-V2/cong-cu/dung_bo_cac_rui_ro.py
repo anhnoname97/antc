@@ -146,7 +146,7 @@ FORMS = {
                      ('Cột phải · Xuất bản', [('primaryGroup', 'Đăng ở nhóm', 'Chọn · Nhóm rủi ro', '*', 0), ('articleKind', 'Loại bài', 'Thẻ chọn: 3 loại', '*', 0), ('topic', 'Chuyên đề', 'Chọn · Chuyên đề', 'hướng dẫn, chuyên đề', 0), ('actionPage', 'Dẫn tới trang việc cần làm', 'Chọn · Việc cần làm', '', 0), ('isFeatured', 'Ghim đầu nhóm', 'Bật/tắt', '', 0)]),
                      ('Cột phải · Thẩm định', [('reviewDate', 'Ngày rà soát', 'Ngày', 'khi đăng', 0), ('reviewer', 'Người thẩm định', 'Chữ · 120', 'khi đăng', 0), ('version', 'Phiên bản', 'Chữ · 20', '', 0)]),
                      ('Thêm chi tiết (thu gọn)', [('alsoInCategories', 'Hiện thêm ở nhóm', 'Chọn · Nhóm rủi ro', '', 0), ('searchKeywords', 'Từ người dân hay gõ khi tìm', 'Thẻ', '', 0), ('synonyms', 'Từ cùng nghĩa', 'Thẻ', '', 0), ('illustration', 'Ảnh minh họa', 'Chọn ảnh', '', 0), ('illustrationAlt', 'Văn bản thay thế', 'Chữ · 160', 'khi có ảnh', 0)])],
- 'tacticItem': [('Thủ đoạn', [('name', 'Tên thủ đoạn', 'Tên mục', '*', 0), ('code', 'Mã', 'Chữ · Mã danh mục', '*', 0), ('isActive', 'Đang dùng', 'Bật/tắt', '', 0), ('containingArticle', 'Bài viết chứa thủ đoạn', 'Chọn · Bài viết (bài hướng dẫn)', 'khi đăng', 0), ('topic', 'Chuyên đề', 'Chọn · Chuyên đề', '*', 0), ('channels', 'Kênh', 'Chọn · Kênh', '*', 0), ('cautionLevel', 'Mức độ', 'Danh mục · Mức độ', '*', 0), ('searchKeywords', 'Từ khóa tìm kiếm', 'Thẻ', '', 0), ('anchor', 'Neo trong bài', 'Chữ · 40', '', 0)])],
+ 'tacticItem': [('Thủ đoạn', [('name', 'Tên thủ đoạn', 'Tên mục', '*', 0), ('code', 'Mã', 'Chữ · Mã danh mục', '*', 0), ('isActive', 'Đang dùng', 'Bật/tắt', '', 0), ('containingArticle', 'Bài viết chứa thủ đoạn', 'Chọn · Bài viết (bài hướng dẫn)', 'khi đăng', 0), ('channels', 'Kênh', 'Chọn · Kênh', '*', 0), ('cautionLevel', 'Mức độ', 'Danh mục · Mức độ', '*', 0), ('searchKeywords', 'Từ khóa tìm kiếm', 'Thẻ', '', 0)])],
  'topicItem': [('Danh mục › Chuyên đề · thêm 4 trường, nhập một lần cho cả chuyên đề', [('rememberLine', 'Nhớ một câu', 'Chữ · 140', '', 1), ('mustAsk', 'Câu hỏi phải hỏi', 'Đoạn · 200', '', 1), ('stopWhen', 'Khi nào phải dừng', 'Đoạn · 300', '', 1), ('holdWhen', 'Khi nào cần hoãn để kiểm chứng', 'Đoạn · 300', '', 1)])],
 }
 TYPENAME = {'tacticItem': 'Thủ đoạn', 'riskCategoryPage': 'Nhóm rủi ro', 'alertListPage': 'Cảnh báo mới', 'alertPage': 'Cảnh báo', 'riskArticlePage': 'Bài viết', 'topicItem': 'Chuyên đề'}
@@ -164,6 +164,8 @@ DROP = [
  ('riskArticlePage', 'cautionLevel', 'Mức độ', 'Mức cao nhất trong các thủ đoạn của bài.'),
  ('riskArticlePage', 'channels', 'Thường gặp qua kênh', 'Kênh của các thủ đoạn trong bài.'),
  ('riskArticlePage', 'audiences', 'Ai hay bị nhắm tới', 'Đối tượng có các thủ đoạn trong bài.'),
+ ('tacticItem', 'anchor', 'Neo trong bài', 'QĐ-055: tô sáng theo chính thủ đoạn.'),
+ ('tacticItem', 'topic', 'Chuyên đề (ô nhập)', 'QĐ-055: lấy theo chuyên đề của bài chứa thủ đoạn.'),
 ]
 ADD = [
  ('riskCategoryPage', 'showAdviceBox', 'Hiện hộp “Website không tư vấn tài chính”', 'Bật/tắt'),

@@ -26,6 +26,7 @@ node dump_schema.js ../mockup/mockup-o-nhap-backoffice.html phu-luc-a.md
 node xuat-seed.js ../mockup/mockup-o-nhap-backoffice.html seed-portal-v2.json
 BO_SCOPE=rui-ro python build_bo.py v2data.json ban-dung-moi/build/data.json mockup-src.html ../mockup/backoffice-cac-rui-ro.html ban-dung-moi/anh   # chỉ phần Các rủi ro
 python -I dung_bo_cac_rui_ro.py anh-portal-rui-ro ../mockup/bo-cac-rui-ro.html   # bàn giao website ↔ backoffice
+python -I dung_goi_cac_rui_ro.py   # gói gửi dev: ../goi-cac-rui-ro/ (index.html + 2 mockup)
 python make_xlsx.py ../1-thiet-ke.md ../../../quyet-dinh.md ../Ke-hoach-portal-v2.xlsx
 ```
 
