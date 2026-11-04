@@ -322,7 +322,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 
 ### QĐ-032 · Portal v2: chuyển sang cấu trúc 3 mục, bỏ Block Grid ở các trang chính
 
-- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực (cây nội dung thay một phần bởi QĐ-053)
 - Phạm vi: toàn bộ document type, view Razor, nội dung mẫu trong `uSync/v18`; `docs/ban-giao/PORTAL-V2/1-phan-tich-cau-hinh-umbraco.md` mục 4–7, 10
 - Vấn đề: đặc tả của khách (`docs/ban-dung-v2/Cấu trúc website theo hướng sau.docx` › 3. Sitemap) và bản dựng v2 dùng menu đúng 3 mục Khẩn cấp · Công cụ & checklist · Các rủi ro; Umbraco hiện có 22 loại trang theo cấu trúc cũ (Ứng phó, Thủ đoạn, Tham gia…), các trang chính chỉ có một trường `layout` kiểu Block Grid (`ContentTypes/home.config`, `thuDoanPage.config`…).
 - Quyết định: dựng lại cây nội dung và document type theo cấu trúc 3 mục và đường dẫn của đặc tả 3.3. Các trang chính dùng trường riêng theo từng khối của đặc tả, không dùng Block Grid. Trang Cuộc thi và Hỏi – Đáp giữ như hiện có.
@@ -331,7 +331,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 
 ### QĐ-033 · Portal v2: logic và nhãn theo đúng đặc tả của khách, không theo 7 điều chỉnh của bản dựng
 
-- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Thay một phần bởi QĐ-050, QĐ-051 (phần Hãy tự kiểm tra, nhãn mức độ)
 - Phạm vi: trình hỏi Khẩn cấp, 3 công cụ, trang cảnh báo; `1-phan-tich-cau-hinh-umbraco.md` mục 3.2, 6.4, 6.7, 6.10
 - Vấn đề: README bản dựng (`docs/ban-dung-v2/antoantaichinh-nguon/README.md` › "Điều chỉnh để giữ đúng đề cương 1.3") làm khác đặc tả ở 7 chỗ: nhãn mức độ, nhãn "An toàn tương đối", cách tính theo số dấu hiệu, "Có thể là", "Mức độ phổ biến", bước "gỡ ứng dụng lạ, quét thiết bị", bước "bật xác thực hai lớp".
 - Quyết định: làm theo đặc tả. Mức độ: Thường / Cao / Rất cao. Công cụ 1: An toàn tương đối (0 dấu hiệu) / Cần kiểm tra thêm (1) / Cần dừng lại (từ 2). Công cụ 2: Cần thẩm định kỹ / Rủi ro cao / Không nên tham gia. Kết quả trình hỏi ghi "Có thể là". Trang cảnh báo có "Mức độ phổ biến". Công cụ 3 dùng bảng hành động của đặc tả 6.3. Câu hỏi, lựa chọn của trình hỏi và công cụ dùng nguyên văn đặc tả 5.2–5.4, 6.1–6.3.
@@ -483,7 +483,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 
 ### QĐ-048 · Portal v2: ngưỡng công cụ 2, liên kết nguồn, tự gỡ cảnh báo
 
-- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Khoản (1) thay bởi QĐ-051; khoản (2), (3) hiệu lực
 - Phạm vi: `toolCountPage` công cụ 2, `alertPage`; `1-phan-tich…` mục 12; `1-thiet-ke.md` CXN-9
 - Quyết định:
   - (1) Công cụ 2 dùng ngưỡng 0 / 1 / từ 2 dấu hiệu, như công cụ 1; Quản trị viên sửa được trong form.
@@ -500,3 +500,73 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: đợt này PDF checklist dùng tệp do biên tập viên tải lên (chế độ `Upload` mặc định), bản in A4 luôn có làm đường lùi. Không làm dịch vụ sinh PDF bằng LibreOffice (V2-08c tạm dừng). Trường tệp PDF ở `checklistPage` cho Biên tập viên thấy và tải lên. Giữ khóa cấu hình `Checklist:Pdf:Mode` để sau này bật LibreOffice nếu hạ tầng cho phép. V2-00 không còn chặn việc nào.
 - Lý do: không phụ thuộc hạ tầng chưa rõ.
 - Ảnh hưởng: bớt khoảng 2 ngày công; biên tập viên phải tự làm PDF khi sửa checklist; trạng thái "PDF tự sinh" và nút "Sinh lại" chưa làm.
+
+### QĐ-050 · Portal v2: mục thứ hai gọi là "Hãy tự kiểm tra"
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: menu chính, trang chủ, trang `congCuPage` và các trang con, tên loại nội dung trong backoffice. Thay phần tên gọi trong QĐ-033
+- Vấn đề: đặc tả của khách gọi mục thứ hai là "Công cụ & checklist"; bản dựng mới `antoantaichinh_co_anh_nen_sang.html` đổi thành "Hãy tự kiểm tra".
+- Quyết định: dùng cách gọi của bản dựng mới.
+  - Mục và trang tổng: "Hãy tự kiểm tra".
+  - Công cụ: "Kiểm tra nhanh".
+  - Checklist: "Danh sách kiểm tra"; nút "Tải danh sách kiểm tra (PDF)".
+  - Đường dẫn giữ `/cong-cu-checklist/…`; alias loại nội dung giữ nguyên.
+- Lý do: không dùng chữ tiếng Anh, dễ hiểu với người lớn tuổi.
+- Ảnh hưởng: đổi chữ hiển thị, tên loại trong backoffice, dữ liệu mẫu.
+
+### QĐ-051 · Portal v2: logic phần "Hãy tự kiểm tra" theo bản dựng
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: công cụ 1, 2, 3, danh sách kiểm tra, nhãn mức độ cần thận trọng. Thay các phần tương ứng của QĐ-033 (theo đặc tả 6.1–6.3, 11.3) và khoản (1) của QĐ-048 (ngưỡng công cụ 2)
+- Vấn đề: QĐ-033 chọn đặc tả cho công cụ (Có / Không, đếm dấu hiệu); bản dựng có logic khác và đầy đủ hơn.
+- Quyết định: làm theo bản dựng (`antoantaichinh_co_anh_nen_sang.html`, giống bản v2 ở phần logic).
+  - (1) Công cụ 1, 2:
+    - mỗi câu có loại "phải dừng", "tạm hoãn" hoặc "cần kiểm tra";
+    - trả lời Có / Không / Tôi chưa biết, một số câu có lựa chọn riêng;
+    - câu "phải dừng" trả lời Có thì kết luận ngay mức Dừng;
+    - còn lại, có lý do thì mức Hoãn, không có thì mức "Chưa phát hiện điểm dừng";
+    - kết quả kèm lý do theo từng câu, "Việc nên làm bây giờ" lấy nguyên văn các bước của trang Việc cần làm, và "Đọc thêm";
+    - công cụ 2 có hộp "Website không tư vấn tài chính" và "Hai điều phải nhớ".
+  - (2) Công cụ 3:
+    - 4 câu theo bản dựng; mỗi câu trả lời Có mở một nhóm bước, lấy nguyên văn từ trang Việc cần làm tương ứng;
+    - không có các bước "gỡ ứng dụng lạ, quét thiết bị, bật xác thực hai lớp" của đặc tả 6.3.
+  - (3) Danh sách kiểm tra làm tương tác:
+    - phần 1: các câu "Có việc nào dưới đây không?", trả lời Có / Không / Tôi chưa biết;
+    - phần 2: bảng kiểm bỏ túi có ô tích;
+    - nút "Xem kết quả": có câu Có thì mức Dừng; còn câu chưa biết hoặc ô chưa tích thì mức Hoãn; kèm "Làm ngay" lấy từ bài đọc chuyên đề.
+  - (4) Nhãn mức độ:
+    - "Rất cao", "Cao", "Cần thận trọng"; mức thấp nhất cũng là trạng thái khi trình hỏi không khớp;
+    - mỗi mức có nhãn khuyến nghị: DỪNG, HOÃN VÀ KIỂM CHỨNG, CHƯA PHÁT HIỆN ĐIỂM DỪNG, cùng câu giải thích sửa được ở Cài đặt website.
+- Lý do: xử lý được trường hợp người dân không chắc; danh sách kiểm tra cho ra kết quả thay vì chỉ để in; nội dung nguyên văn đã thẩm định.
+- Ảnh hưởng:
+  - làm lại form `toolCountPage`, `toolBranchPage`, `checklistPage`;
+  - thêm danh sách cố định "Loại câu kiểm tra", "Nghĩa của câu trả lời";
+  - đổi chữ mức thấp nhất từ "Thường" sang "Cần thận trọng" (mã `thuong` giữ nguyên);
+  - QĐ-033 bỏ rủi ro câu chữ công cụ 3.
+
+### QĐ-052 · Portal v2: ảnh minh họa cho các trang
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: các loại trang Portal v2, `riskCategoryPage`, dữ liệu mẫu
+- Vấn đề: bản dựng mới có bộ ảnh minh họa (40 ảnh): mỗi trang một ảnh lớn, mỗi nhóm rủi ro một ảnh thu nhỏ; thiết kế chưa có chỗ nhập.
+- Quyết định:
+  - thêm composition `illustrationBase` (Ảnh minh họa, Văn bản thay thế) cho các loại trang có ảnh trong bản dựng, thay các trường ảnh riêng của Trang chủ, Bài viết, Cảnh báo;
+  - thêm "Ảnh thu nhỏ" cho `riskCategoryPage`;
+  - tách 40 ảnh từ bản dựng vào dữ liệu mẫu để nạp vào Phương tiện;
+  - hiệu ứng (hiện dần khi cuộn, thẻ nghiêng khi rê chuột) làm ở website, tắt khi người xem bật giảm chuyển động.
+- Lý do: giống bản dựng mới.
+- Ảnh hưởng: thêm trường; Phương tiện có sẵn ảnh mẫu.
+
+### QĐ-053 · Portal v2: cây nội dung chia Quản lý trang và Quản lý nội dung
+
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: cây nội dung backoffice, đường dẫn công khai, `riskArticlePage`, `alertPage`, `viecCanLamPage`, `checklistPage`, Thư viện
+- Vấn đề: cây hiện tại trộn trang cố định với nội dung biên tập viên thêm hằng ngày (cảnh báo, bài viết nằm dưới trang cha), khó biết thêm ở đâu. Mockup backoffice cũ (`BACKOFFICE-UI/anh/07-noi-dung-soan-bai.png`) chia hai nhánh.
+- Quyết định:
+  - (1) Gốc cây có hai nhánh. "Quản lý trang": Cài đặt website và các trang cố định (Trang chủ, Khẩn cấp, Kiểm tra tình huống, Hãy tự kiểm tra và 3 kiểm tra nhanh, Các rủi ro, Cảnh báo mới, 5 nhóm rủi ro, Hỏi – Đáp, Liên hệ, Góp ý, trang thông tin, chính sách, Cuộc thi, Tìm kiếm, 404). "Quản lý nội dung": mọi thứ thêm được: Cảnh báo, Bài viết, Việc cần làm, Danh sách kiểm tra, Hỏi – đáp nhanh, Đoạn dùng chung, Danh mục (kênh, đối tượng, dấu hiệu phải dừng, mức độ phổ biến, chuyên đề, thủ đoạn).
+  - (2) Nhánh Quản lý nội dung là menu cố định (không xóa, không di chuyển). Bấm một mục thì mở danh sách (Collection) để lọc, thêm, sửa; mục con không hiện trên cây.
+  - (3) Đường dẫn công khai giữ theo đặc tả 3.3: cảnh báo `/cac-rui-ro/canh-bao-moi/<tên>`, bài viết `/cac-rui-ro/<nhóm>/<tên>`, việc cần làm `/khan-cap/<tên>`, danh sách kiểm tra `/hay-tu-kiem-tra/<tên>`; trang cố định tính từ Trang chủ, bỏ phần "Quản lý trang". Làm bằng UrlProvider và ContentFinder.
+  - (4) Bài viết có trường bắt buộc "Nhóm chính" (một nhóm rủi ro) quyết định đường dẫn; giữ "Hiện thêm ở nhóm".
+  - (5) Bổ sung cùng ngày: Quản lý nội dung ở trên, Quản lý trang ở dưới.
+- Lý do: thêm mới thì vào Quản lý nội dung, sửa trang thì vào Quản lý trang; danh sách nhiều bài không làm dài cây.
+- Ảnh hưởng: thêm các thư mục gốc và thư mục có Collection; bỏ tab Danh sách ở Khẩn cấp, Hãy tự kiểm tra, Cảnh báo mới, nhóm rủi ro; Thư viện của gói nền chuyển vào Quản lý nội dung › Danh mục; thêm task UrlProvider và ContentFinder; QĐ-032 (cây theo đường dẫn) thay một phần.
