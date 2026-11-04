@@ -1,0 +1,57 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "ANTC Self Check",
+  "version": "1.5.0",
+  "allowPublicAccess": false,
+  "extensions": [
+    {
+      "type": "propertyEditorUi",
+      "alias": "Antc.PropertyEditorUi.SelfCheckInfo",
+      "name": "Thông tin trang tự kiểm tra",
+      "element": "/App_Plugins/AntcSelfCheck/self-check-info.js?v=1.2.0",
+      "meta": {
+        "label": "Thông tin trang tự kiểm tra",
+        "icon": "icon-info",
+        "group": "common",
+        "propertyEditorSchemaAlias": "Umbraco.Label",
+        "settings": {
+          "properties": [
+            { "alias": "mode", "label": "Chế độ", "propertyEditorUiAlias": "Umb.PropertyEditorUi.TextBox" },
+            { "alias": "target", "label": "Khóa kho danh sách kiểm tra", "propertyEditorUiAlias": "Umb.PropertyEditorUi.TextBox" }
+          ]
+        }
+      }
+    },
+    {
+      "type": "propertyEditorUi",
+      "alias": "Antc.PropertyEditorUi.ToolChoice",
+      "name": "Loại câu hỏi và ý nghĩa câu trả lời",
+      "element": "/App_Plugins/AntcSelfCheck/tool-choice.js?v=1.2.0",
+      "meta": {
+        "label": "Lựa chọn kiểm tra nhanh",
+        "icon": "icon-list",
+        "group": "common",
+        "propertyEditorSchemaAlias": "Umbraco.TextBox",
+        "settings": {
+          "properties": [
+            { "alias": "mode", "label": "Chế độ", "propertyEditorUiAlias": "Umb.PropertyEditorUi.TextBox" }
+          ]
+        }
+      }
+    },
+    {
+      "type": "ufmComponent",
+      "alias": "Antc.UfmComponent.SelfCheckQuestion",
+      "name": "Nhãn câu hỏi và loại câu trên card",
+      "api": "/App_Plugins/AntcSelfCheck/question-label-api.js?v=1.1.0",
+      "meta": { "alias": "antcQuestion" }
+    },
+    {
+      "type": "ufmComponent",
+      "alias": "Antc.UfmComponent.SelfCheckBranchQuestion",
+      "name": "Nhãn câu hỏi phân nhánh và các bước hướng dẫn",
+      "api": "/App_Plugins/AntcSelfCheck/branch-question-label-api.js?v=1.0.0",
+      "meta": { "alias": "antcBranchQuestion" }
+    }
+  ]
+}
