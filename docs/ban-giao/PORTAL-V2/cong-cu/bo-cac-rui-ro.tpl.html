@@ -1,0 +1,115 @@
+<title>Bàn giao Các rủi ro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#F3F6F7;--panel:#FFFFFF;--panel-2:#EDF2F3;--fg:#15282A;--muted:#5B6E70;--faint:#8A9B9D;--line:#D9E2E3;--line-strong:#B9C7C9;
+  --accent:#0E7C72;--accent-bg:#E3F3F0;--pin:#D9531E;--pin-fg:#FFFFFF;--hl:#FFF1C2;
+  --nhap:#0E7C72;--nhap-bg:#E3F3F0;--khac:#1F5FA8;--khac-bg:#E5EEF9;--tu:#5B6E70;--tu-bg:#ECEFF0;--thieu:#B3261E;--thieu-bg:#FCE8E6;
+  --fs-xs:.75rem;--fs-s:.8125rem;--fs-m:.9375rem;--fs-l:1.125rem;--fs-xl:1.5rem;--mono:'Roboto Mono',ui-monospace,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1718;--panel:#162123;--panel-2:#1C2A2C;--fg:#E3ECEC;--muted:#9DB0B1;--faint:#6F8384;--line:#2A3B3D;--line-strong:#3B5154;
+  --accent:#4FC2B3;--accent-bg:#173A36;--pin:#F07A4A;--pin-fg:#1A0D07;--hl:#4A3F17;--nhap:#4FC2B3;--nhap-bg:#173A36;--khac:#7FB0EC;--khac-bg:#18283D;--tu:#9DB0B1;--tu-bg:#223032;--thieu:#F2A39C;--thieu-bg:#3E1D1B;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1718;--panel:#162123;--panel-2:#1C2A2C;--fg:#E3ECEC;--muted:#9DB0B1;--faint:#6F8384;--line:#2A3B3D;--line-strong:#3B5154;
+  --accent:#4FC2B3;--accent-bg:#173A36;--pin:#F07A4A;--pin-fg:#1A0D07;--hl:#4A3F17;--nhap:#4FC2B3;--nhap-bg:#173A36;--khac:#7FB0EC;--khac-bg:#18283D;--tu:#9DB0B1;--tu-bg:#223032;--thieu:#F2A39C;--thieu-bg:#3E1D1B;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:Roboto,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:var(--fs-m);line-height:1.5;margin:0}
+.wrap{max-width:1440px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+code{font-family:var(--mono);font-size:.85em;background:var(--panel-2);border-radius:4px;padding:0 4px;overflow-wrap:anywhere}
+h1,h2,h3,h4{text-wrap:balance;margin:0}
+a{color:var(--accent)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding-block:10px}
+.top b{font-size:var(--fs-m)}
+.top nav{display:flex;gap:4px;flex-wrap:wrap}
+.top nav a{text-decoration:none;color:var(--fg);font-size:var(--fs-s);padding:6px 10px;border-radius:6px}
+.top nav a:hover,.top nav a.on{background:var(--accent-bg);color:var(--accent)}
+.intro{padding-block:28px 8px;display:grid;gap:12px;max-width:80ch}
+.intro h1{font-size:var(--fs-xl)}
+.intro p{margin:0;color:var(--muted)}
+.legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:var(--fs-s)}
+.tag{display:inline-block;font-size:var(--fs-xs);font-weight:500;border-radius:4px;padding:1px 6px;white-space:nowrap}
+.tag.nhap{color:var(--nhap);background:var(--nhap-bg)}.tag.khac{color:var(--khac);background:var(--khac-bg)}.tag.tu{color:var(--tu);background:var(--tu-bg)}.tag.thieu{color:var(--thieu);background:var(--thieu-bg)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0}
+.card > h3{font-size:var(--fs-m);font-weight:600;display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
+.small{font-size:var(--fs-s);color:var(--muted);margin:0}
+.block{padding-block:20px;display:grid;gap:12px}
+.block > h2{font-size:var(--fs-l)}
+.tree{list-style:none;margin:0;padding:0;display:grid;gap:2px;font-size:var(--fs-s)}
+.tree li{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:3px 0}
+.tree .tn{font-weight:500}.tree li.root .tn{font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:var(--fs-xs);color:var(--muted)}
+.tree li.lv1{padding-left:18px}.tree li.lv2{padding-left:36px}
+.tree li.list .tn::before{content:"▤ ";color:var(--faint)}.tree li.page .tn::before{content:"▢ ";color:var(--faint)}.tree li.folder .tn::before{content:"▸ ";color:var(--faint)}
+.tree small{color:var(--muted)}
+.screen{padding-block:28px;border-top:1px solid var(--line);display:grid;gap:16px;scroll-margin-top:64px}
+.sh{display:grid;gap:4px;max-width:90ch}.sh h2{font-size:var(--fs-xl)}.sh p{margin:0}.sh .url code{font-size:var(--fs-s)}
+.where{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:var(--fs-s)}
+.where span{color:var(--muted)}
+.gapnote{color:var(--thieu);font-size:var(--fs-s)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:20px;align-items:start}
+@media (max-width:1000px){.cols{grid-template-columns:minmax(0,1fr)}}
+.left{position:sticky;top:64px;display:grid;gap:12px;min-width:0}
+@media (max-width:1000px){.left{position:static}}
+.right{display:grid;gap:16px;min-width:0}
+.shot{margin:0;display:grid;gap:6px}
+.shot figcaption{font-size:var(--fs-xs);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.shotbox{position:relative;max-height:78vh;overflow:auto;border:1px solid var(--line-strong);border-radius:8px;background:#fff}
+.shotbox img{display:block;width:100%;height:auto}
+.shotbox > .inner{position:relative}
+.pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid #fff;background:var(--pin);color:var(--pin-fg);font:700 .75rem/1 Roboto,sans-serif;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.pin.on{outline:3px solid var(--hl);outline-offset:2px;transform:translate(-50%,-50%) scale(1.15)}
+.nb{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:var(--pin);color:var(--pin-fg);font-size:var(--fs-xs);font-weight:700}
+.nb.off{background:var(--panel-2);color:var(--faint)}
+.tblwrap{overflow-x:auto}
+table.map{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
+.map th{text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);padding:6px 8px}
+.map td{border-bottom:1px solid var(--line);padding:8px;vertical-align:top}
+.map td.num{width:40px}
+.map tr{cursor:pointer}.map tr.on td{background:var(--hl)}
+.map .note{color:var(--muted);margin-top:2px}
+.map .fl{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.map tr.st-thieu td:nth-child(2) b{color:var(--thieu)}
+.fg{display:grid;gap:4px}
+.fg h4{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500;margin-top:6px}
+.fg ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.fg li{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--panel)}
+.fg li[data-n]{cursor:pointer}.fg li.on{background:var(--hl);border-color:var(--line-strong)}
+.fn{display:flex;gap:3px;flex-wrap:wrap;min-width:26px}
+.fx{display:block;min-width:0}.fx small{display:block;color:var(--muted);font-size:var(--fs-xs)}
+.req{font-size:var(--fs-xs);color:var(--thieu);margin-left:6px;font-weight:500}
+table.gaps{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
+.gaps th{text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);padding:6px 8px}
+.gaps td{border-bottom:1px solid var(--line);padding:8px;vertical-align:top}
+.foot{padding-block:24px 40px;color:var(--muted);font-size:var(--fs-s)}
+</style>
+
+<header class="top"><div class="wrap"><b>Các rủi ro</b><nav aria-label="Các màn">{{NAV}}<a href="#can-chot">Cần chốt ({{NGAPS}})</a></nav></div></header>
+<main class="wrap">
+  <section class="intro">
+    <h1>Các rủi ro: website và backoffice</h1>
+    <p>Mỗi màn dưới đây có ảnh chụp từ bản dựng <code>mockup/antoantaichinh_v2.html</code>. Số màu cam trên ảnh khớp với số trong bảng và trong form backoffice bên phải. Bấm một số để tô sáng cả ba chỗ.</p>
+    <div class="legend"><span class="tag nhap">Nhập ở form này</span><span class="tag khac">Nhập ở chỗ khác</span><span class="tag tu">Tự động</span><span class="tag thieu">Chưa có chỗ nhập</span></div>
+  </section>
+  <section class="block card" id="cay">
+    <h2>Phần backoffice liên quan</h2>
+    <p class="small">Chỉ gồm các mục phục vụ Các rủi ro. Mục có biểu tượng ▤ mở thành danh sách, bài không hiện trên cây.</p>
+    <ul class="tree">{{TREE}}</ul>
+  </section>
+  {{SCREENS}}
+  <section class="screen" id="can-chot">
+    <header class="sh"><h2>Cần chốt trước khi giao dev</h2><p>{{NGAPS}} khối website đang hiện nhưng form chưa có chỗ nhập. Mỗi dòng có đề xuất; chưa phải quyết định.</p></header>
+    <div class="card tblwrap"><table class="gaps"><thead><tr><th>Màn</th><th>Khối</th><th>Đề xuất</th></tr></thead><tbody>{{GAPS}}</tbody></table></div>
+  </section>
+  <p class="foot">Sinh bằng <code>cong-cu/dung_bo_cac_rui_ro.py</code>. Trường và alias theo Phụ lục A của <code>1-thiet-ke.md</code>.</p>
+</main>
+<script>
+document.querySelectorAll('.screen').forEach(sec=>{
+  const all=()=>sec.querySelectorAll('[data-n]');
+  const pick=n=>{all().forEach(el=>el.classList.toggle('on',el.dataset.n===n));
+    const pin=sec.querySelector('.pin[data-n="'+n+'"]');if(pin){const box=pin.closest('.shotbox');const y=pin.offsetTop-box.clientHeight/3;box.scrollTo({top:Math.max(0,y),behavior:'smooth'})}};
+  sec.addEventListener('click',e=>{const t=e.target.closest('[data-n]');if(t&&t.dataset.n)pick(t.dataset.n)});
+});
+const links=[...document.querySelectorAll('.top nav a')];
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-40% 0px -55% 0px'});
+document.querySelectorAll('.screen').forEach(s=>io.observe(s));
+</script>
