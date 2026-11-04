@@ -76,6 +76,9 @@ table.map{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
 .fg li[data-n]{cursor:pointer}.fg li.on{background:var(--hl);border-color:var(--line-strong)}
 .fn{display:flex;gap:3px;flex-wrap:wrap;min-width:26px}
 .fx{display:block;min-width:0}.fx small{display:block;color:var(--muted);font-size:var(--fs-xs)}
+.new{font-size:var(--fs-xs);color:var(--khac);border:1px solid currentColor;border-radius:4px;padding:0 4px;margin-left:6px;font-weight:500}
+.cnt{margin-left:auto;font-size:var(--fs-xs);color:var(--muted);font-weight:400}
+.stat{display:flex;gap:6px;flex-wrap:wrap}
 .req{font-size:var(--fs-xs);color:var(--thieu);margin-left:6px;font-weight:500}
 table.gaps{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
 .gaps th{text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);padding:6px 8px}
@@ -83,12 +86,13 @@ table.gaps{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
 .foot{padding-block:24px 40px;color:var(--muted);font-size:var(--fs-s)}
 </style>
 
-<header class="top"><div class="wrap"><b>Các rủi ro</b><nav aria-label="Các màn">{{NAV}}<a href="#can-chot">Cần chốt ({{NGAPS}})</a></nav></div></header>
+<header class="top"><div class="wrap"><b>Các rủi ro</b><nav aria-label="Các màn">{{NAV}}<a href="#de-xuat">Đề xuất đổi trường</a></nav></div></header>
 <main class="wrap">
   <section class="intro">
     <h1>Các rủi ro: website và backoffice</h1>
     <p>Mỗi màn dưới đây có ảnh chụp từ bản dựng <code>mockup/antoantaichinh_v2.html</code>. Số màu cam trên ảnh khớp với số trong bảng và trong form backoffice bên phải. Bấm một số để tô sáng cả ba chỗ.</p>
-    <div class="legend"><span class="tag nhap">Nhập ở form này</span><span class="tag khac">Nhập ở chỗ khác</span><span class="tag tu">Tự động</span><span class="tag thieu">Chưa có chỗ nhập</span></div>
+    <p>Nguyên tắc: website tự lấy mọi thứ suy ra được (bài liên quan, bài tiếp theo, kênh, mức độ…). Form chỉ còn những ô chỉ người viết mới biết.</p>
+    <div class="legend"><span class="tag nhap">Nhập ở form này</span><span class="tag khac">Nhập ở chỗ khác</span><span class="tag tu">Website tự lấy</span><span class="new">mới</span> trường đề xuất thêm</div>
   </section>
   <section class="block card" id="cay">
     <h2>Phần backoffice liên quan</h2>
@@ -96,11 +100,13 @@ table.gaps{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
     <ul class="tree">{{TREE}}</ul>
   </section>
   {{SCREENS}}
-  <section class="screen" id="can-chot">
-    <header class="sh"><h2>Cần chốt trước khi giao dev</h2><p>{{NGAPS}} khối website đang hiện nhưng form chưa có chỗ nhập. Mỗi dòng có đề xuất; chưa phải quyết định.</p></header>
-    <div class="card tblwrap"><table class="gaps"><thead><tr><th>Màn</th><th>Khối</th><th>Đề xuất</th></tr></thead><tbody>{{GAPS}}</tbody></table></div>
+  <section class="screen" id="de-xuat">
+    <header class="sh"><h2>Đề xuất đổi trường (chờ duyệt)</h2><p>Nguyên tắc: cái gì suy ra được từ dữ liệu đã có thì website tự lấy; form chỉ giữ những gì chỉ người viết mới biết. So với Phụ lục A hiện tại: bỏ {{NDROP}} ô, thêm {{NADD}} mục.</p></header>
+    <div class="card tblwrap"><h3>Bỏ khỏi form ({{NDROP}})</h3><table class="gaps"><thead><tr><th>Trường</th><th>Tên</th><th>Thay bằng</th></tr></thead><tbody>{{DROP}}</tbody></table></div>
+    <div class="card tblwrap"><h3>Thêm ({{NADD}})</h3><table class="gaps"><thead><tr><th>Trường</th><th>Tên</th><th>Kiểu</th></tr></thead><tbody>{{ADD}}</tbody></table></div>
+    <div class="card tblwrap"><h3>Luật tự lấy cho dev</h3><p class="small">Viết thành một dịch vụ phía máy chủ, dùng cho view Razor; không cần API công khai. Kết quả nên lưu đệm và xóa khi lưu bài, cảnh báo, thủ đoạn.</p><table class="gaps"><thead><tr><th>Khối</th><th>Luật</th></tr></thead><tbody>{{RULES}}</tbody></table></div>
   </section>
-  <p class="foot">Sinh bằng <code>cong-cu/dung_bo_cac_rui_ro.py</code>. Trường và alias theo Phụ lục A của <code>1-thiet-ke.md</code>.</p>
+  <p class="foot">Sinh bằng <code>cong-cu/dung_bo_cac_rui_ro.py</code>. Trường và alias theo Phụ lục A của <code>1-thiet-ke.md</code>; trường “mới” là đề xuất.</p>
 </main>
 <script>
 document.querySelectorAll('.screen').forEach(sec=>{
