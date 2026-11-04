@@ -111,11 +111,21 @@ public static class PortalV2Schema
         ("Chọn · Thủ đoạn", "f-tac", "tacticItem", 8),
     ];
 
-    public static IEnumerable<DataTypeSpec> Pickers() => LibraryPickers.Select(p => new DataTypeSpec(p.Name,
-        "Umbraco.MultiNodeTreePicker", "Umb.PropertyEditorUi.ContentPicker",
-        C(("startNode", C(("type", "content"), ("id", PortalV2Keys.Node(p.Folder).ToString()))),
-          ("filter", PortalV2Keys.ContentType(p.ItemType).ToString()),
-          ("minNumber", 0), ("maxNumber", p.Max), ("ignoreUserStartNodes", false))));
+    public const string ChonTrangTrongWebsite = "Chọn · Trang trong website";
+
+    public static IEnumerable<DataTypeSpec> Pickers()
+    {
+        foreach (var p in LibraryPickers)
+            yield return new DataTypeSpec(p.Name,
+                "Umbraco.MultiNodeTreePicker", "Umb.PropertyEditorUi.ContentPicker",
+                C(("startNode", C(("type", "content"), ("id", PortalV2Keys.Node(p.Folder).ToString()))),
+                  ("filter", PortalV2Keys.ContentType(p.ItemType).ToString()),
+                  ("minNumber", 0), ("maxNumber", p.Max), ("ignoreUserStartNodes", false)));
+
+        yield return new DataTypeSpec(ChonTrangTrongWebsite,
+            "Umbraco.MultiNodeTreePicker", "Umb.PropertyEditorUi.ContentPicker",
+            C(("minNumber", 0), ("maxNumber", 2), ("ignoreUserStartNodes", false)));
+    }
 
     // ---------- V2-01e: Collection cua thu muc
     public static readonly (string Folder, string Name, string Alias, string ItemType, string Icon)[] Folders =
@@ -138,6 +148,7 @@ public static class PortalV2Schema
         {
             var columns = new List<object>();
             if (f.Alias == "tacticFolder") columns.Add(C(("alias", "cautionLevel"), ("header", "Mức độ"), ("isSystem", false)));
+            else if (f.Alias == "quickQaFolder") columns.Add(C(("alias", "approvedBy"), ("header", "Đã duyệt bởi"), ("isSystem", false)));
             else if (f.Alias is not ("quickQaFolder" or "snippetFolder")) columns.Add(C(("alias", "code"), ("header", "Mã"), ("isSystem", false)));
             if (f.Alias is not ("quickQaFolder" or "snippetFolder")) columns.Add(C(("alias", "isActive"), ("header", "Đang dùng"), ("isSystem", false)));
             columns.Add(C(("alias", "updateDate"), ("header", "Cập nhật"), ("isSystem", true)));
@@ -204,6 +215,14 @@ public static class PortalV2Schema
             "noiDung", "Nội dung",
             [new("topicNumber", "Số chuyên đề", Number(1, 8), "Từ 1 đến 8, không trùng. Khóa sau lần xuất bản đầu.", true, "Vui lòng nhập số chuyên đề."),
              new("shortName", "Tên ngắn", Text(40), "Cần khi đăng.")], Compositions: tax);
+        yield return new("quickQaItem", "Hỏi – đáp nhanh", "icon-chat color-purple", "Tạo trong Thư viện › Hỏi – đáp nhanh. Một câu hỏi và trả lời ngắn.",
+            "noiDung", "Nội dung",
+            [new("question", "Câu hỏi", Area(200), "Câu hỏi thường gặp của người dân.", true, "Vui lòng nhập câu hỏi."),
+             new("shortAnswer", "Trả lời ngắn", Area(300), "Câu trả lời trực diện, nổi bật ở đầu.", true, "Vui lòng nhập câu trả lời ngắn."),
+             new("reason", "Vì sao", RteBold, "Giải thích ngắn vì sao lại như vậy."),
+             new("actions", "Việc cần làm", RteShort, "Các bước người dân nên làm ngay."),
+             new("relatedPages", "Trang liên quan", ChonTrangTrongWebsite, "Tối đa 2 trang liên quan trong website."),
+             new("approvedBy", "Đã duyệt bởi", Text(80), "Đơn vị hoặc người duyệt, ví dụ: Ban biên tập.")]);
     }
 
     public static IEnumerable<ContentTypeSpec> LibraryFolders()
