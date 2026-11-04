@@ -570,3 +570,16 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
   - (5) Bổ sung cùng ngày: Quản lý nội dung ở trên, Quản lý trang ở dưới.
 - Lý do: thêm mới thì vào Quản lý nội dung, sửa trang thì vào Quản lý trang; danh sách nhiều bài không làm dài cây.
 - Ảnh hưởng: thêm các thư mục gốc và thư mục có Collection; bỏ tab Danh sách ở Khẩn cấp, Hãy tự kiểm tra, Cảnh báo mới, nhóm rủi ro; Thư viện của gói nền chuyển vào Quản lý nội dung › Danh mục; thêm task UrlProvider và ContentFinder; QĐ-032 (cây theo đường dẫn) thay một phần.
+
+### QĐ-054 · Portal v2 Các rủi ro: website tự lấy thay cho ô chọn
+
+- Ngày: 2026-11-04 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `riskCategoryPage`, `alertPage`, `riskArticlePage`, `topicItem`, `siteSettings`, Đoạn dùng chung; view và dịch vụ phía máy chủ của Các rủi ro
+- Vấn đề: form có nhiều ô chọn mà website suy ra được từ dữ liệu đã có (bài liên quan, thủ đoạn trong nhóm, bài ghim…), và một số khối trên bản dựng `mockup/antoantaichinh_v2.html` chưa có chỗ nhập. Đối chiếu ở `mockup/bo-cac-rui-ro.html`.
+- Quyết định: cái gì suy ra được thì website tự lấy; form chỉ giữ những gì chỉ người viết mới biết.
+  - (1) Bỏ 11 trường: `riskCategoryPage.tactics`, `.pinnedArticles`, `.noAnswerNote`; `alertPage.relatedItems`, `.alsoInCategories`; `riskArticlePage.relatedItems`, `.checklist`, `.icon`, `.cautionLevel`, `.channels`, `.audiences`.
+  - (2) Thêm: `riskCategoryPage.showAdviceBox`; `siteSettings.noAnswerNote` (một câu cho cả 6 tab); `topicItem.rememberLine`, `.mustAsk`, `.stopWhen`, `.holdWhen`; `riskArticlePage.series` (chọn hoặc gõ loạt mới, số bài theo thứ tự trong danh sách); Đoạn dùng chung "Bộ khung nhận diện mọi thủ đoạn" hiện cố định ở nhóm Lừa đảo.
+  - (3) Luật tự lấy theo bảng "Luật tự lấy cho dev" trong `mockup/bo-cac-rui-ro.html`, viết thành dịch vụ phía máy chủ dùng cho view Razor, không cần API công khai. Kênh, đối tượng của cảnh báo được điền sẵn trong form khi chọn thủ đoạn (chỉ khi ô còn trống), biên tập viên sửa được.
+  - (4) "Ghim đầu nhóm" dùng `riskArticlePage.isFeatured`.
+- Lý do: ít ô hơn, ít sai lệch giữa các trang; dữ liệu dùng chung nhập một lần (thủ đoạn, chuyên đề).
+- Ảnh hưởng: sửa Phụ lục A; thêm task dịch vụ tự lấy; form cảnh báo chuyển sang bố cục hai cột như bài viết.

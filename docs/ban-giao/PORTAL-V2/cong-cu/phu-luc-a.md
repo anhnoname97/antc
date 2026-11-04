@@ -46,6 +46,7 @@ Không có trang · Không xóa (trang cố định)
 | Câu cố định (chỉ Quản trị) | Mức độ và khuyến nghị | `clearText` | Câu giải thích mức Cần thận trọng | Đoạn · 300 | ✔ | Cũng dùng khi trình hỏi không khớp tình huống nào |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `noReportNote` | Câu không nhận tố giác | Đoạn · 300 | ✔ |  |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `noAdviceNote` | Câu miễn trừ tư vấn | Đoạn · 300 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `noAnswerNote` | Câu “Không thấy câu trả lời?” | Đoạn · 200 | ✔ | Dùng chung cho Cảnh báo mới và 5 nhóm rủi ro |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `mustRemember` | Hai điều phải nhớ | Danh sách dòng (0–2) | ✔ | Hiện ở kiểm tra nhanh có bật hộp lưu ý |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `bankLookupSteps` | Cách tự tìm số ngân hàng | Danh sách dòng (0–5) | ✔ |  |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `refuseLendingNote` | Câu từ chối cho mượn tài khoản | Đoạn · 300 | ✔ |  |
@@ -350,31 +351,31 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
-| Nội dung | Nội dung | `title` | Tiêu đề | Chữ · 110 | ✔ |  |
-| Nội dung | Nội dung | `description` | Mô tả 1 dòng | Đoạn · 160 | ✔ | Dùng cho thẻ và mô tả chia sẻ |
-| Nội dung | Nội dung | `cautionLevel` | Mức độ cần thận trọng | Danh mục · Mức độ cần thận trọng | ✔ |  |
-| Nội dung | Nội dung | `popularity` | Mức độ phổ biến | Chọn · Mức độ phổ biến (một) | ✔ | Danh mục do Ban biên tập quản lý (QĐ-038) |
-| Nội dung | Nội dung | `popularityBasis` | Căn cứ mức độ phổ biến | Chữ · 160 |  | Số liệu của cơ quan nào, ngày nào |
-| Nội dung | Nội dung | `scenarioSteps` | Kịch bản thường gặp | Danh sách dòng (3–5) | khi đăng | 3–5 bước (đặc tả 7.4) |
-| Nội dung | Nội dung | `stopSigns` | Dấu hiệu nhận biết | Chọn · Dấu hiệu phải dừng (nhiều) |  |  |
-| Nội dung | Nội dung | `otherSigns` | Dấu hiệu khác | Danh sách dòng (0–4) |  | Khi không có trong danh mục |
-| Nội dung | Nội dung | `actionPage` | Việc cần làm: trang | Chọn · Việc cần làm (một) | khi đăng |  |
-| Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
-| Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
-| Nguồn | Nguồn | `issuingAgency` | Cơ quan ban hành | Chữ · 120 |  |  |
-| Nguồn | Nguồn | `documentNumber` | Số văn bản | Chữ · 40 |  |  |
-| Nguồn | Nguồn | `documentDate` | Ngày văn bản | Ngày |  |  |
-| Nguồn | Nguồn | `documentUrl` | Liên kết văn bản gốc | Chữ · Liên kết https |  |  |
-| Phân loại | Phân loại | `channels` | Kênh | Chọn · Kênh (nhiều) | khi đăng |  |
-| Phân loại | Phân loại | `audiences` | Đối tượng dễ bị nhắm tới | Chọn · Đối tượng (nhiều) | khi đăng |  |
-| Phân loại | Phân loại | `tactics` | Thủ đoạn liên quan | Chọn · Thủ đoạn (nhiều, ≤ 8, sắp được) |  | Kéo thẻ để sắp thứ tự |
-| Phân loại | Phân loại | `alsoInCategories` | Hiện thêm ở nhóm | Chọn · Nhóm rủi ro (nhiều) |  | Ngoài nhóm chính Cảnh báo mới |
-| Phân loại | Phân loại | `relatedItems` | Bài liên quan | Chọn · Bài liên quan (nhiều, ≤ 4) |  | Để trống thì lấy tự động cùng nhóm |
-| Phân loại | Phân loại | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  | Gõ rồi Enter để thêm thẻ mới |
-| Lịch | Lịch | `updatedDate` | Ngày cập nhật | Ngày | ✔ | Dùng để tính 90 ngày “mới” |
-| Lịch | Lịch | `autoUnpublishDays` | Tự gỡ sau (ngày) | Số 30–720 | ✔ | Mặc định 180 (README mục 8) |
-| Lịch | Lịch | — (không lưu) | Tình trạng | Không lưu (hiển thị) |  |  |
-| Lịch | Hẹn giờ | — (không lưu) | Hẹn giờ đăng, gỡ | Không lưu (hiển thị) |  |  |
+| Viết cảnh báo | Cảnh báo | `title` | Tiêu đề | Chữ · 110 | ✔ |  |
+| Viết cảnh báo | Cảnh báo | `description` | Tóm tắt | Đoạn · 160 | ✔ | Hiện ở thẻ trong danh sách và mục Tóm tắt |
+| Viết cảnh báo | Cảnh báo | `scenarioSteps` | Kịch bản thường gặp | Danh sách dòng (3–5) | khi đăng | 3–5 bước, theo thứ tự xảy ra |
+| Viết cảnh báo | Cảnh báo | `stopSigns` | Dấu hiệu phải dừng | Chọn · Dấu hiệu phải dừng (nhiều) |  | Chọn từ Danh mục › Dấu hiệu phải dừng |
+| Viết cảnh báo | Cảnh báo | `otherSigns` | Dấu hiệu khác | Danh sách dòng (0–4) |  | Khi không có trong danh mục |
+| Viết cảnh báo | Cảnh báo | `actionPage` | Việc cần làm: trang | Chọn · Việc cần làm (một) | khi đăng | Trang việc cần làm cho người đã gặp chuyện |
+| Viết cảnh báo | Nguồn cảnh báo | `issuingAgency` | Cơ quan ban hành | Chữ · 120 |  |  |
+| Viết cảnh báo | Nguồn cảnh báo | `documentNumber` | Số văn bản | Chữ · 40 |  |  |
+| Viết cảnh báo | Nguồn cảnh báo | `documentDate` | Ngày văn bản | Ngày |  |  |
+| Viết cảnh báo | Nguồn cảnh báo | `documentUrl` | Liên kết văn bản gốc | Chữ · Liên kết https |  |  |
+| Viết cảnh báo | Thêm chi tiết | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  | Gõ rồi Enter để thêm |
+| Viết cảnh báo | Thêm chi tiết | `autoUnpublishDays` | Tự gỡ sau (ngày) | Số 30–720 | ✔ | Mặc định 180 |
+| Viết cảnh báo | Đăng | `updatedDate` | Ngày cập nhật | Ngày | ✔ | Tính 90 ngày “mới” |
+| Viết cảnh báo | Đăng | `cautionLevel` | Mức độ cần thận trọng | Danh mục · Mức độ cần thận trọng | ✔ | Mức Cao tự hiện hộp “Chưa chuyển tiền cho tới khi đã kiểm chứng” |
+| Viết cảnh báo | Đăng | `popularity` | Mức độ phổ biến | Chọn · Mức độ phổ biến (một) | ✔ |  |
+| Viết cảnh báo | Đăng | `popularityBasis` | Căn cứ mức độ phổ biến | Chữ · 160 |  |  |
+| Viết cảnh báo | Thủ đoạn | `tactics` | Thủ đoạn | Chọn · Thủ đoạn (nhiều, ≤ 8, sắp được) | khi đăng |  |
+| Viết cảnh báo | Thủ đoạn | `channels` | Kênh | Chọn · Kênh (nhiều) | khi đăng |  |
+| Viết cảnh báo | Thủ đoạn | `audiences` | Ai dễ bị nhắm tới | Chọn · Đối tượng (nhiều) | khi đăng |  |
+| Viết cảnh báo | Kiểm tra trước khi xuất bản | — (không lưu) | Kiểm tra | Không lưu (hiển thị) |  |  |
+| Viết cảnh báo | Tình trạng | — (không lưu) | Tình trạng | Không lưu (hiển thị) |  |  |
+| Viết cảnh báo | Tình trạng | — (không lưu) | Hẹn giờ | Không lưu (hiển thị) |  |  |
+| Viết cảnh báo | Website tự lấy | — (không lưu) | Tự lấy | Không lưu (hiển thị) |  |  |
+| Viết cảnh báo | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
+| Viết cảnh báo | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `riskCategoryPage` · Nhóm rủi ro
@@ -388,10 +389,9 @@ Có template và đường dẫn · Không xóa (trang cố định)
 | Nội dung | Nội dung | `cardDescription` | Mô tả ngắn trên thẻ trang chủ | Chữ · 60 | ✔ |  |
 | Nội dung | Nội dung | `lead` | Câu dẫn đầu trang | Đoạn · 220 | ✔ |  |
 | Nội dung | Nội dung | `icon` | Biểu tượng | Danh mục · Biểu tượng | ✔ |  |
-| Nội dung | Nội dung | `thumbnail` | Ảnh thu nhỏ | Chọn ảnh |  | Ảnh trên thẻ nhóm ở trang chủ và Các rủi ro (QĐ-052) |
-| Nội dung | Nội dung | `tactics` | Thủ đoạn hiện trong nhóm | Chọn · Thủ đoạn (nhiều, sắp được) |  |  |
-| Nội dung | Nội dung | `pinnedArticles` | Bài ghim đầu danh sách | Chọn · Bài viết (nhiều, ≤ 2) |  |  |
-| Nội dung | Nội dung | `noAnswerNote` | Câu “Không thấy câu trả lời?” | Đoạn · 200 |  |  |
+| Nội dung | Nội dung | `thumbnail` | Ảnh thu nhỏ | Chọn ảnh |  | Ảnh trên thẻ nhóm ở trang chủ (QĐ-052) |
+| Nội dung | Nội dung | `showAdviceBox` | Hộp “Website không tư vấn tài chính” | Bật/tắt |  | Chữ trong hộp sửa ở Cài đặt website › Câu cố định |
+| Nội dung | Nội dung | — (không lưu) | Website tự lấy | Không lưu (hiển thị) |  |  |
 | Nội dung | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
 | Nội dung | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
@@ -402,37 +402,33 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Viết bài | Bài viết | `series` | Loạt bài | Thẻ · Từ khóa |  | hiện có điều kiện; Chọn loạt đã có hoặc gõ tên loạt mới. “Bài 1, Bài 2” theo thứ tự kéo trong danh sách Bài viết |
 | Viết bài | Bài viết | `title` | Tiêu đề | Chữ · 110 | ✔ |  |
-| Viết bài | Bài viết | `description` | Một câu mời đọc | Đoạn · 160 | ✔ | Hiện dưới tiêu đề trên thẻ bài |
+| Viết bài | Bài viết | `description` | Một câu mời đọc | Đoạn · 160 | có điều kiện | Hiện dưới tiêu đề trên thẻ bài. Bài đọc chuyên đề để trống thì website tự viết |
 | Viết bài | Bài viết | `summary` | Tóm tắt | Soạn thảo · Chỉ in đậm | khi đăng | Hai, ba câu: chuyện gì, ai hay gặp, làm gì ngay |
 | Viết bài | Nhận ra và xử lý | `warningSigns` | Dấu hiệu cảnh báo | Danh sách dòng (0–8) | có điều kiện |  |
 | Viết bài | Nhận ra và xử lý | `actionsNow` | Việc cần làm ngay | Danh sách dòng (0–6) | có điều kiện |  |
-| Viết bài | Nội dung bài | `readingBody` | Nội dung | Soạn thảo · Bài đọc |  | Menu “Kiểu” chèn Hộp ghi nhớ, Trường hợp thật, Bỏ túi |
+| Viết bài | Nhận ra và xử lý | `scenarios` | Kịch bản thường gặp | InlineList · Thẻ |  |  |
+|  | ↳ ô trong thẻ | `scenarios[].tacticName` | Tên kịch bản | Chữ · 140 |  |  |
+|  | ↳ ô trong thẻ | `scenarios[].steps` | Diễn biến từng bước | Danh sách dòng (0–8) | ✔ |  |
+| Viết bài | Nhận ra và xử lý | `avoidActions` | Việc không nên làm | Danh sách dòng (0–6) |  |  |
+| Viết bài | Nội dung bài | `readingBody` | Nội dung | Soạn thảo · Bài đọc |  | Menu “Kiểu” chèn Hộp ghi nhớ, Trường hợp thật, Bỏ túi; nút Bảng chèn bảng |
 | Viết bài | Nguồn tham khảo | `references` | Nguồn | InlineList · Bảng | khi đăng |  |
 | | ↳ cột | `references[].title` | Tên tài liệu | Chữ · 200 | ✔ |  |
 | | ↳ cột | `references[].organization` | Đơn vị | Chữ · 120 |  |  |
 | | ↳ cột | `references[].url` | Liên kết | Chữ · Liên kết https |  |  |
 | | ↳ cột | `references[].accessedDate` | Ngày truy cập | Ngày |  | ở dòng mở rộng |
-| Viết bài | Thêm chi tiết | `scenarios` | Kịch bản thường gặp | InlineList · Thẻ |  |  |
-|  | ↳ ô trong thẻ | `scenarios[].tacticName` | Tên thủ đoạn | Chữ · 140 |  | Thủ đoạn trỏ tới kịch bản này được tô sáng khi mở bài |
-|  | ↳ ô trong thẻ | `scenarios[].steps` | Diễn biến từng bước | Danh sách dòng (0–8) | ✔ |  |
-| Viết bài | Thêm chi tiết | `avoidActions` | Việc không nên làm | Danh sách dòng (0–6) |  |  |
-| Viết bài | Thêm chi tiết | `actionPage` | Dẫn tới trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
-| Viết bài | Thêm chi tiết | `topic` | Chuyên đề | Chọn · Chuyên đề (một) |  |  |
 | Viết bài | Thêm chi tiết | `alsoInCategories` | Hiện thêm ở nhóm | Chọn · Nhóm rủi ro (nhiều) |  |  |
 | Viết bài | Thêm chi tiết | `searchKeywords` | Từ người dân hay gõ khi tìm | Thẻ · Từ khóa |  | Ví dụ: “gọi điện công an” |
 | Viết bài | Thêm chi tiết | `synonyms` | Từ cùng nghĩa | Thẻ · Từ khóa |  | Ví dụ: “otp” cho “mã xác thực” |
-| Viết bài | Thêm chi tiết | `relatedItems` | Bài liên quan | Chọn · Bài liên quan (nhiều, ≤ 4) |  | Để trống thì website tự gợi ý bài cùng nhóm |
-| Viết bài | Thêm chi tiết | `checklist` | Danh sách kiểm tra đi kèm | Chọn · Danh sách kiểm tra (một) |  |  |
-| Viết bài | Thêm chi tiết | `icon` | Biểu tượng trên thẻ | Danh mục · Biểu tượng |  | Để trống thì theo loại bài |
-| Viết bài | Thêm chi tiết | `isFeatured` | Nổi bật | Bật/tắt |  |  |
 | Viết bài | Xuất bản | `primaryGroup` | Đăng ở nhóm | Chọn · Nhóm rủi ro (một) | ✔ |  |
 | Viết bài | Xuất bản | `articleKind` | Loại bài | Danh mục · Loại bài | ✔ |  |
+| Viết bài | Xuất bản | `topic` | Chuyên đề | Chọn · Chuyên đề (một) | có điều kiện |  |
+| Viết bài | Xuất bản | `actionPage` | Dẫn tới trang việc cần làm | Chọn · Việc cần làm (một) |  | Mục “Nếu đã lỡ” lấy các bước của trang này |
+| Viết bài | Xuất bản | `isFeatured` | Ghim đầu nhóm | Bật/tắt |  |  |
 | Viết bài | Kiểm tra trước khi xuất bản | — (không lưu) | Kiểm tra | Không lưu (hiển thị) |  |  |
 | Viết bài | Xem trước thẻ bài | — (không lưu) | Thẻ bài | Không lưu (hiển thị) |  |  |
-| Viết bài | Gắn nhãn | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | có điều kiện |  |
-| Viết bài | Gắn nhãn | `channels` | Thường gặp qua kênh | Chọn · Kênh (nhiều) | có điều kiện |  |
-| Viết bài | Gắn nhãn | `audiences` | Ai hay bị nhắm tới | Chọn · Đối tượng (nhiều) | có điều kiện |  |
+| Viết bài | Website tự lấy | — (không lưu) | Tự lấy | Không lưu (hiển thị) |  |  |
 | Viết bài | Thẩm định | `reviewDate` | Ngày rà soát | Ngày | khi đăng |  |
 | Viết bài | Thẩm định | `reviewer` | Người thẩm định | Chữ · 120 | khi đăng |  |
 | Viết bài | Thẩm định | `version` | Phiên bản | Chữ · 20 |  |  |
@@ -542,7 +538,7 @@ Thư mục, không có trang · Không xóa (trang cố định) · Con được
 
 #### `articleFolder` · Bài viết
 
-Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `riskArticlePage` · Có Collection (tab danh sách): cột Tiêu đề, Nhóm chính, Loại bài, Mức độ, Ngày rà soát, Trạng thái; lọc Nhóm chính, Loại bài, Trạng thái
+Thư mục, không có trang · Không xóa (trang cố định) · Con được tạo: `riskArticlePage` · Có Collection (tab danh sách): cột Tiêu đề, Nhóm chính, Loại bài, Chuyên đề, Ghim, Ngày rà soát, Trạng thái; lọc Nhóm chính, Loại bài, Trạng thái
 
 #### `actionFolder` · Việc cần làm
 
@@ -646,6 +642,10 @@ Không có trang · Tạo: chỉ Quản trị viên · Xóa: chỉ Quản trị 
 | Nội dung | Chuyên đề | `shortName` | Tên ngắn | Chữ · 40 | khi đăng |  |
 | Nội dung | Chuyên đề | `readingArticle` | Bài đọc chuyên đề | Chọn · Bài viết (một) | khi đăng |  |
 | Nội dung | Chuyên đề | `checklist` | Danh sách kiểm tra | Chọn · Danh sách kiểm tra (một) |  |  |
+| Nội dung | Dùng chung cho các bài của chuyên đề | `rememberLine` | Nhớ một câu | Chữ · 140 | khi đăng |  |
+| Nội dung | Dùng chung cho các bài của chuyên đề | `mustAsk` | Câu hỏi phải hỏi | Đoạn · 200 | khi đăng |  |
+| Nội dung | Dùng chung cho các bài của chuyên đề | `stopWhen` | Khi nào phải dừng | Đoạn · 300 |  |  |
+| Nội dung | Dùng chung cho các bài của chuyên đề | `holdWhen` | Khi nào cần hoãn để kiểm chứng | Đoạn · 300 |  |  |
 
 #### `tacticItem` · Thủ đoạn
 

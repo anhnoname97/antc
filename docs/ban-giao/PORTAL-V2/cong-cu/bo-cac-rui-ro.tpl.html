@@ -86,13 +86,13 @@ table.gaps{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
 .foot{padding-block:24px 40px;color:var(--muted);font-size:var(--fs-s)}
 </style>
 
-<header class="top"><div class="wrap"><b>Các rủi ro</b><nav aria-label="Các màn">{{NAV}}<a href="#de-xuat">Đề xuất đổi trường</a></nav></div></header>
+<header class="top"><div class="wrap"><b>Các rủi ro</b><nav aria-label="Các màn">{{NAV}}<a href="#de-xuat">Đổi trường QĐ-054</a></nav></div></header>
 <main class="wrap">
   <section class="intro">
     <h1>Các rủi ro: website và backoffice</h1>
     <p>Mỗi màn dưới đây có ảnh chụp từ bản dựng <code>mockup/antoantaichinh_v2.html</code>. Số màu cam trên ảnh khớp với số trong bảng và trong form backoffice bên phải. Bấm một số để tô sáng cả ba chỗ.</p>
     <p>Nguyên tắc: website tự lấy mọi thứ suy ra được (bài liên quan, bài tiếp theo, kênh, mức độ…). Form chỉ còn những ô chỉ người viết mới biết.</p>
-    <div class="legend"><span class="tag nhap">Nhập ở form này</span><span class="tag khac">Nhập ở chỗ khác</span><span class="tag tu">Website tự lấy</span><span class="new">mới</span> trường đề xuất thêm</div>
+    <div class="legend"><span class="tag nhap">Nhập ở form này</span><span class="tag khac">Nhập ở chỗ khác</span><span class="tag tu">Website tự lấy</span><span class="new">mới</span> trường thêm theo QĐ-054</div>
   </section>
   <section class="block card" id="cay">
     <h2>Phần backoffice liên quan</h2>
@@ -101,12 +101,12 @@ table.gaps{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
   </section>
   {{SCREENS}}
   <section class="screen" id="de-xuat">
-    <header class="sh"><h2>Đề xuất đổi trường (chờ duyệt)</h2><p>Nguyên tắc: cái gì suy ra được từ dữ liệu đã có thì website tự lấy; form chỉ giữ những gì chỉ người viết mới biết. So với Phụ lục A hiện tại: bỏ {{NDROP}} ô, thêm {{NADD}} mục.</p></header>
+    <header class="sh"><h2>Đổi trường theo QĐ-054 (đã duyệt)</h2><p>Nguyên tắc: cái gì suy ra được từ dữ liệu đã có thì website tự lấy; form chỉ giữ những gì chỉ người viết mới biết. So với Phụ lục A hiện tại: bỏ {{NDROP}} ô, thêm {{NADD}} mục.</p></header>
     <div class="card tblwrap"><h3>Bỏ khỏi form ({{NDROP}})</h3><table class="gaps"><thead><tr><th>Trường</th><th>Tên</th><th>Thay bằng</th></tr></thead><tbody>{{DROP}}</tbody></table></div>
     <div class="card tblwrap"><h3>Thêm ({{NADD}})</h3><table class="gaps"><thead><tr><th>Trường</th><th>Tên</th><th>Kiểu</th></tr></thead><tbody>{{ADD}}</tbody></table></div>
     <div class="card tblwrap"><h3>Luật tự lấy cho dev</h3><p class="small">Viết thành một dịch vụ phía máy chủ, dùng cho view Razor; không cần API công khai. Kết quả nên lưu đệm và xóa khi lưu bài, cảnh báo, thủ đoạn.</p><table class="gaps"><thead><tr><th>Khối</th><th>Luật</th></tr></thead><tbody>{{RULES}}</tbody></table></div>
   </section>
-  <p class="foot">Sinh bằng <code>cong-cu/dung_bo_cac_rui_ro.py</code>. Trường và alias theo Phụ lục A của <code>1-thiet-ke.md</code>; trường “mới” là đề xuất.</p>
+  <p class="foot">Sinh bằng <code>cong-cu/dung_bo_cac_rui_ro.py</code>. Trường và alias theo Phụ lục A của <code>1-thiet-ke.md</code>; trường “mới” theo QĐ-054. Backoffice chạy được của phần này: <code>mockup/backoffice-cac-rui-ro.html</code>.</p>
 </main>
 <script>
 document.querySelectorAll('.screen').forEach(sec=>{

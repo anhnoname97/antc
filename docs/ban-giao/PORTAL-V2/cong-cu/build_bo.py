@@ -1,7 +1,8 @@
 """Dung du lieu nut noi dung cho mockup backoffice day du tu ban dung v2."""
-import json, sys, re, unicodedata, html as H
+import json, sys, os, re, unicodedata, html as H
 
 v2path, djpath, srcpath, outpath = sys.argv[1:5]
+SCOPE = os.environ.get('BO_SCOPE', '')  # 'rui-ro': chi hien phan Cac rui ro tren cay
 imgdir = sys.argv[5] if len(sys.argv) > 5 else None  # ban-dung-moi/anh: nhung anh thu nho de xem truoc
 V = json.load(open(v2path, encoding='utf-8'))
 R = json.load(open(djpath, encoding='utf-8'))
@@ -24,6 +25,19 @@ def ddmm(d):
 N = []
 def node(id, parent, type, name, v=None, st='pub'):
     N.append({'id': id, 'p': parent, 'type': type, 'name': name, 'st': st, 'v': v or {}})
+
+# ---- QD-054: phan dung chung cua chuyen de, lay tu bai doc chuyen de cua ban dung
+def topic_shared(kk):
+    doc = R['DOCS'].get(kk, {'b': []})
+    box = next((bl for bl in doc['b'] if bl[0] == 'box' and bl[1] == 'r'), None)
+    st = next((bl for bl in doc['b'] if bl[0] == 'st'), None)
+    def when(lab):
+        if not st: return ''
+        for r in st[2]:
+            if r[0] == lab:
+                return dict((f[0], f[1]) for f in r[1]).get('Khi nào', '')
+        return ''
+    return {'remember': box[3][0] if box else '', 'mustAsk': V.get('HOI', {}).get(kk, ''), 'stopWhen': when('DỪNG'), 'holdWhen': when('HOÃN')}
 
 # ---- ma va anh xa
 CHS = {'dt': 'dien-thoai', 'tn': 'tin-nhan', 'mxh': 'mang-xa-hoi', 'web': 'website-ung-dung', 'san': 'san-thuong-mai', 'mail': 'thu-dien-tu', 'tt': 'truc-tiep'}
@@ -108,7 +122,7 @@ node('settings', 'pages', 'siteSettings', 'Cài đặt website', {
     'spon': False, 'sName': '', 'sLogo': '', 'sLink': '', 'sNote': '',
     'resnote': V['RESNOTE'], 'notconc': V['NOTCONC'], 'stDLab': ST['d']['lab'], 'stDTxt': ST['d']['txt'], 'stHLab': ST['h']['lab'], 'stHTxt': ST['h']['txt'], 'stNLab': ST['n']['lab'], 'stNTxt': ST['n']['txt'],
     'notreport': 'Website không tiếp nhận tố giác, tin báo về tội phạm. Việc trình báo phải thực hiện tại cơ quan Công an.',
-    'noadvice': V['NOADVICE'], 'must': V['MUST'], 'banka': V['BANKA'], 'refuse': V['REFUSE']})
+    'noadvice': V['NOADVICE'], 'must': V['MUST'], 'noAns': 'Gửi câu hỏi riêng cho Ban biên tập. Câu hỏi không hiện lên trang; các câu giống nhau được gộp và trả lời công khai sau khi đã che thông tin cá nhân.', 'banka': V['BANKA'], 'refuse': V['REFUSE']})
 
 # ---- Trang chu
 node('home', 'pages', 'homePage', 'Trang chủ', {
@@ -269,7 +283,7 @@ for a in V['ALERTS']:
         'ch': [CHS[c] for c in a['ch']], 'aud': [AUDID[g - 1] for g in a['gr']], 'tac': ['t%d' % t for t in a['tac']], 'tabs': ['g-' + t for t in a.get('tabs', [])], 'rel': [],
         'kw': [], 'upd': ddmm(a['d']), 'ttl': '180'}, st='draft' if a['id'] == 10 else 'pub')
 for t in RT[1:]:
-    node('g-' + t['k'], 'rui-ro', 'riskCategoryPage', t['t'], {'tab': t['t'], 'short': t['s'], 'lead': t['lead'], 'icon': t['i'], 'tactics': [], 'pins': [], 'noAns': 'Không thấy câu trả lời? Gửi câu hỏi ở trang Hỏi – Đáp.'})
+    node('g-' + t['k'], 'rui-ro', 'riskCategoryPage', t['t'], {'tab': t['t'], 'short': t['s'], 'lead': t['lead'], 'icon': t['i'], 'showAdvice': t['k'] in ('dau-tu', 'vay-va-no', 'bao-hiem-va-tiet-kiem')})
 CD = {**{kk: v.split(' — ')[1] for kk, v in V['CD'].items()}}
 for kk, d in R['DOCS'].items():
     CD.setdefault(kk, d['t'])
@@ -279,11 +293,22 @@ for kk, d in R['DOCS'].items():
         'sum': '', 'signs': [], 'scen': [], 'todo': [], 'todoPage': '', 'dont': [], 'body': blocks_html(d['b']), 'srcs': [],
         'grp': 'g-' + V['DOCTAB'][kk], 'topic': 'cd' + kk, 'ch': [], 'aud': [], 'level': '', 'tabs': [], 'kw': [], 'syn': [], 'rel': [], 'chk': 'chk' + kk, 'feat': kk == '1',
         'ver': '2.0', 'rev': '2026-10-20', 'by': 'Công an xã Thiên Lộc'})
+# Bai huong dan mau: ban dung sinh tu bai doc chuyen de (lvBody); o day dung lai cac khoi do
+for kk in V['LVORDER']:
+    d = R['DOCS'][kk]; stp = part(d, 'stop'); now = part(d, 'now')
+    first = next((bl[1] for bl in d['b'] if bl[0] == 'p' and bl[1]), '')
+    node('lv' + kk, 'c-art', 'riskArticlePage', CD[kk], {
+        'title': CD[kk], 'kind': 'huongDan', 'desc': V['HOI'].get(kk, ''), 'sum': '<p>%s</p>' % first if first else '',
+        'signs': stp[3][:5] if stp else [], 'todo': ([now[2][0]] if now else []) + ([strow(d, 'DỪNG')] if strow(d, 'DỪNG') else []),
+        'dont': [x.strip().rstrip('.') for x in stp[2].split('. Không chờ')[0].split(' — ')] if stp else [], 'scen': [], 'body': '',
+        'srcs': [{'_k': k(), 't': 'Bài đọc Chuyên đề %s: %s' % (kk, d['t']), 'unit': 'Ban biên tập', 'url': '', 'date': ''}],
+        'grp': 'g-' + V['LVTAB'][kk], 'tabs': [], 'topic': 'cd' + kk, 'todoPage': '', 'kw': [], 'syn': [], 'feat': kk == '7', 'series': [],
+        'ver': '2.0', 'rev': '2026-10-20', 'by': 'Công an xã Thiên Lộc'})
 for kk, a in V['ARTS'].items():
     node('ar' + kk.replace('-', '_'), 'c-art', 'riskArticlePage', a['t'], {
         'title': a['t'], 'kind': 'docThem', 'desc': '', 'icon': 'doc', 'sum': '<p>%s</p>' % a['lede'], 'signs': [], 'scen': [], 'todo': [], 'todoPage': '', 'dont': [],
         'body': '', 'srcs': [], 'grp': 'g-' + V['ARTTAB'].get(kk, 'lua-dao'), 'topic': '', 'ch': [], 'aud': [], 'level': '', 'tabs': [], 'kw': [], 'syn': [], 'rel': [], 'chk': '', 'feat': False,
-        'ver': '1.0', 'rev': '', 'by': ''}, st='draft' if kk in ('7', '8') else 'pub')
+        'ver': '1.0', 'rev': '', 'by': '', 'series': ['Lừa đảo: Từ cổ chí kim']}, st='draft' if kk in ('7', '8') else 'pub')
 
 # ---- trang khac
 node('hoi-dap', 'home', 'hoiDapPage', 'Hỏi – Đáp', {})
@@ -319,10 +344,10 @@ for code, t in [('it-gap', 'Ít gặp'), ('thuong-gap', 'Thường gặp'), ('ra
     node(code, 'f-pop', 'popularityItem', t, {'code': code, 'icon': 'chart', 'active': True, 'desc': ''})
 node('f-topic', 'lib', 'topicFolder', 'Chuyên đề', {})
 for kk in sorted(R['DOCS'], key=int):
-    node('cd' + kk, 'f-topic', 'topicItem', CD[kk], {'code': 'chuyen-de-' + kk, 'icon': V['BK'][kk]['i'], 'active': True, 'number': kk, 'short': V['CDSHORT'].get(kk, ''), 'read': 'doc' + kk, 'chk': 'chk' + kk})
+    node('cd' + kk, 'f-topic', 'topicItem', CD[kk], {'code': 'chuyen-de-' + kk, 'icon': V['BK'][kk]['i'], 'active': True, 'number': kk, 'short': V['CDSHORT'].get(kk, ''), 'read': 'doc' + kk, 'chk': 'chk' + kk, **topic_shared(kk)})
 node('f-tac', 'lib', 'tacticFolder', 'Thủ đoạn', {})
 for i, t in enumerate(V['TACTICS']):
-    node('t%d' % i, 'f-tac', 'tacticItem', t['t'], {'code': slug(t['t'])[:40].strip('-'), 'active': True, 'topic': 'cd%d' % t['cd'], 'article': 'doc%d' % t['cd'], 'anchor': '',
+    node('t%d' % i, 'f-tac', 'tacticItem', t['t'], {'code': slug(t['t'])[:40].strip('-'), 'active': True, 'topic': 'cd%d' % t['cd'], 'article': ('lv%d' if str(t['cd']) in V['LVORDER'] else 'doc%d') % t['cd'], 'anchor': '',
          'ch': [CHS[c] for c in V['TCH'][str(i)]], 'level': LV[V['TLV'][str(i)]], 'kw': []})
 node('t-cu', 'f-tac', 'tacticItem', 'Tin nhắn trúng thưởng, nhận quà tri ân', {'code': 'tin-nhan-trung-thuong', 'active': False, 'topic': 'cd7', 'article': 'doc7', 'anchor': '', 'ch': ['tin-nhan'], 'level': 'cao', 'kw': ['trúng thưởng']})
 node('f-qa', 'content', 'quickQaFolder', 'Hỏi – đáp nhanh', {})
@@ -342,6 +367,8 @@ for key, (src, fn) in SN.items():
     else:
         title, body = d.get('h', src), fn(d)
     node('sn-' + key, 'f-snip', 'sharedSnippet', title, {'title': title, 'body': body})
+node('sn-khung', 'f-snip', 'sharedSnippet', 'Bộ khung nhận diện mọi thủ đoạn', {'title': 'Bộ khung nhận diện mọi thủ đoạn',
+    'body': '<p><b>Họ muốn lấy một trong bốn thứ</b></p><ul>%s</ul><p><b>Họ thường dùng một hoặc nhiều cách sau</b></p><ul>%s</ul>' % (''.join('<li>%s %s</li>' % (f[1], f[2]) for f in V['FOUR']), ''.join('<li><b>%s</b> %s</li>' % (w[1], w[2]) for w in V['WAYS']))})
 
 # ATTC_IMG_ALT cua ban dung; anh khong co thi dung cau mac dinh cua ban dung
 ALT0 = 'Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính'
@@ -360,6 +387,7 @@ for x in N:
     i_, im = x['id'], None
     if i_ in ILLUS: im = ILLUS[i_]
     elif re.fullmatch(r'(doc|chk)[1-8]', i_): im = DOCIMG[i_[3:]]
+    elif re.fullmatch(r'lv[1-8]', i_): im = DOCIMG[i_[2:]]
     elif i_.startswith('ar'): im = ARTIMG.get(i_[2:].replace('_', '-'), '25')
     elif re.fullmatch(r'p\d', i_): im = PBIMG.get(i_[1:], '20')
     elif x['type'] == 'alertPage': im = '23'
@@ -390,7 +418,12 @@ for x in N:
         x['p'] = None
 for rid in ('pages', 'settings'):
     N.append(N.pop(next(i for i, x in enumerate(N) if x['id'] == rid)))
-data = json.dumps({'N': N, 'MEDIA': MEDIA}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
+EXTRA = {}
+if SCOPE == 'rui-ro':
+    keep_roots = {'content', 'pages', 'settings', 'c-alert', 'c-art', 'f-snip', 'lib', 'rui-ro'}
+    hide_top = {'c-vcl', 'c-chk', 'f-qa'} | {x['id'] for x in N if x['p'] == 'pages' and x['id'] != 'rui-ro'}
+    EXTRA = {'HIDE': sorted(hide_top), 'TITLE': 'Backoffice · Các rủi ro'}
+data = json.dumps({'N': N, 'MEDIA': MEDIA, **EXTRA}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 src = open(srcpath, encoding='utf-8').read()
 out = src.replace('__DATA__', data)
 open(outpath, 'w', encoding='utf-8', newline='\n').write(out)
