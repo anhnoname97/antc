@@ -206,7 +206,7 @@ Quy ước trong bảng:
 | V2-01s | Cây Quản lý nội dung, Quản lý trang (1) | chính | QĐ-053. Thứ tự gốc: `contentRoot` "Quản lý nội dung", `pagesRoot` "Quản lý trang", `Cài đặt website` (gốc riêng, cuối). Các thư mục gốc không template, không xóa.<br>• Quản lý nội dung: `alertFolder` Cảnh báo, `articleFolder` Bài viết, `actionFolder` Việc cần làm, `checklistFolder` Danh sách kiểm tra, `quickQaFolder`, `snippetFolder`, `libraryFolder` đổi tên "Danh mục" (cuối). Thư mục có Collection, mục con không hiện trên cây.<br>• Quản lý trang phẳng: Trang chủ, Khẩn cấp (con: Kiểm tra tình huống), Hãy tự kiểm tra (con: 3 kiểm tra nhanh), Các rủi ro (con: Cảnh báo mới, 5 nhóm), Hỏi – Đáp, Liên hệ, Góp ý, Cuộc thi, Tìm kiếm, 404, thư mục `otherPagesFolder` "Trang thông tin, chính sách" (cho tạo `infoPage`, `policyPage`).<br>• Chuyển 70 nút Thư viện đang có (giữ khóa).<br>• Dòng nối hai bên: Collection của thư mục nội dung hiện "Hiện trên website ở trang …" và nút Mở trang; trang tương ứng hiện số mục và nút Mở danh sách (Property editor UI `Antc.InfoPanel`, V2-01q) | V2-01e, V2-01q | Cây đúng mockup; bấm thư mục mở danh sách; nút nối hai bên mở đúng chỗ | Xem cây trong backoffice; tạo một mục trong mỗi thư mục | Làm được |
 | V2-01t | Đường dẫn công khai theo đặc tả 3.3 (1) | chính | QĐ-053 khoản 3. `Core/PortalV2/Routing/PortalV2UrlProvider.cs` (IUrlProvider) và `PortalV2ContentFinder.cs` (IContentFinder), đăng ký ở `CustomCoreComposer`.<br>• Trang trong Quản lý trang: Trang chủ là `/`, trang khác tính từ Quản lý trang, bỏ đoạn "Quản lý trang" và thư mục (Trang thông tin, chính sách → `/ve-website`).<br>• Cảnh báo `/cac-rui-ro/canh-bao-moi/<tên>`, bài viết `/cac-rui-ro/<nhóm chính>/<tên>`, việc cần làm `/khan-cap/<tên>`, danh sách kiểm tra `/hay-tu-kiem-tra/<tên>`; gốc lấy theo đường dẫn hiện tại của trang tương ứng.<br>• Thư mục Quản lý nội dung không có đường dẫn (404).<br>• Trùng tên trong cùng gốc: Umbraco báo trùng khi lưu (kiểm ở `ContentSavingNotification`).<br>• Đổi Nhóm chính: đường dẫn cũ vào bảng chuyển hướng của Umbraco | V2-01s, V2-03a | Mọi trang và mục mở được bằng đường dẫn đặc tả; xem trước trong backoffice đúng đường dẫn | Gọi thử từng loại bằng `Invoke-WebRequest`; đổi nhóm chính rồi mở đường dẫn cũ | Làm được |
 | V2-01u | Trang Bắt đầu của Quản lý nội dung (0,5) | V2-ui | Workspace view cho `contentRoot` (mở mặc định khi vào khu Nội dung): ba khối như mockup `#content`.<br>• Thêm mới: thẻ cho từng thư mục, số mục, nút Thêm theo quyền.<br>• Cần xử lý: cảnh báo đã đăng quá 90 ngày, bài viết chưa rà soát hoặc quá 90 ngày, bản nháp; tối đa 8 dòng.<br>• Sửa trang: lối tắt Trang chủ, Khẩn cấp, Hãy tự kiểm tra, Các rủi ro, Cài đặt website.<br>Dữ liệu lấy qua API C3 hoặc Management API sẵn có | V2-01s, V2-01q | Đủ ba khối; nút Thêm tạo đúng loại trong đúng thư mục | Mở khu Nội dung; bấm từng nút | Làm được |
-| V2-01v | Form viết bài: bước, thẻ chọn, khung "Bài của bạn" (1) | V2-ui | Theo mockup `#ar1`. Ba thành phần giao diện, không đổi trường hay alias:<br>• Property editor UI `Antc.ChoiceCards` cho `Umbraco.DropDown.Flexible` (danh sách ≤ 4 mục): thẻ có biểu tượng, tên, một câu giải thích; dùng cho `articleKind`.<br>• Tên nhóm có số bước ("1 · Bài này nói về gì?") đặt trong loại nội dung; câu dẫn dưới nhóm hiện bằng `Antc.InfoPanel` (V2-01q) ở dòng đầu mỗi nhóm.<br>• `Antc.InfoPanel` kiểu "Bài của bạn": thẻ bài như trên website (biểu tượng, loại, tiêu đề, câu mời đọc, nhóm, thời gian đọc) và danh sách phần còn thiếu theo luật xuất bản (C4), cập nhật khi gõ.<br>• Ví dụ mẫu trong placeholder và mô tả từng trường lấy theo mockup | V2-01q, V2-01l | Gõ tiêu đề thì thẻ đổi ngay; danh sách phần thiếu khớp kiểm xuất bản | Mở bài nháp, điền dần từng phần | Làm được |
+| V2-01v | Màn soạn bài viết hai cột (2) | V2-ui | Theo mockup `#ar1`, bố cục như `BACKOFFICE-UI/anh/07-noi-dung-soan-bai.png`. Không đổi trường hay alias.<br>• Workspace view riêng cho `riskArticlePage` thay tab mặc định: cột trái để viết (Tiêu đề chữ lớn, Một câu mời đọc, Tóm tắt; Dấu hiệu và Việc cần làm chỉ hiện với Bài hướng dẫn; Nội dung; Nguồn; mục "Thêm chi tiết" thu gọn chứa 11 trường ít dùng). Cột phải dính khi cuộn: Xuất bản (nhóm, loại bài), Kiểm tra trước khi xuất bản (theo luật C4), Xem trước thẻ bài, Gắn nhãn (chỉ Bài hướng dẫn), Thẩm định. Dưới 1000 px thành một cột.<br>• Nhãn trên ô; dùng lại property editor đã có (combobox, InlineList, Tiptap) qua `umb-property`.<br>• `Antc.ChoiceCards` cho Loại bài.<br>• Cập nhật khung kiểm tra và thẻ xem trước khi gõ.<br>Rủi ro: workspace view tự viết phải tự xử lý lưu, kiểm lỗi, so sánh phiên bản giống tab chuẩn; làm thử một loại trước rồi mới áp cho Cảnh báo, Danh sách kiểm tra | V2-01q, V2-01l, V2-01n | Đủ trường như Phụ lục A; lưu, kiểm lỗi, xuất bản như form chuẩn; gõ tiêu đề thì thẻ đổi ngay | Mở bài nháp, điền dần; lưu khi thiếu trường bắt buộc; xem ở 1440 và 900 px | Làm được |
 | V2-01n | `Antc.InlineList` dạng Bảng (1) | V2-ui | `Web/App_Plugins/AntcEditors/inline-list.js`, `inline-list.css`.<br>• Ô chữ, ô đoạn tự cao lên, ô số, ô ngày.<br>• Ô chọn dùng combobox của V2-01j, V2-01l.<br>• Dòng mở rộng ▸.<br>• Thêm dòng; xóa có Hoàn tác 8 giây; kéo ⋮⋮ và bàn phím để sắp.<br>• Bảng cố định số dòng.<br>• Lỗi hiện dưới từng ô.<br>• Khung hẹp hơn 720 px chuyển sang thẻ | V2-01m, V2-01l | Thao tác giống màn Khẩn cấp và Cài đặt website trong mockup | Gắn vào một data type thử; làm theo khung "Thử trong màn này" của mockup v1 | Làm được |
 | V2-01o | `Antc.InlineList` dạng Thẻ (1) | V2-ui | Thẻ có dòng tóm tắt và nhãn đặc điểm; mở, thu; Mở hết, Thu hết; nhân bản; chèn giữa; xóa có Hoàn tác.<br>Trong thẻ: danh sách dòng, bảng nhỏ (một cấp), phần tùy chọn bật tắt (ví dụ "Hỏi thêm"), ô hiện theo điều kiện trong dòng (ví dụ cửa vào "Mở trang" hay "Mở danh sách") | V2-01n | Thao tác giống màn Việc cần làm, Khẩn cấp (Ba cửa vào) và Checklist trong mockup | Như trên | Làm được |
 | V2-01p | `Antc.InlineList`: dán, bàn phím, so sánh phiên bản (0,5) | V2-ui | • Dán nhiều dòng (Tab tách cột) từ Excel hoặc Word.<br>• Enter ở ô cuối thì thêm dòng.<br>• Danh sách dòng: Enter thêm dòng, Backspace ở dòng trống thì xóa, Alt + ↑ ↓ để chuyển dòng.<br>• Hiện dạng bảng ở màn so sánh phiên bản; không làm được thì ghi giới hạn | V2-01o | Dán 5 dòng 3 cột vào bảng số đường dây nóng thì ra 5 dòng | Thử dán | Làm được |
@@ -227,7 +227,7 @@ Mỗi task dưới đây gồm:
 | # | Task | Luồng | Phạm vi / file dự kiến | Phụ thuộc | Tiêu chí hoàn thành | Cách kiểm chứng | Trạng thái |
 |---|---|---|---|---|---|---|---|
 | V2-02a | `siteSettings` (1) | chính | Loại mới cho phép ở gốc, 6 tab. Ba bảng `InlineList`: `stopPrinciples` (cố định 4 dòng), `mainLinks` (cố định 4), `extraLinks`.<br>`Chọn · Trang trong website` (lọc mọi loại `…Page`).<br>`antc` giữ tới V2-14b | V2-01d, I-01 | Đúng Phụ lục A. Biên tập viên chưa bị ẩn tab (việc đó ở V2-11a) | Tạo nút, điền đủ, xuất bản | Chờ I-01 |
-| V2-03a | `riskArticlePage` (1) | chính | Ba tab và SEO.<br>• `scenarios`: Thẻ.<br>• `references`: Bảng, ngày truy cập ở dòng mở rộng.<br>• `readingBody`: `Soạn thảo · Bài đọc`; `summary`: `Soạn thảo · Chỉ in đậm`.<br>• `Chọn · Bài viết`.<br>Thêm `tacticItem.containingArticle`, `topicItem.readingArticle`.<br>Mẫu nội dung (blueprint) cho ba loại bài<br>• QĐ-053: thêm `primaryGroup` "Nhóm chính" (Chọn · Nhóm rủi ro, bắt buộc) quyết định đường dẫn; bài viết tạo trong Quản lý nội dung › Bài viết<br>• Form theo mockup `#ar1` (QĐ-053 bổ sung): tab Viết bài (6 bước: nói về gì; người đang vội; nhận ra; làm gì; kể kỹ hơn; nguồn), tab Gắn nhãn, tab Thẩm định; `primaryGroup` ở bước 1. Thành phần giao diện ở V2-01v | V2-01c, I-01 | Đúng Phụ lục A. Tạo bài từ blueprint thì có sẵn khung | Tạo ba bài ba loại | Chờ I-01 |
+| V2-03a | `riskArticlePage` (1) | chính | Ba tab và SEO.<br>• `scenarios`: Thẻ.<br>• `references`: Bảng, ngày truy cập ở dòng mở rộng.<br>• `readingBody`: `Soạn thảo · Bài đọc`; `summary`: `Soạn thảo · Chỉ in đậm`.<br>• `Chọn · Bài viết`.<br>Thêm `tacticItem.containingArticle`, `topicItem.readingArticle`.<br>Mẫu nội dung (blueprint) cho ba loại bài<br>• QĐ-053: thêm `primaryGroup` "Nhóm chính" (Chọn · Nhóm rủi ro, bắt buộc) quyết định đường dẫn; bài viết tạo trong Quản lý nội dung › Bài viết<br>• Một tab Viết bài (và SEO), bố cục hai cột theo mockup `#ar1`; nhóm trường khai báo đúng Phụ lục A để V2-01v xếp vào hai cột | V2-01c, I-01 | Đúng Phụ lục A. Tạo bài từ blueprint thì có sẵn khung | Tạo ba bài ba loại | Chờ I-01 |
 | V2-03b | `ruiRoPage`, `riskCategoryPage` (0,5) | chính | `riskCategoryPage` có tab Danh sách (Collection bài viết: cột, lọc theo Phụ lục A). `Chọn · Nhóm rủi ro`<br>• QĐ-053: bỏ tab Danh sách của `riskCategoryPage`; Collection bài viết (thêm cột, lọc Nhóm chính) đặt ở `articleFolder`; trang nhóm chỉ hiện dòng đếm bài | V2-03a | Trang nhóm hiện danh sách bài con, lọc theo loại bài, trạng thái | Tạo 5 nhóm thử | Chờ I-01 |
 | V2-04a | `alertListPage`, `alertPage` (1) | chính | `alertPage` có 4 tab và SEO. `alertListPage` có tab Danh sách: cột Mức độ (chấm màu), Phổ biến, Ngày cập nhật, Còn mới, Trạng thái; lọc Trạng thái, Mức độ, Mức độ phổ biến, Kênh.<br>`Chọn · Cảnh báo`.<br>`Chọn · Bài liên quan` (tạm gồm bài viết, cảnh báo; thêm checklist ở V2-08a)<br>• QĐ-053: tab Danh sách chuyển sang `alertFolder`; `alertListPage` chỉ còn trường của trang | V2-03b | Đúng Phụ lục A | Tạo, lọc, xuất bản hàng loạt trong Collection | Chờ I-01 |
 | V2-04b | Cảnh báo theo thời gian (1) | chính | `Core/PortalV2/Alerts/AlertFreshness.cs`: còn mới khi `updatedDate` không quá 90 ngày; ghim ở trang chủ tự bỏ sau 90 ngày.<br>`AlertAutoUnpublishJob.cs` (`IRecurringBackgroundJob`, mỗi ngày): hủy xuất bản khi quá `autoUnpublishDays`, ghi log và lịch sử nút | V2-04a | Cảnh báo quá hạn tự gỡ. Hàm "còn mới" dùng chung cho view và `InfoPanel` | `dotnet test` (mốc 89, 90, 91 ngày); sửa ngày của một cảnh báo thử rồi chạy job | Chờ I-01 |
@@ -800,42 +800,43 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
-| Viết bài | Bài của bạn | — (không lưu) | Bài của bạn | Không lưu (hiển thị) |  |  |
-| Viết bài | Bài này nói về gì? | `title` | Tiêu đề | Chữ · 110 | ✔ |  |
-| Viết bài | Bài này nói về gì? | `articleKind` | Loại bài | Danh mục · Loại bài | ✔ |  |
-| Viết bài | Bài này nói về gì? | `primaryGroup` | Đăng ở nhóm | Chọn · Nhóm rủi ro (một) | ✔ | Bài hiện trong nhóm này ở mục Các rủi ro; địa chỉ bài theo nhóm |
-| Viết bài | Bài này nói về gì? | `description` | Một câu mời đọc | Đoạn · 160 | ✔ | Hiện dưới tiêu đề trên thẻ bài |
-| Viết bài | Bài này nói về gì? | `icon` | Biểu tượng trên thẻ | Danh mục · Biểu tượng |  |  |
-| Viết bài | Người đang vội cần biết gì? | `summary` | Tóm tắt | Soạn thảo · Chỉ in đậm | khi đăng |  |
-| Viết bài | Làm sao nhận ra? | `warningSigns` | Dấu hiệu cảnh báo | Danh sách dòng (0–8) | có điều kiện |  |
-| Viết bài | Làm sao nhận ra? | `scenarios` | Kịch bản thường gặp | InlineList · Thẻ |  |  |
-|  | ↳ ô trong thẻ | `scenarios[].tacticName` | Tên thủ đoạn | Chữ · 140 |  | Thủ đoạn trỏ tới kịch bản này được tô sáng khi mở bài |
-|  | ↳ ô trong thẻ | `scenarios[].steps` | Diễn biến từng bước | Danh sách dòng (0–8) | ✔ |  |
-| Viết bài | Gặp rồi thì làm gì? | `actionsNow` | Việc cần làm ngay | Danh sách dòng (0–6) | có điều kiện |  |
-| Viết bài | Gặp rồi thì làm gì? | `avoidActions` | Việc không nên làm | Danh sách dòng (0–6) |  |  |
-| Viết bài | Gặp rồi thì làm gì? | `actionPage` | Dẫn tới trang việc cần làm | Chọn · Việc cần làm (một) |  | Nút “Xem đủ các bước” cuối phần này |
-| Viết bài | Muốn kể kỹ hơn? | `readingBody` | Nội dung đọc thêm | Soạn thảo · Bài đọc |  |  |
-| Viết bài | Thông tin lấy từ đâu? | `references` | Nguồn tham khảo | InlineList · Bảng | khi đăng |  |
+| Viết bài | Bài viết | `title` | Tiêu đề | Chữ · 110 | ✔ |  |
+| Viết bài | Bài viết | `description` | Một câu mời đọc | Đoạn · 160 | ✔ | Hiện dưới tiêu đề trên thẻ bài |
+| Viết bài | Bài viết | `summary` | Tóm tắt | Soạn thảo · Chỉ in đậm | khi đăng | Hai, ba câu: chuyện gì, ai hay gặp, làm gì ngay |
+| Viết bài | Nhận ra và xử lý | `warningSigns` | Dấu hiệu cảnh báo | Danh sách dòng (0–8) | có điều kiện |  |
+| Viết bài | Nhận ra và xử lý | `actionsNow` | Việc cần làm ngay | Danh sách dòng (0–6) | có điều kiện |  |
+| Viết bài | Nội dung bài | `readingBody` | Nội dung | Soạn thảo · Bài đọc |  | Menu “Kiểu” chèn Hộp ghi nhớ, Trường hợp thật, Bỏ túi |
+| Viết bài | Nguồn tham khảo | `references` | Nguồn | InlineList · Bảng | khi đăng |  |
 | | ↳ cột | `references[].title` | Tên tài liệu | Chữ · 200 | ✔ |  |
 | | ↳ cột | `references[].organization` | Đơn vị | Chữ · 120 |  |  |
 | | ↳ cột | `references[].url` | Liên kết | Chữ · Liên kết https |  |  |
 | | ↳ cột | `references[].accessedDate` | Ngày truy cập | Ngày |  | ở dòng mở rộng |
+| Viết bài | Thêm chi tiết | `scenarios` | Kịch bản thường gặp | InlineList · Thẻ |  |  |
+|  | ↳ ô trong thẻ | `scenarios[].tacticName` | Tên thủ đoạn | Chữ · 140 |  | Thủ đoạn trỏ tới kịch bản này được tô sáng khi mở bài |
+|  | ↳ ô trong thẻ | `scenarios[].steps` | Diễn biến từng bước | Danh sách dòng (0–8) | ✔ |  |
+| Viết bài | Thêm chi tiết | `avoidActions` | Việc không nên làm | Danh sách dòng (0–6) |  |  |
+| Viết bài | Thêm chi tiết | `actionPage` | Dẫn tới trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
+| Viết bài | Thêm chi tiết | `topic` | Chuyên đề | Chọn · Chuyên đề (một) |  |  |
+| Viết bài | Thêm chi tiết | `alsoInCategories` | Hiện thêm ở nhóm | Chọn · Nhóm rủi ro (nhiều) |  |  |
+| Viết bài | Thêm chi tiết | `searchKeywords` | Từ người dân hay gõ khi tìm | Thẻ · Từ khóa |  | Ví dụ: “gọi điện công an” |
+| Viết bài | Thêm chi tiết | `synonyms` | Từ cùng nghĩa | Thẻ · Từ khóa |  | Ví dụ: “otp” cho “mã xác thực” |
+| Viết bài | Thêm chi tiết | `relatedItems` | Bài liên quan | Chọn · Bài liên quan (nhiều, ≤ 4) |  | Để trống thì website tự gợi ý bài cùng nhóm |
+| Viết bài | Thêm chi tiết | `checklist` | Danh sách kiểm tra đi kèm | Chọn · Danh sách kiểm tra (một) |  |  |
+| Viết bài | Thêm chi tiết | `icon` | Biểu tượng trên thẻ | Danh mục · Biểu tượng |  | Để trống thì theo loại bài |
+| Viết bài | Thêm chi tiết | `isFeatured` | Nổi bật | Bật/tắt |  |  |
+| Viết bài | Xuất bản | `primaryGroup` | Đăng ở nhóm | Chọn · Nhóm rủi ro (một) | ✔ |  |
+| Viết bài | Xuất bản | `articleKind` | Loại bài | Danh mục · Loại bài | ✔ |  |
+| Viết bài | Kiểm tra trước khi xuất bản | — (không lưu) | Kiểm tra | Không lưu (hiển thị) |  |  |
+| Viết bài | Xem trước thẻ bài | — (không lưu) | Thẻ bài | Không lưu (hiển thị) |  |  |
+| Viết bài | Gắn nhãn | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | có điều kiện |  |
+| Viết bài | Gắn nhãn | `channels` | Thường gặp qua kênh | Chọn · Kênh (nhiều) | có điều kiện |  |
+| Viết bài | Gắn nhãn | `audiences` | Ai hay bị nhắm tới | Chọn · Đối tượng (nhiều) | có điều kiện |  |
+| Viết bài | Thẩm định | `reviewDate` | Ngày rà soát | Ngày | khi đăng |  |
+| Viết bài | Thẩm định | `reviewer` | Người thẩm định | Chữ · 120 | khi đăng |  |
+| Viết bài | Thẩm định | `version` | Phiên bản | Chữ · 20 |  |  |
+| Viết bài | Thẩm định | — (không lưu) | Thời gian đọc | Không lưu (hiển thị) |  |  |
 | Viết bài | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
 | Viết bài | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `cautionLevel` | Mức độ cần thận trọng | Danh mục · Mức độ cần thận trọng | có điều kiện |  |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `channels` | Thường gặp qua kênh | Chọn · Kênh (nhiều) | có điều kiện |  |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `audiences` | Ai hay bị nhắm tới | Chọn · Đối tượng (nhiều) | có điều kiện |  |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `topic` | Chuyên đề | Chọn · Chuyên đề (một) |  |  |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `alsoInCategories` | Hiện thêm ở nhóm | Chọn · Nhóm rủi ro (nhiều) |  | Ngoài nhóm đã chọn ở bước 1 |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `searchKeywords` | Từ người dân hay gõ khi tìm | Thẻ · Từ khóa |  | Ví dụ: “gọi điện công an”, “chuyển tiền xác minh” |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `synonyms` | Từ cùng nghĩa | Thẻ · Từ khóa |  | Ví dụ: “otp” cho “mã xác thực” |
-| Gắn nhãn | Gợi ý đọc tiếp | `relatedItems` | Bài liên quan | Chọn · Bài liên quan (nhiều, ≤ 4) |  |  |
-| Gắn nhãn | Gợi ý đọc tiếp | `checklist` | Danh sách kiểm tra đi kèm | Chọn · Danh sách kiểm tra (một) |  |  |
-| Gắn nhãn | Gợi ý đọc tiếp | `isFeatured` | Nổi bật | Bật/tắt |  |  |
-| Thẩm định | Thẩm định | `version` | Phiên bản | Chữ · 20 |  |  |
-| Thẩm định | Thẩm định | `reviewDate` | Ngày rà soát | Ngày | khi đăng |  |
-| Thẩm định | Thẩm định | `reviewer` | Người thẩm định | Chữ · 120 | khi đăng |  |
-| Thẩm định | Thẩm định | — (không lưu) | Thời gian đọc | Không lưu (hiển thị) |  |  |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `hoiDapPage` · Hỏi – Đáp
