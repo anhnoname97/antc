@@ -172,6 +172,17 @@ svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .chc{display:grid;gap:4px;justify-items:start;text-align:left;border:1.5px solid var(--line);border-radius:10px;padding:12px;background:var(--panel);cursor:pointer;color:var(--fg)}
 .chc small{color:var(--muted);font-size:var(--fs-xs);line-height:1.4}.chc .i{color:var(--muted)}.chc:hover{border-color:var(--line-strong)}
 .chc[aria-checked="true"]{border-color:var(--sel-fg);background:var(--sel);box-shadow:inset 0 0 0 1px var(--sel-fg)}.chc[aria-checked="true"] .i{color:var(--sel-fg)}
+.doc2{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}@media (max-width:1000px){.doc2{grid-template-columns:1fr}}
+.docmain,.docside{display:grid;gap:16px;min-width:0}.docside{position:sticky;top:12px}
+.doc2 .prop{grid-template-columns:1fr;gap:6px}.doc2 .plabel{padding-top:0}
+.docside .box{padding:14px 16px;gap:12px}.docside .box > h3{font-size:var(--fs-m);font-weight:600}
+.doc2 .txt.big{font-size:var(--fs-xl);font-weight:600;padding:10px 12px;height:auto}
+.docside .apv-t{font-size:var(--fs-l)}
+.box.fold{display:block}.box.fold > summary{cursor:pointer;display:flex;gap:10px;align-items:baseline;list-style:none}.box.fold > summary::-webkit-details-marker{display:none}
+.box.fold > summary::before{content:'▸';color:var(--muted)}.box.fold[open] > summary::before{content:'▾'}.box.fold > summary small{color:var(--muted);font-size:var(--fs-xs)}
+.box.fold[open]{display:grid;gap:18px}
+.apl-bar{height:6px;border-radius:3px;background:var(--panel-2);overflow:hidden;margin-bottom:8px}.apl-bar i{display:block;height:100%;background:var(--sel-fg)}
+.docside .choice{grid-template-columns:1fr;gap:6px}.docside .chc{padding:8px 10px}.docside .chc small{display:none}.docside .chc[aria-checked="true"] small{display:block}
 .dash{display:grid;gap:16px}.dh{margin:0 0 4px;font-size:var(--fs-m)}.dsub{margin:0 0 12px;color:var(--muted);font-size:var(--fs-s)}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .dcard{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:10px;padding:12px}.dcard p{margin:0;color:var(--muted);font-size:var(--fs-s);flex:1}.dcard .btn{align-self:flex-start}
@@ -850,13 +861,15 @@ function collect(node,mode){
   return out;
 }
 function setErr(key,msg){if(msg)ERR[key]=msg;else delete ERR[key];document.querySelectorAll('[data-ek="'+CSS.escape(key)+'"]').forEach(el=>{el.classList.toggle('bad',!!msg);const pe=el.querySelector(':scope > .perr, :scope > .pctl > .perr');if(pe)pe.textContent=msg||''});updTabErr()}
-function liveCheck(f,obj,key){if(PROG)PROG();if(ERR[key]!=null||(f.max&&String(obj[f.k]||'').length>f.max))setErr(key,vField(f,obj,'pub',CURNODE()));}
+function liveCheck(f,obj,key){PROGS.forEach(fn=>fn());if(ERR[key]!=null||(f.max&&String(obj[f.k]||'').length>f.max))setErr(key,vField(f,obj,'pub',CURNODE()));}
 
 /* ---------- ô nhập theo schema ---------- */
 function prop(f,ctl,key,o={}){const lb=h('label',{class:'plabel',for:o.for||null},f.l,f.req===1||f.req===true?h('span',{class:'req','aria-hidden':'true',text:'*'}):null,f.req==='xb'?h('span',{class:'xb',title:'Lưu nháp được, nhưng phải có mới xuất bản được',text:'cần khi đăng'}):null,f.adm?h('span',{class:'adm',text:'Quản trị'}):null,f.help?h('small',{text:f.help}):null);
   return h('div',{class:'prop'+(o.top||f.top?' top':'')+(ERR[key]?' bad':''),'data-ek':key},lb,h('div',{class:'pctl'},ctl,h('div',{class:'perr',text:ERR[key]||''})))}
 function fieldEl(f,obj,ctx){
-  if(f.g){if(f.adm&&ROLE!=='qt'){ctx.hidden=(ctx.hidden||0)+1;return null}const box=h('section',{class:'box'+(f.step?' step':'')},h('h3',null,f.step?h('span',{class:'stepn',text:String(f.step)}):null,f.g,f.adm?h('small',{text:'· chỉ Quản trị viên thấy'}):null,f.gh?h('small',{text:f.gh}):null),f.lead?h('p',{class:'glead',text:f.lead}):null);f.f.forEach(x=>{const el=fieldEl(x,obj,ctx);if(el)box.append(el)});return box}
+  if(f.g){if(f.adm&&ROLE!=='qt'){ctx.hidden=(ctx.hidden||0)+1;return null}if(f.when&&!f.when(obj,ctx.node))return null;
+    if(f.fold){const keys=[];const walkK=l=>l.forEach(x=>{if(x.k)keys.push((ctx.prefix||'')+x.k)});walkK(f.f);const d=h('details',{class:'box fold'},h('summary',null,h('b',{text:f.g}),f.gh?h('small',{text:f.gh}):null));if(keys.some(k=>ERR[k]))d.open=true;f.f.forEach(x=>{const el=fieldEl(x,obj,ctx);if(el)d.append(el)});return d}
+    const box=h('section',{class:'box'+(f.step?' step':'')+(f.side?' side':'')},h('h3',null,f.step?h('span',{class:'stepn',text:String(f.step)}):null,f.g,f.adm?h('small',{text:'· chỉ Quản trị viên thấy'}):null,f.gh?h('small',{text:f.gh}):null),f.lead?h('p',{class:'glead',text:f.lead}):null);f.f.forEach(x=>{const el=fieldEl(x,obj,ctx);if(el)box.append(el)});return box}
   if(f.adm&&ROLE!=='qt'){ctx.hidden=(ctx.hidden||0)+1;return null}
   if(f.when&&!f.when(obj,ctx.node))return null;
   const key=(ctx.prefix||'')+f.k;const id=uid();const any=()=>{ctx.onAny&&ctx.onAny()};
@@ -865,7 +878,7 @@ function fieldEl(f,obj,ctx){
     case 'text':case 'area':case 'url':case 'num':case 'date':case 'code':{
       if(f.t==='code'&&CURNODE().st==='pub'&&obj===CURNODE().v)return prop(f,h('div',{class:'lockv'},icon('lock'),obj[f.k],h('small',{text:'Khóa sau lần xuất bản đầu, vì địa chỉ lọc trên website dùng mã này.'})),key);
       if(f.lockPub&&CURNODE().st==='pub')return prop(f,h('div',{class:'lockv'},icon('lock'),obj[f.k],h('small',{text:f.lockPub})),key);
-      const isA=f.t==='area';const inp=h(isA?'textarea':'input',{class:isA?'area':'txt',id,type:isA?null:(f.t==='date'?'date':f.t==='url'?'url':'text'),rows:isA?2:null,inputmode:f.t==='num'?'numeric':null,placeholder:typeof f.ph==='function'?f.ph(obj,ctx.node):(f.ph||null)});
+      const isA=f.t==='area';const inp=h(isA?'textarea':'input',{class:(isA?'area':'txt')+(f.big?' big':''),id,type:isA?null:(f.t==='date'?'date':f.t==='url'?'url':'text'),rows:isA?2:null,inputmode:f.t==='num'?'numeric':null,placeholder:typeof f.ph==='function'?f.ph(obj,ctx.node):(f.ph||null)});
       inp.value=obj[f.k]==null?'':obj[f.k];const cnt=f.max?h('div',{class:'count'}):null;
       const upd=()=>{if(isA)autogrow(inp);if(cnt){const n=inp.value.length;cnt.textContent=n+'/'+f.max;cnt.classList.toggle('over',n>f.max)}};
       inp.addEventListener('input',()=>{obj[f.k]=inp.value;upd();markDirty();liveCheck(f,obj,key);any()});
@@ -889,7 +902,7 @@ function fieldEl(f,obj,ctx){
     case 'table':return prop(f,TableList(f,obj[f.k]||(obj[f.k]=[]),ctx),key,{top:true});
     case 'cards':return prop(f,CardList(f,obj[f.k]||(obj[f.k]=[]),ctx),key,{top:true});
     case 'rte':return prop(f,RTE(f,obj,key),key,{top:f.mode!=='limited'});
-    case 'info':if(f.wide){const el=h('div',{class:'wideinfo'});const paint=()=>{el.textContent='';el.append(f.fn(obj,ctx.node))};paint();PROG=paint;return el}
+    case 'info':if(f.wide){const el=h('div',{class:'wideinfo'});const paint=()=>{el.textContent='';el.append(f.fn(obj,ctx.node))};paint();PROGS.push(paint);return el}
       return prop(f,h('div',{class:'infov'},f.fn(obj,ctx.node)),key);
     case 'matrix':return Matrix(f,obj,ctx);
   }
@@ -1060,21 +1073,19 @@ const taxBase=[F('code','Mã','code',{req:1,max:40,unique:true,help:'Chữ thư�
 const huong=v=>v.kind==='huongDan'?'xb':0;
 const artMinutes=v=>Math.max(1,Math.ceil((strip(v.sum)+' '+strip(v.body)+' '+(v.signs||[]).join(' ')+' '+(v.todo||[]).join(' ')).split(' ').filter(Boolean).length/200));
 const KINDDESC={huongDan:['shield','Giúp người đọc nhận ra và xử lý một thủ đoạn. Cần dấu hiệu và việc cần làm.'],docChuyenDe:['book','Bài dài theo một trong 8 chuyên đề, dẫn tới bộ câu hỏi luyện tập.'],docThem:['doc','Phân tích, câu chuyện, kiến thức nền. Không cần dấu hiệu.']};
-let PROG=null;
-function ArtProgress(v,n){
-  const hg=v.kind==='huongDan',kind=FIX.KIND.find(k=>k.id===v.kind),grp=byId(v.grp);
-  const parts=[['Tiêu đề',!!(v.title||'').trim(),1],['Loại bài, nhóm',!!(v.kind&&v.grp),1],['Câu mời đọc',!!(v.desc||'').trim(),1],['Tóm tắt',!!strip(v.sum).trim(),1],
-    ['Dấu hiệu',(v.signs||[]).length>0,hg],['Việc cần làm',(v.todo||[]).length>0,hg],['Nguồn',(v.srcs||[]).length>0,1]];
-  const need=parts.filter(x=>x[2]&&!x[1]).length;
-  const card=h('div',{class:'apv'},h('div',{class:'apv-k'},icon(v.icon&&P[v.icon]?v.icon:(KINDDESC[v.kind]||['doc'])[0]),h('span',{text:kind?kind.name:'Bài viết'})),
-    h('b',{class:'apv-t'+((v.title||'').trim()?'':' ph'),text:(v.title||'').trim()||'Tiêu đề bài sẽ hiện ở đây'}),
-    h('p',{class:(v.desc||'').trim()?'':'ph',text:(v.desc||'').trim()||'Câu mời đọc hiện dưới tiêu đề.'}),
-    h('small',{text:(grp?grp.name:'Chưa chọn nhóm')+' · khoảng '+artMinutes(v)+' phút đọc'}));
-  return h('div',{class:'aprog'},
-    h('div',{class:'apv-wrap'},h('span',{class:'apv-cap',text:'Người đọc sẽ thấy thẻ bài thế này'}),card),
-    h('div',{class:'apl'},h('b',{class:'apl-h',text:need?'Còn '+need+' phần nữa là đăng được':'Bài đã đủ để đăng'}),
-      h('p',{text:need?'Lưu nháp lúc nào cũng được. Các phần dưới đây có dấu ✓ khi đã xong.':'Đọc lại một lượt, rồi bấm Lưu và xuất bản.'}),
-      h('ul',null,parts.map(([l,ok,req])=>h('li',{class:ok?'ok':req?'need':'opt'},h('span',{class:'dot','aria-hidden':'true',text:ok?'✓':''}),l+(req||ok?'':' (không bắt buộc với loại này)'))))))}
+let PROGS=[];
+function artParts(v){const hg=v.kind==='huongDan';return [['Tiêu đề',!!(v.title||'').trim(),1],['Nhóm và loại bài',!!(v.kind&&v.grp),1],['Câu mời đọc',!!(v.desc||'').trim(),1],['Tóm tắt',!!strip(v.sum).trim(),1],
+    ['Dấu hiệu cảnh báo',(v.signs||[]).length>0,hg],['Việc cần làm ngay',(v.todo||[]).length>0,hg],['Kênh, đối tượng, mức độ',!!(v.level&&(v.ch||[]).length&&(v.aud||[]).length),hg],['Nguồn',(v.srcs||[]).length>0,1],['Ngày rà soát, người thẩm định',!!(v.rev&&v.by),1]].filter(x=>x[2])}
+function ArtCheck(v){const parts=artParts(v),done=parts.filter(x=>x[1]).length;
+  return h('div',{class:'apl'},h('div',{class:'apl-bar'},h('i',{style:'width:'+Math.round(done/parts.length*100)+'%'})),
+    h('b',{class:'apl-h',text:done===parts.length?'Đủ để đăng':'Đã có '+done+'/'+parts.length}),
+    h('ul',null,parts.map(([l,ok])=>h('li',{class:ok?'ok':'need'},h('span',{class:'dot','aria-hidden':'true',text:ok?'✓':''}),l))),
+    h('p',{text:'Lưu nháp lúc nào cũng được.'}))}
+function ArtCard(v,n){const kind=FIX.KIND.find(k=>k.id===v.kind),grp=byId(v.grp);
+  return h('div',{class:'apv'},h('div',{class:'apv-k'},icon(v.icon&&P[v.icon]?v.icon:(KINDDESC[v.kind]||['doc'])[0]),h('span',{text:kind?kind.name:'Bài viết'})),
+    h('b',{class:'apv-t'+((v.title||'').trim()?'':' ph'),text:(v.title||'').trim()||'Tiêu đề bài'}),
+    h('p',{class:(v.desc||'').trim()?'':'ph',text:(v.desc||'').trim()||'Câu mời đọc'}),
+    h('small',{text:(grp?grp.name:'Chưa chọn nhóm')+' · khoảng '+artMinutes(v)+' phút đọc'}))}
 const ACTCOLS=[{k:'page',l:'Trang việc cần làm',t:'pick',src:'VCL',req:1},{k:'step',l:'Bước số',t:'num',req:1,w:'100px'}];
 const MORECOLS=[{k:'ic',l:'Biểu tượng',t:'pick',src:'ICONS',w:'150px'},{k:'nhan',l:'Chữ trên liên kết',req:1,max:80},{k:'trang',l:'Trang',t:'pick',src:'PAGES',req:1,w:'30%'}];
 const T={
@@ -1159,31 +1170,28 @@ const T={
   riskCategoryPage:{name:'Nhóm rủi ro',page:1,del:false,sub:()=>'Các rủi ro',tabs:[{t:'Nội dung',f:[{g:'Nội dung',f:[F('where','Bài viết','info',{fn:()=>{const g=CUR;return OPENLIST(N.filter(x=>x.type==='riskArticlePage'&&x.v.grp===g).length+' bài có Nhóm chính là nhóm này. Thêm, sửa ở Quản lý nội dung › Bài viết.','c-art')}}),F('tab','Tên tab','text',{req:1,max:28}),F('short','Mô tả ngắn trên thẻ trang chủ','text',{req:1,max:60}),F('lead','Câu dẫn đầu trang','area',{req:1,max:220}),F('icon','Biểu tượng','pick',{src:'ICONS',req:1}),F('thumb','Ảnh thu nhỏ','media',{help:'Ảnh trên thẻ nhóm ở trang chủ và Các rủi ro (QĐ-052)'}),
     F('tactics','Thủ đoạn hiện trong nhóm','multi',{src:'TAC',sort:1}),F('pins','Bài ghim đầu danh sách','multi',{src:'ART',max:2,showDraft:1}),F('noAns','Câu “Không thấy câu trả lời?”','area',{max:200})]}]},seoTab]},
   riskArticlePage:{name:'Bài viết',page:1,create:'bt',del:'bt',nameMax:110,sub:n=>((FIX.KIND.find(k=>k.id===n.v.kind)||{}).name||'Bài viết')+' · '+((byId(n.v.grp)||{}).name||'chưa chọn nhóm'),defaults:()=>({kind:'huongDan',signs:[],scen:[],todo:[],dont:[],srcs:[],ch:[],aud:[],tabs:[],kw:[],syn:[],rel:[]}),tabs:[
-    {t:'Viết bài',f:[{g:'Bài của bạn',f:[F('prog','Bài của bạn','info',{wide:1,fn:(v,n)=>ArtProgress(v,n)})]},
-      {g:'Bài này nói về gì?',step:1,lead:'Người đọc lướt thấy tiêu đề và câu mời đọc trước tiên. Viết như đang nhắn cho người thân: ngắn, rõ, không thuật ngữ.',f:[
-        F('title','Tiêu đề','text',{req:1,max:110,ph:'Ví dụ: 5 dấu hiệu nhận biết cuộc gọi giả danh công an'}),
-        F('kind','Loại bài','pick',{src:'KIND',req:1,re:1,ui:'cards'}),
-        F('grp','Đăng ở nhóm','pick',{src:'GRP',req:1,help:'Bài hiện trong nhóm này ở mục Các rủi ro; địa chỉ bài theo nhóm'}),
+    {t:'Viết bài',doc:1,f:[
+      {g:'Bài viết',f:[F('title','Tiêu đề','text',{req:1,max:110,big:1,ph:'Ví dụ: 5 dấu hiệu nhận biết cuộc gọi giả danh công an'}),
         F('desc','Một câu mời đọc','area',{req:1,max:160,help:'Hiện dưới tiêu đề trên thẻ bài',ph:'Ví dụ: Kẻ gian gọi báo bạn liên quan vụ án rồi đòi chuyển tiền “xác minh”.'}),
-        F('icon','Biểu tượng trên thẻ','pick',{src:'ICONS'})]},
-      {g:'Người đang vội cần biết gì?',step:2,lead:'Hai, ba câu: chuyện gì đang xảy ra, ai hay gặp, phải làm gì ngay. Nhiều người chỉ đọc tới đây.',f:[
-        F('sum','Tóm tắt','rte',{mode:'limited',req:'xb',ph:'Ví dụ: Kẻ gian gọi điện xưng công an, nói bạn liên quan đường dây rửa tiền và bắt chuyển tiền để “chứng minh trong sạch”. Người lớn tuổi hay bị nhắm tới. Cúp máy, tự gọi 113.'})]},
-      {g:'Làm sao nhận ra?',step:3,lead:'Viết bằng câu người dân gặp ngoài đời, mỗi dòng một dấu hiệu. Bài hướng dẫn cần ít nhất một dấu hiệu.',f:[
+        F('sum','Tóm tắt','rte',{mode:'limited',req:'xb',help:'Hai, ba câu: chuyện gì, ai hay gặp, làm gì ngay',ph:'Kẻ gian gọi điện xưng công an, bắt chuyển tiền để “chứng minh trong sạch”. Người lớn tuổi hay bị nhắm tới. Cúp máy, tự gọi 113.'})]},
+      {g:'Nhận ra và xử lý',when:v=>v.kind==='huongDan',lead:'Bài hướng dẫn cần cả hai phần. Mỗi dòng một ý, viết bằng câu người dân gặp ngoài đời.',f:[
         F('signs','Dấu hiệu cảnh báo','lines',{req:huong,max:8,ph:'Ví dụ: Gọi từ số lạ, xưng là cán bộ công an'}),
-        F('scen','Kịch bản thường gặp','cards',{max:6,unit:'kịch bản',sum:'name',flags:it=>[(it.steps||[]).length+' bước'],fields:[F('name','Tên thủ đoạn','text',{max:140,ph:'Ví dụ: Giả danh công an báo liên quan vụ án',help:'Thủ đoạn trỏ tới kịch bản này được tô sáng khi mở bài'}),F('steps','Diễn biến từng bước','lines',{req:1,max:8,ph:'Ví dụ: Gọi điện, đọc đúng họ tên và số căn cước của bạn'})]})]},
-      {g:'Gặp rồi thì làm gì?',step:4,lead:'Việc cụ thể, làm được ngay, xếp theo thứ tự. Người đang hoảng chỉ làm theo được câu ngắn.',f:[
-        F('todo','Việc cần làm ngay','lines',{req:huong,max:6,ph:'Ví dụ: Cúp máy. Tự gọi lại số đường dây nóng in trên thẻ ngân hàng'}),
+        F('todo','Việc cần làm ngay','lines',{req:huong,max:6,ph:'Ví dụ: Cúp máy. Tự gọi lại số in trên thẻ ngân hàng'})]},
+      {g:'Nội dung bài',f:[F('body','Nội dung','rte',{help:'Menu “Kiểu” chèn Hộp ghi nhớ, Trường hợp thật, Bỏ túi',ph:'Gõ hoặc dán nội dung. Dán từ Word chỉ giữ chữ.'})]},
+      {g:'Nguồn tham khảo',lead:'Cần ít nhất một nguồn trước khi đăng.',f:[F('srcs','Nguồn','table',{req:'xb',max:10,cols:[{k:'t',l:'Tên tài liệu',req:1,max:200},{k:'unit',l:'Đơn vị',max:120,w:'24%'},{k:'url',l:'Liên kết',t:'url',w:'26%',ph:'https://'}],extra:[{k:'date',l:'Ngày truy cập',t:'date'}]})]},
+      {g:'Thêm chi tiết',fold:1,gh:'không bắt buộc · kịch bản, việc không nên làm, từ khóa, bài liên quan…',f:[
+        F('scen','Kịch bản thường gặp','cards',{max:6,unit:'kịch bản',sum:'name',flags:it=>[(it.steps||[]).length+' bước'],fields:[F('name','Tên thủ đoạn','text',{max:140,help:'Thủ đoạn trỏ tới kịch bản này được tô sáng khi mở bài'}),F('steps','Diễn biến từng bước','lines',{req:1,max:8})]}),
         F('dont','Việc không nên làm','lines',{max:6,ph:'Ví dụ: Không đọc mã OTP cho bất kỳ ai'}),
-        F('todoPage','Dẫn tới trang việc cần làm','pick',{src:'VCL',help:'Nút “Xem đủ các bước” cuối phần này'})]},
-      {g:'Muốn kể kỹ hơn?',step:5,lead:'Không bắt buộc. Thêm câu chuyện thật, hộp ghi nhớ, bảng so sánh bằng menu “Kiểu”.',f:[
-        F('body','Nội dung đọc thêm','rte',{ph:'Gõ hoặc dán nội dung. Dán từ Word chỉ giữ chữ.'})]},
-      {g:'Thông tin lấy từ đâu?',step:6,lead:'Ghi nguồn để người đọc tin và Ban biên tập kiểm lại được. Cần ít nhất một nguồn trước khi đăng.',f:[
-        F('srcs','Nguồn tham khảo','table',{req:'xb',max:10,cols:[{k:'t',l:'Tên tài liệu',req:1,max:200},{k:'unit',l:'Đơn vị',max:120,w:'24%'},{k:'url',l:'Liên kết',t:'url',w:'26%',ph:'https://'}],extra:[{k:'date',l:'Ngày truy cập',t:'date'}]})]}]},
-    {t:'Gắn nhãn',f:[{g:'Giúp người cần đọc tìm thấy bài',lead:'Nhãn quyết định bài hiện ở bộ lọc nào và khi người dân tìm từ gì. Bài hướng dẫn cần Kênh, Đối tượng, Mức độ trước khi đăng.',f:[
-        F('level','Mức độ cần thận trọng','pick',{src:'LEVEL',req:huong}),F('ch','Thường gặp qua kênh','multi',{src:'CH',req:huong}),F('aud','Ai hay bị nhắm tới','multi',{src:'AUD',req:huong}),F('topic','Chuyên đề','pick',{src:'TOPIC'}),
-        F('tabs','Hiện thêm ở nhóm','multi',{src:'GRP',help:'Ngoài nhóm đã chọn ở bước 1'}),F('kw','Từ người dân hay gõ khi tìm','tags',{help:'Ví dụ: “gọi điện công an”, “chuyển tiền xác minh”'}),F('syn','Từ cùng nghĩa','tags',{help:'Ví dụ: “otp” cho “mã xác thực”'})]},
-      {g:'Gợi ý đọc tiếp',lead:'Để trống thì website tự gợi ý bài cùng nhóm.',f:[F('rel','Bài liên quan','multi',{src:'REL',max:4,remote:1,showDraft:1}),F('chk','Danh sách kiểm tra đi kèm','pick',{src:'CHK'}),F('feat','Nổi bật','toggle',{cap:'Đặt bài nổi bật trong nhóm'})]}]},
-    {t:'Thẩm định',f:[{g:'Thẩm định',lead:'Ban biên tập điền sau khi đọc duyệt. Thiếu ngày rà soát hoặc người thẩm định thì chưa đăng được (Điều 33).',f:[F('ver','Phiên bản','text',{max:20,ph:'Ví dụ 2.7'}),F('rev','Ngày rà soát','date',{req:'xb'}),F('by','Người thẩm định','text',{req:'xb',max:120}),F('rt','Thời gian đọc','info',{fn:v=>'Khoảng '+artMinutes(v)+' phút, tính tự động'})]}]},seoTab]},
+        F('todoPage','Dẫn tới trang việc cần làm','pick',{src:'VCL'}),
+        F('topic','Chuyên đề','pick',{src:'TOPIC'}),F('tabs','Hiện thêm ở nhóm','multi',{src:'GRP'}),
+        F('kw','Từ người dân hay gõ khi tìm','tags',{help:'Ví dụ: “gọi điện công an”'}),F('syn','Từ cùng nghĩa','tags',{help:'Ví dụ: “otp” cho “mã xác thực”'}),
+        F('rel','Bài liên quan','multi',{src:'REL',max:4,remote:1,showDraft:1,help:'Để trống thì website tự gợi ý bài cùng nhóm'}),F('chk','Danh sách kiểm tra đi kèm','pick',{src:'CHK'}),
+        F('icon','Biểu tượng trên thẻ','pick',{src:'ICONS',help:'Để trống thì theo loại bài'}),F('feat','Nổi bật','toggle',{cap:'Đặt bài nổi bật trong nhóm'})]},
+      {g:'Xuất bản',side:1,f:[F('grp','Đăng ở nhóm','pick',{src:'GRP',req:1}),F('kind','Loại bài','pick',{src:'KIND',req:1,re:1,ui:'cards'})]},
+      {g:'Kiểm tra trước khi xuất bản',side:1,f:[F('chkpub','Kiểm tra','info',{wide:1,fn:v=>ArtCheck(v)})]},
+      {g:'Xem trước thẻ bài',side:1,f:[F('card','Thẻ bài','info',{wide:1,fn:(v,n)=>ArtCard(v,n)})]},
+      {g:'Gắn nhãn',side:1,when:v=>v.kind==='huongDan',f:[F('level','Mức độ','pick',{src:'LEVEL',req:huong}),F('ch','Thường gặp qua kênh','multi',{src:'CH',req:huong}),F('aud','Ai hay bị nhắm tới','multi',{src:'AUD',req:huong})]},
+      {g:'Thẩm định',side:1,f:[F('rev','Ngày rà soát','date',{req:'xb'}),F('by','Người thẩm định','text',{req:'xb',max:120}),F('ver','Phiên bản','text',{max:20,ph:'Ví dụ 2.7'}),F('rt','Thời gian đọc','info',{fn:v=>'Khoảng '+artMinutes(v)+' phút'})]}]},seoTab]},
   hoiDapPage:{name:'Hỏi – Đáp',page:1,del:false,info:'Trang Hỏi – Đáp đã làm bằng Block Grid ở gói Cuộc thi và Hỏi – Đáp, giữ nguyên trong đợt này (QĐ-041). Câu hỏi người dân gửi kín được quản lý ở khu Hỏi – Đáp trên thanh trên.'},
   thiPage:{name:'Cuộc thi',page:1,del:false,info:'Các trang Cuộc thi đã làm và đã vào nhánh dev. Giữ nguyên Block Grid (QĐ-041). Bật, tắt lối vào ở Cài đặt website › Hoạt động.'},
   searchPage:{name:'Tìm kiếm',page:1,del:false,info:'Trang tìm kiếm không có nội dung để sửa. Từ khóa và từ đồng nghĩa nhập ở tab Phân loại của từng bài, cảnh báo, thủ đoạn.'},
@@ -1280,7 +1288,7 @@ function renderTree(){const t=document.getElementById('tree');const sc=t.scrollT
 function go(id,keep){
   const n=byId(id);if(!n){toast('Không tìm thấy mục này.');return}
   if(CUR!==id||!keep){TAB=keep?TAB:0;ERR={};DIRTY=false;MXS.sel=null}
-  PROG=null;CUR=id;let x=byId(n.p);while(x){OPEN.add(x.id);x=byId(x.p)}
+  PROGS=[];CUR=id;let x=byId(n.p);while(x){OPEN.add(x.id);x=byId(x.p)}
   document.getElementById('pops').textContent='';try{history.replaceState(null,'','#'+(ROLE==='qt'?'qt.':'')+id)}catch(_){}
   renderTree();renderNode();
 }
@@ -1311,7 +1319,9 @@ function renderNode(bannerEl){
     if(t.dash)pn.append(Dash());
     else if(t.list)pn.append(Collection(n));
     else{const ctx={node:n,prefix:'',rerender:()=>rerenderPanel(i),hidden:0};const loose=[];
-      t.f.forEach(f=>{const el=fieldEl(f,n.v,ctx);if(!el)return;if(f.g||f.t==='matrix')pn.append(el);else loose.push(el)});
+      const dm=t.doc?h('div',{class:'docmain'}):pn,ds=t.doc?h('aside',{class:'docside'}):pn;
+      t.f.forEach(f=>{const el=fieldEl(f,n.v,ctx);if(!el)return;if(f.g||f.t==='matrix')(f.side?ds:dm).append(el);else loose.push(el)});
+      if(t.doc)pn.append(h('div',{class:'doc2'},dm,ds));
       if(loose.length)pn.prepend(h('section',{class:'box'},loose));
       if(ctx.hidden)pn.append(h('div',{class:'banner info'},icon('lock'),h('span',{text:ctx.hidden+' nhóm hoặc trường chỉ Quản trị viên thấy.'})))}
     PANELS.push(pn);c.append(pn)});
@@ -1328,7 +1338,8 @@ function renderNode(bannerEl){
 }
 function rerenderPanel(i){const n=CURNODE();const t=tabsOf(n)[i];const old=PANELS[i];if(!old||t.list||t.dash)return;const sc=document.getElementById('content').scrollTop;
   const pn=h('div',{class:'tabpanel',role:'tabpanel','data-tab':i});pn.hidden=old.hidden;const ctx={node:n,prefix:'',rerender:()=>rerenderPanel(i),hidden:0};const loose=[];
-  t.f.forEach(f=>{const el=fieldEl(f,n.v,ctx);if(!el)return;if(f.g||f.t==='matrix')pn.append(el);else loose.push(el)});if(loose.length)pn.prepend(h('section',{class:'box'},loose));
+  PROGS=[];const dm=t.doc?h('div',{class:'docmain'}):pn,ds=t.doc?h('aside',{class:'docside'}):pn;
+  t.f.forEach(f=>{const el=fieldEl(f,n.v,ctx);if(!el)return;if(f.g||f.t==='matrix')(f.side?ds:dm).append(el);else loose.push(el)});if(t.doc)pn.append(h('div',{class:'doc2'},dm,ds));if(loose.length)pn.prepend(h('section',{class:'box'},loose));
   if(ctx.hidden)pn.append(h('div',{class:'banner info'},icon('lock'),h('span',{text:ctx.hidden+' nhóm hoặc trường chỉ Quản trị viên thấy.'})));
   old.replaceWith(pn);PANELS[i]=pn;document.getElementById('content').scrollTop=sc;updTabErr()}
 function updTabErr(){const n=CURNODE();if(!n||!T[n.type].tabs)return;const keys=Object.keys(ERR);

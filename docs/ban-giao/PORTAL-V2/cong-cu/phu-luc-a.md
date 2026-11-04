@@ -402,42 +402,43 @@ Có template và đường dẫn · Tạo: Biên tập viên · Xóa: Biên tậ
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
-| Viết bài | Bài của bạn | — (không lưu) | Bài của bạn | Không lưu (hiển thị) |  |  |
-| Viết bài | Bài này nói về gì? | `title` | Tiêu đề | Chữ · 110 | ✔ |  |
-| Viết bài | Bài này nói về gì? | `articleKind` | Loại bài | Danh mục · Loại bài | ✔ |  |
-| Viết bài | Bài này nói về gì? | `primaryGroup` | Đăng ở nhóm | Chọn · Nhóm rủi ro (một) | ✔ | Bài hiện trong nhóm này ở mục Các rủi ro; địa chỉ bài theo nhóm |
-| Viết bài | Bài này nói về gì? | `description` | Một câu mời đọc | Đoạn · 160 | ✔ | Hiện dưới tiêu đề trên thẻ bài |
-| Viết bài | Bài này nói về gì? | `icon` | Biểu tượng trên thẻ | Danh mục · Biểu tượng |  |  |
-| Viết bài | Người đang vội cần biết gì? | `summary` | Tóm tắt | Soạn thảo · Chỉ in đậm | khi đăng |  |
-| Viết bài | Làm sao nhận ra? | `warningSigns` | Dấu hiệu cảnh báo | Danh sách dòng (0–8) | có điều kiện |  |
-| Viết bài | Làm sao nhận ra? | `scenarios` | Kịch bản thường gặp | InlineList · Thẻ |  |  |
-|  | ↳ ô trong thẻ | `scenarios[].tacticName` | Tên thủ đoạn | Chữ · 140 |  | Thủ đoạn trỏ tới kịch bản này được tô sáng khi mở bài |
-|  | ↳ ô trong thẻ | `scenarios[].steps` | Diễn biến từng bước | Danh sách dòng (0–8) | ✔ |  |
-| Viết bài | Gặp rồi thì làm gì? | `actionsNow` | Việc cần làm ngay | Danh sách dòng (0–6) | có điều kiện |  |
-| Viết bài | Gặp rồi thì làm gì? | `avoidActions` | Việc không nên làm | Danh sách dòng (0–6) |  |  |
-| Viết bài | Gặp rồi thì làm gì? | `actionPage` | Dẫn tới trang việc cần làm | Chọn · Việc cần làm (một) |  | Nút “Xem đủ các bước” cuối phần này |
-| Viết bài | Muốn kể kỹ hơn? | `readingBody` | Nội dung đọc thêm | Soạn thảo · Bài đọc |  |  |
-| Viết bài | Thông tin lấy từ đâu? | `references` | Nguồn tham khảo | InlineList · Bảng | khi đăng |  |
+| Viết bài | Bài viết | `title` | Tiêu đề | Chữ · 110 | ✔ |  |
+| Viết bài | Bài viết | `description` | Một câu mời đọc | Đoạn · 160 | ✔ | Hiện dưới tiêu đề trên thẻ bài |
+| Viết bài | Bài viết | `summary` | Tóm tắt | Soạn thảo · Chỉ in đậm | khi đăng | Hai, ba câu: chuyện gì, ai hay gặp, làm gì ngay |
+| Viết bài | Nhận ra và xử lý | `warningSigns` | Dấu hiệu cảnh báo | Danh sách dòng (0–8) | có điều kiện |  |
+| Viết bài | Nhận ra và xử lý | `actionsNow` | Việc cần làm ngay | Danh sách dòng (0–6) | có điều kiện |  |
+| Viết bài | Nội dung bài | `readingBody` | Nội dung | Soạn thảo · Bài đọc |  | Menu “Kiểu” chèn Hộp ghi nhớ, Trường hợp thật, Bỏ túi |
+| Viết bài | Nguồn tham khảo | `references` | Nguồn | InlineList · Bảng | khi đăng |  |
 | | ↳ cột | `references[].title` | Tên tài liệu | Chữ · 200 | ✔ |  |
 | | ↳ cột | `references[].organization` | Đơn vị | Chữ · 120 |  |  |
 | | ↳ cột | `references[].url` | Liên kết | Chữ · Liên kết https |  |  |
 | | ↳ cột | `references[].accessedDate` | Ngày truy cập | Ngày |  | ở dòng mở rộng |
+| Viết bài | Thêm chi tiết | `scenarios` | Kịch bản thường gặp | InlineList · Thẻ |  |  |
+|  | ↳ ô trong thẻ | `scenarios[].tacticName` | Tên thủ đoạn | Chữ · 140 |  | Thủ đoạn trỏ tới kịch bản này được tô sáng khi mở bài |
+|  | ↳ ô trong thẻ | `scenarios[].steps` | Diễn biến từng bước | Danh sách dòng (0–8) | ✔ |  |
+| Viết bài | Thêm chi tiết | `avoidActions` | Việc không nên làm | Danh sách dòng (0–6) |  |  |
+| Viết bài | Thêm chi tiết | `actionPage` | Dẫn tới trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
+| Viết bài | Thêm chi tiết | `topic` | Chuyên đề | Chọn · Chuyên đề (một) |  |  |
+| Viết bài | Thêm chi tiết | `alsoInCategories` | Hiện thêm ở nhóm | Chọn · Nhóm rủi ro (nhiều) |  |  |
+| Viết bài | Thêm chi tiết | `searchKeywords` | Từ người dân hay gõ khi tìm | Thẻ · Từ khóa |  | Ví dụ: “gọi điện công an” |
+| Viết bài | Thêm chi tiết | `synonyms` | Từ cùng nghĩa | Thẻ · Từ khóa |  | Ví dụ: “otp” cho “mã xác thực” |
+| Viết bài | Thêm chi tiết | `relatedItems` | Bài liên quan | Chọn · Bài liên quan (nhiều, ≤ 4) |  | Để trống thì website tự gợi ý bài cùng nhóm |
+| Viết bài | Thêm chi tiết | `checklist` | Danh sách kiểm tra đi kèm | Chọn · Danh sách kiểm tra (một) |  |  |
+| Viết bài | Thêm chi tiết | `icon` | Biểu tượng trên thẻ | Danh mục · Biểu tượng |  | Để trống thì theo loại bài |
+| Viết bài | Thêm chi tiết | `isFeatured` | Nổi bật | Bật/tắt |  |  |
+| Viết bài | Xuất bản | `primaryGroup` | Đăng ở nhóm | Chọn · Nhóm rủi ro (một) | ✔ |  |
+| Viết bài | Xuất bản | `articleKind` | Loại bài | Danh mục · Loại bài | ✔ |  |
+| Viết bài | Kiểm tra trước khi xuất bản | — (không lưu) | Kiểm tra | Không lưu (hiển thị) |  |  |
+| Viết bài | Xem trước thẻ bài | — (không lưu) | Thẻ bài | Không lưu (hiển thị) |  |  |
+| Viết bài | Gắn nhãn | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | có điều kiện |  |
+| Viết bài | Gắn nhãn | `channels` | Thường gặp qua kênh | Chọn · Kênh (nhiều) | có điều kiện |  |
+| Viết bài | Gắn nhãn | `audiences` | Ai hay bị nhắm tới | Chọn · Đối tượng (nhiều) | có điều kiện |  |
+| Viết bài | Thẩm định | `reviewDate` | Ngày rà soát | Ngày | khi đăng |  |
+| Viết bài | Thẩm định | `reviewer` | Người thẩm định | Chữ · 120 | khi đăng |  |
+| Viết bài | Thẩm định | `version` | Phiên bản | Chữ · 20 |  |  |
+| Viết bài | Thẩm định | — (không lưu) | Thời gian đọc | Không lưu (hiển thị) |  |  |
 | Viết bài | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
 | Viết bài | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `cautionLevel` | Mức độ cần thận trọng | Danh mục · Mức độ cần thận trọng | có điều kiện |  |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `channels` | Thường gặp qua kênh | Chọn · Kênh (nhiều) | có điều kiện |  |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `audiences` | Ai hay bị nhắm tới | Chọn · Đối tượng (nhiều) | có điều kiện |  |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `topic` | Chuyên đề | Chọn · Chuyên đề (một) |  |  |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `alsoInCategories` | Hiện thêm ở nhóm | Chọn · Nhóm rủi ro (nhiều) |  | Ngoài nhóm đã chọn ở bước 1 |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `searchKeywords` | Từ người dân hay gõ khi tìm | Thẻ · Từ khóa |  | Ví dụ: “gọi điện công an”, “chuyển tiền xác minh” |
-| Gắn nhãn | Giúp người cần đọc tìm thấy bài | `synonyms` | Từ cùng nghĩa | Thẻ · Từ khóa |  | Ví dụ: “otp” cho “mã xác thực” |
-| Gắn nhãn | Gợi ý đọc tiếp | `relatedItems` | Bài liên quan | Chọn · Bài liên quan (nhiều, ≤ 4) |  |  |
-| Gắn nhãn | Gợi ý đọc tiếp | `checklist` | Danh sách kiểm tra đi kèm | Chọn · Danh sách kiểm tra (một) |  |  |
-| Gắn nhãn | Gợi ý đọc tiếp | `isFeatured` | Nổi bật | Bật/tắt |  |  |
-| Thẩm định | Thẩm định | `version` | Phiên bản | Chữ · 20 |  |  |
-| Thẩm định | Thẩm định | `reviewDate` | Ngày rà soát | Ngày | khi đăng |  |
-| Thẩm định | Thẩm định | `reviewer` | Người thẩm định | Chữ · 120 | khi đăng |  |
-| Thẩm định | Thẩm định | — (không lưu) | Thời gian đọc | Không lưu (hiển thị) |  |  |
 | SEO và chia sẻ | | (composition `seoBase`, `publishMetaBase`) | | | | Mục 6.13 file phân tích |
 
 #### `hoiDapPage` · Hỏi – Đáp
