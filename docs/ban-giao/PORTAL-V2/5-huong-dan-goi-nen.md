@@ -6,7 +6,7 @@ Ngày: 2026-11-03 · Nhánh `portal-v2`. Gói nền gồm V2-01a → V2-01f và 
 
 ```
 git fetch origin
-git switch portal-v2          (hoặc: git worktree add ../26.antc-portal-v2 portal-v2)
+git switch portal-v2
 .\run-local.ps1 -Reset
 ```
 
