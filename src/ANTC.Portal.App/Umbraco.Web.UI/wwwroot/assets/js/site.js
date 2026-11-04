@@ -12,7 +12,15 @@ export function getFontScale() {
 
 function updateFontButtons(level) {
   for (const button of document.querySelectorAll('[data-font-toggle]')) {
-    button.textContent = compactScreen.matches ? compactLabels[level] : labels[level];
+    const customLabel = button.dataset.fontLabel;
+    if (customLabel) {
+      const symbol = button.querySelector('b');
+      const text = button.querySelector('span');
+      if (symbol) symbol.textContent = ['A+', 'A++', 'A'][level];
+      if (text) text.textContent = customLabel;
+    } else {
+      button.textContent = compactScreen.matches ? compactLabels[level] : labels[level];
+    }
     button.setAttribute('aria-pressed', String(level > 0));
     button.setAttribute('aria-label', `${labels[level]}. Hiện tại: ${descriptions[level]}.`);
   }
@@ -41,60 +49,20 @@ window.addEventListener('storage', event => {
   setFontScale(normalize(event.newValue), false);
 });
 
+// Sticky header and bottom navigation reserve space at every text scale.
 const header = document.querySelector('[data-site-header]');
-if (header) {
-  const hero = document.querySelector('#noi-dung > .home-content > .umb-block-grid > .umb-block-grid__layout-container > .umb-block-grid__layout-item:first-child > [data-header-hero="true"]')
-    ?? document.querySelector('#noi-dung > :first-child');
-  const hasHero = hero?.matches('.page-hero, .ov, .ph, [data-header-hero="true"]') ?? false;
-  document.body.classList.toggle('has-header-hero', hasHero);
-  // Hero mới có thể khai báo data-header-hero để dùng header trong suốt.
-  header.dataset.overlay = String(hasHero && !hero.matches('.page-hero'));
-
-  const menuButton = header.querySelector('[data-site-menu]');
-  const navigation = header.querySelector('#site-header-nav');
-  const mobileHeader = matchMedia('(max-width: 1100px)');
-  if (menuButton && navigation) {
-    header.classList.add('has-mobile-menu');
-    const setMenuOpen = (open, restoreFocus = false) => {
-      header.classList.toggle('is-menu-open', open);
-      menuButton.setAttribute('aria-expanded', String(open));
-      menuButton.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu');
-      if (restoreFocus) menuButton.focus({ preventScroll: true });
-    };
-    menuButton.addEventListener('click', () => setMenuOpen(menuButton.getAttribute('aria-expanded') !== 'true'));
-    navigation.addEventListener('click', event => {
-      if (event.target.closest('a')) setMenuOpen(false);
-    });
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && header.classList.contains('is-menu-open')) setMenuOpen(false, true);
-    });
-    document.addEventListener('pointerdown', event => {
-      if (!header.contains(event.target)) setMenuOpen(false);
-    });
-    document.addEventListener('focusin', event => {
-      if (!header.contains(event.target)) setMenuOpen(false);
-    });
-    mobileHeader.addEventListener('change', () => setMenuOpen(false));
-  }
-
-  const updateHeader = () => {
-    const threshold = hasHero ? Math.max(0, hero.getBoundingClientRect().bottom + window.scrollY - header.offsetHeight - 12) : 16;
-    header.classList.toggle('is-scrolled', window.scrollY >= threshold);
-  };
-  const measureHeader = () => {
-    document.documentElement.style.setProperty('--site-header-height', `${header.offsetHeight}px`);
-    updateHeader();
-  };
-  measureHeader();
-  if ('ResizeObserver' in window) {
-    new ResizeObserver(measureHeader).observe(header);
-  } else {
-    window.addEventListener('resize', measureHeader, { passive: true });
-  }
-  window.addEventListener('scroll', updateHeader, { passive: true });
-
-
+const mobileNavigation = document.querySelector('[data-mobile-navigation]');
+const measureChrome = () => {
+  document.documentElement.style.setProperty('--site-header-height', (header?.offsetHeight || 0) + 'px');
+  document.documentElement.style.setProperty('--site-mobile-nav-height', (mobileNavigation?.offsetHeight || 0) + 'px');
+};
+measureChrome();
+if ('ResizeObserver' in window) {
+  const observer = new ResizeObserver(measureChrome);
+  if (header) observer.observe(header);
+  if (mobileNavigation) observer.observe(mobileNavigation);
 }
+window.addEventListener('resize', measureChrome, { passive: true });
 
 // FE-32: dong bo an thanh trong phien, khong phu thuoc JavaScript de in noi dung.
 const notice = document.querySelector('[data-contest-notice]');

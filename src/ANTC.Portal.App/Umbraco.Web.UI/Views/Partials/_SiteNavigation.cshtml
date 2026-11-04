@@ -1,0 +1,21 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
+@model (IEnumerable<BlockListItem>? Items, IPublishedContent Current, bool Mobile)
+@if (Model.Items is not null)
+{
+    foreach (var item in Model.Items)
+    {
+        var target = item.Content.Value<IPublishedContent>("page");
+        var href = target?.Url();
+        if (string.IsNullOrWhiteSpace(href) || href.StartsWith('#')) { continue; }
+        var label = item.Content.Value<string>("label");
+        if (Model.Mobile && item.Content.Value<string>("mobileLabel") is { Length: > 0 } mobileLabel) { label = mobileLabel; }
+        if (string.IsNullOrWhiteSpace(label)) { label = target!.Name; }
+        var current = Model.Current.Key == target!.Key || Model.Current.Ancestors().Any(a => a.Key == target.Key);
+        var highlighted = item.Content.Value<bool>("highlight");
+        <a href="@href" class="site-nav-link @(highlighted ? "site-nav-link--urgent" : null)" aria-current="@(current ? "page" : null)">
+            @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", item.Content.Value<string>("icon") ?? "")
+            <span>@label</span>
+        </a>
+    }
+}
