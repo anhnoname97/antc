@@ -22,6 +22,6 @@
 </div>
 <div class="qz-end" data-inline-end hidden><b data-inline-score tabindex="-1"></b><p data-inline-result></p><button type="button" class="btn btn-line" data-inline-restart>Làm lại</button>
 <div class="invite"><span class="k">@(contest is null ? "THỬ SỨC" : "THI THẬT · THÁNG " + TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh")).ToString("MM/yyyy"))</span><b>@contest?.Name</b>
-@if (contest is not null && c.Value<Umbraco.Cms.Core.Models.Link>("entryLink") is { } entry) { <a class="btn btn-red" href="@(Promotions.IsUpcoming(contest) ? "/cuoc-thi-thang/" : $"/cuoc-thi/lam-bai/?c={contest.Id}")">@entry.Name</a> }
+@if (contest is not null && c.Value<Umbraco.Cms.Core.Models.Link>("entryLink") is { } entry) { <a class="btn btn-red" href="@(Promotions.IsUpcoming(contest) ? "/cuoc-thi/" : $"/thi/?c={contest.Id}")">@entry.Name</a> }
 <small>@ContestPromotionService.ShortSafetyNotice</small></div></div>
 </div></div></section>

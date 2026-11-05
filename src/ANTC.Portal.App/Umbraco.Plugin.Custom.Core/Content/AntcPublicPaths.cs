@@ -8,8 +8,8 @@ public static class AntcPublicPaths
     private static readonly IReadOnlyDictionary<string, string> FixedPaths = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["home"] = "/", ["ungPhoPage"] = "/ung-pho/", ["thuDoanPage"] = "/thu-doan/",
-        ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi/",
-        ["thiThangPage"] = "/cuoc-thi-thang/", ["cuocThiLamBaiPage"] = "/cuoc-thi/lam-bai/",
+        ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi-truc-tuyen/",
+        ["thiThangPage"] = "/cuoc-thi/", ["cuocThiLamBaiPage"] = "/thi/",
         ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/"
     };
 
@@ -17,8 +17,20 @@ public static class AntcPublicPaths
         alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement"
             or "fraudContent" or "policyContent";
 
-    public static string? FixedAlias(string path) => FixedPaths
-        .FirstOrDefault(x => string.Equals(x.Value.Trim('/'), path.Trim('/'), StringComparison.OrdinalIgnoreCase)).Key;
+    public static string? FixedAlias(string path)
+    {
+        var trimmed = path.Trim('/');
+        if (string.Equals(trimmed, "cuoc-thi-thang", StringComparison.OrdinalIgnoreCase))
+            return "thiThangPage";
+        if (string.Equals(trimmed, "cuoc-thi/lam-bai", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(trimmed, "cuoc-thi/dang-ky", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(trimmed, "dang-ky", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(trimmed, "thi", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(trimmed, "lam-bai", StringComparison.OrdinalIgnoreCase))
+            return "cuocThiLamBaiPage";
+        return FixedPaths
+            .FirstOrDefault(x => string.Equals(x.Value.Trim('/'), trimmed, StringComparison.OrdinalIgnoreCase)).Key;
+    }
 
     public static bool IsPolicyLibrary(string alias, string? listRole)
     {

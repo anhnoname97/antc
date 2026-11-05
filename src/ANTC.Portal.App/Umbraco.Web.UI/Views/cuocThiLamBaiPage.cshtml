@@ -1,14 +1,18 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.Blocks
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
 }
 @section Head {
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="~/assets/css/quiz-fonts.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/contest-shell.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/contest-quiz.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/contest.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/contest-flow-blocks.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/contest-activity.css" asp-append-version="true">
 }
 <div class="contest-flow-page">
     @if (Model.Value<BlockGridModel>("layout") is { } blocks)

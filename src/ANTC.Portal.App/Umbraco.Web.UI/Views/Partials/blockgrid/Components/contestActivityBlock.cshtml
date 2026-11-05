@@ -1,0 +1,200 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Plugin.Custom.Core.Contest
+@inject IContestCatalog Contests
+@inject IContestAdminService ContestPrizes
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
+@{
+    var c = Model?.Content;
+    string Val(string alias, string fallback) {
+        if (c == null) return fallback;
+        var v = c.Value<string>(alias);
+        return string.IsNullOrWhiteSpace(v) ? fallback : v.Trim();
+    }
+    var eyebrow = Val("eyebrow", "Hoạt động");
+    var title = Val("title", "Cuộc thi trực tuyến tìm hiểu phòng, chống lừa đảo");
+    var lead = Val("lead", "Hoạt động không thường xuyên của Chương trình. Không thu bất kỳ khoản phí nào.");
+    var timeText = Val("timeText", "[ngày bắt đầu – ngày kết thúc]");
+    var eligibility = Val("eligibilityText", "Mọi người có số điện thoại để liên hệ. Cách xử lý người dưới 16 tuổi ghi trong Thể lệ [chờ chủ quản chốt].");
+    var format = Val("formatText", "Đăng ký bằng họ tên và số điện thoại, rồi vào thi ngay. 8 chuyên đề, 200 câu. Làm Chuyên đề 1 trước. Mỗi số điện thoại thi tối đa 2 lượt.");
+    var prize = Val("prizeText", "[cơ cấu giải theo Thể lệ]. Giải thưởng thực hiện nghĩa vụ thuế thu nhập cá nhân theo quy định.");
+    var rules = Val("rulesText", "[đường dẫn tới Thể lệ đã ban hành]");
+    var rulesLink = c?.Value<Link>("rulesLink") ?? c?.Value<IEnumerable<Link>>("rulesLink")?.FirstOrDefault();
+    var primaryLink = c?.Value<Link>("primaryLink") ?? c?.Value<IEnumerable<Link>>("primaryLink")?.FirstOrDefault();
+    var secondaryLink = c?.Value<Link>("secondaryLink") ?? c?.Value<IEnumerable<Link>>("secondaryLink")?.FirstOrDefault();
+    var note = c?.Value<string>("note")?.Trim();
+
+    var heroImage = c?.Value<MediaWithCrops>("image");
+    var imageUrl = (heroImage != null && !string.IsNullOrWhiteSpace(heroImage.Url()))
+        ? heroImage.Url()
+        : "/assets/img/contest-hero.jpg";
+    var imageAlt = heroImage?.Value<string>("altText");
+    if (string.IsNullOrWhiteSpace(imageAlt))
+    {
+        imageAlt = string.IsNullOrWhiteSpace(title) ? "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính" : title;
+    }
+
+    var primaryUrl = primaryLink?.Url ?? "/thi/";
+    var primaryName = primaryLink?.Name ?? "Đăng ký dự thi";
+    var secondaryUrl = secondaryLink?.Url ?? "/thi/#ngan-hang";
+    var secondaryName = secondaryLink?.Name ?? "Tự luyện trước, không tính điểm";
+
+    // Tự động lấy đúng thông tin cuộc thi đang diễn ra trong Backoffice
+    var currentContest = await Contests.GetCurrentAsync(Context.RequestAborted);
+    if (currentContest != null)
+    {
+        if (!string.IsNullOrWhiteSpace(currentContest.Name))
+        {
+            title = currentContest.Name;
+        }
+
+        var vnOffset = TimeSpan.FromHours(7);
+        var startVn = new DateTimeOffset(currentContest.StartAt, TimeSpan.Zero).ToOffset(vnOffset);
+        var endVn = new DateTimeOffset(currentContest.EndAt, TimeSpan.Zero).ToOffset(vnOffset);
+        timeText = $"{startVn:dd/MM/yyyy} – {endVn:dd/MM/yyyy}";
+
+        var topicCount = currentContest.Topics.Count;
+        var qCount = currentContest.QuestionCount;
+        var attemptsText = currentContest.MaxAttempts == 0 
+            ? "Không giới hạn lượt thi cho mỗi số điện thoại." 
+            : $"Mỗi số điện thoại thi tối đa {currentContest.MaxAttempts} lượt.";
+        eligibility = $"Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. {attemptsText}";
+
+        var cd1Text = currentContest.Topics.Any(t => t.Cd == "1") ? "Làm Chuyên đề 1 trước. " : "";
+        format = $"Đăng ký bằng họ tên và số điện thoại, rồi vào thi ngay. {topicCount} chuyên đề, {qCount} câu. {cd1Text}{attemptsText}";
+
+        try
+        {
+            var prizeList = (await ContestPrizes.ContestPrizesAsync(currentContest.Id, Context.RequestAborted))
+                .Where(p => p.IsActive && p.Quantity > 0)
+                .OrderBy(p => p.SortOrder)
+                .ThenBy(p => p.PrizeId)
+                .ToList();
+
+            if (prizeList.Count > 0)
+            {
+                var prizeParts = prizeList.Select(p =>
+                {
+                    var pName = p.Name.Trim();
+                    if (p.PrizeMoney > 0)
+                    {
+                        return $"{p.Quantity} {pName.ToLowerInvariant()} ({p.PrizeMoney:N0} đồng)";
+                    }
+                    return $"{p.Quantity} {pName.ToLowerInvariant()}";
+                });
+                prize = $"{string.Join(", ", prizeParts)}. Giải thưởng thực hiện nghĩa vụ thuế thu nhập cá nhân theo quy định.";
+            }
+            else
+            {
+                prize = "Cơ cấu giải theo Thể lệ cuộc thi. Giải thưởng thực hiện nghĩa vụ thuế thu nhập cá nhân theo quy định.";
+            }
+        }
+        catch
+        {
+            prize = "Cơ cấu giải theo Thể lệ cuộc thi. Giải thưởng thực hiện nghĩa vụ thuế thu nhập cá nhân theo quy định.";
+        }
+
+        if (rules == "[đường dẫn tới Thể lệ đã ban hành]")
+        {
+            rules = "Theo Thể lệ đã ban hành của Ban Tổ chức.";
+        }
+
+        if (primaryLink == null || string.IsNullOrWhiteSpace(primaryLink.Url) || primaryLink.Url == "/cuoc-thi/lam-bai/" || primaryLink.Url.StartsWith("/cuoc-thi/lam-bai/?c=") || primaryLink.Url == "/dang-ky/" || primaryLink.Url.StartsWith("/dang-ky/?c=") || primaryLink.Url == "/thi/")
+        {
+            primaryUrl = $"/thi/?c={currentContest.Id}";
+        }
+        if (secondaryLink == null || string.IsNullOrWhiteSpace(secondaryLink.Url) || secondaryLink.Url == "/cuoc-thi/lam-bai/#ngan-hang" || secondaryLink.Url == "/dang-ky/#ngan-hang")
+        {
+            secondaryUrl = "/thi/#ngan-hang";
+        }
+    }
+}
+
+<div class="activity-portal">
+    <nav class="crumbs" aria-label="Đường dẫn">
+        <ol>
+            <li><a href="/">Trang chủ</a></li>
+            <li aria-current="page"><span>@eyebrow</span></li>
+        </ol>
+    </nav>
+
+    <header class="pageh">
+        <p class="eyebrow">@eyebrow</p>
+        <div class="pageh-title-wrap">
+            <span class="spot h">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 4h8v5.5a4 4 0 0 1-8 0z"/><path d="M8 6H5v1.5a3 3 0 0 0 3 3M16 6h3v1.5a3 3 0 0 1-3 3M12 13.5V17M8.5 20.5h7M9.5 17h5v3.5h-5z"/></svg>
+            </span>
+            <h1 tabindex="-1" id="act-title">@title</h1>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(lead))
+        {
+            <p class="lead">@lead</p>
+        }
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(imageUrl))
+    {
+        <figure class="attc-visual wide pageh-hero-wrap">
+            <img src="@imageUrl" alt="@imageAlt" class="pageh-hero-img" loading="lazy" decoding="async" />
+        </figure>
+    }
+
+    <div class="facts box">
+        <div class="fact">
+            <span class="spot">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+            </span>
+            <span><b>Thời gian:</b> <span class="fill" id="act-time">@timeText</span></span>
+        </div>
+        <div class="fact">
+            <span class="spot">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><path d="M15.5 4.9a3.2 3.2 0 0 1 0 6.2M17.5 14.7c2 .6 3.2 2.3 3.5 4.8"/></svg>
+            </span>
+            <span><b>Ai được dự thi:</b> <span id="act-eligibility">@eligibility</span></span>
+        </div>
+        <div class="fact">
+            <span class="spot">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="3" width="16" height="18.5" rx="2"/><path d="m7.5 8.5 1.3 1.3 2.4-2.6M7.5 14.5l1.3 1.3 2.4-2.6M13.5 9h3.5M13.5 15h3.5"/></svg>
+            </span>
+            <span><b>Hình thức:</b> <span id="act-format">@format</span></span>
+        </div>
+        <div class="fact">
+            <span class="spot">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8.5h14V12M12 8v12.5"/><path d="M12 8C10.5 5 7 4.5 7 6.5S10 8 12 8zm0 0c1.5-3 5-3.5 5-1.5S14 8 12 8z"/></svg>
+            </span>
+            <span><b>Giải thưởng:</b> <span class="fill" id="act-prize">@prize</span></span>
+        </div>
+        <div class="fact">
+            <span class="spot">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 2.5h8.5l4 4V20a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 20V4A1.5 1.5 0 0 1 6 2.5z"/><path d="M14 2.5V7h4.5M8 12h8M8 15.5h8M8 8.5h3"/></svg>
+            </span>
+            <span>
+                <b>Thể lệ:</b>
+                <span class="fill" id="act-rules">
+                    @if (rulesLink is not null && !string.IsNullOrEmpty(rulesLink.Url))
+                    {
+                        <a href="@rulesLink.Url" target="@(string.IsNullOrEmpty(rulesLink.Target) ? null : rulesLink.Target)" rel="@(rulesLink.Target == "_blank" ? "noopener" : null)">@(string.IsNullOrWhiteSpace(rulesLink.Name) ? rules : rulesLink.Name)</a>
+                    }
+                    else
+                    {
+                        @rules
+                    }
+                </span>
+            </span>
+        </div>
+    </div>
+
+    <div class="btnrow">
+        <a href="@primaryUrl" class="btn pri" id="act-reg-btn">
+            @primaryName
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg>
+        </a>
+        <a href="@secondaryUrl" class="btn ghost">@secondaryName</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(note))
+    {
+        <p class="small">@note</p>
+    }
+</div>

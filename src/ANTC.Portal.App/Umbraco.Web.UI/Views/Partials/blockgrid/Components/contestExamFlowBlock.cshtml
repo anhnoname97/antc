@@ -7,7 +7,7 @@
             {
                 @await Html.GetBlockGridItemAreaHtmlAsync(area)
             }
-            <div id="examview" hidden></div>
+            <div id="examview" class="activity-portal" hidden></div>
         </div>
         @foreach (var area in Model.Areas.Where(x => x.Alias == "sidebar"))
         {

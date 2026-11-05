@@ -1,4 +1,4 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>
 @using Umbraco.Cms.Core.Models
 @{
     // Model la trang lam bai (cuocThiLamBaiPage). Cuoc thi (ten, ngay, so luot) do trinh duyet lay tu API-07 theo ?c=<id>, may chu khong in cung
@@ -127,7 +127,7 @@
                 <span>Chỉ muốn luyện tập, không dự thi: vào ngân hàng câu hỏi</span><span aria-hidden="true">›</span>
             </a>
             </div>
-            <div id="examview" hidden></div>
+            <div id="examview" class="activity-portal" hidden></div>
         </div>
 
         <aside id="cside" class="contest__side" aria-label="Thí sinh và tiến độ">
