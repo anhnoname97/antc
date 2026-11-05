@@ -1,14 +1,14 @@
 {
   "$schema": "../../umbraco-package-schema.json",
   "name": "ANTC Self Check",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "allowPublicAccess": false,
   "extensions": [
     {
       "type": "propertyEditorUi",
       "alias": "Antc.PropertyEditorUi.SelfCheckInfo",
       "name": "Thông tin trang tự kiểm tra",
-      "element": "/App_Plugins/AntcSelfCheck/self-check-info.js?v=1.2.0",
+      "element": "/App_Plugins/AntcSelfCheck/self-check-info.js?v=1.3.0",
       "meta": {
         "label": "Thông tin trang tự kiểm tra",
         "icon": "icon-info",

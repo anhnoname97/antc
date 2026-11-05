@@ -1,6 +1,46 @@
-﻿@using Umbraco.Cms.Web.Common.PublishedModels;
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.ViecCanLamPage>
-@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
 @{
-	Layout = null;
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var title = Model.Value<string>("title");
+    if (string.IsNullOrWhiteSpace(title)) { title = Model.Name; }
+    var steps = Model.Value<BlockListModel>("steps");
 }
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/self-check-tool.css" asp-append-version="true">
+}
+<article class="self-check-page self-check-tool site-chrome-wrap">
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li><li aria-current="page">@title</li></ol></nav>
+    <header class="self-check-heading"><p class="self-check-eyebrow">Việc cần làm</p><h1>@title</h1><p>@(Model.Value<string>("lead"))</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
+    @if (steps?.Any() == true)
+    {
+        <div class="self-check-guidance">
+            @for (var i = 0; i < steps.Count; i++)
+            {
+                var content = steps[i].Content;
+                var summary = content.Value<string>("summary");
+                var notice = content.Value<string>("noticeTitle");
+                var details = content.Value<IEnumerable<string>>("details") ?? Enumerable.Empty<string>();
+                var quote = content.Value<string>("quote");
+                var links = content.Value<IEnumerable<Link>>("links");
+                <section id="buoc-@(i + 1)" class="@(string.IsNullOrWhiteSpace(summary) ? "self-check-guidance__notice" : null)">
+                    @if (!string.IsNullOrWhiteSpace(summary)) { <h2>@(i + 1). @summary</h2> }
+                    @if (!string.IsNullOrWhiteSpace(notice)) { <h2>@notice</h2> }
+                    @foreach (var paragraph in details) { <p>@paragraph</p> }
+                    @if (!string.IsNullOrWhiteSpace(quote)) { <blockquote>@quote</blockquote> }
+                    @if (links?.Any() == true)
+                    {
+                        <div class="self-check-controls">@foreach (var link in links) { if (link.Url?.StartsWith("tel:") == true || link.Url?.StartsWith("sms:") == true || (link.Url?.StartsWith('/') == true && !link.Url.StartsWith("//"))) { <a class="self-check-button" href="@link.Url">@link.Name</a> } }</div>
+                    }
+                </section>
+            }
+        </div>
+        <p class="self-check-result-notes">Các bước trên là việc nên làm ngay để giảm thiệt hại, chưa phải kết luận về vụ việc. Website không tiếp nhận tố giác, tin báo về tội phạm.</p>
+    }
+    else
+    {
+        <div class="self-check-knowledge">@foreach (var child in Model.Children().Where(p => p.ContentType.Alias == "viecCanLamPage" && p.Value<BlockListModel>("steps")?.Any() == true)) { @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(child.Value<string>("title") ?? child.Name, child.Value<string>("lead"), "icon-book", child.Url())) }</div>
+    }
+</article>

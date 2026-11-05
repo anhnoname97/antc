@@ -13,6 +13,10 @@ public class AntcPublicPathsTests
     [InlineData("cuocThiLamBaiPage", "/cuoc-thi/lam-bai/")]
     [InlineData("searchPage", "/tim-kiem/")]
     [InlineData("chinhSachPage", "/chinh-sach/")]
+    [InlineData("congCuPage", "/hay-tu-kiem-tra/")]
+    [InlineData("truocKhiChuyenTienPage", "/hay-tu-kiem-tra/truoc-khi-chuyen-tien/")]
+    [InlineData("truocKhiDauTuVayPage", "/hay-tu-kiem-tra/truoc-khi-dau-tu-vay/")]
+    [InlineData("khiNghiBiLuaPage", "/hay-tu-kiem-tra/khi-nghi-bi-lua/")]
     public void Page_paths_do_not_expose_management_nodes(string alias, string path)
     {
         Assert.Equal(path, AntcPublicPaths.GetPath(alias, "ten-trang"));
@@ -67,4 +71,38 @@ public class AntcPublicPathsTests
 
     [Fact]
     public void Faq_documents_are_routed_under_hoi_dap() => Assert.Equal("/hoi-dap/cau-hoi/", AntcPublicPaths.GetPath("qaItem", "cau-hoi"));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("../thu-suc")]
+    [InlineData("a/b")]
+    [InlineData("//example.com")]
+    public void Invalid_guidance_slugs_do_not_create_urls(string? slug) => Assert.Null(AntcPublicPaths.SelfCheckGuidancePath(slug));
+
+    [Fact]
+    public void Guidance_urls_stay_in_the_self_check_section() => Assert.Equal("/hay-tu-kiem-tra/huong-dan/tu-kiem-chung/", AntcPublicPaths.SelfCheckGuidancePath("tu-kiem-chung"));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("a/b")]
+    [InlineData("../x")]
+    [InlineData("//example.com")]
+    public void Invalid_checklist_slugs_do_not_create_urls(string? slug) => Assert.Null(AntcPublicPaths.SelfCheckChecklistPath(slug));
+
+    [Fact]
+    public void Checklist_urls_match_the_mock_public_hierarchy() => Assert.Equal("/hay-tu-kiem-tra/truoc-khi-ky-hop-dong/", AntcPublicPaths.SelfCheckChecklistPath("truoc-khi-ky-hop-dong"));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("0")]
+    [InlineData("9")]
+    [InlineData("../1")]
+    public void Unknown_reading_numbers_do_not_create_urls(string? number) => Assert.Null(AntcPublicPaths.SelfCheckReadingPath(number));
+
+    [Theory]
+    [InlineData("1", "/hay-tu-kiem-tra/bai-doc/chuyen-de-1/")]
+    [InlineData("8", "/hay-tu-kiem-tra/bai-doc/chuyen-de-8/")]
+    public void Source_readings_have_canonical_public_paths(string number, string path) => Assert.Equal(path, AntcPublicPaths.SelfCheckReadingPath(number));
 }

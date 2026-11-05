@@ -10,15 +10,30 @@ public static class AntcPublicPaths
         ["home"] = "/", ["ungPhoPage"] = "/ung-pho/", ["thuDoanPage"] = "/thu-doan/",
         ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi/",
         ["thiThangPage"] = "/cuoc-thi-thang/", ["cuocThiLamBaiPage"] = "/cuoc-thi/lam-bai/",
-        ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/"
+        ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/",
+        ["congCuPage"] = "/hay-tu-kiem-tra/",
+        ["truocKhiChuyenTienPage"] = "/hay-tu-kiem-tra/truoc-khi-chuyen-tien/",
+        ["truocKhiDauTuVayPage"] = "/hay-tu-kiem-tra/truoc-khi-dau-tu-vay/",
+        ["khiNghiBiLuaPage"] = "/hay-tu-kiem-tra/khi-nghi-bi-lua/"
     };
 
     public static bool IsManagement(string alias) =>
         alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement"
-            or "fraudContent" or "policyContent";
+            or "fraudContent" or "policyContent" or "checklistFolderV2";
 
     public static string? FixedAlias(string path) => FixedPaths
         .FirstOrDefault(x => string.Equals(x.Value.Trim('/'), path.Trim('/'), StringComparison.OrdinalIgnoreCase)).Key;
+
+    public static string? SelfCheckGuidancePath(string? slug) =>
+        !string.IsNullOrWhiteSpace(slug) && System.Text.RegularExpressions.Regex.IsMatch(slug, "^[a-z0-9]+(?:-[a-z0-9]+)*$")
+            ? $"/hay-tu-kiem-tra/huong-dan/{slug}/" : null;
+
+    public static string? SelfCheckReadingPath(string? number) =>
+        int.TryParse(number, out var n) && n is >= 1 and <= 8 ? $"/hay-tu-kiem-tra/bai-doc/chuyen-de-{n}/" : null;
+
+    public static string? SelfCheckChecklistPath(string? slug) =>
+        !string.IsNullOrWhiteSpace(slug) && System.Text.RegularExpressions.Regex.IsMatch(slug, "^[a-z0-9]+(?:-[a-z0-9]+)*$")
+            ? $"/hay-tu-kiem-tra/{slug}/" : null;
 
     public static bool IsPolicyLibrary(string alias, string? listRole)
     {
