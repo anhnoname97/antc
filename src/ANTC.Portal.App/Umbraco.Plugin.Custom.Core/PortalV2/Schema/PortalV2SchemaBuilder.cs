@@ -209,6 +209,44 @@ public sealed class PortalV2SchemaBuilder(
     private async Task<bool> EnsureContentType(ContentTypeSpec spec)
     {
         Guid key = PortalV2Keys.ContentType(spec.Alias);
+        if (RiskSchema.ContentTypes().Any(x => x.Alias == spec.Alias) && contentTypes.Get(spec.Alias) is { } existing)
+        {
+            bool changed = false;
+            foreach (string alias in spec.Compositions ?? [])
+                if (!existing.ContentTypeCompositionExists(alias))
+                {
+                    existing.AddContentType(contentTypes.Get(alias) ?? throw new InvalidOperationException($"Thiếu composition {alias}."));
+                    changed = true;
+                }
+            foreach (PropertySpec p in spec.Properties)
+                if (!existing.PropertyTypeExists(p.Alias))
+                {
+                    var property = await Property(spec.Alias, p);
+                    property.SortOrder = existing.PropertyTypes.Count() + 10;
+                    existing.AddPropertyType(property, spec.TabAlias, spec.TabName);
+                    changed = true;
+                }
+            var allowed = (spec.AllowedChildren ?? []).Select(a => contentTypes.Get(a)).OfType<IContentType>().ToArray();
+            if (RiskSchema.PageAliases.Contains(spec.Alias) && !allowed.Select(x => x.Key).ToHashSet().SetEquals((existing.AllowedContentTypes ?? []).Select(x => x.Key)))
+            {
+                existing.AllowedContentTypes = allowed.Select((t, i) => new ContentTypeSort(t.Key, i, t.Alias)).ToArray();
+                changed = true;
+            }
+            else if (allowed.Length > 0 && !allowed.All(t => (existing.AllowedContentTypes ?? []).Any(x => x.Key == t.Key)))
+            {
+                existing.AllowedContentTypes = existing.AllowedContentTypes.Concat(allowed.Where(t => !existing.AllowedContentTypes.Any(x => x.Key == t.Key))
+                    .Select((t, i) => new ContentTypeSort(t.Key, i, t.Alias))).ToArray();
+                changed = true;
+            }
+            if (spec.ListViewDataType is { } list && existing.ListView != PortalV2Keys.DataType(list))
+            { existing.ListView = PortalV2Keys.DataType(list); changed = true; }
+            if (changed)
+            {
+                var updated = await contentTypes.UpdateAsync(existing, User);
+                if (!updated.Success) throw new InvalidOperationException($"Không cập nhật được {spec.Alias}: {updated.Result}.");
+            }
+            return changed;
+        }
         if (contentTypes.Get(key) is not null) return false;
         if (contentTypes.Get(spec.Alias) is not null)
             throw new InvalidOperationException($"Đã có loại {spec.Alias} với khóa khác; dừng để không tạo trùng.");
@@ -242,13 +280,52 @@ public sealed class PortalV2SchemaBuilder(
         }
 
         if (spec.AllowedChildren is { Count: > 0 } children)
-            type.AllowedContentTypes = children.Select((alias, i) => new ContentTypeSort(PortalV2Keys.ContentType(alias), i, alias)).ToArray();
+            type.AllowedContentTypes = children.Select((alias, i) => new ContentTypeSort(contentTypes.Get(alias)?.Key ?? PortalV2Keys.ContentType(alias), i, alias)).ToArray();
         if (spec.ListViewDataType is { } listView)
             type.ListView = PortalV2Keys.DataType(listView);
 
         var result = await contentTypes.CreateAsync(type, User);
         if (!result.Success) throw new InvalidOperationException($"Không tạo được loại {spec.Alias}: {result.Result}.");
         return true;
+    }
+
+    public async Task EnsureRiskSchemaAsync()
+    {
+        foreach (var spec in PortalV2Schema.AllDataTypes().Concat(RiskSchema.DataTypes())) await EnsureDataType(spec);
+        await EnsureSeoBase();
+        foreach (var spec in PortalV2Schema.Compositions()) await EnsureContentType(spec);
+        // Child keys must use the existing key when an earlier Portal schema has already created that alias.
+        foreach (var spec in RiskSchema.ContentTypes().OrderBy(x => x.AllowedChildren?.Count ?? 0)) await EnsureContentType(spec);
+        foreach (var spec in RiskSchema.ContentTypes()) await EnsureContentType(spec);
+        await AddProperties("topicItem", [
+            new("readingArticle", "Bài đọc chuyên đề", "Chọn · Bài viết", "Cần khi đăng."),
+            new("checklist", "Danh sách kiểm tra", "Chọn · Danh sách kiểm tra"),
+            new("rememberLine", "Nhớ một câu", PortalV2Schema.Text(140)),
+            new("mustAsk", "Câu hỏi phải hỏi", PortalV2Schema.Area(200)),
+            new("stopWhen", "Khi nào phải dừng", PortalV2Schema.Area(300)),
+            new("holdWhen", "Khi nào cần hoãn để kiểm chứng", PortalV2Schema.Area(300))]);
+        await AddProperties("siteSettings", [new("noAnswerNote", "Câu “Không thấy câu trả lời?”", PortalV2Schema.Area(200), "Dùng chung cho cả 6 tab của Các rủi ro.")]);
+        await AddProperties("sharedSnippet", [new("title", "Tiêu đề hộp", PortalV2Schema.Text(120), Mandatory: true),
+            new("bodyText", "Nội dung", PortalV2Schema.RteShort, Mandatory: true)]);
+        await AddProperties("tacticItem", [new("containingArticle", "Bài viết chứa thủ đoạn", "Chọn · Bài viết", "Cần khi đăng. Chuyên đề lấy theo bài hướng dẫn.")]);
+        if (contentTypes.Get("tacticItem") is { } tactic)
+        {
+            var legacyTopic = tactic.PropertyTypes.FirstOrDefault(x => x.Alias == "topic");
+            if (legacyTopic?.Mandatory == true) { legacyTopic.Mandatory = false; await contentTypes.UpdateAsync(tactic, User); }
+        }
+    }
+
+    private async Task AddProperties(string alias, PropertySpec[] properties)
+    {
+        if (contentTypes.Get(alias) is not { } type) return;
+        bool changed = false;
+        foreach (var p in properties)
+            if (!type.PropertyTypeExists(p.Alias)) { type.AddPropertyType(await Property(alias, p), "noiDung", "Nội dung"); changed = true; }
+        if (changed)
+        {
+            var updated = await contentTypes.UpdateAsync(type, User);
+            if (!updated.Success) throw new InvalidOperationException($"Không bổ sung được trường cho {alias}.");
+        }
     }
 
     private async Task<IPropertyType> Property(string contentTypeAlias, PropertySpec p)

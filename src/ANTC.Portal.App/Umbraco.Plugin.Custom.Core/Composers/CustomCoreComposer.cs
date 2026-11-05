@@ -60,6 +60,16 @@ public class CustomCoreComposer : IComposer
         // Portal v2: dung schema nen (chi khi bat PortalV2:SchemaBuilder:Enabled o Development) va kiem danh sach co dinh
         builder.Services.AddOptions<PortalV2SchemaOptions>().Bind(builder.Config.GetSection(PortalV2SchemaOptions.SectionName));
         builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, PortalV2SchemaBuilder>();
+        builder.Services.AddTransient<PortalV2SchemaBuilder>();
+        builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, RiskSchemaMigration>();
+        builder.Services.AddSingleton<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RuiRoDerivation>();
+        builder.AddNotificationHandler<ContentSavingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentRules>();
+        builder.AddNotificationHandler<ContentPublishingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentRules>();
+        builder.AddNotificationHandler<ContentDeletingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskFixedPages>();
+        builder.AddNotificationHandler<ContentSavingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskFixedPages>();
+        builder.AddNotificationHandler<ContentMovingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskFixedPages>();
+        builder.AddNotificationHandler<ContentMovingToRecycleBinNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskFixedPages>();
+        builder.Services.AddRecurringBackgroundJob<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.AlertAutoUnpublishJob>();
         builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, DanhMucStartupCheck>();
         builder.Services.AddScoped<IContestEntryService>(services => new ContestEntryService(
             services.GetRequiredService<AppDbContext>(),
