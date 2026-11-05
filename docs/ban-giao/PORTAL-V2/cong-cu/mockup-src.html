@@ -542,6 +542,7 @@ const LVRANK={thuong:1,cao:2,ratCao:3};
 const FIX={
   LEVEL,KIND:[{id:'huongDan',name:'Bài hướng dẫn',icon:'list'},{id:'docChuyenDe',name:'Bài đọc chuyên đề',icon:'book'},{id:'docThem',name:'Bài đọc thêm',icon:'doc'}],
   QKIND:[{id:'phaiDung',name:'Phải dừng',dot:'d'},{id:'tamHoan',name:'Tạm hoãn',dot:'h'},{id:'canKiemTra',name:'Cần kiểm tra',dot:'n'}],
+  WZKIND:[{id:'phaiDung',name:'Phải dừng',dot:'d'},{id:'tamHoan',name:'Tạm hoãn',dot:'h'}],
   ANSMEAN:[{id:'co',name:'Có'},{id:'khong',name:'Không'},{id:'chuaBiet',name:'Chưa biết'}],
   HT:[{id:'goi',name:'Gọi',icon:'call'},{id:'nhan',name:'Nhắn tin',icon:'chat'},{id:'ca2',name:'Gọi và nhắn tin',icon:'call'}],
   DOORKIND:[{id:'trang',name:'Mở trang ngay',icon:'right'},{id:'luaChon',name:'Mở danh sách lựa chọn',icon:'list'}],
@@ -561,6 +562,7 @@ function src(s){
     case 'TOOL':return ofType('toolCountPage','toolBranchPage');case 'CHK':return ofType('checklistPage');case 'ART':return ofType('riskArticlePage');case 'ALERT':return ofType('alertPage');case 'GRP':return ofType('riskCategoryPage');
     case 'REL':return ofType('riskArticlePage','alertPage','checklistPage');case 'GUIDE':return ofType('riskArticlePage','alertPage','viecCanLamPage');case 'DOORTO':return ofType('viecCanLamPage','wizardPage');
     case 'PAGES':return N.filter(n=>T[n.type]&&T[n.type].page).sort((a,b)=>a.o-b.o).map(itemOf);
+    case 'WZANS':case 'WZANS23':return WZOPTS(s==='WZANS');
     case 'MEDIA':return MEDIA;case 'PDF':return PDFS;case 'KW':return [...new Set(N.flatMap(n=>(n.v.kw||[]).concat(n.v.syn||[])))].map(x=>({id:x,name:x,icon:'tag'}));
   }return []}
 
@@ -687,6 +689,7 @@ function TableList(f,arr,ctx){
   function editor(r,c,ri,ci){
     const lab=c.l+' dòng '+(ri+1);
     if(c.t==='pick'){const cb=Combobox({items:()=>src(c.src),value:r[c.k]?[r[c.k]]:[],label:lab,ph:'Chọn…',onChange:v=>{r[c.k]=v;liveCheck(c,r,keyOf(r,c))}});return cb.el}
+    if(c.t==='multi'){const cb=Combobox({items:()=>src(c.src),multiple:true,value:r[c.k]||[],label:lab,ph:c.ph||'Chọn…',onChange:v=>{r[c.k]=v;markDirty()}});return cb.el}
     const isA=c.t==='area';const inp=h(isA?'textarea':'input',{class:isA?'area':'txt',type:isA?null:(c.t==='date'?'date':'text'),rows:isA?1:null,'aria-label':lab,inputmode:c.digits||c.t==='num'?'numeric':null,placeholder:c.ph||null,'data-r':ri,'data-c':ci});
     inp.value=r[c.k]||'';const cnt=c.max?h('div',{class:'count'}):null;
     const upd=()=>{if(isA)autogrow(inp);if(cnt){const n=inp.value.length;cnt.textContent=n>c.max*.8?n+'/'+c.max:'';cnt.classList.toggle('over',n>c.max)}};
@@ -919,6 +922,24 @@ const MXF=[{k:'name',l:'Tên tình huống',t:'text',req:1,max:80},{k:'level',l:
 let MXS={sel:null,q:'',lv:'',warn:false,a1:'',a2:new Set(),a3:new Set()};
 function mxCompute(v,a1,a2,a3){const rows=(v.matrix||[]).filter(r=>r.on!==false).map((r,i)=>{const m=(r.s2||[]).filter(x=>a2.has(x)).length+(r.s3||[]).filter(x=>a3.has(x)).length;return {r,i,m,score:2*m+((r.s1||[]).includes(a1)?3:0)}}).filter(x=>x.m>0).sort((a,b)=>b.score-a.score||a.i-b.i).slice(0,+v.maxShow||3);
   if(!rows.length)return null;const lv=rows.reduce((a,x)=>LVRANK[x.r.level]>LVRANK[a]?x.r.level:a,'thuong');return {rows,lv,top:rows[0].r}}
+/* QĐ-056: kết quả trình hỏi tự lấy từ lựa chọn, thủ đoạn và trang Việc cần làm. a1: khóa lựa chọn bước 1; a2, a3: Set khóa bước 2, 3 (thêm 'none', 'unk') */
+function WZOPTS(all){const w=N.find(x=>x.type==='wizardPage');if(!w)return [];const out=[];(all?[1,2,3]:[2,3]).forEach(s=>(w.v['o'+s]||[]).forEach(o=>out.push({id:o._k,name:o.t||'(chưa có nhãn)',icon:o.ic||'list',sub:'Câu '+s+(o.kind?' · '+((FIX.WZKIND.find(x=>x.id===o.kind)||{}).name||''):'')})));return out}
+function wzCompute(v,tacs,a1,a2,a3){
+  const chosen=[...(v.o2||[]).filter(o=>a2.has(o._k)),...(v.o3||[]).filter(o=>a3.has(o._k))];
+  const stops=chosen.filter(o=>o.kind==='phaiDung'),holds=chosen.filter(o=>o.kind!=='phaiDung'),unk=a2.has('unk')||a3.has('unk');
+  const lv=stops.length?'ratCao':(holds.length||unk)?'cao':'thuong';
+  const keys=new Set(chosen.map(o=>o._k)),o1=(v.o1||[]).find(o=>o._k===a1),ch=o1&&o1.ch;
+  const sit=tacs.filter(t=>t.v.active!==false).map((t,i)=>{const m=(t.v.wzAns||[]).filter(k=>keys.has(k)).length;return {t,i,m,score:m?2*m+((t.v.ch||[]).includes(ch)?3:0):0}})
+    .filter(x=>x.m).sort((a,b)=>b.score-a.score||a.i-b.i).slice(0,+v.maxShow||3);
+  const signs=stops.map(o=>o.sign?{sign:o.sign}:{text:o.stxt}).concat(holds.map(o=>({text:o.stxt})));if(unk)signs.push({text:v.unkSign});
+  const all=new Set([...keys,a1]),ok=r=>(!(r.only||[]).length||r.only.some(k=>all.has(k)))&&!(r.skip||[]).some(k=>all.has(k));
+  const acts=(v[{ratCao:'actD',cao:'actH',thuong:'actN'}[lv]]||[]).filter(ok).slice(0,4);
+  const top=sit[0]&&byId(sit[0].t.v.article),tp=top&&byId(top.v.topic);
+  return {lv,sit,signs:signs.filter(x=>x.sign||x.text).slice(0,3),acts,lost:(v.lost||[]).filter(ok),article:top?top.id:'',checklist:(tp&&tp.v.chk)||v.defChk||''}}
+function WzTac(v){const tacs=N.filter(x=>x.type==='tacticItem'&&x.v.active!==false),rows=[];
+  [2,3].forEach(s=>(v['o'+s]||[]).forEach(o=>{const t=tacs.filter(x=>(x.v.wzAns||[]).includes(o._k));rows.push(['Câu '+s+': '+(o.t||'(chưa có nhãn)'),t.length?t.length+' thủ đoạn: '+t.map(x=>x.name).join(' · '):'Chưa thủ đoạn nào chọn dòng này'])}));
+  const none=tacs.filter(x=>!(x.v.wzAns||[]).length);rows.push(['Thủ đoạn chưa chọn câu trả lời',none.length?none.length+' thủ đoạn, không bao giờ hiện ở “Tình huống gần giống”: '+none.map(x=>x.name).join(' · '):'Không có']);
+  return autoBox(rows)}
 function Matrix(f,v,ctx){
   const root=h('div',{class:'mx'});
   const steps=[[1,'Bước 1 · Kênh','o1','g1'],[2,'Bước 2 · Họ yêu cầu','o2','g2'],[3,'Bước 3 · Lời thuyết phục','o3','g3']];
@@ -1097,6 +1118,7 @@ function TacList(n){const tl=tacOfArt(n.id).sort((a,b)=>a.o-b.o);
     h('div',{class:'xlink'},add,h('span',{class:'small',text:'Thứ tự hiện trên website theo thứ tự kéo ở Danh mục › Thủ đoạn.'})))}
 function TacWhere(v,n){const a=byId(v.article),g=a&&byId(a.v.grp);
   return autoBox([['Trong bài',a?a.name+' › mục “Thủ đoạn thường gặp”':'Chưa chọn bài viết chứa thủ đoạn'],['Thẻ ở trang nhóm',g?g.name:'–'],['Bấm thẻ','Mở bài, cuộn tới mục và tô sáng dòng này'],
+    ['Trình hỏi',(v.wzAns||[]).length?'“Tình huống gần giống” khi người dân chọn: '+WZOPTS(false).filter(o=>v.wzAns.includes(o.id)).map(o=>o.name).join(' · '):'Không hiện (chưa chọn câu trả lời ở trình hỏi)'],
     ['Cảnh báo dùng thủ đoạn này',N.filter(x=>x.type==='alertPage'&&(x.v.tac||[]).includes(n.id)).map(x=>x.name)]])}
 function ArtAuto(v,n){const tl=tacOfArt(n.id),lv=maxLv(tl),grp=v.grp;
   const chs=uniq(tl.flatMap(t=>t.v.ch||[])),auds=N.filter(x=>x.type==='audienceItem'&&(x.v.tactics||[]).some(t=>tl.some(y=>y.id===t))).map(x=>x.name);
@@ -1132,6 +1154,8 @@ function ArtCard(v,n){const kind=FIX.KIND.find(k=>k.id===v.kind),grp=byId(v.grp)
     h('p',{class:(v.desc||'').trim()?'':'ph',text:(v.desc||'').trim()||'Câu mời đọc'}),
     h('small',{text:(grp?grp.name:'Chưa chọn nhóm')+' · khoảng '+artMinutes(v)+' phút đọc'}))}
 const ACTCOLS=[{k:'page',l:'Trang việc cần làm',t:'pick',src:'VCL',req:1},{k:'step',l:'Bước số',t:'num',req:1,w:'100px'}];
+const WZACTCOLS=[{k:'page',l:'Trang việc cần làm',t:'pick',src:'VCL'},{k:'step',l:'Bước số',t:'num',w:'100px'},{k:'text',l:'Hoặc câu riêng',t:'area',max:240,w:'30%'}];
+const WZCOND=[{k:'only',l:'Chỉ khi chọn',t:'multi',src:'WZANS',ph:'Luôn hiện'},{k:'skip',l:'Bỏ khi chọn',t:'multi',src:'WZANS',ph:'Không bỏ'}];
 const MORECOLS=[{k:'ic',l:'Biểu tượng',t:'pick',src:'ICONS',w:'150px'},{k:'nhan',l:'Chữ trên liên kết',req:1,max:80},{k:'trang',l:'Trang',t:'pick',src:'PAGES',req:1,w:'30%'}];
 const T={
   siteSettings:{name:'Cài đặt website',del:false,tabs:[
@@ -1143,7 +1167,7 @@ const T={
     {t:'Tài trợ',adm:1,f:[{g:'Khu tài trợ',f:[F('spon','Hiện khu tài trợ','toggle',{cap:'Chỉ bật khi Chính sách tài trợ đã ban hành',re:1}),F('sName','Tên đơn vị tài trợ','text',{req:1,when:v=>v.spon}),F('sLogo','Logo','media',{req:1,when:v=>v.spon}),F('sLink','Liên kết','url',{when:v=>v.spon}),F('sNote','Câu “không phải khuyến nghị”','text',{req:1,when:v=>v.spon})]}]},
     {t:'Câu cố định',adm:1,f:[{g:'Câu dưới kết quả tự kiểm tra',f:[F('resnote','Câu dưới mọi kết quả','area',{req:1,max:300,help:'Đặc tả 5.6'}),F('notconc','Câu “không phải kết luận”','area',{req:1,max:300})]},
       {g:'Mức độ và khuyến nghị',gh:'· QĐ-051',f:[F('stDLab','Nhãn khuyến nghị mức Rất cao','text',{req:1,max:40}),F('stDTxt','Câu giải thích mức Rất cao','area',{req:1,max:300}),F('stHLab','Nhãn khuyến nghị mức Cao','text',{req:1,max:40}),F('stHTxt','Câu giải thích mức Cao','area',{req:1,max:300}),F('stNLab','Nhãn khuyến nghị mức Cần thận trọng','text',{req:1,max:40}),F('stNTxt','Câu giải thích mức Cần thận trọng','area',{req:1,max:300,help:'Cũng dùng khi trình hỏi không khớp tình huống nào'})]},
-      {g:'Câu bắt buộc khác',f:[F('notreport','Câu không nhận tố giác','area',{req:1,max:300}),F('noadvice','Câu miễn trừ tư vấn','area',{req:1,max:300}),F('noAns','Câu “Không thấy câu trả lời?”','area',{req:1,max:200,help:'Dùng chung cho Cảnh báo mới và 5 nhóm rủi ro'}),F('must','Hai điều phải nhớ','lines',{req:1,max:2,help:'Hiện ở kiểm tra nhanh có bật hộp lưu ý'}),F('banka','Cách tự tìm số ngân hàng','lines',{req:1,max:5}),F('refuse','Câu từ chối cho mượn tài khoản','area',{req:1,max:300})]}]}]},
+      {g:'Câu bắt buộc khác',f:[F('notreport','Câu không nhận tố giác','area',{req:1,max:300}),F('noadvice','Câu miễn trừ tư vấn','area',{req:1,max:300}),F('noAns','Câu “Không thấy câu trả lời?”','area',{req:1,max:200,help:'Dùng chung cho Cảnh báo mới và 5 nhóm rủi ro'}),F('must','Hai điều phải nhớ','lines',{req:1,max:2,help:'Hiện ở kiểm tra nhanh có bật hộp lưu ý'}),F('banka','Cách tự tìm số ngân hàng','lines',{req:1,max:5}),F('refuse','Câu từ chối cho mượn tài khoản','area',{req:1,max:300}),F('stepsNote','Câu dưới các bước Việc cần làm','area',{req:1,max:300}),F('notduty','Câu “Website không trực 24/7”','area',{req:1,max:300,help:'Cuối trang Khẩn cấp và trang Việc cần làm'})]}]}]},
   homePage:{name:'Trang chủ',page:1,del:false,tabs:[{t:'Nội dung',f:[
     {g:'Khối Khẩn cấp',gh:'· đầu trang',f:[F('kick','Nhãn nhỏ','text',{max:30}),F('title','Tiêu đề','text',{req:1,max:90,help:'Tối đa 90 ký tự để thấy trọn trên màn 360 × 640'}),F('desc','Mô tả','area',{req:1,max:160}),F('btn1','Chữ nút chính','text',{req:1,max:32,help:'Mở trình hỏi'}),F('btn2','Chữ nút phụ','text',{req:1,max:32,help:'Mở mục Việc cần làm ngay'}),F('prLead','Câu dẫn bốn nguyên tắc','text',{max:80,help:'Bốn nguyên tắc lấy từ Cài đặt website'})]},
     {g:'Khối Hãy tự kiểm tra',f:[F('toolsTitle','Tiêu đề khối','text',{req:1,max:60}),F('tools','Ba thẻ kiểm tra nhanh','multi',{src:'TOOL',req:1,min:3,max:3,sort:1,help:'Kéo thẻ để sắp thứ tự'})]},
@@ -1152,20 +1176,34 @@ const T={
   khanCapPage:{name:'Khẩn cấp',page:1,del:false,tabs:[{t:'Nội dung',f:[{g:'Việc cần làm',f:[F('where','Việc cần làm','info',{fn:()=>OPENLIST(N.filter(x=>x.type==='viecCanLamPage').length+' trang việc cần làm. Thêm, sửa ở Quản lý nội dung › Việc cần làm.',FOLDEROF['viecCanLamPage'])})]},
     {g:'Đầu trang',f:[F('title','Tiêu đề','text',{req:1,max:90}),F('lead','Mô tả','area',{req:1,max:220})]},
     {g:'Lối vào trình hỏi',f:[F('wzTitle','Tiêu đề','text',{req:1,max:60}),F('wzDesc','Mô tả','area',{req:1,max:220}),F('wzBtn','Chữ nút','text',{req:1,max:32})]},
+    {g:'Bốn việc không làm khi nghi ngờ',f:[F('prTitle','Tiêu đề khối','text',{req:1,max:60}),F('prNote','Câu nguồn dưới khối','area',{max:200}),F('prAuto','Bốn việc','info',{fn:()=>'Lấy từ Cài đặt website › Bốn nguyên tắc dừng (dùng chung với Trang chủ).'})]},
     {g:'Việc cần làm ngay',f:[F('doorLead','Câu dẫn','area',{req:1,max:220}),F('doors','Ba cửa vào','cards',{req:1,min:3,max:3,unit:'cửa',sum:'t',flags:it=>[(FIX.DOORKIND.find(x=>x.id===it.kind)||{}).name||'',it.kind==='luaChon'?(it.opts||[]).length+' lựa chọn':''].filter(Boolean),fields:[
-        F('t','Tiêu đề','text',{req:1,max:70}),F('s','Mô tả','area',{req:1,max:120}),F('ill','Hình minh họa','pick',{src:'ILL'}),F('kind','Khi bấm','pick',{src:'DOORKIND',req:1,re:1}),
+        F('t','Tiêu đề','text',{req:1,max:70}),F('s','Mô tả','area',{req:1,max:120}),F('ill','Hình minh họa','pick',{src:'ILL'}),F('kind','Khi bấm','pick',{src:'DOORKIND',req:1,re:1}),F('lead','Câu dẫn danh sách','area',{max:160,when:it=>it.kind==='luaChon'}),
         F('to','Trang đích','pick',{src:'VCL',req:1,when:it=>it.kind==='trang'}),F('opts','Lựa chọn','table',{req:1,min:2,max:8,when:it=>it.kind==='luaChon',cols:[{k:'ic',l:'Biểu tượng',t:'pick',src:'ICONS',w:'150px'},{k:'t',l:'Câu',t:'area',req:1,max:160},{k:'to',l:'Mở',t:'pick',src:'DOORTO',req:1,w:'240px'}]})]}),
       F('noneTo','Nút “Không ô nào giống” mở','pick',{src:'VCL',req:1}),F('helper','Câu cho người đang giúp người thân','text',{max:160})]},
-    {g:'Tình huống điển hình',f:[F('sits','Trang hiện trong danh sách','multi',{src:'VCL',req:1,max:10,sort:1,help:'Kéo thẻ để sắp thứ tự hiện'})]},
-    {g:'Khi cần hỗ trợ',f:[F('hot','Số do Nhà nước vận hành','table',{req:1,min:1,max:6,help:'Hiện theo đúng thứ tự trong bảng',cols:[{k:'so',l:'Số',req:1,digits:true,w:'90px',ph:'113'},{k:'ht',l:'Hình thức',t:'pick',src:'HT',req:1,w:'190px'},{k:'mt',l:'Mô tả',t:'area',req:1,max:200}],extra:[{k:'cp',l:'Cú pháp tin nhắn',help:'Chỉ khi có nhắn tin',max:120}]}),
+    {g:'Tình huống điển hình',f:[F('sitsAuto','Trang hiện trong danh sách','info',{fn:()=>{const l=N.filter(x=>x.type==='viecCanLamPage'&&!x.v.hide).sort((a,b)=>a.o-b.o);return OPENLIST('Website tự lấy (QĐ-056): '+l.length+' trang Việc cần làm không bật “Ẩn khỏi danh sách tình huống”, theo thứ tự kéo ở Quản lý nội dung › Việc cần làm: '+l.map(x=>x.name).join(' · ')+'.',FOLDEROF['viecCanLamPage'])}})]},
+    {g:'Khi cần hỗ trợ',f:[F('bankAuto','Cách tự tìm số ngân hàng','info',{fn:()=>'Lấy từ Cài đặt website › Câu cố định › Cách tự tìm số ngân hàng.'}),F('hot','Số do Nhà nước vận hành','table',{req:1,min:1,max:6,help:'Hiện theo đúng thứ tự trong bảng',cols:[{k:'so',l:'Số',req:1,digits:true,w:'90px',ph:'113'},{k:'ht',l:'Hình thức',t:'pick',src:'HT',req:1,w:'190px'},{k:'mt',l:'Mô tả',t:'area',req:1,max:200}],extra:[{k:'cp',l:'Cú pháp tin nhắn',help:'Chỉ khi có nhắn tin',max:120}]}),
       F('hotDate','Ngày kiểm chứng số','date',{req:'xb'}),F('hotSrc','Nguồn kiểm chứng','text',{req:'xb',ph:'Tên văn bản hoặc trang của cơ quan nhà nước'}),
       F('hotBank','Đường dây nóng của tổ chức tín dụng','table',{help:'README mục 11: để trống tới khi có nguồn Nhà nước',max:10,empty:'Chưa có. Website hiện hướng dẫn tự tìm số ngân hàng.',cols:[{k:'so',l:'Số',req:1,digits:true,w:'90px'},{k:'ht',l:'Hình thức',t:'pick',src:'HT',req:1,w:'190px'},{k:'mt',l:'Mô tả',t:'area',req:1,max:200}]})]},
     {g:'Cuối trang',f:[F('end','Hai nút cuối trang','table',LINKCOLS(2))]}]},seoTab]},
   wizardPage:{name:'Kiểm tra tình huống',page:1,del:false,admOnly:1,tabs:[
-    {t:'Câu hỏi',f:[1,2,3].map(s=>({g:'Bước '+s,f:[F('q'+s,'Câu hỏi','text',{req:1,max:120}),F('h'+s,'Câu gợi ý dưới câu hỏi','text',{max:160}),F('o'+s,'Lựa chọn','table',{req:1,min:2,max:8,help:(s===1?'Chọn một':'Chọn nhiều')+'. Sửa nhãn không làm hỏng ma trận, vì ma trận trỏ tới mã của từng dòng',cols:[{k:'ic',l:'Biểu tượng',t:'pick',src:'ICONS',w:'180px'},{k:'t',l:'Nhãn',req:1,max:60}]})]}))},
-    {t:'Ma trận',f:[F('matrix','Ma trận tình huống','matrix',{req:1})]},
-    {t:'Kết quả',f:[{g:'Tiêu đề 4 khối kết quả',f:[F('r1','Khối 1','text',{req:1,max:40}),F('r2','Khối 2','text',{req:1,max:40}),F('r3','Khối 3','text',{req:1,max:40}),F('r4','Khối 4','text',{req:1,max:40})]},
-      {g:'Cách hiện',f:[F('maxShow','Số tình huống hiện tối đa','num',{req:1,lo:1,hi:3}),F('none','Câu khi không khớp','area',{req:1,max:200,help:'Hiện cùng trạng thái “Cần thận trọng” và 4 nguyên tắc dừng'}),F('defChk','Danh sách kiểm tra mặc định','pick',{src:'CHK',req:1})]},
+    {t:'Câu hỏi',f:[{g:'Đầu trang',f:[F('title','Tiêu đề','text',{req:1,max:90}),F('lead','Mô tả','area',{req:1,max:220}),F('priv','Câu về quyền riêng tư','area',{req:1,max:240,help:'Hiện trên khung câu hỏi'})]},
+      {g:'Bước 1',f:[F('q1','Câu hỏi','text',{req:1,max:120}),F('h1','Câu gợi ý dưới câu hỏi','text',{max:160}),
+        F('o1','Lựa chọn','table',{req:1,min:2,max:8,help:'Chọn một. Mỗi dòng nối với một kênh trong Danh mục để so với kênh của thủ đoạn',cols:[{k:'ic',l:'Biểu tượng',t:'pick',src:'ICONS',w:'170px'},{k:'t',l:'Nhãn',req:1,max:60},{k:'ch',l:'Kênh trong Danh mục',t:'pick',src:'CH',req:1,w:'230px'}]}),
+        F('o1x','Dòng cuối “không nhớ kênh”','text',{req:1,max:60,help:'Chọn dòng này thì không cộng điểm kênh'})]},
+      ...[2,3].map(s=>({g:'Bước '+s,f:[F('q'+s,'Câu hỏi','text',{req:1,max:120}),F('h'+s,'Câu gợi ý dưới câu hỏi','text',{max:160}),
+        F('o'+s,'Lựa chọn','table',{req:1,min:2,max:8,help:'Chọn nhiều. Loại quyết định mức độ: có dòng Phải dừng thì Rất cao, chỉ có Tạm hoãn thì Cao. Thủ đoạn trỏ tới khóa của dòng nên sửa nhãn không làm hỏng',
+          cols:[{k:'ic',l:'Biểu tượng',t:'pick',src:'ICONS',w:'150px'},{k:'t',l:'Nhãn',req:1,max:120},{k:'kind',l:'Loại',t:'pick',src:'WZKIND',req:1,w:'140px'},{k:'sign',l:'Dấu hiệu phải dừng',t:'pick',src:'SIGN',w:'200px'}],
+          extra:[{k:'stxt',l:'Câu ở “Dấu hiệu cần chú ý”',t:'area',max:300,help:'Dùng khi không chọn Dấu hiệu phải dừng'},{k:'hint',l:'Ghi chú dưới lựa chọn',max:160}]}),
+        F('none'+s,'Dòng “không có gì”','text',{req:1,max:60})]})),
+      {g:'Dòng “Tôi chưa biết” của bước 2, 3',f:[F('unk','Nhãn','text',{req:1,max:60}),F('unkSign','Câu ở “Dấu hiệu cần chú ý”','area',{req:1,max:200,help:'Chọn dòng này thì mức ít nhất là Cao'})]}]},
+    {t:'Thủ đoạn',f:[{g:'Tình huống gần giống',lead:'Website tự lấy (QĐ-056): thủ đoạn đang dùng có ô “Câu trả lời ở trình hỏi” trùng lựa chọn của người dân. Điểm = 2 × số dòng trùng, cộng 3 nếu kênh trùng; hòa điểm theo thứ tự ở Danh mục › Thủ đoạn. Sửa ở từng thủ đoạn.',
+      f:[F('tacAuto','Thủ đoạn theo từng lựa chọn','info',{wide:1,fn:v=>WzTac(v)})]}]},
+    {t:'Kết quả',f:[{g:'Tiêu đề các khối kết quả',f:[F('r1','Khối 1 (đứng trước tên mức)','text',{req:1,max:40}),F('r2','Khối 2','text',{req:1,max:40}),F('r3','Khối 3','text',{req:1,max:40}),F('r4','Khối 4','text',{req:1,max:40}),F('r5','Khối “Nếu đã lỡ”','text',{req:1,max:40})]},
+      {g:'Cách hiện',f:[F('maxShow','Số tình huống hiện tối đa','num',{req:1,lo:1,hi:3}),F('sitNote','Câu dưới tình huống','area',{max:200}),F('none','Câu khi không khớp','area',{req:1,max:200,help:'Hiện cùng 4 nguyên tắc dừng'}),F('noneMore','Câu thêm ở mức Cần thận trọng','area',{max:240}),
+        F('defChk','Danh sách kiểm tra khi không khớp thủ đoạn','pick',{src:'CHK',req:1,help:'Có thủ đoạn khớp thì lấy danh sách kiểm tra cùng chuyên đề với bài chứa thủ đoạn đầu'})]},
+      {g:'Việc cần làm ngay',lead:'Lấy nguyên văn bước của trang Việc cần làm. Website hiện tối đa 4 dòng hợp điều kiện, theo thứ tự bảng.',f:[...[['actD','Mức Rất cao'],['actH','Mức Cao'],['actN','Mức Cần thận trọng']].map(([k,l])=>F(k,l,'table',{req:1,max:8,cols:WZACTCOLS,extra:WZCOND}))]},
+      {g:'Nếu đã lỡ làm theo',f:[F('lost','Trang việc cần làm','table',{req:1,max:6,cols:[{k:'ic',l:'Biểu tượng',t:'pick',src:'ICONS',w:'150px'},{k:'nhan',l:'Chữ',req:1,max:80},{k:'trang',l:'Trang',t:'pick',src:'VCL',req:1,w:'240px'}],extra:[WZCOND[0]]})]},
       {g:'Chữ trên 4 nút',f:[F('b1','Nút 1','text',{req:1,max:40}),F('b2','Nút 2','text',{req:1,max:40}),F('b3','Nút 3','text',{req:1,max:40}),F('b4','Nút 4','text',{req:1,max:40})]}]},seoTab]},
   viecCanLamPage:{name:'Việc cần làm',page:1,create:'qt',del:'qt',sub:()=>'Khẩn cấp › Việc cần làm',tabs:[{t:'Nội dung',f:[
     {g:'Nội dung',f:[F('title','Tiêu đề','text',{req:1,max:90}),F('slug','Đường dẫn','text',{req:1,max:60,help:'Đổi thì tự tạo chuyển hướng 301 từ đường dẫn cũ'}),F('icon','Biểu tượng','pick',{src:'ICONS',req:1}),F('lead','Câu dẫn','area',{req:1,max:220}),F('hide','Ẩn khỏi danh sách tình huống','toggle',{cap:'Không hiện ở “Tình huống điển hình”'})]},
@@ -1274,7 +1312,8 @@ const T={
   popularityItem:{name:'Mức độ phổ biến',create:'bt',del:'bt',nameMax:40,sub:n=>n.v.code,defaults:()=>({code:'',icon:'chart',active:true,desc:''}),tabs:[{t:'Nội dung',f:[{g:'Mức độ phổ biến',f:taxBase.concat([F('desc','Giải thích ngắn','area',{max:160,help:'Hiện khi rê chuột vào nhãn trên website'})])}]}]},
   topicItem:{name:'Chuyên đề',create:'qt',del:'qt',nameMax:80,sub:n=>'Chuyên đề '+n.v.number,defaults:()=>({code:'',icon:'',active:true,number:'',short:'',read:'',chk:''}),tabs:[{t:'Nội dung',f:[{g:'Chuyên đề',f:taxBase.concat([F('number','Số chuyên đề','num',{req:1,lo:1,hi:8,unique:true,lockPub:'Khóa sau xuất bản: là khóa nối với ngân hàng câu hỏi Cuộc thi.'}),F('short','Tên ngắn','text',{req:'xb',max:40}),F('read','Bài đọc chuyên đề','pick',{src:'ART',req:'xb',showDraft:1}),F('chk','Danh sách kiểm tra','pick',{src:'CHK'})])},
     {g:'Dùng chung cho các bài của chuyên đề',lead:'Nhập một lần; hiện ở bài hướng dẫn, bài đọc và danh sách kiểm tra cùng chuyên đề (QĐ-054).',f:[F('remember','Nhớ một câu','text',{max:140,req:'xb'}),F('mustAsk','Câu hỏi phải hỏi','area',{max:200,req:'xb'}),F('stopWhen','Khi nào phải dừng','area',{max:300}),F('holdWhen','Khi nào cần hoãn để kiểm chứng','area',{max:300})]}]}]},
-  tacticItem:{name:'Thủ đoạn',create:'bt',del:'bt',nameMax:140,sub:n=>{const t=byId(n.v.topic);return t?'Chuyên đề '+t.v.number:''},defaults:()=>({code:'',active:true,topic:'',article:'',anchor:'',ch:[],level:'',kw:[]}),tabs:[{t:'Nội dung',f:[{g:'Thủ đoạn',f:[taxBase[0],taxBase[2],F('article','Bài viết chứa thủ đoạn','pick',{src:'ART',req:'xb',showDraft:1,help:'Bài hướng dẫn có mục “Thủ đoạn thường gặp” chứa thủ đoạn này',fill:o=>{const x=byId(o.article);o.topic=x?x.v.topic||'':'';return false}}),F('topicAuto','Chuyên đề','info',{fn:v=>{const x=byId(v.article),t=x&&byId(x.v.topic);return t?t.name+' (theo bài chứa thủ đoạn)':'Theo bài chứa thủ đoạn'}}),F('ch','Kênh','multi',{src:'CH',req:1}),F('level','Mức độ','pick',{src:'LEVEL',req:1}),F('kw','Từ khóa tìm kiếm','tags')]},{g:'Hiện trên website ở đâu',f:[F('where','Nơi hiện','info',{wide:1,fn:(v,n)=>TacWhere(v,n)})]}]}]},
+  tacticItem:{name:'Thủ đoạn',create:'bt',del:'bt',nameMax:140,sub:n=>{const t=byId(n.v.topic);return t?'Chuyên đề '+t.v.number:''},defaults:()=>({code:'',active:true,topic:'',article:'',ch:[],level:'',kw:[],wzAns:[]}),tabs:[{t:'Nội dung',f:[{g:'Thủ đoạn',f:[taxBase[0],taxBase[2],F('article','Bài viết chứa thủ đoạn','pick',{src:'ART',req:'xb',showDraft:1,help:'Bài hướng dẫn có mục “Thủ đoạn thường gặp” chứa thủ đoạn này',fill:o=>{const x=byId(o.article);o.topic=x?x.v.topic||'':'';return false}}),F('topicAuto','Chuyên đề','info',{fn:v=>{const x=byId(v.article),t=x&&byId(x.v.topic);return t?t.name+' (theo bài chứa thủ đoạn)':'Theo bài chứa thủ đoạn'}}),F('ch','Kênh','multi',{src:'CH',req:1}),F('level','Mức độ','pick',{src:'LEVEL',req:1}),F('kw','Từ khóa tìm kiếm','tags')]},
+    {g:'Trình hỏi “Tôi đang gặp chuyện gì?”',f:[F('wzAns','Câu trả lời ở trình hỏi','multi',{src:'WZANS23',max:8,help:'Những yêu cầu, lời hứa hoặc lời đe dọa thủ đoạn này hay dùng (câu 2, 3 của trình hỏi). Trống thì thủ đoạn không hiện ở “Tình huống gần giống”'})]},{g:'Hiện trên website ở đâu',f:[F('where','Nơi hiện','info',{wide:1,fn:(v,n)=>TacWhere(v,n)})]}]}]},
   quickQaItem:{name:'Hỏi – đáp nhanh',create:'bt',del:'bt',nameMax:200,sub:n=>n.v.by?'Duyệt: '+n.v.by:'Chưa duyệt',defaults:()=>({q:'',a:'',why:'',todo:'',pages:[],by:''}),tabs:[{t:'Nội dung',f:[{g:'Câu hỏi',f:[F('q','Câu hỏi','area',{req:1,max:200}),F('a','Trả lời ngắn','area',{req:1,max:300}),F('why','Vì sao','rte',{mode:'limited'}),F('todo','Việc cần làm','rte',{mode:'limited',lists:1}),F('pages','Trang liên quan','multi',{src:'PAGES',max:2}),F('by','Đã duyệt bởi','text',{req:'xb',max:80})]}]}]},
   sharedSnippet:{name:'Đoạn dùng chung',create:'qt',del:'qt',nameMax:120,sub:()=>'Đoạn dùng chung',defaults:()=>({title:'',body:''}),tabs:[{t:'Nội dung',f:[{g:'Đoạn dùng chung',f:[F('title','Tiêu đề hộp','text',{req:1,max:120}),F('body','Nội dung','rte',{mode:'limited',lists:1,req:1}),F('used','Đang dùng ở','info',{fn:(v,n)=>{const r=refs(n.id);return r.length?r.map(x=>x.name).join(' · '):'Chưa trang nào dùng'}})]}]}]}
 };

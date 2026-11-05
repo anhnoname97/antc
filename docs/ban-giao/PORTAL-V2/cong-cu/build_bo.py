@@ -2,7 +2,7 @@
 import json, sys, os, re, unicodedata, html as H
 
 v2path, djpath, srcpath, outpath = sys.argv[1:5]
-SCOPE = os.environ.get('BO_SCOPE', '')  # 'rui-ro': chi hien phan Cac rui ro tren cay
+SCOPE = os.environ.get('BO_SCOPE', '')  # 'rui-ro', 'khan-cap': chi hien mot phan tren cay
 imgdir = sys.argv[5] if len(sys.argv) > 5 else None  # ban-dung-moi/anh: nhung anh thu nho de xem truoc
 V = json.load(open(v2path, encoding='utf-8'))
 R = json.load(open(djpath, encoding='utf-8'))
@@ -122,7 +122,8 @@ node('settings', 'pages', 'siteSettings', 'Cài đặt website', {
     'spon': False, 'sName': '', 'sLogo': '', 'sLink': '', 'sNote': '',
     'resnote': V['RESNOTE'], 'notconc': V['NOTCONC'], 'stDLab': ST['d']['lab'], 'stDTxt': ST['d']['txt'], 'stHLab': ST['h']['lab'], 'stHTxt': ST['h']['txt'], 'stNLab': ST['n']['lab'], 'stNTxt': ST['n']['txt'],
     'notreport': 'Website không tiếp nhận tố giác, tin báo về tội phạm. Việc trình báo phải thực hiện tại cơ quan Công an.',
-    'noadvice': V['NOADVICE'], 'must': V['MUST'], 'noAns': 'Gửi câu hỏi riêng cho Ban biên tập. Câu hỏi không hiện lên trang; các câu giống nhau được gộp và trả lời công khai sau khi đã che thông tin cá nhân.', 'banka': V['BANKA'], 'refuse': V['REFUSE']})
+    'noadvice': V['NOADVICE'], 'must': V['MUST'], 'noAns': 'Gửi câu hỏi riêng cho Ban biên tập. Câu hỏi không hiện lên trang; các câu giống nhau được gộp và trả lời công khai sau khi đã che thông tin cá nhân.', 'banka': V['BANKA'], 'refuse': V['REFUSE'],
+    'stepsNote': 'Các bước trên là việc nên làm ngay để giảm thiệt hại, chưa phải kết luận về vụ việc.', 'notduty': V['NOTPOLICE']})
 
 # ---- Trang chu
 node('home', 'pages', 'homePage', 'Trang chủ', {
@@ -138,7 +139,7 @@ doors = []
 for n in ['1', '2', '3']:
     d = DD[n]
     if n in DO:
-        doors.append({'_k': k(), 't': d['t'], 's': d['s'], 'ill': d['ill'], 'kind': 'luaChon', 'to': '', 'opts': [{'_k': k(), 'ic': o[0], 't': o[1], 'to': tgt(o[2])} for o in DO[n]['opts']]})
+        doors.append({'_k': k(), 't': d['t'], 's': d['s'], 'ill': d['ill'], 'kind': 'luaChon', 'lead': DO[n].get('lead', ''), 'to': '', 'opts': [{'_k': k(), 'ic': o[0], 't': o[1], 'to': tgt(o[2])} for o in DO[n]['opts']]})
     else:
         doors.append({'_k': k(), 't': d['t'], 's': d['s'], 'ill': d['ill'], 'kind': 'trang', 'to': 'p8', 'opts': []})
 node('khan-cap', 'home', 'khanCapPage', 'Khẩn cấp', {
@@ -146,45 +147,56 @@ node('khan-cap', 'home', 'khanCapPage', 'Khẩn cấp', {
     'wzTitle': 'Tôi đang gặp chuyện gì?', 'wzDesc': 'Trả lời 3 câu hỏi ngắn để nhận dấu hiệu cảnh báo và việc cần làm ngay. Không cần đăng nhập, không lưu câu trả lời.', 'wzBtn': 'Bắt đầu',
     'doorLead': 'Chọn ô gần đúng nhất. Việc cần làm đi theo điều đã xảy ra, bạn không cần kể đúng câu chuyện.', 'doors': doors, 'noneTo': 'p0',
     'helper': 'Đang giúp người thân, hay xử lý việc của cửa hàng? Chọn theo điều đã xảy ra với người đó.',
-    'sits': ['p%d' % i for i in range(1, 10)],
+    'prTitle': 'Bốn việc không làm khi nghi ngờ', 'prNote': 'Rút từ “Năm việc phải chặn ngay” của Bài đọc Chuyên đề 1 và bước 1 của trang “Có người đang thúc bạn làm ngay”.',
     'hot': [{'_k': k(), 'so': '113', 'ht': 'goi', 'mt': 'Chỉ khi có nguy hiểm tức thời hoặc cần Cảnh sát đến ngay.', 'cp': ''},
             {'_k': k(), 'so': '156', 'ht': 'ca2', 'mt': 'Phản ánh cuộc gọi, tin nhắn rác hoặc có dấu hiệu lừa đảo. Gọi và nhắn tin đều miễn phí.', 'cp': ''},
             {'_k': k(), 'so': '5656', 'ht': 'nhan', 'mt': 'Phản ánh qua tin nhắn, miễn phí, cùng cú pháp như 156. Không phải số để gọi.', 'cp': ''}],
-    'hotDate': '', 'hotSrc': '', 'hotBank': [], 'end': [{'_k': k(), 'nhan': 'Mở Công cụ & checklist', 'trang': 'cong-cu'}]})
+    'hotDate': '', 'hotSrc': '', 'hotBank': [], 'end': [{'_k': k(), 'nhan': 'Liên hệ đúng nơi', 'trang': 'lien-he'}, {'_k': k(), 'nhan': 'Kiểm tra nhanh: Khi nghi ngờ bị lừa', 'trang': 'tool3'}]})
 
-# ---- Trinh hoi
-SP = {
- 1: [('dt', 'Cuộc gọi', 'call'), ('tn', 'Tin nhắn SMS/Zalo/WhatsApp', 'chat'), ('mail', 'Email', 'mail'), ('mxh', 'Facebook/TikTok/YouTube', 'users'), ('web', 'Website hoặc quảng cáo', 'globe'), ('tt', 'Người quen giới thiệu', 'person')],
- 2: [('money', 'Chuyển tiền hoặc đặt cọc', 'money'), ('otp', 'Cung cấp OTP, mật khẩu, mã PIN', 'key'), ('app', 'Cài ứng dụng hoặc nhấn link', 'app'), ('invest', 'Đầu tư, mua coin, mở tài khoản', 'chart'), ('loan', 'Vay tiền hoặc trả phí trước', 'coins'), ('id', 'Gửi ảnh CCCD, ảnh khuôn mặt, chữ ký', 'face')],
- 3: [('profit', '“Lợi nhuận cao, bảo đảm vốn”', 'chart'), ('lock', '“Tài khoản sẽ bị khóa”', 'lock'), ('gov', '“Cơ quan chức năng đang liên hệ”', 'shield'), ('job', '“Việc nhẹ, lương cao”', 'brief'), ('refund', '“Hoàn tiền, trúng thưởng, hỗ trợ hoàn vốn”', 'gift'), ('rush', '“Cần quyết định ngay hôm nay”', 'clock')]}
-OK = {}
-opts = {}
-for s in (1, 2, 3):
-    opts[s] = []
-    for code, t, ic in SP[s]:
-        kk = 'o%d-%s' % (s, code); OK[(s, code)] = kk
-        opts[s].append({'_k': kk, 't': t, 'ic': ic})
-A4 = ['Không chuyển tiền ngay.', 'Gọi lại qua số chính thức.', 'Hỏi người thân tin cậy.', 'Nếu đã chuyển, liên hệ ngân hàng ngay.']
-MATRIX = [
- ('Giả mạo ngân hàng yêu cầu OTP', 'd', ['dt', 'tn', 'mail'], ['otp', 'app'], ['lock'], 'doc7', 7, ['Người gọi hoặc tin nhắn tự xưng ngân hàng', 'Yêu cầu đọc hoặc nhập mã OTP, mật khẩu', 'Dọa tài khoản sắp bị khóa'], ['Không đọc, không gửi mã OTP cho bất kỳ ai.', 'Cúp máy, tự gọi số in ở mặt sau thẻ.', 'Không bấm đường link trong tin nhắn.', 'Nếu đã đọc mã, gọi ngân hàng ngay để khóa tài khoản.']),
- ('Giả mạo công an, thuế, tòa án', 'd', ['dt', 'tn'], ['money', 'app', 'id'], ['gov', 'rush'], 'doc7', 7, ['Tự xưng cơ quan chức năng, nói bạn liên quan vụ việc', 'Yêu cầu chuyển tiền để “xác minh”', 'Bắt giữ bí mật, quyết định ngay'], ['Không chuyển tiền.', 'Cúp máy, tự liên hệ cơ quan Công an nơi cư trú.', 'Kể với người thân trước khi làm gì tiếp.', 'Không cài ứng dụng theo yêu cầu.']),
- ('Giả mạo bưu điện, giao hàng, hoàn tiền', 'h', ['dt', 'tn'], ['app', 'money', 'otp'], ['refund'], 'doc6', 6, ['Báo có đơn hàng, bưu phẩm hoặc khoản hoàn tiền', 'Gửi đường link để “nhận hoàn tiền”', 'Yêu cầu nộp phí nhỏ trước'], A4),
- ('Lừa đảo việc làm online, cọc việc làm', 'd', ['mxh', 'tn', 'web'], ['money', 'app'], ['job'], 'doc5', 5, ['Việc nhẹ, lương cao, làm tại nhà', 'Bắt nạp tiền hoặc đặt cọc để nhận việc', 'Trả hoa hồng vài lần đầu rồi đòi nạp thêm'], ['Không nạp, không đặt cọc để nhận việc.', 'Tra tên công ty qua kênh do bạn tự tìm.', 'Hỏi người thân tin cậy.', 'Nếu đã chuyển, liên hệ ngân hàng ngay.']),
- ('Lừa đảo đầu tư crypto, forex, chứng khoán', 'd', ['mxh', 'web', 'tt', 'tn'], ['invest', 'money', 'app'], ['profit', 'rush'], 'doc3', 3, ['Hứa lợi nhuận cao, bảo đảm vốn', 'Mời mở tài khoản trên ứng dụng lạ', 'Thúc quyết định ngay hôm nay'], ['Không chuyển tiền vào tài khoản cá nhân.', 'Kiểm tra giấy phép của bên mời.', 'Hỏi người thân tin cậy.', 'Nếu đã chuyển, liên hệ ngân hàng ngay.']),
- ('App vay, phí trước, vay nhanh', 'h', ['web', 'mxh', 'tn'], ['loan', 'app', 'id'], ['rush'], 'doc4', 4, ['Vay nhanh, duyệt trong vài phút', 'Đòi phí trước khi giải ngân', 'Xin quyền danh bạ, ảnh, giấy tờ'], ['Không trả phí trước khi nhận tiền vay.', 'Không gửi ảnh giấy tờ cho ứng dụng lạ.', 'Hỏi người thân tin cậy.', 'Chỉ vay ở tổ chức có giấy phép.']),
- ('Giả mạo người thân, sếp, khách hàng', 'h', ['tn', 'dt', 'mxh'], ['money'], ['rush'], 'doc7', 7, ['Tự xưng người quen đang cần tiền gấp', 'Đổi số tài khoản nhận tiền', 'Dặn đừng hỏi ai'], ['Không chuyển tiền ngay.', 'Gọi lại số bạn vẫn lưu của người đó.', 'Hỏi người thân tin cậy.', 'Nếu đã chuyển, liên hệ ngân hàng ngay.']),
- ('Mua bán online, người mua giả, QR lừa đảo', 'h', ['mxh', 'tn', 'web'], ['app', 'otp', 'money'], ['refund'], 'doc6', 6, ['Người mua gửi mã QR hoặc link để “nhận tiền”', 'Yêu cầu nhập OTP để nhận thanh toán', 'Nói đã chuyển thừa, đòi hoàn lại'], ['Không quét mã QR người lạ gửi để nhận tiền.', 'Tự mở ứng dụng ngân hàng xem tiền đã về chưa.', 'Không đọc mã OTP.', 'Hỏi người thân tin cậy.']),
- ('Bảo hiểm giả, bảo hiểm đầu tư', 'n', ['dt', 'tt', 'mxh'], ['invest', 'money'], ['profit'], 'doc2', 2, ['Giới thiệu bảo hiểm như khoản tiết kiệm lãi cao', 'Không đưa hợp đồng đầy đủ để đọc trước'], ['Đọc hết hợp đồng trước khi ký.', 'Hỏi rõ phí, quyền lợi và cách dừng hợp đồng.', 'Hỏi người thân tin cậy.']),
- ('Lộ CCCD, ảnh khuôn mặt, chữ ký', 'h', ['dt', 'tn', 'mail', 'mxh', 'web', 'tt'], ['id'], [], 'p6', 8, ['Bị yêu cầu gửi ảnh giấy tờ hoặc quét khuôn mặt cho người lạ'], ['Không gửi thêm giấy tờ.', 'Theo dõi tài khoản ngân hàng, ví điện tử.', 'Cảnh giác với cuộc gọi mạo danh sau đó.'])]
-mrows = [{'_k': k(), 'name': m[0], 'level': LV[m[1]], 's1': [OK[(1, c)] for c in m[2]], 's2': [OK[(2, c)] for c in m[3]], 's3': [OK[(3, c)] for c in m[4]],
-          'article': m[5], 'checklist': 'chk%d' % m[6], 'signs': m[7], 'actions': m[8], 'on': True} for m in MATRIX]
+# ---- Trinh hoi (QD-056): lua chon theo ban dung; tinh huong lay tu thu doan, viec can lam lay tu buoc cua trang Viec can lam
+def wstep(p, i):
+    n = V['PB'][str(p)]['stepNo'][i]
+    assert n, 'khoi %d cua trang p%d khong phai buoc' % (i, p)
+    return {'page': 'p%d' % p, 'step': str(n)}
+W1 = [{'_k': 'o1-' + o['v'], 'ic': o['i'], 't': o['t'], 'ch': CHS[o['v']]} for o in V['WZCH']]
+def wopts(s, lst):
+    out = []
+    for o in lst:
+        r = {'_k': 'o%d-%s' % (s, o['v']), 'ic': {'bank': 'money'}.get(o['i'], o['i']), 't': o['t'], 'kind': 'phaiDung' if o['k'] == 'd' else 'tamHoan', 'sign': '', 'stxt': '', 'hint': o.get('hint', '')}
+        if o['k'] == 'd' and 'sg' in o: r['sign'] = SIGNID[V['SIGNS'][o['sg']][0]]
+        elif o.get('rf'): r['stxt'] = V['REFUSE']
+        else: r['stxt'] = V['HOLDTXT'].get(o['v'], '')
+        out.append(r)
+    return out
+W2, W3 = wopts(2, V['WZRQ']), wopts(3, V['WZPR'])
+WK = {o['_k'].split('-', 1)[1]: o['_k'] for o in W1 + W2 + W3}
+def wrow(p=None, i=None, text='', only=(), skip=()):
+    r = {'_k': k(), 'page': '', 'step': '', 'text': text, 'only': [WK[x] for x in only], 'skip': [WK[x] for x in skip]}
+    if p is not None: r.update(wstep(p, i))
+    return r
+TACWZ = {r[0]: [WK[x] for x in r[2]] for r in V['WZRULES']}
+TACCH = {r[0]: r[1] for r in V['WZRULES']}  # kenh trinh hoi dung cho thu doan; gop vao Kenh cua thu doan de mot cho nhap
 node('wizard', 'khan-cap', 'wizardPage', 'Kiểm tra tình huống', {
-    'q1': 'Bạn nhận được thông tin qua kênh nào?', 'h1': 'Chọn một kênh. Nếu nhiều kênh, chọn kênh đầu tiên họ liên hệ.', 'o1': opts[1],
-    'q2': 'Họ yêu cầu bạn làm gì?', 'h2': 'Chọn tất cả việc họ yêu cầu.', 'o2': opts[2],
-    'q3': 'Họ nói gì để thuyết phục bạn?', 'h3': 'Chọn tất cả câu bạn đã nghe.', 'o3': opts[3],
-    'matrix': mrows, 'r1': 'Mức độ cần thận trọng', 'r2': 'Có thể là', 'r3': 'Dấu hiệu phù hợp', 'r4': 'Việc cần làm ngay', 'maxShow': '3',
-    'none': 'Chưa khớp tình huống nào trong danh sách. Hãy giữ bốn nguyên tắc dừng lại.',
-    'b1': 'Xem bài hướng dẫn chi tiết', 'b2': 'Tải danh sách kiểm tra (PDF)', 'b3': 'Gửi cho người thân', 'b4': 'Kiểm tra lại', 'defChk': 'chk1'})
+    'title': 'Tôi đang gặp chuyện gì?', 'lead': 'Trả lời 3 câu hỏi ngắn để nhận dấu hiệu cảnh báo và việc cần làm ngay.',
+    'priv': 'Không cần đăng nhập. Câu trả lời không được lưu và không gửi đi đâu. Đừng nhập số điện thoại, số tài khoản hay tên riêng ở bất kỳ đâu.',
+    'q1': 'Họ liên hệ với bạn qua đâu?', 'h1': 'Chọn một dòng.', 'o1': W1, 'o1x': 'Kênh khác, hoặc không nhớ',
+    'q2': 'Họ yêu cầu bạn làm gì?', 'h2': 'Chọn tất cả những dòng đúng. Không chắc thì chọn “Tôi chưa biết”.', 'o2': W2, 'none2': 'Chưa yêu cầu gì cụ thể',
+    'q3': 'Họ hứa hẹn hoặc đe dọa điều gì?', 'h3': 'Chọn tất cả những dòng đúng. Không chắc thì chọn “Tôi chưa biết”.', 'o3': W3, 'none3': 'Không hứa hẹn, không đe dọa gì',
+    'unk': 'Tôi chưa biết, không nhớ rõ', 'unkSign': V['HOLDTXT']['unk'],
+    'r1': 'Mức độ cần thận trọng', 'r2': 'Tình huống gần giống', 'r3': 'Dấu hiệu cần chú ý', 'r4': 'Việc cần làm ngay', 'r5': 'Nếu bạn đã lỡ làm theo', 'maxShow': '3',
+    'sitNote': 'Đây là ví dụ để bạn đối chiếu, không phải kết luận về việc bạn đang gặp.',
+    'none': 'Chưa có tình huống mẫu khớp với lựa chọn của bạn. Điều đó không có nghĩa là an toàn. Trong lúc chưa rõ, nhớ bốn điều:',
+    'noneMore': 'Không thấy dấu hiệu nào không có nghĩa là an toàn. Vẫn tự kiểm tra bằng kênh do chính bạn tìm ra trước khi đưa tiền hay thông tin.',
+    'defChk': 'chk7',
+    'actD': [wrow(1, 0), wrow(1, 1), wrow(text=V['REFUSE'], only=['acct']), wrow(8, 1, only=['threat', 'rush'], skip=['acct']), wrow(1, 3, skip=['acct', 'threat', 'rush']),
+             wrow(1, 5, only=['dt', 'tn']), wrow(1, 4, skip=['dt', 'tn'])],
+    'actH': [wrow(1, 1), wrow(1, 2, only=['money']), wrow(1, 0, skip=['money']), wrow(7, 0), wrow(1, 3)],
+    'actN': [wrow(7, 0), wrow(7, 1), wrow(1, 3)],
+    'lost': [{'_k': k(), 'ic': 'key', 'nhan': 'Đã đọc mã OTP, đưa mật khẩu, cài ứng dụng', 'trang': 'p3', 'only': []},
+             {'_k': k(), 'ic': 'money', 'nhan': 'Đã chuyển tiền hoặc giao hàng đi', 'trang': 'p2', 'only': []},
+             {'_k': k(), 'ic': 'id', 'nhan': 'Đã gửi ảnh giấy tờ, quét khuôn mặt, ký giấy', 'trang': 'p6', 'only': []},
+             {'_k': k(), 'ic': 'alert', 'nhan': 'Đang bị đe dọa, ép buộc', 'trang': 'p8', 'only': [WK['threat'], WK['rush']]}],
+    'b1': 'Đọc bài chi tiết', 'b2': 'Mở danh sách kiểm tra', 'b3': 'Gửi cho người thân', 'b4': 'Kiểm tra lại'})
 
 # ---- Viec can lam
 for i in range(10):
@@ -348,8 +360,8 @@ for kk in sorted(R['DOCS'], key=int):
 node('f-tac', 'lib', 'tacticFolder', 'Thủ đoạn', {})
 for i, t in enumerate(V['TACTICS']):
     node('t%d' % i, 'f-tac', 'tacticItem', t['t'], {'code': slug(t['t'])[:40].strip('-'), 'active': True, 'topic': 'cd%d' % t['cd'], 'article': ('lv%d' if str(t['cd']) in V['LVORDER'] else 'doc%d') % t['cd'], 'anchor': '',
-         'ch': [CHS[c] for c in V['TCH'][str(i)]], 'level': LV[V['TLV'][str(i)]], 'kw': []})
-node('t-cu', 'f-tac', 'tacticItem', 'Tin nhắn trúng thưởng, nhận quà tri ân', {'code': 'tin-nhan-trung-thuong', 'active': False, 'topic': 'cd7', 'article': 'doc7', 'anchor': '', 'ch': ['tin-nhan'], 'level': 'cao', 'kw': ['trúng thưởng']})
+         'ch': [CHS[c] for c in V['TCH'][str(i)] + [x for x in TACCH.get(i, []) if x not in V['TCH'][str(i)]]], 'level': LV[V['TLV'][str(i)]], 'kw': [], 'wzAns': TACWZ.get(i, [])})
+node('t-cu', 'f-tac', 'tacticItem', 'Tin nhắn trúng thưởng, nhận quà tri ân', {'code': 'tin-nhan-trung-thuong', 'active': False, 'topic': 'cd7', 'article': 'doc7', 'anchor': '', 'ch': ['tin-nhan'], 'level': 'cao', 'kw': ['trúng thưởng'], 'wzAns': []})
 node('f-qa', 'content', 'quickQaFolder', 'Hỏi – đáp nhanh', {})
 for i, q in enumerate(V['QA']):
     node('qa%d' % i, 'f-qa', 'quickQaItem', q['q'], {'q': q['q'], 'a': q['a'], 'why': '<p>%s</p>' % q['why'], 'todo': '<p>%s</p>' % q['todo'], 'pages': [], 'by': 'Ban biên tập'})
@@ -408,6 +420,11 @@ if imgdir:
         im = Image.open(fn).convert('RGB'); im.thumbnail((640, 640))
         buf = io.BytesIO(); im.save(buf, 'JPEG', quality=72)
         m['src'] = 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode()
+for pid in ['p%s' % x for x in V['SITORDER']] + ['p0']:
+    N.append(N.pop(next(i for i, x in enumerate(N) if x['id'] == pid)))
+# thu tu thu doan: theo thu tu uu tien cua trinh hoi trong ban dung (hoa diem lay thu doan dung truoc), roi cac thu doan khac
+for tid in ['t%d' % r[0] for r in V['WZRULES']] + ['t%d' % i for i in range(len(V['TACTICS'])) if i not in {r[0] for r in V['WZRULES']}] + ['t-cu']:
+    N.append(N.pop(next(i for i, x in enumerate(N) if x['id'] == tid)))
 N.append(N.pop(next(i for i, x in enumerate(N) if x['id'] == 'lib')))
 # QD-053 bo sung: noi dung tren, trang duoi, Cai dat website cuoi; trang phang duoi Quan ly trang, trang thong tin va chinh sach gom mot thu muc
 node('f-other', 'pages', 'otherPagesFolder', 'Trang thông tin, chính sách', {})
@@ -423,6 +440,10 @@ if SCOPE == 'rui-ro':
     keep_roots = {'content', 'pages', 'settings', 'c-alert', 'c-art', 'f-snip', 'lib', 'rui-ro'}
     hide_top = {'c-vcl', 'c-chk', 'f-qa'} | {x['id'] for x in N if x['p'] == 'pages' and x['id'] != 'rui-ro'}
     EXTRA = {'HIDE': sorted(hide_top), 'TITLE': 'Backoffice · Các rủi ro'}
+elif SCOPE == 'khan-cap':
+    # Khan cap: trang Khan cap va trinh hoi, Viec can lam, Doan dung chung, Danh muc (kenh, dau hieu, thu doan), Cai dat website
+    hide_top = {'c-alert', 'c-art', 'c-chk', 'f-qa', 'f-aud', 'f-pop', 'f-topic'} | {x['id'] for x in N if x['p'] == 'pages' and x['id'] != 'khan-cap'}
+    EXTRA = {'HIDE': sorted(hide_top), 'TITLE': 'Backoffice · Khẩn cấp'}
 data = json.dumps({'N': N, 'MEDIA': MEDIA, **EXTRA}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 src = open(srcpath, encoding='utf-8').read()
 out = src.replace('__DATA__', data)

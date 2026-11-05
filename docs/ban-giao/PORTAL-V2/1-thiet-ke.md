@@ -19,10 +19,9 @@ Mục tiêu: dựng lại website antoantaichinh.vn theo cấu trúc 3 mục c�
 Trong phạm vi:
 - 38 loại nội dung ở Phụ lục A: 21 loại trang, 9 thư mục, 8 loại mục và 3 composition.
 - Các data type đi kèm.
-- 4 thành phần backoffice tự viết:
+- 3 thành phần backoffice tự viết (QĐ-056 bỏ màn ma trận `Antc.WizardMatrix`):
   - ô chọn combobox `Antc.NodeCombobox`;
   - ô danh sách `Antc.InlineList`;
-  - màn ma trận `Antc.WizardMatrix`;
   - ô hiển thị `Antc.InfoPanel`.
 - Quy tắc phía máy chủ: kiểm khi lưu và khi xuất bản, chặn xóa, tự gỡ cảnh báo, PDF.
 - Quyền hai nhóm.
@@ -94,11 +93,11 @@ Mọi task phải đạt các điều sau. Tiêu chí riêng của từng task g
 |---|---|
 | Danh mục rỗng (chưa có kênh nào) | Combobox hiện "Chưa có mục nào trong danh mục này." Quản trị viên thấy thêm liên kết mở thư mục |
 | Mục danh mục đã tắt "Đang dùng" nhưng bài cũ còn chọn | Ẩn khỏi danh sách chọn. Thẻ đã chọn hiện chữ xám kèm "(ngừng dùng)". Website không hiện mục đó ở bộ lọc |
-| Xóa mục còn được trỏ tới (danh mục, trang, checklist, đoạn dùng chung) | Umbraco chặn và liệt kê nơi dùng. Ma trận trình hỏi và `InlineList` cũng phải báo tham chiếu |
+| Xóa mục còn được trỏ tới (danh mục, trang, checklist, đoạn dùng chung) | Umbraco chặn và liệt kê nơi dùng. `InlineList` cũng phải báo tham chiếu |
 | Đổi mã danh mục, số chuyên đề sau khi đã xuất bản | Chặn lưu, báo lý do |
 | Hai mục cùng mã trong một danh mục | Chặn lưu, báo tên mục trùng |
-| Lựa chọn của trình hỏi bị xóa ở tab Câu hỏi nhưng ma trận còn trỏ tới | Ma trận cảnh báo. Xuất bản thì ô đó bị bỏ qua và ghi log |
-| Không tình huống nào khớp | Trình hỏi hiện trạng thái "Cần thận trọng" và 4 nguyên tắc dừng |
+| Lựa chọn của trình hỏi bị xóa ở tab Câu hỏi nhưng thủ đoạn hoặc dòng việc cần làm còn trỏ tới | Tab Thủ đoạn của trình hỏi liệt kê; website bỏ qua khóa không còn và ghi log (QĐ-056) |
+| Không thủ đoạn nào khớp | Mức độ vẫn tính theo loại lựa chọn; khối Tình huống gần giống hiện `noMatchText` và 4 nguyên tắc dừng (QĐ-056) |
 | Cảnh báo quá 90 ngày | Ra khỏi khối trang chủ. Quá "Tự gỡ sau" thì tác vụ nền tự hủy xuất bản |
 | Danh sách kiểm tra chưa có tệp PDF | Nút "Tải danh sách kiểm tra (PDF)" mở bản in A4 (QĐ-049) |
 | Dán từ Word hoặc Excel vào bảng, danh sách dòng | Tách dòng, tách cột. Phần vượt số tối đa bị bỏ, có thông báo |
@@ -114,7 +113,7 @@ Mọi task phải đạt các điều sau. Tiêu chí riêng của từng task g
 |---|---|---|---|
 | Cấu trúc 3 mục, bỏ Block Grid ở trang chính | Đã xác nhận | QĐ-032 | |
 | Logic và nhãn theo đặc tả | Đã xác nhận | QĐ-033 | Câu chữ công cụ 3 cần Ban biên tập duyệt |
-| Ma trận trình hỏi | Đã xác nhận | QĐ-034 | Cách tính điểm: `1-phan-tich…` mục 6.4 |
+| Trình hỏi | Đã xác nhận | QĐ-056 (thay QĐ-034) | Theo bản dựng; thủ đoạn thay ma trận. Cách tính ở `rule` của `cong-cu/wizard-cases.json` |
 | Hai nhóm quyền | Đã xác nhận | QĐ-035 | |
 | PDF checklist | Đã xác nhận | QĐ-036, QĐ-049 | Đợt này dùng tệp tải lên và bản in A4; LibreOffice tạm dừng |
 | Mã danh mục viết đầy đủ; Mức độ phổ biến là node; combobox mọi chỗ; danh mục là node | Đã xác nhận | QĐ-037 đến QĐ-040 | |
@@ -233,12 +232,12 @@ Mỗi task dưới đây gồm:
 | V2-04a | `alertListPage`, `alertPage` (1) | chính | QĐ-053, QĐ-054. `alertListPage`: `title`, `lead`, `showSampleNote`, `illustrationBase`.<br>• `alertPage` tạo ở Quản lý nội dung › Cảnh báo (`alertFolder`); một tab Viết cảnh báo và SEO, hai cột như mockup `#al1`. Cột viết: `title`, `description`, `scenarioSteps`, `stopSigns`, `otherSigns`, `actionPage`; nguồn: `issuingAgency`, `documentNumber`, `documentDate`, `documentUrl`; “Thêm chi tiết”: `searchKeywords`, `autoUnpublishDays` (mặc định 180). Cột phải: `updatedDate`, `cautionLevel`, `popularity`, `popularityBasis`, `tactics` (bắt buộc khi đăng), `channels`, `audiences`.<br>• Chọn thủ đoạn thì điền sẵn kênh, đối tượng khi ô còn trống.<br>• Collection của `alertFolder`: cột Mức độ, Phổ biến, Ngày cập nhật, Còn mới, Trạng thái; lọc Trạng thái, Mức độ, Mức độ phổ biến, Kênh.<br>• `Chọn · Cảnh báo` | V2-03b, V2-01s, V2-01v | Đúng Phụ lục A; điền sẵn kênh, đối tượng đúng như mockup | Tạo, lọc, xuất bản hàng loạt trong Collection; chọn thủ đoạn ở cảnh báo mới | Chờ I-01 |
 | V2-04b | Cảnh báo theo thời gian (1) | chính | `Core/PortalV2/Alerts/AlertFreshness.cs`: còn mới khi `updatedDate` không quá 90 ngày; ghim ở trang chủ tự bỏ sau 90 ngày.<br>`AlertAutoUnpublishJob.cs` (`IRecurringBackgroundJob`, mỗi ngày): hủy xuất bản khi quá `autoUnpublishDays`, ghi log và lịch sử nút | V2-04a | Cảnh báo quá hạn tự gỡ. Hàm "còn mới" dùng chung cho view và `InfoPanel` | `dotnet test` (mốc 89, 90, 91 ngày); sửa ngày của một cảnh báo thử rồi chạy job | Chờ I-01 |
 | V2-05a | `sharedSnippet`, `viecCanLamPage` (1) | chính | • `Chọn · Đoạn dùng chung`.<br>• `viecCanLamPage`: `steps` (Thẻ, phần tùy chọn "Hỏi thêm" bật bằng `hasFollowUp`), `screeningQuestions` (Bảng).<br>• `Chọn · Việc cần làm` (một, nhiều).<br>• Đường dẫn dùng `umbracoUrlName`<br>• QĐ-053: `viecCanLamPage` tạo trong Quản lý nội dung › Việc cần làm (`actionFolder`, kéo sắp); `khanCapPage` bỏ tab Danh sách | V2-03a | Đúng Phụ lục A. Đổi `umbracoUrlName` thì bộ chuyển hướng có sẵn ghi 301 | Đổi đường dẫn một trang, mở đường dẫn cũ | Chờ I-01 |
-| V2-07a | `wizardPage`: tab Câu hỏi, tab Kết quả (0,5) | chính | Ba bảng lựa chọn `step1Options`…`step3Options`, mỗi dòng có `key` cố định. Tab Kết quả theo Phụ lục A. Tab Ma trận để trống tới V2-07b | V2-05a | Đúng Phụ lục A. Sửa nhãn lựa chọn không đổi `key` | Sửa nhãn, xem JSON | Chờ I-01 |
-| V2-07b | Ma trận phía máy chủ và hàm tính điểm (1) | V2-ui | `Core/PortalV2/Wizard/`: `WizardMatrixEditor` (`DataEditor` `Antc.WizardMatrix`), kiểm cấu trúc JSON, `IDataValueReferenceFactory` (bài và checklist trong từng hàng), value converter.<br>`WizardScoring.cs`: điểm = 2 × số lựa chọn bước 2, 3 trùng, cộng 3 nếu kênh trùng; chỉ tính hàng có ít nhất một lựa chọn bước 2 hoặc 3 trùng; lấy tối đa `maxSituations` hàng; mức độ cao nhất; hòa điểm thì theo thứ tự hàng | V2-07a | Theo `1-phan-tich…` mục 6.4. Bộ ca kiểm dùng chung với JS (V2-07d, V2-13d) đặt ở `docs/ban-giao/PORTAL-V2/cong-cu/wizard-cases.json` | `dotnet test` với ít nhất 6 ca, trong đó có: ngân hàng và OTP; đầu tư crypto; không khớp | Chờ I-01 |
-| V2-07c | Ma trận: bảng (1) | V2-ui | `Web/App_Plugins/AntcEditors/wizard-matrix.js`:<br>• Cột đầu cố định khi cuộn; tiêu đề cột viết dọc; nhóm 3 bước theo màu; bấm ô để bật, tắt.<br>• Tìm, lọc mức độ, "Chỉ hàng có cảnh báo".<br>• Kéo để sắp.<br>• Khối cảnh báo: hàng thiếu thông tin, lựa chọn chưa thuộc hàng nào, ô trỏ tới lựa chọn đã xóa | V2-07b | Giống tab Ma trận trong mockup (`#qt.wizard`) | Bật, tắt ô; lưu; mở lại | Làm được |
-| V2-07d | Ma trận: ngăn chi tiết và "Thử kết quả" (1) | V2-ui | Ngăn bên phải sửa tên, mức độ, dấu hiệu (1–3), việc cần làm (1–4), bài, checklist, "Đang dùng"; nhân bản; xóa có Hoàn tác.<br>Khung "Thử kết quả" tính bằng JS theo cùng bộ ca kiểm | V2-07c | Kết quả JS khớp `WizardScoring` trên mọi ca trong `wizard-cases.json` | Chạy bộ ca bằng `node`; thử tay trên màn | Làm được |
+| V2-07a | `wizardPage` (1) | chính | QĐ-056. Ba tab Câu hỏi, Thủ đoạn, Kết quả theo Phụ lục A.<br>• `step1Options` có `channel`; `step2Options`, `step3Options` có `optionKind` (Danh mục · Loại lựa chọn trình hỏi), `stopSign`, `signText`, `hint`; mỗi dòng có `key` cố định.<br>• `stopActions`, `holdActions`, `clearActions`: trang + số bước hoặc câu riêng, `onlyIf`, `skipIf`; `ifAlreadyLinks`.<br>• Data type `Chọn · Lựa chọn của trình hỏi` (3 câu) và `Chọn · Lựa chọn câu 2, 3 của trình hỏi`: nguồn mới của C1, trả khóa dòng của `wizardPage`, cùng dạng phản hồi (`contentType` = `wizardOption`, `parentName` = "Câu 2").<br>• Thêm `tacticItem.wizardAnswers` (nhóm “Trình hỏi”, cũng hiện ở khối “Hiện trên website ở đâu”).<br>• Tab Thủ đoạn: `Antc.InfoPanel` liệt kê thủ đoạn theo từng lựa chọn và thủ đoạn chưa chọn câu trả lời | V2-05a, V2-01i | Đúng Phụ lục A. Sửa nhãn lựa chọn không đổi `key`; thủ đoạn chọn được lựa chọn câu 2, 3 | Sửa nhãn, xem JSON; chọn câu trả lời ở một thủ đoạn | Chờ I-01 |
+| V2-07b | Dịch vụ tính kết quả trình hỏi (1) | chính | QĐ-056. `Core/PortalV2/Wizard/WizardRules.cs` (đăng ký ở `CustomCoreComposer`): từ `wizardPage` và các thủ đoạn đang dùng, dựng bộ quy tắc gọn (lựa chọn, loại, câu dấu hiệu đã ghép từ Dấu hiệu phải dừng, kênh; thủ đoạn: tên, kênh, `wizardAnswers`, bài chứa, danh sách kiểm tra theo chuyên đề; ba bảng việc cần làm đã đổi số bước thành chữ của bước) để view V2-13d nhúng vào trang. Không có API công khai.<br>• Cách tính theo `rule` của `cong-cu/wizard-cases.json`; `WizardResult.cs` tính phía máy chủ để kiểm.<br>• Lưu đệm, xóa khi lưu trình hỏi, thủ đoạn, trang Việc cần làm, Dấu hiệu phải dừng.<br>• Kiểm khi lưu: số bước tồn tại; khóa ở `onlyIf`, `skipIf`, `wizardAnswers` còn tồn tại | V2-07a, V2-04a | Kết quả khớp mọi ca trong `cong-cu/wizard-cases.json` (sinh bằng `sinh-ca-kiem-trinh-hoi.js`, đã đối chiếu 10 ca với bản dựng) | `dotnet test` chạy bộ ca | Chờ I-01 |
+| V2-07c | ~~Ma trận: bảng~~ | – | Bỏ (QĐ-056): không còn ma trận | – | – | – | Bỏ |
+| V2-07d | ~~Ma trận: ngăn chi tiết và "Thử kết quả"~~ | – | Bỏ (QĐ-056). Tab Thủ đoạn của V2-07a thay phần cảnh báo của ma trận | – | – | – | Bỏ |
 | V2-08a | `congCuPage`, kiểm tra nhanh, `checklistPage` (1) | chính | • `congCuPage` "Hãy tự kiểm tra": ba nhóm Kiểm tra nhanh, Danh sách kiểm tra, Kiểm tra kiến thức (`knowledgeLinks`); tab Danh sách kéo sắp.<br>• `toolCountPage`: `questions` (Thẻ: `questionKind`, `question`, `hint`, `answerOptions`), nhãn ba mức, `stopActions`/`holdActions`/`clearActions` (trang việc cần làm + số bước), `readMore`, `showAdviceBox`.<br>• `toolBranchPage`: `questions` (Thẻ: câu, nhãn tình huống, chữ nút, trang việc cần làm, `takeSteps`), hộp nguy hiểm tức thời, `allNoActions`, `hitTitle` có `{n}`.<br>• `checklistPage`: phần 1 `stopQuestions` (≤ 8), phần 2 `pocketItems` (≤ 15), `stopNow`, `holdNow`, `pdfFile` (QĐ-049).<br>• Kiểm máy chủ: số bước tồn tại trong trang việc cần làm.<br>• `Chọn · Kiểm tra nhanh`, `Chọn · Danh sách kiểm tra`; thêm `topicItem.checklist`; thêm danh sách kiểm tra vào `Chọn · Bài liên quan`. Gắn `illustrationBase` (QĐ-052)<br>• QĐ-053: `checklistPage` tạo trong Quản lý nội dung › Danh sách kiểm tra (`checklistFolder`, kéo sắp, thứ tự hiện ở Hãy tự kiểm tra); `congCuPage` bỏ tab Danh sách; 3 kiểm tra nhanh vẫn là trang con của Hãy tự kiểm tra | V2-03a, V2-01r | Đúng Phụ lục A; số bước sai bị chặn khi lưu | Tạo danh sách mới bằng nút Tạo của trang cha; nhập số bước 9 ở trang 5 bước | Làm được |
-| V2-06a | `khanCapPage` (1) | chính | Tab Danh sách (trang Việc cần làm, ngày rà soát).<br>• `doors`: Thẻ cố định 3, trong thẻ có bảng `options`; hiện `targetPage` hay `options` theo `openMode`.<br>• `stateHotlines`, `bankHotlines`: Bảng.<br>• `typicalSituations`.<br>• `Chọn · Việc cần làm hoặc trình hỏi` | V2-05a, V2-07a | Đúng Phụ lục A | Điền thử ba cửa vào hai kiểu | Chờ I-01 |
+| V2-06a | `khanCapPage` (1) | chính | QĐ-053, QĐ-056.<br>• `doors`: Thẻ cố định 3, trong thẻ có bảng `options`; hiện `targetPage` hay `options` theo `openMode`.<br>• `stateHotlines`, `bankHotlines`: Bảng.<br>• `principlesTitle`, `principlesNote`; bốn việc lấy từ `siteSettings.stopPrinciples`.<br>• Không có `typicalSituations`: `Antc.InfoPanel` báo danh sách tự lấy và mở Quản lý nội dung › Việc cần làm.<br>• `Chọn · Việc cần làm hoặc trình hỏi` | V2-05a, V2-07a | Đúng Phụ lục A | Điền thử ba cửa vào hai kiểu | Chờ I-01 |
 | V2-06b | `homePage` (0,5) | chính | Bốn nhóm khối; `tools` đúng 3, sắp được; `pinnedAlert`. Cho tạo con `infoPage`, `policyPage` (chỉ Quản trị) | V2-04a, V2-08a | Đúng Phụ lục A | Tạo nút trang chủ mới | Làm được |
 | V2-08b | Bản in A4, tệp thay thế, đường tải PDF (1,5) | chính | `Core/PortalV2/Pdf/ChecklistPdfResolver.cs`.<br>Đường tải `/{checklist}/tai-pdf`: có `pdfFile` thì trả tệp; không có thì chuyển sang bản in A4.<br>Cấu hình `Checklist:Pdf:Mode`, mặc định `Upload` (QĐ-049). Giữ chỗ nhánh `LibreOffice` để bật sau. View in A4 làm ở V2-13g | V2-08a | Có tệp thì tải tệp, không có thì mở bản in | `curl -I` đường tải ở hai trường hợp | Làm được |
 | V2-08c | Dịch vụ PDF bằng LibreOffice (2) | chính | `Core/PortalV2/Pdf/`: mẫu `App_Data/pdf/checklist-mau.docx`, điền bằng OpenXML.<br>Hàng đợi nền: mỗi lần một tiến trình, dùng `-env:UserInstallation`, có `TimeoutSeconds`.<br>Sinh khi xuất bản (`ContentPublishedNotification`). Lưu theo khóa nút và số phiên bản.<br>Trạng thái hiện qua C3; lệnh "Sinh lại" qua C3.<br>Không thấy `soffice` thì tự chuyển chế độ và ghi cảnh báo | V2-08b, V2-00 | Theo `1-phan-tich…` mục "PDF checklist (QĐ-036)". PDF hiện đúng chữ có dấu | Máy có LibreOffice: xuất bản checklist thì có PDF. Đổi `SofficePath` sai thì chế độ tự chuyển | Tạm dừng (QĐ-049). Chỉ làm khi hosting cài được LibreOffice |
@@ -250,11 +249,11 @@ Mỗi task dưới đây gồm:
 
 | # | Task | Luồng | Phạm vi / file dự kiến | Phụ thuộc | Tiêu chí hoàn thành | Cách kiểm chứng | Trạng thái |
 |---|---|---|---|---|---|---|---|
-| V2-10a | Kiểm khi xuất bản phía máy chủ (1,5) | chính | `Core/PortalV2/Rules/PublishRules.cs`: bảng luật theo loại, lấy cột "khi đăng" và "có điều kiện" của Phụ lục A.<br>Thêm luật riêng:<br>• mức kết quả công cụ phủ hết từ 0 tới số câu hỏi, không chồng nhau;<br>• hàng ma trận đang dùng đủ thông tin;<br>• alt bắt buộc khi có ảnh;<br>• trường tài trợ bắt buộc khi bật tài trợ;<br>• lọc HTML soạn thảo.<br>Dùng `ContentPublishingNotification` (hủy và trả từng lỗi).<br>Kiểm và ghi lại: Umbraco 18.2.1 có cho lưu nháp khi thiếu trường Mandatory không | V2-09a, V2-07b | Thiếu trường "khi đăng" thì không xuất bản được, nhưng lưu nháp được. Thông báo nêu tên trường | `dotnet test` cho bảng luật; thử trên cảnh báo, bài viết, công cụ, ma trận | Làm được |
+| V2-10a | Kiểm khi xuất bản phía máy chủ (1,5) | chính | `Core/PortalV2/Rules/PublishRules.cs`: bảng luật theo loại, lấy cột "khi đăng" và "có điều kiện" của Phụ lục A.<br>Thêm luật riêng:<br>• mức kết quả công cụ phủ hết từ 0 tới số câu hỏi, không chồng nhau;<br>• trình hỏi: lựa chọn Phải dừng có Dấu hiệu phải dừng hoặc câu dấu hiệu, lựa chọn Tạm hoãn có câu dấu hiệu; mỗi dòng việc cần làm có trang và bước, hoặc câu riêng (QĐ-056);<br>• alt bắt buộc khi có ảnh;<br>• trường tài trợ bắt buộc khi bật tài trợ;<br>• lọc HTML soạn thảo.<br>Dùng `ContentPublishingNotification` (hủy và trả từng lỗi).<br>Kiểm và ghi lại: Umbraco 18.2.1 có cho lưu nháp khi thiếu trường Mandatory không | V2-09a, V2-07b | Thiếu trường "khi đăng" thì không xuất bản được, nhưng lưu nháp được. Thông báo nêu tên trường | `dotnet test` cho bảng luật; thử trên cảnh báo, bài viết, công cụ, trình hỏi | Làm được |
 | V2-10b | Ô "Kiểm tra trước khi xuất bản" và API C4 (1) | V2-ui | Workspace info app (BO-19) đọc C4, cùng bảng luật V2-10a. Liệt kê mục còn thiếu, bấm thì nhảy tới trường. Phối hợp `BACKOFFICE-UI` để không làm hai lần | V2-10a | Theo QĐ-031 khoản 3 | Mở bài thiếu thông tin | Làm được |
 | V2-11a | Hai nhóm quyền (1) | chính | Nhóm "Quản trị viên" và "Biên tập viên" theo `1-phan-tich…` mục 9 và cột Tạo, Xóa của Phụ lục A:<br>• quyền theo nút: không Create, Delete, Move trên trang cố định; không Create, Delete ở `stopSignFolder`, `topicFolder`, `snippetFolder`, Việc cần làm, trang thông tin, chính sách;<br>• quyền theo trường (`DocumentPropertyValuePermission`): ẩn tab và trường "chỉ Quản trị";<br>• `wizardPage`: Biên tập viên không mở.<br>Kiểm xem uSync có xuất nhóm người dùng không; nếu không thì tạo bằng migration chạy một lần.<br>Giữ nhóm `quanTriCuocThi` | V2-10a | Đúng bảng quyền | Hai tài khoản thử; đi theo bảng kiểm ở V2-11b | Làm được |
 | V2-11b | Kiểm quyền đầu–cuối (0,5) | chính | Bảng kiểm từng loại: thấy, sửa, tạo, xóa, xuất bản, khôi phục, làm rỗng Thùng rác; cho cả hai nhóm. Ghi kết quả vào `2-ban-giao.md` | V2-11a | Không có ô sai | Thực hiện bảng kiểm | Làm được |
-| V2-12a | Công cụ nhập: các trang (1,5) | chính | Mở rộng `Tools/ImportPortalV2`: Cài đặt website, Trang chủ, Khẩn cấp, trình hỏi (gồm ma trận 10 hàng), 10 Việc cần làm, Công cụ & checklist, 3 công cụ, 8 checklist, Các rủi ro, 5 nhóm, 10 cảnh báo, 8 bài đọc chuyên đề, 10 bài đọc thêm, 7 hỏi – đáp nhanh, 5 đoạn dùng chung, 5 chính sách, 3 trang thông tin, Liên hệ, Góp ý | V2-11a | Đủ 157 nút như mockup; mọi tham chiếu trỏ đúng | Chạy trên CSDL mới (`run-local -Reset`); xuất bản toàn bộ không lỗi luật V2-10a (trừ nút ghi nháp) | Làm được |
+| V2-12a | Công cụ nhập: các trang (1,5) | chính | Mở rộng `Tools/ImportPortalV2`: Cài đặt website, Trang chủ, Khẩn cấp, trình hỏi (lựa chọn có loại, ba bảng việc cần làm; `wizardAnswers` của thủ đoạn, QĐ-056), 10 Việc cần làm, Công cụ & checklist, 3 công cụ, 8 checklist, Các rủi ro, 5 nhóm, 10 cảnh báo, 8 bài đọc chuyên đề, 10 bài đọc thêm, 7 hỏi – đáp nhanh, 5 đoạn dùng chung, 5 chính sách, 3 trang thông tin, Liên hệ, Góp ý | V2-11a | Đủ 171 nút như mockup; mọi tham chiếu trỏ đúng | Chạy trên CSDL mới (`run-local -Reset`); xuất bản toàn bộ không lỗi luật V2-10a (trừ nút ghi nháp) | Làm được |
 | V2-12b | Chuyển 40 bài `article` cũ (1,5) | chính | Ánh xạ:<br>• `body` → `readingBody`; `summary` → `summary`; `image` → `image`;<br>• `lastReviewedDate` → `reviewDate`;<br>• `sourceAgency`, `sourceDocNo`, `sourceDocDate` → một dòng `references`;<br>• `labelType` → `articleKind`; `showOnHome` → `isFeatured`; `isDraft` → trạng thái nháp; `updatedDate` → `displayUpdatedDate`.<br>Nhóm theo bảng ánh xạ do Claude lập nháp, Ban biên tập duyệt (QĐ-043). Ghi chuyển hướng 301 từ đường dẫn cũ | V2-12a, bảng ánh xạ | Đủ 40 bài; đường dẫn cũ chuyển đúng | Đếm; mở 5 đường dẫn cũ | Chờ bảng ánh xạ được Ban biên tập duyệt (QĐ-043) |
 | V2-12c | Danh sách nội dung chờ Ban biên tập (0,5) | chính | Xuất `docs/ban-giao/PORTAL-V2/5-noi-dung-cho-duyet.md`:<br>• câu chữ công cụ 3 (QĐ-033);<br>• kênh, đối tượng, mức độ của 31 thủ đoạn;<br>• chỗ còn ngoặc vuông;<br>• nguồn và ngày kiểm chứng số tổng đài;<br>• tên ngắn chuyên đề 1 và 8;<br>• căn cứ mức độ phổ biến | V2-12a | Mỗi dòng có đường dẫn nút trong backoffice | Đọc file | Làm được |
 
@@ -264,9 +263,9 @@ Mỗi task dưới đây gồm:
 |---|---|---|---|---|---|---|---|
 | V2-13a | Khung chung (1,5) | V2-web | `Web/Views/Shared/_SiteLayout.cshtml`, `Partials/PortalV2/_Header`, `_Footer`, `_TopBar`, `_Sponsor`, `_Seo`, `_Breadcrumb`; `wwwroot/assets/css/tokens.css` (bảng màu của khách: Navy `#123B63`, Blue `#0B6BCB`, Yellow `#FFC94D`, Orange `#D9531E`, Green `#1E7B4D`, nền `#F5F7FA`).<br>• Menu 3 mục.<br>• Dải trên cùng theo `topBarMode`.<br>• Chân trang lấy từ `siteSettings`.<br>• Lối vào Cuộc thi theo `showContestEntry` | V2-02a | Giống mockup portal ở 1440, 744, 390 px | Chụp 3 bề rộng, so mockup | Chờ I-01 |
 | V2-13b | Trang chủ (1) | V2-web | `homePage.cshtml`.<br>• Khối Khẩn cấp.<br>• 3 thẻ công cụ.<br>• 5 thẻ nhóm, đếm bài tự động.<br>• Cảnh báo còn mới (tối đa `alertCount`, ghim); không có cảnh báo nào còn mới thì khối ẩn | V2-06b, V2-04b | Như mockup `#trang-chu` | Chụp; đổi ngày cảnh báo để khối ẩn | Làm được |
-| V2-13c | Khẩn cấp (1) | V2-web | `khanCapPage.cshtml`.<br>• Lối vào trình hỏi.<br>• Ba cửa: mở trang ngay, hoặc mở danh sách tại chỗ.<br>• Tình huống điển hình.<br>• Số tổng đài; dấu "chưa kiểm chứng" khi thiếu nguồn.<br>• Hộp tự tìm số ngân hàng | V2-06a | Như mockup `#khan-cap` | Chụp; bấm cửa vào | Chờ I-01 |
-| V2-13d | Trình hỏi (1,5) | V2-web | `wizardPage.cshtml` và `wwwroot/assets/js/wizard.js`.<br>• Quy tắc nhúng trong HTML; tính trên trình duyệt; không gửi máy chủ.<br>• 3 bước, quay lại được.<br>• Kết quả 4 khối, 4 nút; trạng thái "Cần thận trọng".<br>• Câu bắt buộc dưới kết quả | V2-07d | Kết quả khớp `wizard-cases.json`. Không có request mạng khi trả lời | `node` chạy bộ ca trên `wizard.js`; DevTools: không có request | Làm được |
-| V2-13e | Việc cần làm (1) | V2-web | `viecCanLamPage.cshtml`.<br>• Bước có ô đánh dấu (lưu trên máy người xem).<br>• Diễn giải, câu nói mẫu, hộp số ngân hàng.<br>• Điều kiện, đoạn dùng chung, hộp "Hỏi thêm".<br>• Trang hỏi nhanh với câu sàng lọc.<br>• Dấu quá 90 ngày rà soát | V2-05a | Như mockup `#viec.N` | Chụp trang 0, 2, 3 | Chờ I-01 |
+| V2-13c | Khẩn cấp (1) | V2-web | Theo màn 1 của `mockup/bo-khan-cap.html`. `khanCapPage.cshtml`.<br>• Lối vào trình hỏi; Bốn việc không làm khi nghi ngờ (từ Cài đặt website).<br>• Ba cửa: mở trang ngay, hoặc mở danh sách tại chỗ; nút "Không ô nào giống" ghi tên trang đích.<br>• Tình huống điển hình tự lấy: trang Việc cần làm không bật `hideFromSituations`, theo thứ tự trong `actionFolder`, đếm số trang.<br>• Cách tự tìm số ngân hàng (`siteSettings.bankLookupSteps`); số tổng đài; dấu "chưa kiểm chứng" khi thiếu nguồn; hai nút cuối trang; câu `noReportNote` | V2-06a | Đúng các khối ở màn 1 | Chụp 1440, 744, 390 px; bấm cửa vào | Chờ I-01 |
+| V2-13d | Trình hỏi (1,5) | V2-web | Theo màn 2 của `mockup/bo-khan-cap.html`. `wizardPage.cshtml` và `wwwroot/assets/js/wizard.js`.<br>• Bộ quy tắc của V2-07b nhúng trong HTML; tính trên trình duyệt; không gửi máy chủ.<br>• 3 bước, quay lại được; dòng “không có gì”, “Tôi chưa biết”; câu 2, 3 bắt chọn ít nhất một dòng.<br>• Kết quả: mức độ và khuyến nghị (Cài đặt website), Tình huống gần giống (bấm mở bài chứa thủ đoạn, tô sáng thủ đoạn), Dấu hiệu, Việc cần làm ngay, Nếu đã lỡ; 4 nút; không khớp thì 4 nguyên tắc dừng.<br>• Câu bắt buộc dưới kết quả | V2-07b | Kết quả khớp `wizard-cases.json`. Không có request mạng khi trả lời | `node` chạy bộ ca trên `wizard.js`; DevTools: không có request | Chờ I-01 |
+| V2-13e | Việc cần làm (1) | V2-web | Theo màn 3, 4 của `mockup/bo-khan-cap.html`. `viecCanLamPage.cshtml`.<br>• Bước có ô đánh dấu (lưu trên máy người xem).<br>• Diễn giải, câu nói mẫu, hộp số ngân hàng (`siteSettings.bankLookupSteps`).<br>• Điều kiện, đoạn dùng chung, hộp "Hỏi thêm".<br>• Nút gọi, nhắn tin tự lấy: số trong `stateHotlines` của Khẩn cấp có trong câu chính của bước, theo `contactMode`.<br>• Trang hỏi nhanh với câu sàng lọc.<br>• Rà soát gần nhất, rà soát lại trước (ngày rà soát + 90); dấu quá 90 ngày | V2-05a | Như các màn 3, 4 | Chụp trang 0, 2, 3 | Chờ I-01 |
 | V2-13f | Hãy tự kiểm tra, kiểm tra nhanh (1,5) | V2-web | `congCuPage.cshtml`; view cho hai kiểu kiểm tra nhanh; `wwwroot/assets/js/tool.js`. Theo bản dựng `antoantaichinh_co_anh_nen_sang.html` (QĐ-051):<br>• Mỗi lần một câu, có "Tôi chưa biết", quay lại được, sửa câu trả lời, làm lại.<br>• Kiểm tra nhanh: câu Phải dừng trả lời Có thì kết luận ngay mức Rất cao; còn lại lý do (Phải dừng chưa biết; Tạm hoãn Có hoặc chưa biết; Cần kiểm tra Không hoặc chưa biết) thì mức Cao, không lý do thì Cần thận trọng. Hiện lý do, việc nên làm lấy nguyên văn bước của trang việc cần làm, đọc thêm.<br>• Theo nhánh: Có hoặc chưa biết mở nhóm việc theo thứ tự câu; "(nếu đúng như vậy)" khi chưa biết; không nhóm nào thì "Bạn chưa mất gì".<br>• Nhãn và câu khuyến nghị theo mức lấy ở Cài đặt website. Ảnh minh họa dưới tiêu đề | V2-08a | Đúng kết quả ở mọi tổ hợp trả lời của ba kiểm tra nhanh, khớp bản dựng | Thử tay; chạy bộ ca bằng `node`, so với hàm `tsResult`, `t3Result` của bản dựng | Làm được |
 | V2-13g | Danh sách kiểm tra và bản in A4 (1) | V2-web | `checklistPage.cshtml`: phần 1 chọn Có / Không / Tôi chưa biết, phần 2 ô tích, nút Xem kết quả: có câu Có thì Rất cao kèm `stopNow`; có câu chưa biết hoặc ô chưa tích thì Cao kèm `holdNow`; còn lại Cần thận trọng. Báo lỗi khi phần 1 còn câu chưa chọn.<br>`wwwroot/assets/css/print.css` dùng chung cho danh sách kiểm tra, kết quả kiểm tra nhanh, kết quả trình hỏi: ô vuông, ngày cập nhật, 4 nguyên tắc, câu bắt buộc, tên website | V2-08b | Kết quả khớp hàm `bkResult` của bản dựng; in ra đủ 1–2 trang A4, không vỡ trang giữa phần | Thử tay ba mức; Chrome "In", lưu PDF xem | Làm được |
 | V2-13h | Các rủi ro: danh sách (1,5) | V2-web | Theo màn 1, 2 của `mockup/bo-cac-rui-ro.html`. `ruiRoPage` chuyển hướng 301 tới Cảnh báo mới.<br>• `alertListPage.cshtml`, `riskCategoryPage.cshtml`: đầu trang, ảnh, thanh 6 tab, ô tìm (chặn chuỗi toàn chữ số từ 6 ký tự), lọc Kênh, Đối tượng, Mức độ (Cảnh báo mới thêm Ngày) qua `?kenh=`, `?doi-tuong=`, `?muc-do=` theo `code`.<br>• Thẻ 12 một lần và “Xem thêm”; mục Lưu trữ quá 90 ngày; hộp không tư vấn khi `showAdviceBox`; dòng “đang biên soạn”; “Bộ khung nhận diện” ở nhóm Lừa đảo; “Không thấy câu trả lời?” từ Cài đặt website.<br>• Dữ liệu thẻ lấy từ dịch vụ V2-03c | V2-03c, V2-04b, V2-13a | Đúng các khối ở màn 1, 2; bộ lọc giữ được qua địa chỉ; mục ngừng dùng không hiện ở bộ lọc | Chụp 1440, 744, 390 px; thử bộ lọc qua địa chỉ | Chờ I-01 |
@@ -283,14 +282,14 @@ Mỗi task dưới đây gồm:
 | V2-14a | API bài viết cũ (0,5) | chính | Theo QĐ-046: xóa `PublishedArticlesController`, `PublishedArticleContentController`, `wwwroot/assets/js/articles.js`; bỏ phần `PublishedArticleService` không còn dùng; sửa test liên quan | V2-13i | Không còn đường dẫn trả 500 | `curl` các đường dẫn cũ | Làm được |
 | V2-14b | Xóa cấu trúc cũ (1) | chính | • Loại: `antc`, `home`, `ungPhoPage`, `thuDoanPage`, `thamGiaPage`, `article`, `articleList`, `articleManagement`, `contentManagement`, `pageManagement`, `fraudContent`, `policyContent`, `chinhSachPage`, `qaItem`, khối Block Grid không thuộc Cuộc thi và Hỏi – Đáp.<br>• Data type `ANTC…`, `Antc…`, `Danh mục · Vai trò`, `Danh mục · Biểu tượng lĩnh vực`, `Bố cục trang · Block Grid`.<br>• View và partial cũ.<br>• `ArticleSchemaMigration.cs`; luật cũ trong `PageTreeRules`.<br>Giữ file uSync `Empty … Change="Delete"` | V2-12b, V2-14a | `run-local -Reset` trên máy sạch dựng đủ site mới, không lỗi uSync | Chạy lại từ đầu | Làm được |
 | V2-14c | Cập nhật tài liệu (0,5) | chính | Sinh lại `docs/so-do/SO-DO.md`; sửa `README.md`, `CLAUDE.md` (có project test; loại nội dung mới; `App_Plugins/AntcEditors`); cập nhật `TRANG-THAI.md` | V2-14b | Tài liệu khớp code | Đọc lại | Làm được |
-| I-02 | Kiểm đầu–cuối | chính | Máy sạch: `run-local -Reset` → công cụ nhập → đi hết các luồng:<br>• Biên tập viên viết cảnh báo, bài, checklist; thêm danh mục; thử xóa mục đang dùng.<br>• Quản trị viên sửa ma trận, công cụ, cài đặt.<br>• Người dân dùng trình hỏi, công cụ, in checklist, tìm kiếm, gửi góp ý | Mọi task | Không lỗi; báo cáo theo mẫu `/quality-check` | Bảng kiểm trong `3-review.md` | Chờ mọi task |
+| I-02 | Kiểm đầu–cuối | chính | Máy sạch: `run-local -Reset` → công cụ nhập → đi hết các luồng:<br>• Biên tập viên viết cảnh báo, bài, checklist; thêm danh mục; thử xóa mục đang dùng.<br>• Quản trị viên sửa trình hỏi, công cụ, cài đặt.<br>• Người dân dùng trình hỏi, công cụ, in checklist, tìm kiếm, gửi góp ý | Mọi task | Không lỗi; báo cáo theo mẫu `/quality-check` | Bảng kiểm trong `3-review.md` | Chờ mọi task |
 
-Tổng ước lượng khoảng 57 ngày công (62 task), chưa tính việc của Ban biên tập. Chạy hai luồng song song thì rút được khoảng 10 ngày theo lịch.
+Tổng ước lượng khoảng 55 ngày công (60 task; QĐ-056 bỏ V2-07c, V2-07d), chưa tính việc của Ban biên tập. Chạy hai luồng song song thì rút được khoảng 10 ngày theo lịch.
 
 Đường găng:
-V2-00b → V2-01a…f → V2-01r → V2-01s → V2-01t → I-01 → V2-03a → V2-05a → V2-07a → (V2-07b…d) → V2-08a → V2-10a → V2-11a → V2-12a → website → I-02.
+V2-00b → V2-01a…f → V2-01r → V2-01s → V2-01t → I-01 → V2-03a → V2-05a → V2-07a → V2-07b → V2-08a → V2-10a → V2-11a → V2-12a → website → I-02.
 
-Luồng `V2-ui` (V2-01i đến V2-01q, V2-07b đến V2-07d, V2-10b) chạy song song với luồng `chính` ngay, vì contract đã chốt ở QĐ-045. Luồng `V2-web` bắt đầu khi loại tương ứng đã gộp.
+Luồng `V2-ui` (V2-01i đến V2-01q, V2-10b) chạy song song với luồng `chính` ngay, vì contract đã chốt ở QĐ-045. Luồng `V2-web` bắt đầu khi loại tương ứng đã gộp.
 
 ## Contract
 
@@ -449,6 +448,8 @@ Không có trang · Không xóa (trang cố định)
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `mustRemember` | Hai điều phải nhớ | Danh sách dòng (0–2) | ✔ | Hiện ở kiểm tra nhanh có bật hộp lưu ý |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `bankLookupSteps` | Cách tự tìm số ngân hàng | Danh sách dòng (0–5) | ✔ |  |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `refuseLendingNote` | Câu từ chối cho mượn tài khoản | Đoạn · 300 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `actionStepsNote` | Câu dưới các bước Việc cần làm | Đoạn · 300 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `notOnDutyNote` | Câu “Website không trực 24/7” | Đoạn · 300 | ✔ | Cuối trang Khẩn cấp và trang Việc cần làm |
 
 #### `homePage` · Trang chủ
 
@@ -486,12 +487,16 @@ Có template và đường dẫn · Không xóa (trang cố định)
 | Nội dung | Lối vào trình hỏi | `wizardTitle` | Tiêu đề | Chữ · 60 | ✔ |  |
 | Nội dung | Lối vào trình hỏi | `wizardDescription` | Mô tả | Đoạn · 220 | ✔ |  |
 | Nội dung | Lối vào trình hỏi | `wizardButtonText` | Chữ nút | Chữ · 32 | ✔ |  |
+| Nội dung | Bốn việc không làm khi nghi ngờ | `principlesTitle` | Tiêu đề khối | Chữ · 60 | ✔ |  |
+| Nội dung | Bốn việc không làm khi nghi ngờ | `principlesNote` | Câu nguồn dưới khối | Đoạn · 200 |  |  |
+| Nội dung | Bốn việc không làm khi nghi ngờ | — (không lưu) | Bốn việc | Không lưu (hiển thị) |  |  |
 | Nội dung | Việc cần làm ngay | `doorLead` | Câu dẫn | Đoạn · 220 | ✔ |  |
 | Nội dung | Việc cần làm ngay | `doors` | Ba cửa vào | InlineList · Thẻ | ✔ |  |
 |  | ↳ ô trong thẻ | `doors[].title` | Tiêu đề | Chữ · 70 | ✔ |  |
 |  | ↳ ô trong thẻ | `doors[].description` | Mô tả | Đoạn · 120 | ✔ |  |
 |  | ↳ ô trong thẻ | `doors[].illustration` | Hình minh họa | Danh mục · Hình minh họa cửa vào |  |  |
 |  | ↳ ô trong thẻ | `doors[].openMode` | Khi bấm | Danh mục · Kiểu cửa vào | ✔ |  |
+|  | ↳ ô trong thẻ | `doors[].optionsLead` | Câu dẫn danh sách | Đoạn · 160 |  | hiện có điều kiện |
 |  | ↳ ô trong thẻ | `doors[].targetPage` | Trang đích | Chọn · Việc cần làm (một) | ✔ | hiện có điều kiện |
 |  | ↳ ô trong thẻ | `doors[].options` | Lựa chọn | InlineList · Bảng | ✔ | hiện có điều kiện |
 | | ↳ cột | `doors[].options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
@@ -499,7 +504,8 @@ Có template và đường dẫn · Không xóa (trang cố định)
 | | ↳ cột | `doors[].options[].target` | Mở | Chọn · Việc cần làm hoặc trình hỏi (một) | ✔ |  |
 | Nội dung | Việc cần làm ngay | `noMatchPage` | Nút “Không ô nào giống” mở | Chọn · Việc cần làm (một) | ✔ |  |
 | Nội dung | Việc cần làm ngay | `helperNote` | Câu cho người đang giúp người thân | Chữ · 160 |  |  |
-| Nội dung | Tình huống điển hình | `typicalSituations` | Trang hiện trong danh sách | Chọn · Việc cần làm (nhiều, ≤ 10, sắp được) | ✔ | Kéo thẻ để sắp thứ tự hiện |
+| Nội dung | Tình huống điển hình | — (không lưu) | Trang hiện trong danh sách | Không lưu (hiển thị) |  |  |
+| Nội dung | Khi cần hỗ trợ | — (không lưu) | Cách tự tìm số ngân hàng | Không lưu (hiển thị) |  |  |
 | Nội dung | Khi cần hỗ trợ | `stateHotlines` | Số do Nhà nước vận hành | InlineList · Bảng | ✔ | Hiện theo đúng thứ tự trong bảng |
 | | ↳ cột | `stateHotlines[].number` | Số | Textstring | ✔ |  chỉ chữ số 3–6 |
 | | ↳ cột | `stateHotlines[].contactMode` | Hình thức | Danh mục · Hình thức liên hệ | ✔ |  |
@@ -524,38 +530,74 @@ Có template và đường dẫn · Không xóa (trang cố định) · Chỉ Qu
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Câu hỏi | Đầu trang | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
+| Câu hỏi | Đầu trang | `lead` | Mô tả | Đoạn · 220 | ✔ |  |
+| Câu hỏi | Đầu trang | `privacyNote` | Câu về quyền riêng tư | Đoạn · 240 | ✔ | Hiện trên khung câu hỏi |
 | Câu hỏi | Bước 1 | `step1Question` | Câu hỏi | Chữ · 120 | ✔ |  |
 | Câu hỏi | Bước 1 | `step1Hint` | Câu gợi ý dưới câu hỏi | Chữ · 160 |  |  |
-| Câu hỏi | Bước 1 | `step1Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn một. Sửa nhãn không làm hỏng ma trận, vì ma trận trỏ tới mã của từng dòng |
+| Câu hỏi | Bước 1 | `step1Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn một. Mỗi dòng nối với một kênh trong Danh mục để so với kênh của thủ đoạn |
 | | ↳ cột | `step1Options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
 | | ↳ cột | `step1Options[].label` | Nhãn | Chữ · 60 | ✔ |  |
+| | ↳ cột | `step1Options[].channel` | Kênh trong Danh mục | Chọn · Kênh (một) | ✔ |  |
+| Câu hỏi | Bước 1 | `step1OtherLabel` | Dòng cuối “không nhớ kênh” | Chữ · 60 | ✔ | Chọn dòng này thì không cộng điểm kênh |
 | Câu hỏi | Bước 2 | `step2Question` | Câu hỏi | Chữ · 120 | ✔ |  |
 | Câu hỏi | Bước 2 | `step2Hint` | Câu gợi ý dưới câu hỏi | Chữ · 160 |  |  |
-| Câu hỏi | Bước 2 | `step2Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Sửa nhãn không làm hỏng ma trận, vì ma trận trỏ tới mã của từng dòng |
+| Câu hỏi | Bước 2 | `step2Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Loại quyết định mức độ: có dòng Phải dừng thì Rất cao, chỉ có Tạm hoãn thì Cao. Thủ đoạn trỏ tới khóa của dòng nên sửa nhãn không làm hỏng |
 | | ↳ cột | `step2Options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
-| | ↳ cột | `step2Options[].label` | Nhãn | Chữ · 60 | ✔ |  |
+| | ↳ cột | `step2Options[].label` | Nhãn | Chữ · 120 | ✔ |  |
+| | ↳ cột | `step2Options[].optionKind` | Loại | Danh mục · Loại lựa chọn trình hỏi | ✔ |  |
+| | ↳ cột | `step2Options[].stopSign` | Dấu hiệu phải dừng | Chọn · Dấu hiệu phải dừng (một) |  |  |
+| | ↳ cột | `step2Options[].signText` | Câu ở “Dấu hiệu cần chú ý” | Đoạn · 300 |  | ở dòng mở rộng |
+| | ↳ cột | `step2Options[].hint` | Ghi chú dưới lựa chọn | Chữ · 160 |  | ở dòng mở rộng |
+| Câu hỏi | Bước 2 | `step2NoneLabel` | Dòng “không có gì” | Chữ · 60 | ✔ |  |
 | Câu hỏi | Bước 3 | `step3Question` | Câu hỏi | Chữ · 120 | ✔ |  |
 | Câu hỏi | Bước 3 | `step3Hint` | Câu gợi ý dưới câu hỏi | Chữ · 160 |  |  |
-| Câu hỏi | Bước 3 | `step3Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Sửa nhãn không làm hỏng ma trận, vì ma trận trỏ tới mã của từng dòng |
+| Câu hỏi | Bước 3 | `step3Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Loại quyết định mức độ: có dòng Phải dừng thì Rất cao, chỉ có Tạm hoãn thì Cao. Thủ đoạn trỏ tới khóa của dòng nên sửa nhãn không làm hỏng |
 | | ↳ cột | `step3Options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
-| | ↳ cột | `step3Options[].label` | Nhãn | Chữ · 60 | ✔ |  |
+| | ↳ cột | `step3Options[].label` | Nhãn | Chữ · 120 | ✔ |  |
+| | ↳ cột | `step3Options[].optionKind` | Loại | Danh mục · Loại lựa chọn trình hỏi | ✔ |  |
+| | ↳ cột | `step3Options[].stopSign` | Dấu hiệu phải dừng | Chọn · Dấu hiệu phải dừng (một) |  |  |
+| | ↳ cột | `step3Options[].signText` | Câu ở “Dấu hiệu cần chú ý” | Đoạn · 300 |  | ở dòng mở rộng |
+| | ↳ cột | `step3Options[].hint` | Ghi chú dưới lựa chọn | Chữ · 160 |  | ở dòng mở rộng |
+| Câu hỏi | Bước 3 | `step3NoneLabel` | Dòng “không có gì” | Chữ · 60 | ✔ |  |
+| Câu hỏi | Dòng “Tôi chưa biết” của bước 2, 3 | `unknownLabel` | Nhãn | Chữ · 60 | ✔ |  |
+| Câu hỏi | Dòng “Tôi chưa biết” của bước 2, 3 | `unknownSignText` | Câu ở “Dấu hiệu cần chú ý” | Đoạn · 200 | ✔ | Chọn dòng này thì mức ít nhất là Cao |
 | Câu hỏi | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
 | Câu hỏi | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
-| Ma trận |  | `situationMatrix` | Ma trận tình huống | Antc.WizardMatrix | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].name` | Tên tình huống | Chữ · 80 | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].signs` | Dấu hiệu phù hợp | Danh sách dòng (1–3) | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].actions` | Việc cần làm ngay | Danh sách dòng (1–4) | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].guideArticle` | Bài hướng dẫn chi tiết | Chọn · Bài hoặc cảnh báo (một) | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].checklist` | Danh sách kiểm tra | Chọn · Danh sách kiểm tra (một) |  | Trống thì dùng danh sách mặc định ở tab Kết quả |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].enabled` | Đang dùng | Bật/tắt |  |  |
-| Kết quả | Tiêu đề 4 khối kết quả | `resultHeading1` | Khối 1 | Chữ · 40 | ✔ |  |
-| Kết quả | Tiêu đề 4 khối kết quả | `resultHeading2` | Khối 2 | Chữ · 40 | ✔ |  |
-| Kết quả | Tiêu đề 4 khối kết quả | `resultHeading3` | Khối 3 | Chữ · 40 | ✔ |  |
-| Kết quả | Tiêu đề 4 khối kết quả | `resultHeading4` | Khối 4 | Chữ · 40 | ✔ |  |
+| Thủ đoạn | Tình huống gần giống | — (không lưu) | Thủ đoạn theo từng lựa chọn | Không lưu (hiển thị) |  |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading1` | Khối 1 (đứng trước tên mức) | Chữ · 40 | ✔ |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading2` | Khối 2 | Chữ · 40 | ✔ |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading3` | Khối 3 | Chữ · 40 | ✔ |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading4` | Khối 4 | Chữ · 40 | ✔ |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading5` | Khối “Nếu đã lỡ” | Chữ · 40 | ✔ |  |
 | Kết quả | Cách hiện | `maxSituations` | Số tình huống hiện tối đa | Số 1–3 | ✔ |  |
-| Kết quả | Cách hiện | `noMatchText` | Câu khi không khớp | Đoạn · 200 | ✔ | Hiện cùng trạng thái “Cần thận trọng” và 4 nguyên tắc dừng |
-| Kết quả | Cách hiện | `defaultChecklist` | Danh sách kiểm tra mặc định | Chọn · Danh sách kiểm tra (một) | ✔ |  |
+| Kết quả | Cách hiện | `situationNote` | Câu dưới tình huống | Đoạn · 200 |  |  |
+| Kết quả | Cách hiện | `noMatchText` | Câu khi không khớp | Đoạn · 200 | ✔ | Hiện cùng 4 nguyên tắc dừng |
+| Kết quả | Cách hiện | `clearNote` | Câu thêm ở mức Cần thận trọng | Đoạn · 240 |  |  |
+| Kết quả | Cách hiện | `defaultChecklist` | Danh sách kiểm tra khi không khớp thủ đoạn | Chọn · Danh sách kiểm tra (một) | ✔ | Có thủ đoạn khớp thì lấy danh sách kiểm tra cùng chuyên đề với bài chứa thủ đoạn đầu |
+| Kết quả | Việc cần làm ngay | `stopActions` | Mức Rất cao | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `stopActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
+| | ↳ cột | `stopActions[].stepNumber` | Bước số | Số |  |  |
+| | ↳ cột | `stopActions[].text` | Hoặc câu riêng | Đoạn · 240 |  |  |
+| | ↳ cột | `stopActions[].onlyIf` | Chỉ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| | ↳ cột | `stopActions[].skipIf` | Bỏ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| Kết quả | Việc cần làm ngay | `holdActions` | Mức Cao | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `holdActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
+| | ↳ cột | `holdActions[].stepNumber` | Bước số | Số |  |  |
+| | ↳ cột | `holdActions[].text` | Hoặc câu riêng | Đoạn · 240 |  |  |
+| | ↳ cột | `holdActions[].onlyIf` | Chỉ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| | ↳ cột | `holdActions[].skipIf` | Bỏ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| Kết quả | Việc cần làm ngay | `clearActions` | Mức Cần thận trọng | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `clearActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
+| | ↳ cột | `clearActions[].stepNumber` | Bước số | Số |  |  |
+| | ↳ cột | `clearActions[].text` | Hoặc câu riêng | Đoạn · 240 |  |  |
+| | ↳ cột | `clearActions[].onlyIf` | Chỉ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| | ↳ cột | `clearActions[].skipIf` | Bỏ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| Kết quả | Nếu đã lỡ làm theo | `ifAlreadyLinks` | Trang việc cần làm | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `ifAlreadyLinks[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
+| | ↳ cột | `ifAlreadyLinks[].label` | Chữ | Chữ · 80 | ✔ |  |
+| | ↳ cột | `ifAlreadyLinks[].targetPage` | Trang | Chọn · Việc cần làm (một) | ✔ |  |
+| | ↳ cột | `ifAlreadyLinks[].onlyIf` | Chỉ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
 | Kết quả | Chữ trên 4 nút | `button1Text` | Nút 1 | Chữ · 40 | ✔ |  |
 | Kết quả | Chữ trên 4 nút | `button2Text` | Nút 2 | Chữ · 40 | ✔ |  |
 | Kết quả | Chữ trên 4 nút | `button3Text` | Nút 3 | Chữ · 40 | ✔ |  |
@@ -1060,6 +1102,7 @@ Không có trang · Tạo: Biên tập viên · Xóa: Biên tập viên · Tên 
 | Nội dung | Thủ đoạn | `channels` | Kênh | Chọn · Kênh (nhiều) | ✔ |  |
 | Nội dung | Thủ đoạn | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | ✔ |  |
 | Nội dung | Thủ đoạn | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  |  |
+| Nội dung | Trình hỏi “Tôi đang gặp chuyện gì?” | `wizardAnswers` | Câu trả lời ở trình hỏi | Chọn · Lựa chọn câu 2, 3 của trình hỏi (nhiều, ≤ 8) |  | Những yêu cầu, lời hứa hoặc lời đe dọa thủ đoạn này hay dùng (câu 2, 3 của trình hỏi). Trống thì thủ đoạn không hiện ở “Tình huống gần giống” |
 | Nội dung | Hiện trên website ở đâu | — (không lưu) | Nơi hiện | Không lưu (hiển thị) |  |  |
 
 #### `quickQaItem` · Hỏi – đáp nhanh
@@ -1100,6 +1143,7 @@ Giá trị lưu là chữ hiển thị. Không sửa chữ của mục đã có 
 | ~~`Danh mục · Trả lời là dấu hiệu`~~ | Bỏ: thay bằng loại câu (QĐ-051). Gói nền đã tạo, V2-01r xóa | – |
 | `Danh mục · Loại câu kiểm tra` | Phải dừng · Tạm hoãn · Cần kiểm tra | `phaiDung`, `tamHoan`, `canKiemTra` |
 | `Danh mục · Nghĩa câu trả lời` | Có · Không · Chưa biết | `co`, `khong`, `chuaBiet` |
+| `Danh mục · Loại lựa chọn trình hỏi` | Phải dừng · Tạm hoãn (QĐ-056) | `phaiDung`, `tamHoan` |
 | `Danh mục · Hình thức liên hệ` | Gọi · Nhắn tin · Gọi và nhắn tin | `goi`, `nhanTin`, `goiVaNhanTin` |
 | `Danh mục · Kiểu cửa vào` | Mở trang ngay · Mở danh sách lựa chọn | `moTrang`, `moDanhSach` |
 | `Danh mục · Hình minh họa cửa vào` | Bị đe dọa · Đã có chuyện · Chưa có chuyện | `threat`, `harm`, `check` |
@@ -1144,7 +1188,9 @@ Gốc là khóa cố định của nút ghi ở cột Gốc (V2-01f: Dynamic Roo
 | `Chọn · Việc cần làm hoặc trình hỏi` | `khanCapPage` | `viecCanLamPage`, `wizardPage` | 0–1 | V2-06a |
 | `Chọn · Kiểm tra nhanh` | `congCuPage` | `toolCountPage`, `toolBranchPage` | 3–3 | V2-08a |
 | `Chọn · Danh sách kiểm tra` | `congCuPage` | `checklistPage` | 0–1 | V2-08a |
-| `Chọn · Bài hoặc cảnh báo` | `homePage` | `riskArticlePage`, `alertPage`, `viecCanLamPage` | 0–1 | Dùng trong ma trận (V2-07d) |
+| `Chọn · Bài hoặc cảnh báo` | `homePage` | `riskArticlePage`, `alertPage`, `viecCanLamPage` | 0–1 | Không còn dùng sau QĐ-056 (ma trận bỏ) |
+| `Chọn · Lựa chọn của trình hỏi` | dòng của `wizardPage.step1Options`…`step3Options` | – | nhiều | V2-07a (`onlyIf`, `skipIf`; nguồn mới của C1) |
+| `Chọn · Lựa chọn câu 2, 3 của trình hỏi` | dòng của `wizardPage.step2Options`, `step3Options` | – | nhiều | V2-07a (`tacticItem.wizardAnswers`) |
 
 ### B4. Thành phần tự viết
 
@@ -1152,5 +1198,5 @@ Gốc là khóa cố định của nút ghi ở cột Gốc (V2-01f: Dynamic Roo
 |---|---|---|---|
 | `Antc.NodeCombobox` | `Umbraco.MultiNodeTreePicker`, `Umbraco.DropDown.Flexible`, `Umbraco.Tags` | Mọi ô chọn | V2-01j, V2-01k, V2-01l |
 | `Antc.InlineList` | Schema riêng `Antc.InlineList` | Mọi trường "InlineList · Bảng / Thẻ" ở Phụ lục A. Mỗi trường một data type, cấu hình theo cột ↳ của Phụ lục A | V2-01m đến V2-01p |
-| `Antc.WizardMatrix` | Schema riêng | `wizardPage.situationMatrix` | V2-07b đến V2-07d |
+| ~~`Antc.WizardMatrix`~~ | Bỏ (QĐ-056) | – | – |
 | `Antc.InfoPanel` | `Umbraco.Label` | Các dòng "— (không lưu)" ở Phụ lục A | V2-01q |
