@@ -72,3 +72,21 @@ Hai thuộc tính cũ `tacticItem.topic` và `tacticItem.anchor` được giữ 
 - Tăng phiên bản manifest/import lên `1.0.2` để trình duyệt tải bản sửa.
 - Playwright `risk-editor-appearance.smoke.cjs`: qua 21 kiểm tra SEO trên 7 trang ở 1440/744/390px, toàn bộ 34 icon, chọn bằng bàn phím, bỏ chọn, readonly và lựa chọn mức độ. Không có lỗi JavaScript; chỉ thay giá trị chưa lưu trong phiên kiểm thử, không lưu/xuất bản nội dung.
 - Bằng chứng: `temp/risk-template-review/appearance-result.json`, `risk-seo-fixed-1440.png`, `risk-seo-fixed-390.png`, `risk-icon-fixed.png`, `risk-icon-options-fixed.png`.
+
+## Cập nhật 05/11/2026 — gom ba mục cùng tên trong Quản lý nội dung
+
+Theo lựa chọn của người dùng, giữ ba thư mục danh sách, chuyển các trang gốc AnVu29 vào bên trong và bỏ hậu tố `(1)`:
+
+| Thư mục | Trang gốc được giữ | Loại trang |
+| --- | --- | --- |
+| Bài viết (`77e2e4a9-012b-5566-8542-d033c9c38827`) | `9e237cb6-5641-486f-a059-899d2277337e` | `riskArticlePage` |
+| Cảnh báo (`dbeceecd-9e82-5d65-a310-6f0d2b15b38c`) | `58aaf7ff-0544-420e-9c53-36e5630103dd` | `alertPage` |
+| Đoạn dùng chung (`ce68012e-e6e5-53db-9edd-27cb86f92cdf`) | `0eeca461-0beb-4588-aab2-4d238f0e5db1` | `sharedSnippet` |
+
+Không xóa hay đổi loại trang. Migration kiểm tra toàn bộ khóa/loại trang/cha trước khi chuyển, chạy một lần với marker `antc.portal-v2.risks.original-content-organized-v1=done`. Chỉ bỏ đúng hậu tố do xung đột tên; giữ những tên đã được biên tập riêng. Quy tắc tự điền Cảnh báo được bỏ qua trong lúc chuyển cấu trúc để giữ nguyên giá trị hiện có, sau đó vẫn áp dụng khi biên tập lưu bình thường.
+
+Quản lý nội dung không còn cho tạo trực tiếp ba loại mục con trên; tạo trong thư mục tương ứng. Đã bổ sung cấu hình cho phép tạo `sharedSnippet` trong `snippetFolder`. Sửa lỗi danh sách Đoạn dùng chung: cấu hình cũ sắp theo `sortOrder` nhưng không khai báo cột đó nên native API từ chối và danh sách hiển thị rỗng; chuyển sang khóa sắp xếp hợp lệ `name`. Các marker uSync `Change="Rename"` là dấu đổi tên, không phải các trang trùng còn hoạt động.
+
+Sao lưu trước áp dụng: `temp/risk-template-review/organize-original-20261105-110035/Umbraco.sqlite.db`. Đối chiếu toàn CSDL xác nhận toàn bộ giá trị thuộc tính hiện hành, khóa nội dung và trạng thái xuất bản giữ nguyên; chỉ ba trang gốc đổi cha/tên. `PRAGMA quick_check=ok`.
+
+Build thành công, 52 kiểm thử .NET đạt. Sau khởi động lại, Playwright xác nhận cả ba danh sách có đúng trang gốc, mở được cả ba màn biên tập và không có lỗi JavaScript. Bằng chứng: `temp/risk-template-review/organized-result.json`, `organized-database-result.json`, ảnh `organized-riskArticlePage.png`, `organized-alertPage.png`, `organized-sharedSnippet.png`, `organized-snippet-editor.png`.
