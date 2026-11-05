@@ -5,16 +5,8 @@ namespace Umbraco.Plugin.Custom.Core.PortalV2.Schema;
 /// <summary>Gói Các rủi ro, Phụ lục A và QĐ-053–055. Giá trị suy ra không tạo ô nhập.</summary>
 public static class RiskSchema
 {
-    public static readonly string[] PageAliases = ["ruiRoPage", "alertListPage", "riskCategoryPage"];
+    public static readonly string[] PageAliases = ["ruiRoPage", "alertListPage", .. RiskStructure.GroupAliases];
     public static readonly string[] EditableAliases = [.. PageAliases, "riskArticlePage", "alertPage", "tacticItem", "topicItem"];
-    public static readonly (string Id, string Name, string Slug, string Icon)[] Groups =
-    [
-        ("lua-dao", "Lừa đảo", "lua-dao", "shield"),
-        ("vay-no", "Vay và nợ", "vay-va-no", "money"),
-        ("dau-tu", "Đầu tư", "dau-tu", "chart"),
-        ("du-lieu", "Dữ liệu cá nhân", "du-lieu-ca-nhan", "lock"),
-        ("bao-hiem", "Bảo hiểm và tiết kiệm", "bao-hiem-va-tiet-kiem", "coins")
-    ];
     private static Dictionary<string, object> C(params (string, object)[] pairs) => pairs.ToDictionary(x => x.Item1, x => x.Item2);
     public static IEnumerable<DataTypeSpec> DataTypes()
     {
@@ -53,7 +45,8 @@ public static class RiskSchema
         yield return new("alertListPage", "Cảnh báo mới", "icon-megaphone", "Cảnh báo được thêm ở Quản lý nội dung › Cảnh báo.", "noiDung", "Nội dung",
             [P("title", "Tiêu đề", PortalV2Schema.Text(90), true), P("lead", "Câu dẫn", PortalV2Schema.Area(220), true),
                 P("showSampleNote", "Dòng “Mẫu trình bày”", PortalV2Schema.Toggle)], Compositions: compositions);
-        yield return new("riskCategoryPage", "Nhóm rủi ro", "icon-folder", "5 nhóm cố định. Thứ tự tab theo thứ tự trên cây.", "noiDung", "Nội dung",
+        foreach (var group in RiskStructure.Pages.Skip(2))
+        yield return new(group.Alias, group.Name, "icon-folder", "Nhóm rủi ro hiện có của Portal V2. Thứ tự tab theo thứ tự trên cây.", "noiDung", "Nội dung",
             [P("tabName", "Tên tab", PortalV2Schema.Text(28), true), P("cardDescription", "Mô tả ngắn trên thẻ trang chủ", PortalV2Schema.Text(60), true),
                 P("lead", "Câu dẫn đầu trang", PortalV2Schema.Area(220), true), P("icon", "Biểu tượng", DanhMucCoDinh.BieuTuong.DataTypeName, true),
                 P("thumbnail", "Ảnh thu nhỏ", PortalV2Schema.Image, hint: "Ảnh trên thẻ nhóm ở trang chủ."),

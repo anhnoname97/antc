@@ -135,8 +135,31 @@ public class RiskManagementTests
     {
         var types = RiskSchema.ContentTypes().ToDictionary(x => x.Alias);
         Assert.All(RiskSchema.PageAliases, alias => Assert.Null(types[alias].ListViewDataType));
-        Assert.DoesNotContain(types["riskCategoryPage"].Properties, x => x.Alias is "tactics" or "pinnedArticles" or "noAnswerNote");
+        Assert.DoesNotContain("riskCategoryPage", types.Keys);
+        Assert.All(RiskStructure.GroupAliases, alias => Assert.DoesNotContain(types[alias].Properties, x => x.Alias is "tactics" or "pinnedArticles" or "noAnswerNote"));
         Assert.DoesNotContain(types["riskArticlePage"].Properties, x => x.Alias is "cautionLevel" or "channels" or "audiences" or "relatedItems" or "checklist");
         Assert.DoesNotContain(types["alertPage"].Properties, x => x.Alias is "relatedItems" or "alsoInCategories");
+    }
+    [Fact]
+    public void CanonicalRiskPages_KeepAnVu29KeysAndDistinctGroupTypes()
+    {
+        Assert.Equal(Guid.Parse("2f0dfb61-9591-4d14-970a-6be6f7d4b28c"), RiskStructure.Pages[0].Key);
+        Assert.Equal(7, RiskStructure.Pages.Select(p => p.Key).Distinct().Count());
+        Assert.Equal(5, RiskStructure.GroupAliases.Length);
+        Assert.All(RiskStructure.GroupAliases, alias => Assert.Equal("riskCategoryPage", RiskStructure.LogicalAlias(alias)));
+        Assert.All(RiskStructure.Pages, page => Assert.NotEqual(Umbraco.Plugin.Custom.Core.PortalV2.PortalV2Keys.Node(page.MockupId), page.Key));
+    }
+    [Fact]
+    public void Adoption_RewritesBothNativeUdisAndGuidJson_WithoutChangingOtherData()
+    {
+        var page = RiskStructure.Pages.Single(p => p.Alias == "luaDaoPage");
+        var old = Umbraco.Plugin.Custom.Core.PortalV2.PortalV2Keys.Node(page.MockupId);
+        var mapping = new Dictionary<Guid, Guid> { [old] = page.Key };
+        string input = $"umb://document/{old:N},{{\"unique\":\"{old.ToString().ToUpperInvariant()}\"}},Tiền · money";
+        string result = RiskStructureAdoption.RewriteReferences(input, mapping);
+        Assert.Contains("umb://document/" + page.Key.ToString("N"), result);
+        Assert.Contains("\"unique\":\"" + page.Key + "\"", result);
+        Assert.Contains("Tiền · money", result);
+        Assert.Equal(result, RiskStructureAdoption.RewriteReferences(result, mapping));
     }
 }

@@ -8,7 +8,7 @@ namespace Umbraco.Plugin.Custom.Core.PortalV2.RuiRo;
 
 public sealed class RiskContentRules(IContentService contents, IContentTypeService types) : INotificationHandler<ContentSavingNotification>, INotificationHandler<ContentPublishingNotification>
 {
-    private static RiskNode Node(IContent c) => new(c.Key, null, c.ContentType.Alias, c.Name ?? "", c.SortOrder, c.UpdateDate, c.Published,
+    private static RiskNode Node(IContent c) => new(c.Key, null, Umbraco.Plugin.Custom.Core.PortalV2.Schema.RiskStructure.LogicalAlias(c.ContentType.Alias), c.Name ?? "", c.SortOrder, c.UpdateDate, c.Published,
         c.Properties.ToDictionary(p => p.Alias, p => p.GetValue()));
 
     public void Handle(ContentSavingNotification notification)

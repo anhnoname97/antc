@@ -3,8 +3,8 @@ import { html, css, nothing, repeat } from '@umbraco-cms/backoffice/external/lit
 import { UMB_DOCUMENT_PROPERTY_DATASET_CONTEXT, UMB_DOCUMENT_WORKSPACE_CONTEXT } from '@umbraco-cms/backoffice/document';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import '@umbraco-cms/backoffice/content';
-import { RiskApi, list, refs, keyOf, value, label, editorRefs } from './risk-api.js?v=1.0.2';
-import { responsiveShell } from './responsive-shell.js?v=1.0.2';
+import { RiskApi, list, refs, keyOf, value, label, editorRefs } from './risk-api.js?v=1.1.0';
+import { responsiveShell } from './responsive-shell.js?v=1.1.0';
 
 const dateOnly = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const plain = s => typeof s === 'object' ? s?.markup?.replace(/<[^>]*>/g, ' ') || '' : String(s || '').replace(/<[^>]*>/g, ' ');
@@ -17,7 +17,7 @@ class AntcRiskEditor extends UmbLitElement {
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, ctx => {
             this._workspace = ctx;
             this.observe(ctx?.isNew, v => { this._isNew = v; }, 'risk-new');
-            this.observe(ctx?.structure.contentTypeAliases, aliases => { this._type = aliases?.find(a => ['ruiRoPage', 'alertListPage', 'riskCategoryPage', 'riskArticlePage', 'alertPage', 'tacticItem', 'topicItem'].includes(a)) || ''; }, 'risk-type');
+            this.observe(ctx?.structure.contentTypeAliases, aliases => { this._type = aliases?.some(a => ['luaDaoPage', 'vayVaNoPage', 'dauTuPage', 'baoHiemVaTietKiemPage', 'duLieuCaNhanPage'].includes(a)) ? 'riskCategoryPage' : aliases?.find(a => ['ruiRoPage', 'alertListPage', 'riskCategoryPage', 'riskArticlePage', 'alertPage', 'tacticItem', 'topicItem'].includes(a)) || ''; }, 'risk-type');
             this.observe(ctx?.structure.contentTypePropertyAliases, v => { this._aliases = v || []; }, 'risk-aliases');
             this.observe(ctx?.data, data => {
                 this._id = data?.unique; this._name = data?.variants?.[0]?.name || '';

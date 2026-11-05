@@ -64,7 +64,7 @@ public sealed class RiskBackofficeController(IContentService contents, IContentT
         var allowed = await permissions.FilterAuthorizedAsync(user, rows.Select(x => x.Key), new HashSet<string> { ActionBrowse.ActionLetter });
         var ids = rows.ToDictionary(x => x.Id, x => x.Key);
         return rows.Where(x => allowed.Contains(x.Key)).Select(x => new RiskNode(x.Key, ids.TryGetValue(x.ParentId, out var parent) ? parent : null,
-            x.ContentType.Alias, x.Name ?? "", x.SortOrder, x.UpdateDate, x.Published,
+            RiskStructure.LogicalAlias(x.ContentType.Alias), x.Name ?? "", x.SortOrder, x.UpdateDate, x.Published,
             x.Properties.ToDictionary(p => p.Alias, p => p.GetValue())) { ContentTypeKey = x.ContentType.Key }).ToArray();
     }
 }

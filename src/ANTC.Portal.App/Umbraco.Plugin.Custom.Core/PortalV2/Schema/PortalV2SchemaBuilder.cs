@@ -209,9 +209,22 @@ public sealed class PortalV2SchemaBuilder(
     private async Task<bool> EnsureContentType(ContentTypeSpec spec)
     {
         Guid key = PortalV2Keys.ContentType(spec.Alias);
+        if (RiskStructure.GroupAliases.Contains(spec.Alias) && contentTypes.Get(spec.Alias) is null)
+            throw new InvalidOperationException($"Cần nhập schema gốc của AnVu29 cho {spec.Alias}; không tạo loại nhóm rủi ro thay thế.");
         if (RiskSchema.ContentTypes().Any(x => x.Alias == spec.Alias) && contentTypes.Get(spec.Alias) is { } existing)
         {
             bool changed = false;
+            // AnVu29's original types may have no local tab. Add a real tab before adding fields,
+            // otherwise AddPropertyType creates a Group that conflicts with illustrationBase's noiDung Tab.
+            var localTab = existing.PropertyGroups.FirstOrDefault(g => g.Alias == spec.TabAlias);
+            if (localTab is null)
+            {
+                existing.PropertyGroups.Add(new PropertyGroup(new PropertyTypeCollection(true)) {
+                    Alias = spec.TabAlias, Name = spec.TabName, Type = PropertyGroupType.Tab,
+                    Key = PortalV2Keys.For($"tab:{spec.Alias}.{spec.TabAlias}"), SortOrder = 0 });
+                changed = true;
+            }
+            else if (localTab.Type != PropertyGroupType.Tab) { localTab.Type = PropertyGroupType.Tab; changed = true; }
             foreach (string alias in spec.Compositions ?? [])
                 if (!existing.ContentTypeCompositionExists(alias))
                 {
@@ -297,6 +310,14 @@ public sealed class PortalV2SchemaBuilder(
         // Child keys must use the existing key when an earlier Portal schema has already created that alias.
         foreach (var spec in RiskSchema.ContentTypes().OrderBy(x => x.AllowedChildren?.Count ?? 0)) await EnsureContentType(spec);
         foreach (var spec in RiskSchema.ContentTypes()) await EnsureContentType(spec);
+        foreach (string name in new[] { "Chọn · Nhóm rủi ro", "Chọn · Nhóm rủi ro · nhiều" })
+        {
+            var picker = (await dataTypes.GetAsync(PortalV2Keys.DataType(name)))!;
+            string filter = string.Join(",", RiskStructure.GroupAliases.Select(a => contentTypes.Get(a)!.Key));
+            if (picker.ConfigurationData["filter"].ToString() == filter) continue;
+            picker.ConfigurationData = new Dictionary<string, object>(picker.ConfigurationData) { ["filter"] = filter };
+            await dataTypes.UpdateAsync(picker, User);
+        }
         await AddProperties("topicItem", [
             new("readingArticle", "Bài đọc chuyên đề", "Chọn · Bài viết", "Cần khi đăng."),
             new("checklist", "Danh sách kiểm tra", "Chọn · Danh sách kiểm tra"),

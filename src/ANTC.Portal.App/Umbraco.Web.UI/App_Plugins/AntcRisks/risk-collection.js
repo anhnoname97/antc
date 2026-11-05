@@ -3,8 +3,8 @@ import { html, css, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_DOCUMENT_WORKSPACE_CONTEXT } from '@umbraco-cms/backoffice/document';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { DocumentService } from '@umbraco-cms/backoffice/external/backend-api';
-import { RiskApi, refs, keyOf, value, label, active } from './risk-api.js?v=1.0.2';
-import { responsiveShell } from './responsive-shell.js?v=1.0.2';
+import { RiskApi, refs, keyOf, value, label, active } from './risk-api.js?v=1.1.0';
+import { responsiveShell } from './responsive-shell.js?v=1.1.0';
 
 class AntcRiskCollection extends UmbLitElement {
     static properties = { _nodes: { state: true }, _id: { state: true }, _type: { state: true }, _types: { state: true }, _q: { state: true }, _filters: { state: true }, _selection: { state: true }, _page: { state: true }, _busy: { state: true }, _message: { state: true }, _confirm: { state: true }, _error: { state: true } };

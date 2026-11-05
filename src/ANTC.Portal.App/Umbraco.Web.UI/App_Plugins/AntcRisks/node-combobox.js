@@ -2,7 +2,7 @@ import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, css, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UmbChangeEvent } from '@umbraco-cms/backoffice/event';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
-import { RiskApi, refs, keyOf, active, editorRefs } from './risk-api.js?v=1.0.2';
+import { RiskApi, refs, keyOf, active, editorRefs } from './risk-api.js?v=1.1.0';
 
 class AntcNodeCombobox extends UmbLitElement {
     static properties = { value: {}, config: {}, disabled: { type: Boolean }, readonly: { type: Boolean }, _rows: { state: true }, _open: { state: true }, _q: { state: true }, _index: { state: true }, _error: { state: true } };
