@@ -152,7 +152,7 @@ public static class PortalV2Schema
             else if (f.Alias is not ("quickQaFolder" or "snippetFolder")) columns.Add(C(("alias", "code"), ("header", "Mã"), ("isSystem", false)));
             if (f.Alias is not ("quickQaFolder" or "snippetFolder")) columns.Add(C(("alias", "isActive"), ("header", "Đang dùng"), ("isSystem", false)));
             columns.Add(C(("alias", "updateDate"), ("header", "Cập nhật"), ("isSystem", true)));
-            bool sortByTree = f.Alias is not ("tacticFolder" or "quickQaFolder");
+            bool sortByTree = f.Alias is not ("tacticFolder" or "quickQaFolder" or "snippetFolder");
             yield return new(ListViewName(f.Name), "Umbraco.ListView", "Umb.PropertyEditorUi.Collection", C(
                 ("includeProperties", columns.ToArray()),
                 ("layouts", new object[] { C(("name", "Danh sách"), ("collectionView", "Umb.CollectionView.Document.Table"), ("icon", "icon-list"), ("isSystem", true), ("selected", true)) }),

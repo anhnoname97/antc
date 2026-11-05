@@ -107,6 +107,7 @@ public sealed class RiskStructureAdoption(IContentService contents, IContentType
             }
             if (bool.TryParse(configuration["PortalV2:Risks:ClearSampleFields"], out bool clearSamples) && clearSamples)
                 await ClearSampleFieldsOnceAsync();
+            OrganizeOriginalContentOnce();
         }
         finally { RiskStructure.Reconciling.Value = false; }
     }
@@ -118,6 +119,47 @@ public sealed class RiskStructureAdoption(IContentService contents, IContentType
                 value = Regex.Replace(value, Regex.Escape(source.ToString(format)), target.ToString(format), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         return value;
     }
+
+    private void OrganizeOriginalContentOnce()
+    {
+        const string marker = "antc.portal-v2.risks.original-content-organized-v1";
+        if (markers.GetValue(marker) == "done") return;
+        var management = contents.GetById(new Guid("5a1e0af5-bbf2-54ed-a359-bc4716736ea5"))
+            ?? throw new InvalidOperationException("Thiếu Quản lý nội dung để gom các trang gốc.");
+        var plan = new[]
+        {
+            (Key: new Guid("9e237cb6-5641-486f-a059-899d2277337e"), Folder: new Guid("77e2e4a9-012b-5566-8542-d033c9c38827"), Alias: "riskArticlePage", FolderAlias: "articleFolder", Name: "Bài viết"),
+            (Key: new Guid("58aaf7ff-0544-420e-9c53-36e5630103dd"), Folder: new Guid("dbeceecd-9e82-5d65-a310-6f0d2b15b38c"), Alias: "alertPage", FolderAlias: "alertFolder", Name: "Cảnh báo"),
+            (Key: new Guid("0eeca461-0beb-4588-aab2-4d238f0e5db1"), Folder: new Guid("ce68012e-e6e5-53db-9edd-27cb86f92cdf"), Alias: "sharedSnippet", FolderAlias: "snippetFolder", Name: "Đoạn dùng chung")
+        };
+        // Validate the whole plan before moving anything; never pick a target merely by its display name.
+        foreach (var entry in plan)
+        {
+            var item = contents.GetById(entry.Key);
+            var folder = contents.GetById(entry.Folder);
+            if (item is null || folder is null || item.Trashed || folder.Trashed
+                || item.ContentType.Alias != entry.Alias || folder.ContentType.Alias != entry.FolderAlias
+                || folder.ParentId != management.Id || (item.ParentId != management.Id && item.ParentId != folder.Id))
+                throw new InvalidOperationException("Cấu trúc " + entry.Name + " khác bộ trang gốc đã đối chiếu; không tự di chuyển.");
+        }
+        foreach (var entry in plan)
+        {
+            var item = contents.GetById(entry.Key)!;
+            var folder = contents.GetById(entry.Folder)!;
+            if (item.ParentId != folder.Id && !contents.Move(item, folder.Id).Success)
+                throw new InvalidOperationException("Không gom được trang gốc " + entry.Name);
+            item = contents.GetById(entry.Key)!;
+            // Remove only the suffix introduced by the old sibling-name collision, preserving authored names.
+            if (item.Name == entry.Name + " (1)")
+            {
+                item.Name = entry.Name;
+                if (!contents.Save(item).Success) throw new InvalidOperationException("Không bỏ được hậu tố của " + entry.Name);
+            }
+            logger.LogInformation("Đã gom trang gốc {Key} vào {Folder}; giữ loại trang và các giá trị biên tập.", entry.Key, entry.Folder);
+        }
+        markers.SetValue(marker, "done");
+    }
+
     private async Task ClearSampleFieldsOnceAsync()
     {
         const string marker = "antc.portal-v2.risks.sample-fields-cleared-v1";

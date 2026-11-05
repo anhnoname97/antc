@@ -328,11 +328,44 @@ public sealed class PortalV2SchemaBuilder(
         await AddProperties("siteSettings", [new("noAnswerNote", "Câu “Không thấy câu trả lời?”", PortalV2Schema.Area(200), "Dùng chung cho cả 6 tab của Các rủi ro.")]);
         await AddProperties("sharedSnippet", [new("title", "Tiêu đề hộp", PortalV2Schema.Text(120), Mandatory: true),
             new("bodyText", "Nội dung", PortalV2Schema.RteShort, Mandatory: true)]);
+        await EnsureContentCollectionsAsync();
         await AddProperties("tacticItem", [new("containingArticle", "Bài viết chứa thủ đoạn", "Chọn · Bài viết", "Cần khi đăng. Chuyên đề lấy theo bài hướng dẫn.")]);
         if (contentTypes.Get("tacticItem") is { } tactic)
         {
             var legacyTopic = tactic.PropertyTypes.FirstOrDefault(x => x.Alias == "topic");
             if (legacyTopic?.Mandatory == true) { legacyTopic.Mandatory = false; await contentTypes.UpdateAsync(tactic, User); }
+        }
+    }
+
+    private async Task EnsureContentCollectionsAsync()
+    {
+        // Native collections reject ordering by an alias absent from their configured columns.
+        // The snippet collection has only updateDate; name is the built-in allowed sort key.
+        if (await dataTypes.GetAsync(PortalV2Keys.DataType(PortalV2Schema.ListViewName("Đoạn dùng chung"))) is { } list
+            && list.ConfigurationData.TryGetValue("orderBy", out var orderBy) && orderBy?.ToString() == "sortOrder")
+        {
+            list.ConfigurationData = new Dictionary<string, object>(list.ConfigurationData) { ["orderBy"] = "name" };
+            if (!(await dataTypes.UpdateAsync(list, User)).Success)
+                throw new InvalidOperationException("Không sửa được cấu hình sắp xếp danh sách Đoạn dùng chung.");
+        }
+        // These are item types, so create them inside their collections rather than beside the folders.
+        string[] itemAliases = ["riskArticlePage", "alertPage", "sharedSnippet"];
+        if (contentTypes.Get("contentManagement") is { } management)
+        {
+            var allowed = management.AllowedContentTypes.Where(t => !itemAliases.Contains(t.Alias)).ToArray();
+            if (allowed.Length != management.AllowedContentTypes.Count())
+            {
+                management.AllowedContentTypes = allowed;
+                if (!(await contentTypes.UpdateAsync(management, User)).Success)
+                    throw new InvalidOperationException("Không cập nhật được nơi tạo Bài viết, Cảnh báo và Đoạn dùng chung.");
+            }
+        }
+        if (contentTypes.Get("snippetFolder") is { } folder && contentTypes.Get("sharedSnippet") is { } snippet
+            && !folder.AllowedContentTypes.Any(t => t.Key == snippet.Key))
+        {
+            folder.AllowedContentTypes = [.. folder.AllowedContentTypes, new ContentTypeSort(snippet.Key, 0, snippet.Alias)];
+            if (!(await contentTypes.UpdateAsync(folder, User)).Success)
+                throw new InvalidOperationException("Không cho phép tạo Đoạn dùng chung trong thư mục tương ứng.");
         }
     }
 
