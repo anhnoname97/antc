@@ -1,16 +1,16 @@
 # Backoffice Các rủi ro — bàn giao 04/11/2026
 
-Đã triển khai trong ứng dụng Umbraco hiện có, plugin `AntcRisks` phiên bản `1.0.2`. Không nhúng trang HTML mẫu, không dùng localStorage để lưu nội dung. Các ô nhập làm việc với document, data type, Media và cơ chế lưu/xuất bản/phân quyền thật của Umbraco.
+Đã triển khai trong ứng dụng Umbraco hiện có, plugin `AntcRisks` phiên bản `1.1.0`. Không nhúng trang HTML mẫu, không dùng localStorage để lưu nội dung. Các ô nhập làm việc với document, data type, Media và cơ chế lưu/xuất bản/phân quyền thật của Umbraco.
 
 ## Mở sử dụng
 
 - Backoffice: http://localhost:11000/umbraco
-- Mở trực tiếp Các rủi ro: http://localhost:11000/umbraco/section/content/workspace/document/edit/206ee00d-348e-58ba-8f9b-80a3bb45fe88
-- Cây: **An toàn tài chính → Quản lý trang → Các rủi ro**.
+- Mở trực tiếp Các rủi ro: http://localhost:11000/umbraco/section/content/workspace/document/edit/2f0dfb61-9591-4d14-970a-6be6f7d4b28c
+- Cây: **An toàn tài chính → Quản lý trang → Trang chủ → Các rủi ro**.
 - Nội dung cập nhật hằng ngày: **Quản lý nội dung → Bài viết / Cảnh báo**.
 - Danh mục được đưa vào **Quản lý nội dung → Danh mục**; giữ khóa và dữ liệu các mục đã có.
 
-7 trang mới được khởi tạo ở trạng thái **nháp**, gồm Các rủi ro, Cảnh báo mới và 5 nhóm. Nội dung, thứ tự nhóm và 9 ảnh tham chiếu lấy từ `backoffice.html`; ảnh được nhập vào Media để thay bằng bộ chọn ảnh thông thường. Khởi động lại giữ nội dung biên tập viên đã sửa.
+Bộ trang hiện dùng là 7 trang gốc của AnVu29, gồm Các rủi ro, Cảnh báo mới và 5 nhóm có document type riêng. Nhánh thay thế đã được gỡ ngày 05/11/2026; xem `DIEU-CHINH-THEO-ANVU29.md`. Nội dung, thứ tự nhóm và 9 ảnh tham chiếu lấy từ `backoffice.html`; ảnh được nhập vào Media để thay bằng bộ chọn ảnh thông thường. Khởi động lại giữ nội dung biên tập viên đã sửa.
 
 ## Đối chiếu mẫu
 

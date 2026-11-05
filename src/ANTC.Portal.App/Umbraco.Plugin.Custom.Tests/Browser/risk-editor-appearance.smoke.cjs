@@ -85,7 +85,7 @@ const path = require('node:path');
         }
         // The same component also serves caution levels; plain choices must remain unchanged.
         const plain = await page.evaluate(async () => {
-            await import('/App_Plugins/AntcRisks/fixed-choice.js?v=1.0.2');
+            await import('/App_Plugins/AntcRisks/fixed-choice.js?v=1.1.0');
             const e = document.createElement('antc-fixed-choice');
             e.config = { getValueByAlias: () => ['Cần thận trọng', 'Cao', 'Rất cao'] }; e.value = ['Cao'];
             document.body.append(e); await e.updateComplete;

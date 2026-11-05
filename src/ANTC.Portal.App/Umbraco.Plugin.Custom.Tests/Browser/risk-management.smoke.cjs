@@ -22,6 +22,18 @@ const ref = id => [{ type: 'document', unique: id }];
         let catalog = (await request('catalog')).data;
         const types = (await request('types')).data;
         h.assert.equal(catalog.filter(n => n.type === 'riskCategoryPage').length, 5);
+        const canonicalRoot = '2f0dfb61-9591-4d14-970a-6be6f7d4b28c';
+        h.assert.equal(catalog.find(n => n.type === 'ruiRoPage').key, canonicalRoot);
+        h.assert.equal(catalog.find(n => n.type === 'alertListPage').key, '540fecd6-015a-4585-b896-d6272108aab0');
+        h.assert(!types.riskCategoryPage, 'The replacement document type must be retired');
+        const existingGroups = { luaDaoPage: '340daab5-ee51-4f38-8415-01eb5345de72', vayVaNoPage: '117dc275-7007-4fda-9749-090a3d934633',
+            dauTuPage: '16a62a3c-0d74-4a5b-b607-81ba7056dec5', duLieuCaNhanPage: 'c2543936-24cb-4ef7-b9ed-8bd30070d7a4', baoHiemVaTietKiemPage: 'b12c0f34-008b-4889-809b-9aeeada902c4' };
+        for (const [alias, id] of Object.entries(existingGroups)) {
+            const node = catalog.find(n => n.key === id);
+            h.assert(node && node.parentKey === canonicalRoot && node.contentTypeKey === types[alias], `Missing AnVu29 group ${alias}`);
+        }
+        const retired = await h.api(page, 'DocumentService', 'getDocumentById', { path: { id: '206ee00d-348e-58ba-8f9b-80a3bb45fe88' } });
+        h.assert.equal(retired.status, 404);
         const group = catalog.find(n => n.type === 'riskCategoryPage');
         const folder = type => catalog.find(n => n.type === type);
         const articleFolder = folder('articleFolder'), alertFolder = folder('alertFolder'), tacticFolder = folder('tacticFolder');

@@ -1,7 +1,7 @@
 {
   "$schema": "../../umbraco-package-schema.json",
   "name": "ANTC Các rủi ro",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "allowPublicAccess": false,
   "extensions": [
     {
@@ -9,7 +9,7 @@
       "alias": "Antc.WorkspaceView.Risks.ruiRoPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · ruiRoPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -32,7 +32,7 @@
       "alias": "Antc.WorkspaceView.Risks.alertListPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · alertListPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -52,33 +52,10 @@
     },
     {
       "type": "workspaceView",
-      "alias": "Antc.WorkspaceView.Risks.riskCategoryPage",
-      "overwrites": "Umb.WorkspaceView.Document.Edit",
-      "name": "Các rủi ro · riskCategoryPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.0.2",
-      "weight": 260,
-      "meta": {
-        "label": "Nội dung",
-        "pathname": "risks",
-        "icon": "icon-shield"
-      },
-      "conditions": [
-        {
-          "alias": "Umb.Condition.WorkspaceAlias",
-          "match": "Umb.Workspace.Document"
-        },
-        {
-          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
-          "match": "riskCategoryPage"
-        }
-      ]
-    },
-    {
-      "type": "workspaceView",
       "alias": "Antc.WorkspaceView.Risks.riskArticlePage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · riskArticlePage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -101,7 +78,7 @@
       "alias": "Antc.WorkspaceView.Risks.alertPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · alertPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -124,7 +101,7 @@
       "alias": "Antc.WorkspaceView.Risks.tacticItem",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · tacticItem",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -147,7 +124,7 @@
       "alias": "Antc.WorkspaceView.Risks.topicItem",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · topicItem",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -169,7 +146,7 @@
       "type": "propertyEditorUi",
       "alias": "Antc.PropertyEditorUi.NodeCombobox",
       "name": "Bộ chọn danh mục và trang",
-      "element": "/App_Plugins/AntcRisks/node-combobox.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/node-combobox.js?v=1.1.0",
       "meta": {
         "label": "Bộ chọn danh mục và trang",
         "icon": "icon-list",
@@ -181,7 +158,7 @@
       "type": "propertyEditorUi",
       "alias": "Antc.PropertyEditorUi.InlineList",
       "name": "Bảng và thẻ nhập ngay trong form",
-      "element": "/App_Plugins/AntcRisks/inline-list.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/inline-list.js?v=1.1.0",
       "meta": {
         "label": "Bảng và thẻ nhập ngay trong form",
         "icon": "icon-list",
@@ -194,7 +171,7 @@
       "alias": "Antc.WorkspaceView.RiskCollection.articleFolder",
       "overwrites": "Umb.WorkspaceView.Content.Collection",
       "name": "Danh sách articleFolder",
-      "element": "/App_Plugins/AntcRisks/risk-collection.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/risk-collection.js?v=1.1.0",
       "weight": 1100,
       "meta": {
         "label": "Danh sách",
@@ -217,7 +194,7 @@
       "alias": "Antc.WorkspaceView.RiskCollection.alertFolder",
       "overwrites": "Umb.WorkspaceView.Content.Collection",
       "name": "Danh sách alertFolder",
-      "element": "/App_Plugins/AntcRisks/risk-collection.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/risk-collection.js?v=1.1.0",
       "weight": 1100,
       "meta": {
         "label": "Danh sách",
@@ -239,7 +216,7 @@
       "type": "propertyContext",
       "alias": "Antc.PropertyContext.RiskAppearance",
       "name": "Nhãn trên ô nhập của bài viết và cảnh báo",
-      "api": "/App_Plugins/AntcRisks/property-appearance.js?v=1.0.2",
+      "api": "/App_Plugins/AntcRisks/property-appearance.js?v=1.1.0",
       "forPropertyEditorUis": [
         "Umb.PropertyEditorUi.TextBox",
         "Umb.PropertyEditorUi.TextArea",
@@ -275,7 +252,7 @@
       "type": "propertyEditorUi",
       "alias": "Antc.PropertyEditorUi.LineList",
       "name": "Danh sách dòng",
-      "element": "/App_Plugins/AntcRisks/line-list.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/line-list.js?v=1.1.0",
       "meta": {
         "label": "Danh sách dòng",
         "icon": "icon-list",
@@ -287,7 +264,7 @@
       "type": "propertyEditorUi",
       "alias": "Antc.PropertyEditorUi.FixedChoice",
       "name": "Chọn danh mục cố định",
-      "element": "/App_Plugins/AntcRisks/fixed-choice.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/fixed-choice.js?v=1.1.0",
       "meta": {
         "label": "Chọn danh mục cố định",
         "icon": "icon-list",
@@ -299,13 +276,128 @@
       "type": "propertyEditorUi",
       "alias": "Antc.PropertyEditorUi.ArticleKind",
       "name": "Ba loại bài rủi ro",
-      "element": "/App_Plugins/AntcRisks/article-kind.js?v=1.0.2",
+      "element": "/App_Plugins/AntcRisks/article-kind.js?v=1.1.0",
       "meta": {
         "label": "Loại bài",
         "icon": "icon-document",
         "group": "ANTC Portal V2",
         "propertyEditorSchemaAlias": "Umbraco.DropDown.Flexible"
       }
+    },
+    {
+      "type": "workspaceView",
+      "alias": "Antc.WorkspaceView.Risks.luaDaoPage",
+      "overwrites": "Umb.WorkspaceView.Document.Edit",
+      "name": "Các rủi ro · luaDaoPage",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "weight": 260,
+      "meta": {
+        "label": "Nội dung",
+        "pathname": "risks",
+        "icon": "icon-shield"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "luaDaoPage"
+        }
+      ]
+    },
+    {
+      "type": "workspaceView",
+      "alias": "Antc.WorkspaceView.Risks.vayVaNoPage",
+      "overwrites": "Umb.WorkspaceView.Document.Edit",
+      "name": "Các rủi ro · vayVaNoPage",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "weight": 260,
+      "meta": {
+        "label": "Nội dung",
+        "pathname": "risks",
+        "icon": "icon-shield"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "vayVaNoPage"
+        }
+      ]
+    },
+    {
+      "type": "workspaceView",
+      "alias": "Antc.WorkspaceView.Risks.dauTuPage",
+      "overwrites": "Umb.WorkspaceView.Document.Edit",
+      "name": "Các rủi ro · dauTuPage",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "weight": 260,
+      "meta": {
+        "label": "Nội dung",
+        "pathname": "risks",
+        "icon": "icon-shield"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "dauTuPage"
+        }
+      ]
+    },
+    {
+      "type": "workspaceView",
+      "alias": "Antc.WorkspaceView.Risks.baoHiemVaTietKiemPage",
+      "overwrites": "Umb.WorkspaceView.Document.Edit",
+      "name": "Các rủi ro · baoHiemVaTietKiemPage",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "weight": 260,
+      "meta": {
+        "label": "Nội dung",
+        "pathname": "risks",
+        "icon": "icon-shield"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "baoHiemVaTietKiemPage"
+        }
+      ]
+    },
+    {
+      "type": "workspaceView",
+      "alias": "Antc.WorkspaceView.Risks.duLieuCaNhanPage",
+      "overwrites": "Umb.WorkspaceView.Document.Edit",
+      "name": "Các rủi ro · duLieuCaNhanPage",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "weight": 260,
+      "meta": {
+        "label": "Nội dung",
+        "pathname": "risks",
+        "icon": "icon-shield"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.WorkspaceAlias",
+          "match": "Umb.Workspace.Document"
+        },
+        {
+          "alias": "Umb.Condition.WorkspaceContentTypeAlias",
+          "match": "duLieuCaNhanPage"
+        }
+      ]
     }
   ]
 }
