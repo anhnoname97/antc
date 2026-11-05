@@ -1,25 +1,59 @@
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.PublishedContent
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
-    Link? L(string alias) => c.Value<Link>(alias);
-    var id = $"qa-{Model.ContentKey:N}";
+    var title = !string.IsNullOrWhiteSpace(T("title")) ? T("title") : "Hỏi –";
+    var titleAccent = !string.IsNullOrWhiteSpace(T("titleAccent")) ? T("titleAccent") : "Đáp";
+    var fullTitle = !string.IsNullOrWhiteSpace(titleAccent) ? $"{title} {titleAccent}" : title;
+    var defaultDesc = "Câu hỏi thường gặp, trả lời ngắn. Không thấy câu của bạn thì gửi câu hỏi riêng ở cuối trang.";
+    var descRaw = T("description");
+    var description = (!string.IsNullOrWhiteSpace(descRaw) && !descRaw.StartsWith("Gửi câu hỏi, kiến nghị"))
+        ? descRaw
+        : defaultDesc;
+
+    var heroImage = c.Value<MediaWithCrops>("image");
+    var imageUrl = (heroImage != null && !string.IsNullOrWhiteSpace(heroImage.Url()))
+        ? heroImage.Url()
+        : "/assets/img/qa-hero.jpg";
+    var imageAlt = heroImage?.Value<string>("altText") ?? fullTitle;
 }
-<section class="ph" aria-labelledby="@id">
-<div class="ph-sky">@Html.HeroImage(Umbraco.AssignedContentItem, 5)</div>
-<svg class="ph-drum" data-drum viewBox="-500 -500 1000 1000" aria-hidden="true"></svg>
-<span class="ph-num" aria-hidden="true">05</span>
-<div class="ph-shade"></div>
-<div class="ph-copy">
-<nav class="crumb" aria-label="Vị trí"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>Phần 5</span></nav>
-<p class="eyebrow">@T("eyebrow")</p>
-<h1 id="@id" class="qa-hero-title"><span class="line"><span data-line>@T("title") <em>@T("titleAccent")</em></span></span></h1>
-<p class="lead">@T("description")</p>
-<div class="ph-links">
-@if (L("primaryLink") is { } primary) { <a class="btn btn-light" href="@primary.Url">@(primary.Name?.TrimEnd().TrimEnd('↓').TrimEnd()) <span aria-hidden="true">↓</span></a> }
-@if (L("secondaryLink") is { } secondary) { <a class="btn btn-light" href="@secondary.Url">@secondary.Name</a> }
+
+@* Đường dẫn (Breadcrumb) *@
+<nav class="crumbs" aria-label="Bạn đang ở">
+    <ol>
+        <li><a href="/">Trang chủ</a></li>
+        <li><span aria-current="page">Hỏi – Đáp</span></li>
+    </ol>
+</nav>
+
+@* Tiêu đề trang *@
+<header class="pageh">
+    <div class="pageh-title">
+        <span class="spot" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </span>
+        <h1 tabindex="-1">@fullTitle</h1>
+    </div>
+    <p class="lead">@description</p>
+</header>
+
+@* Ảnh đại diện / Ảnh nền tùy ý do người dùng thay thế *@
+<div class="pageh-hero-wrap">
+    <img src="@imageUrl" alt="@imageAlt" class="pageh-hero-img" />
 </div>
+
+@* Dải khẩn cấp *@
+<div class="quick">
+    <div class="quick-main">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3.5 2.8 19.5h18.4z"/><path d="M12 10v4.2"/><circle cx="12" cy="16.8" r=".7" fill="currentColor"/>
+        </svg>
+        <span><b>Đang gặp chuyện gấp?</b> Đừng chờ trả lời, xem việc cần làm ngay.</span>
+    </div>
+    <a href="/khan-cap" class="btn red sm">Xem việc cần làm ngay</a>
 </div>
-</section>

@@ -1,17 +1,29 @@
 @using Umbraco.Cms.Core.Models.Blocks
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
+    var page = Umbraco.AssignedContentItem;
+    var pageLayout = page?.Value<BlockGridModel>("layout");
+    var hasSubmissionBlock = pageLayout?.Any(b => b.Content.ContentType.Alias == "qaSubmissionBlock") == true;
+    if (hasSubmissionBlock)
+    {
+        // Khi có khối biểu mẫu gửi câu hỏi trên trang, khối lưu ý đã được tích hợp
+        // trực tiếp bên trong <form class="box form"> theo đúng thiết kế của antoantaichinh_v2.html (dòng 2639)
+        return;
+    }
+
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
-    var id = $"qa-guidelines-{Model.ContentKey:N}";
+    var title = !string.IsNullOrWhiteSpace(T("title")) ? T("title") : "Trước khi gõ";
+    var w1 = !string.IsNullOrWhiteSpace(T("warning1")) ? T("warning1") : "Đừng viết mật khẩu, mã OTP, mã PIN, số thẻ hay số tài khoản.";
+    var w2 = !string.IsNullOrWhiteSpace(T("warning2")) ? T("warning2") : "Đừng gửi họ tên, số điện thoại, ảnh giấy tờ của người khác.";
+    var info = !string.IsNullOrWhiteSpace(T("info")) ? T("info") : "Giai đoạn đầu chưa nhận tệp đính kèm và ảnh chụp màn hình.";
 }
-<div class="qa-guide-shell">
-<aside class="before" data-qa-guidelines aria-labelledby="@id">
-<h3 id="@id">@T("title")</h3>
-<ul>
-<li><b aria-hidden="true">✕</b><span>@T("warning1")</span></li>
-<li><b aria-hidden="true">✕</b><span>@T("warning2")</span></li>
-<li class="info"><b aria-hidden="true">i</b><span>@T("info")</span></li>
-</ul>
-</aside>
+
+<div class="warn">
+    <b>@title</b>
+    <ul>
+        @if (!string.IsNullOrWhiteSpace(w1)) { <li>@w1</li> }
+        @if (!string.IsNullOrWhiteSpace(w2)) { <li>@w2</li> }
+        @if (!string.IsNullOrWhiteSpace(info)) { <li>@info</li> }
+    </ul>
 </div>
