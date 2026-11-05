@@ -1,0 +1,112 @@
+[
+  {
+    "id": "rui-ro",
+    "p": "pages",
+    "type": "ruiRoPage",
+    "name": "Các rủi ro",
+    "st": "pub",
+    "v": {
+      "title": "Các rủi ro",
+      "lead": "Chọn một nhóm để xem cảnh báo và bài hướng dẫn."
+    }
+  },
+  {
+    "id": "canh-bao-moi",
+    "p": "rui-ro",
+    "type": "alertListPage",
+    "name": "Cảnh báo mới",
+    "st": "pub",
+    "v": {
+      "title": "Cảnh báo mới",
+      "lead": "Mỗi cảnh báo dựa trên văn bản của cơ quan nhà nước, ghi rõ nguồn và ngày cập nhật. Website không tổng hợp tin báo chí.",
+      "sample": true,
+      "illus": "m-a23",
+      "illusAlt": "Những tin nhắn đáng ngờ giữa dòng người dùng điện thoại"
+    }
+  },
+  {
+    "id": "g-lua-dao",
+    "p": "rui-ro",
+    "type": "riskCategoryPage",
+    "name": "Lừa đảo",
+    "st": "pub",
+    "v": {
+      "tab": "Lừa đảo",
+      "short": "Giả danh, việc làm online, mua bán, đặt cọc",
+      "lead": "Không cần nhớ tên từng thủ đoạn. Đừng nghe họ tự xưng là ai, hãy nhìn vào việc họ đang bảo mình làm.",
+      "icon": "alert",
+      "showAdvice": false,
+      "illus": "m-a38",
+      "illusAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+      "thumb": "m-a09"
+    }
+  },
+  {
+    "id": "g-vay-va-no",
+    "p": "rui-ro",
+    "type": "riskCategoryPage",
+    "name": "Vay và nợ",
+    "st": "pub",
+    "v": {
+      "tab": "Vay và nợ",
+      "short": "Vay nhanh, phí trước, đứng tên hộ, đòi nợ",
+      "lead": "Ghi ra giấy ba con số trước khi vay: mình nhận về bao nhiêu, tổng cộng phải trả bao nhiêu, mỗi kỳ trả bao nhiêu.",
+      "icon": "coins",
+      "showAdvice": true,
+      "illus": "m-a06",
+      "illusAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+      "thumb": "m-a08"
+    }
+  },
+  {
+    "id": "g-dau-tu",
+    "p": "rui-ro",
+    "type": "riskCategoryPage",
+    "name": "Đầu tư",
+    "st": "pub",
+    "v": {
+      "tab": "Đầu tư",
+      "short": "Cam kết lợi nhuận, rút thử, hoa hồng theo tầng",
+      "lead": "Ba câu trở đi trở lại: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
+      "icon": "chart",
+      "showAdvice": true,
+      "illus": "m-a30",
+      "illusAlt": "Phân biệt rủi ro đầu tư và thủ đoạn gian lận",
+      "thumb": "m-a06"
+    }
+  },
+  {
+    "id": "g-bao-hiem-va-tiet-kiem",
+    "p": "rui-ro",
+    "type": "riskCategoryPage",
+    "name": "Bảo hiểm và tiết kiệm",
+    "st": "pub",
+    "v": {
+      "tab": "Bảo hiểm và tiết kiệm",
+      "short": "Hợp đồng, phí định kỳ, nhập nhèm sản phẩm",
+      "lead": "Bốn điều phải rõ trước khi ký: ai là bên cung cấp, mình phải trả bao nhiêu, mình được hưởng gì, và muốn dừng thì làm thế nào.",
+      "icon": "shield",
+      "showAdvice": true,
+      "illus": "m-a08",
+      "illusAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+      "thumb": "m-a07"
+    }
+  },
+  {
+    "id": "g-du-lieu-ca-nhan",
+    "p": "rui-ro",
+    "type": "riskCategoryPage",
+    "name": "Dữ liệu cá nhân",
+    "st": "pub",
+    "v": {
+      "tab": "Dữ liệu cá nhân",
+      "short": "Mã OTP, giấy tờ, tài khoản, SIM",
+      "lead": "Mã xác thực, giấy tờ, khuôn mặt, tài khoản ngân hàng và SIM là chìa khóa của bạn. Không ai cần những thứ đó của mình qua điện thoại.",
+      "icon": "id",
+      "showAdvice": false,
+      "illus": "m-a39",
+      "illusAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
+      "thumb": "m-a05"
+    }
+  }
+]
