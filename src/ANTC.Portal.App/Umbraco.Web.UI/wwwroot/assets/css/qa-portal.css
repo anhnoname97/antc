@@ -1,0 +1,670 @@
+/* Trang Hỏi – Đáp ngoài Portal (antoantaichinh.vn/hoi-dap) theo đặc tả v2 */
+.qa-portal {
+  --navy: #123B63;
+  --navy-soft: #E3ECF5;
+  --on-navy: #FFFFFF;
+  --blue: #0B6BCB;
+  --blue-soft: #E2EEFB;
+  --on-blue: #FFFFFF;
+  --yellow: #FFC94D;
+  --yellow-soft: #FFF4D6;
+  --on-yellow: #3D2E00;
+  --orange: #D9531E;
+  --stop: #B8431A;
+  --stop-soft: #FCEBE3;
+  --on-stop: #FFFFFF;
+  --hold: #7A5300;
+  --hold-soft: #FFF1CC;
+  --on-hold: #3D2E00;
+  --green: #1E7B4D;
+  --green-soft: #E3F3EA;
+  --neut: #4A586B;
+  --neut-soft: #E7ECF2;
+  --line: #D6DEE8;
+  --line2: #AEBACB;
+  --surface: #FFFFFF;
+  --sunk: #EBEFF5;
+  --ink: #0E1E30;
+  --ink2: #4A5A6E;
+  --shadow: 0 1px 2px rgba(18,59,99,.06), 0 6px 18px rgba(18,59,99,.07);
+  --r: 14px;
+
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+  font-family: var(--font, system-ui, -apple-system, sans-serif);
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+/* ---------- Đường dẫn (crumbs) ---------- */
+.qa-portal .crumbs ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 4px;
+  font-size: 15px;
+  color: var(--ink2);
+}
+.qa-portal .crumbs li {
+  display: inline-flex;
+  align-items: center;
+}
+.qa-portal .crumbs li + li::before {
+  content: "›";
+  margin: 0 6px;
+  color: var(--line2);
+  font-weight: 700;
+}
+.qa-portal .crumbs a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+}
+.qa-portal .crumbs a:hover {
+  color: var(--navy);
+}
+.qa-portal .crumbs [aria-current="page"] {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---------- Tiêu đề trang ---------- */
+.qa-portal .pageh {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+.qa-portal .pageh-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.qa-portal .pageh h1 {
+  font-size: clamp(26px, 4.5vw, 34px);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  color: var(--navy);
+  margin: 0;
+}
+.qa-portal .pageh .eyebrow {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 2px;
+}
+.qa-portal .pageh .lead {
+  font-size: 15.5px;
+  color: #475569;
+  max-width: 72ch;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ---------- Khối ảnh Banner Hero ---------- */
+.qa-portal .pageh-hero-wrap {
+  width: 100%;
+  margin: 16px 0 26px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  background: var(--surface);
+}
+.qa-portal .pageh-hero-img {
+  width: 100%;
+  height: auto;
+  max-height: 540px;
+  object-fit: cover;
+  display: block;
+  border-radius: 18px;
+}
+
+/* ---------- Biểu tượng tròn (spot) ---------- */
+.qa-portal .spot {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(14, 165, 233, 0.14);
+  color: #0284c7;
+}
+.qa-portal .spot.s {
+  background: var(--stop-soft);
+  color: var(--stop);
+}
+.qa-portal .spot.g {
+  background: var(--green-soft);
+  color: var(--green);
+}
+.qa-portal .spot svg,
+.qa-portal .spot .ic {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Dải khẩn cấp (quick) ---------- */
+.qa-portal .quick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--stop-soft);
+  border: 1px solid rgba(184, 67, 26, 0.22);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin: 14px 0 0;
+}
+.qa-portal .quick-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.qa-portal .quick-main .ic {
+  width: 22px;
+  height: 22px;
+  color: var(--stop);
+  flex-shrink: 0;
+}
+.qa-portal .quick-main span {
+  font-size: 15.5px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+.qa-portal .quick-main span b {
+  color: var(--stop);
+  margin-right: 4px;
+}
+@media (max-width: 640px) {
+  .qa-portal .quick {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .qa-portal .quick .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ---------- Khối nội dung (sec) ---------- */
+.qa-portal .sec {
+  margin-bottom: 0;
+}
+.qa-portal .sec h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0 0 16px;
+  letter-spacing: -.01em;
+}
+
+/* ---------- Accordion Hỏi – đáp nhanh ---------- */
+.qa-portal .qalist {
+  display: grid;
+  gap: 10px;
+}
+.qa-portal .qai {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color .15s, box-shadow .15s;
+}
+.qa-portal .qai:hover {
+  border-color: var(--line2);
+  box-shadow: var(--shadow);
+}
+.qa-portal .qaq {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  font-weight: 700;
+  font-size: 16.5px;
+  line-height: 1.45;
+  min-height: 52px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink);
+  font-family: inherit;
+}
+.qa-portal .qaq:hover {
+  color: var(--navy);
+}
+.qa-portal .qaq span {
+  flex: 1;
+  min-width: 0;
+}
+.qa-portal .qaq .ic-q {
+  width: 22px;
+  height: 22px;
+  color: var(--blue);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.qa-portal .qaq .chev {
+  width: 18px;
+  height: 18px;
+  transition: transform .2s ease;
+  margin-top: 3px;
+  flex-shrink: 0;
+  color: var(--ink2);
+}
+.qa-portal .qaq[aria-expanded="true"] .chev {
+  transform: rotate(90deg);
+  color: var(--blue);
+}
+.qa-portal .qab {
+  display: grid;
+  gap: 10px;
+  padding: 0 16px 16px;
+  font-size: 16px;
+  line-height: 1.6;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.qa-portal .qab[hidden] {
+  display: none !important;
+}
+.qa-portal .qshort {
+  font-weight: 800;
+  font-size: 16.5px;
+  background: var(--blue-soft);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0;
+  color: var(--navy);
+  line-height: 1.5;
+}
+.qa-portal .qlab {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink2);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 6px 0 0;
+}
+.qa-portal .qbody {
+  color: var(--ink);
+}
+.qa-portal .qbody p {
+  margin: 0 0 6px;
+}
+.qa-portal .qbody p:last-child {
+  margin-bottom: 0;
+}
+.qa-portal .qbody b,
+.qa-portal .qbody strong {
+  font-weight: 700;
+  color: var(--ink);
+}
+.qa-portal .qmeta {
+  font-size: 13.5px;
+  color: var(--ink2);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Danh sách bài liên quan (llist) */
+.qa-portal .llist {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.qa-portal .llist li a {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: border-color .15s, background .15s;
+}
+.qa-portal .llist li a:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--navy);
+}
+.qa-portal .llist li a .ic-left {
+  color: var(--blue);
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.qa-portal .llist li a span {
+  flex: 1;
+  min-width: 0;
+}
+.qa-portal .llist li a .ic-next {
+  width: 16px;
+  height: 16px;
+  color: var(--ink2);
+  flex-shrink: 0;
+}
+
+/* ---------- Quy trình 3 bước (flow) ---------- */
+.qa-portal .flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.qa-portal .flow li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.qa-portal .flow li span:not(.spot) {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink2);
+}
+.qa-portal .flow li span b {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  display: block;
+}
+@media (min-width: 768px) {
+  .qa-portal .flow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------- Biểu mẫu gửi câu hỏi (form) ---------- */
+.qa-portal .box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.qa-portal .form {
+  display: grid;
+  gap: 16px;
+}
+.qa-portal .warn {
+  background: var(--stop-soft);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 6px;
+}
+.qa-portal .warn > b {
+  color: var(--stop);
+  font-size: 15.5px;
+  font-weight: 700;
+}
+.qa-portal .warn ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.qa-portal .lbl {
+  display: block;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.qa-portal .form textarea,
+.qa-portal .form input[type="text"] {
+  width: 100%;
+  border: 1.5px solid var(--line2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color .15s ease;
+}
+.qa-portal .form textarea {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.55;
+}
+.qa-portal .form textarea:focus,
+.qa-portal .form input[type="text"]:focus {
+  outline: 3px solid var(--blue);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.qa-portal .check {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 2px solid var(--line2);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 15.5px;
+  line-height: 1.5;
+  cursor: pointer;
+  user-select: none;
+}
+.qa-portal .check input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: var(--blue);
+  flex: none;
+  cursor: pointer;
+}
+.qa-portal .check.one {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+.qa-portal .check span b {
+  color: var(--navy);
+}
+.qa-portal .err {
+  background: var(--stop-soft);
+  color: var(--stop);
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(184, 67, 26, 0.25);
+  margin: 0;
+}
+.qa-portal .err[hidden] {
+  display: none !important;
+}
+.qa-portal .small {
+  font-size: 15px;
+  color: var(--ink2);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ---------- Nút bấm (btn) ---------- */
+.qa-portal .btnrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.qa-portal .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: background .15s ease, filter .15s ease, border-color .15s ease;
+}
+.qa-portal .btn .ic {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.qa-portal .btn.pri {
+  background: var(--blue);
+  color: var(--on-blue);
+}
+.qa-portal .btn.pri:hover {
+  filter: brightness(1.08);
+}
+.qa-portal .btn.red {
+  background: var(--stop);
+  color: var(--on-stop);
+}
+.qa-portal .btn.red:hover {
+  filter: brightness(1.08);
+}
+.qa-portal .btn.ghost {
+  border: 1.5px solid var(--line2);
+  background: var(--surface);
+  color: var(--ink);
+}
+.qa-portal .btn.ghost:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.qa-portal .btn.sm {
+  min-height: 42px;
+  padding: 8px 14px;
+  font-size: 15px;
+}
+.qa-portal .btn[disabled] {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* ---------- Thông báo kết quả đã gửi (vSent) ---------- */
+.qa-portal .note {
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 8px;
+  font-size: 15.5px;
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.qa-portal .note > b {
+  font-size: 16.5px;
+  font-weight: 700;
+}
+.qa-portal .note.r {
+  background: var(--stop-soft);
+  border: 1px solid rgba(184, 67, 26, 0.22);
+}
+.qa-portal .note.r > b {
+  color: var(--stop);
+}
+.qa-portal .note.g {
+  background: var(--sunk);
+  border: 1px solid var(--line);
+}
+.qa-portal .note.g > b {
+  color: var(--navy);
+}
+.qa-portal .note p {
+  margin: 0;
+  color: var(--ink);
+}
+.qa-portal .more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 15.5px;
+  color: var(--stop);
+  text-decoration: none;
+  padding: 6px 0;
+}
+.qa-portal .more:hover {
+  text-decoration: underline;
+}
+.qa-portal .more .ic {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Tích hợp Umbraco Block Grid ---------- */
+.qa-portal .umb-block-grid {
+  width: 100%;
+}
+.qa-portal .umb-block-grid__layout-container {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 22px 20px;
+  width: 100%;
+}
+.qa-portal .umb-block-grid__layout-item {
+  grid-column: span 12;
+  min-width: 0;
+}
+.qa-portal .umb-block-grid__layout-item[data-content-element-type-alias="qaSubmissionBlock"] {
+  grid-column: span 12 !important;
+  margin-top: -8px;
+}
+.qa-portal .umb-block-grid__layout-item[data-content-element-type-alias="qaGuidelinesBlock"] {
+  display: none !important;
+}
+.qa-portal .umb-block-grid__layout-item[data-col-span="7"] {
+  grid-column: span 7;
+}
+.qa-portal .umb-block-grid__layout-item[data-col-span="5"] {
+  grid-column: span 5;
+}
+@media (max-width: 850px) {
+  .qa-portal .umb-block-grid__layout-item[data-col-span="7"],
+  .qa-portal .umb-block-grid__layout-item[data-col-span="5"] {
+    grid-column: span 12;
+  }
+}
+
+

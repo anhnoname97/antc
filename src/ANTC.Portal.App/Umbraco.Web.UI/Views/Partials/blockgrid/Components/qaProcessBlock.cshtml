@@ -1,29 +1,59 @@
 @using Umbraco.Cms.Core.Models.Blocks
-@using Umbraco.Cms.Core.Models
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
-    var id = $"qa-process-{Model.ContentKey:N}";
+    var rawTitle = T("title");
+    var titleAccent = T("titleAccent");
+    
+    // Nếu chưa cấu hình tiêu đề, mặc định dùng "Gửi câu hỏi, kiến nghị riêng" theo chuẩn antoantaichinh_v2.html
+    var fullTitle = !string.IsNullOrWhiteSpace(rawTitle)
+        ? (rawTitle + (!string.IsNullOrWhiteSpace(titleAccent) ? " " + titleAccent : "")).Trim()
+        : "Gửi câu hỏi, kiến nghị riêng";
+
+    var s1Title = !string.IsNullOrWhiteSpace(T("step1Title")) ? T("step1Title") : "Bạn gửi kín";
+    var s1Desc = !string.IsNullOrWhiteSpace(T("step1Description")) ? T("step1Description") : "Câu hỏi, kiến nghị không hiện lên trang.";
+    var s2Title = !string.IsNullOrWhiteSpace(T("step2Title")) ? T("step2Title") : "Ban biên tập gộp";
+    var s2Desc = !string.IsNullOrWhiteSpace(T("step2Description")) ? T("step2Description") : "Các câu giống nhau được gộp làm một.";
+    var s3Title = !string.IsNullOrWhiteSpace(T("step3Title")) ? T("step3Title") : "Trả lời công khai";
+    var s3Desc = !string.IsNullOrWhiteSpace(T("step3Description")) ? T("step3Description") : "Người biên tập duyệt từng câu trước khi đăng, đã che mọi thông tin cá nhân.";
 }
-<section class="sec" data-qa-process aria-labelledby="@id">
-<div class="wrap">
-<div class="sec-head" data-process-reveal><div><p class="eyebrow">@T("eyebrow")</p><h2 id="@id">@T("title")<br><em>@T("titleAccent")</em></h2></div></div>
-<div class="proc" role="list" aria-label="Quy trình hỏi đáp"><span class="pf" aria-hidden="true"></span>
-@for (var step = 1; step <= 3; step++)
-{
-<div class="pstep" role="listitem">
-<i aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-@if (step == 1) { <path d="M7 11V8a5 5 0 0 1 10 0v3"/><rect x="4.5" y="11" width="15" height="9.5" rx="2"/> }
-else if (step == 2) { <path d="M4 7h10M4 12h16M4 17h7"/><path d="m16 15 2 2 3-4"/> }
-else { <path d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-9l-4.5 3.5v-3.5H5A1.5 1.5 0 0 1 3.5 15V6A1.5 1.5 0 0 1 5 4.5z"/> }
-</svg></i>
-<span class="k">@step.ToString("00")</span><h3>@T($"step{step}Title")</h3><p>@T($"step{step}Description")</p>
-</div>
-}
-</div>
-<div class="urgent" data-process-reveal><span><b>@T("urgentTitle")</b><span>@T("urgentDescription")</span></span>
-@if (c.Value<Link>("urgentLink") is { } link) { <a class="btn btn-red" href="@link.Url" target="@link.Target">@link.Name <span aria-hidden="true">⟶</span></a> }
-</div>
-</div>
+
+<section class="sec" id="gui-cau-hoi" aria-labelledby="h-ask">
+    <h2 id="h-ask">@fullTitle</h2>
+    <ol class="flow" aria-label="Cách mục Hỏi – Đáp làm việc">
+        <li>
+            <span class="spot" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>
+                </svg>
+            </span>
+            <span>
+                <b>@s1Title</b>
+                @s1Desc
+            </span>
+        </li>
+        <li>
+            <span class="spot" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><path d="M15.5 4.9a3.2 3.2 0 0 1 0 6.2M17.5 14.7c2 .6 3.2 2.3 3.5 4.8"/>
+                </svg>
+            </span>
+            <span>
+                <b>@s2Title</b>
+                @s2Desc
+            </span>
+        </li>
+        <li>
+            <span class="spot" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5V4.5L7 9H4.5a1 1 0 0 0-1 1z"/><path d="M17.5 9a4 4 0 0 1 0 6"/>
+                </svg>
+            </span>
+            <span>
+                <b>@s3Title</b>
+                @s3Desc
+            </span>
+        </li>
+    </ol>
 </section>

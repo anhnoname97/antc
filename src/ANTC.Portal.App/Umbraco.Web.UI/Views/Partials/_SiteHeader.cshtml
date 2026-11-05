@@ -1,59 +1,51 @@
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Models.PublishedContent
 @{
     var site = Model.Root();
     var siteName = site.Value<string>("siteName");
     if (string.IsNullOrWhiteSpace(siteName)) { siteName = "antoantaichinh.vn"; }
-    var home = site.DescendantsOrSelfOfType("home").FirstOrDefault();
-    var homeUrl = home?.Url() ?? "/";
-    var path = Context.Request.Path.Value ?? "/";
-    if (Model.ContentType.Alias == "searchPage" && Context.Request.Query["scope"] == "thu-doan")
-    {
-        path = site.DescendantsOrSelfOfType("thuDoanPage").FirstOrDefault()?.Url() ?? "/thu-doan/";
-    }
+    var homeUrl = site.DescendantsOrSelfOfType("home").FirstOrDefault()?.Url() ?? "/";
     var logo = site.Value<IPublishedContent>("logoHeaderImage");
     var logoAlt = site.Value<string>("headerLogoAlt");
+    var tagline = site.Value<string>("headerTagline");
     var menu = site.Value<BlockListModel>("menu");
-    var cta = site.Value<BlockListModel>("headerCta")?.FirstOrDefault()?.Content;
-    var ctaPage = cta?.Value<IPublishedContent>("page");
-    var ctaUrl = ctaPage?.Url();
-    var ctaLabel = cta?.Value<string>("label");
-
+    var preview = site.Value<bool>("showPreviewBanner");
+    var showFont = site.Value<bool>("showFontSizeControl");
+    var mobileNavigation = site.Value<bool>("showMobileNavigation");
+    var fontLabel = site.Value<string>("fontSizeControlLabel");
+    if (string.IsNullOrWhiteSpace(fontLabel)) { fontLabel = "Chữ lớn"; }
 }
-<header class="site-header" id="site-header" data-site-header>
-    @await Html.PartialAsync("~/Views/Partials/_ContestAnnouncement.cshtml", Model)
-    <div class="site-header__inner">
-        <button class="site-header__menu-toggle" type="button" data-site-menu aria-controls="site-header-nav" aria-expanded="false" aria-label="Mở menu">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-        </button>
-        <a class="site-brand" href="@homeUrl" aria-label="@(siteName + ", trang giới thiệu")">
+@if (preview || showFont)
+{
+    <div class="site-utility">
+        <div class="site-chrome-wrap site-utility__inner">
+            @if (preview)
+            {
+                <p><b>BẢN DỰNG THỬ</b><span> · chưa phải website đang hoạt động</span></p>
+            }
+            @if (showFont)
+            {
+                <button type="button" class="site-font-toggle" data-font-toggle data-font-label="@fontLabel" aria-pressed="false"><b aria-hidden="true">A+</b><span>@fontLabel</span></button>
+            }
+        </div>
+    </div>
+}
+<header class="site-header @(!mobileNavigation ? "site-header--inline-mobile" : null)" id="site-header" data-site-header>
+    <div class="site-chrome-wrap site-header__inner">
+        <a class="site-brand" href="@homeUrl" aria-label="@(siteName + ", trang chủ")">
             @if (logo is not null)
             {
-                <img class="site-brand__logo" src="@logo.Url()" height="40" alt="@(string.IsNullOrWhiteSpace(logoAlt) ? siteName : logoAlt)">
+                <img class="site-brand__logo" src="@logo.Url()" height="38" alt="@(string.IsNullOrWhiteSpace(logoAlt) ? siteName : logoAlt)">
             }
             else
             {
-                <span class="site-brand__mark" aria-hidden="true">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8 19.5 5.6v6.1c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V5.6z"/><path d="m8.7 12 2.3 2.3 4.3-4.6"/></svg>
-                </span>
+                <span class="site-brand__mark">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-shield")</span>
             }
-            <span class="site-brand__text">
-                <b>@siteName</b>
-            </span>
+            <span class="site-brand__text"><b>@siteName</b>@if (!string.IsNullOrWhiteSpace(tagline)) { <small>@tagline</small> }</span>
         </a>
-        <nav class="site-header__nav" id="site-header-nav" aria-label="Điều hướng chính">
-            @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (menu?.AsEnumerable(), path, (string?)null, true))
+        <nav class="site-header__nav" aria-label="Danh mục chính">
+            @await Html.PartialAsync("~/Views/Partials/_SiteNavigation.cshtml", (menu?.AsEnumerable(), (IPublishedContent)Model, false))
         </nav>
-        <div class="site-header__tools">
-            <button class="site-header__font" type="button" data-font-toggle aria-pressed="false" aria-label="Tăng cỡ chữ"><span>A+ Chữ to</span></button>
-            @if (!string.IsNullOrWhiteSpace(ctaUrl) && !ctaUrl.StartsWith('#'))
-            {
-                <a class="site-header__cta" href="@ctaUrl">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.8 19.5h18.4z"/><path d="M12 10v4.2"/><circle cx="12" cy="16.8" r=".7" fill="currentColor"/></svg>
-                    @(string.IsNullOrWhiteSpace(ctaLabel) ? ctaPage!.Name : ctaLabel)
-                </a>
-            }
-        </div>
     </div>
 </header>

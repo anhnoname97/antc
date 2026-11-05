@@ -1,7 +1,7 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @{
     Layout = null;
-    var contestStyle = Model.ContentType.Alias is "thiPage" or "hoiDapPage" or "thiThangPage" or "cuocThiLamBaiPage";
+    var contestStyle = Model.ContentType.Alias is "thiPage" or "thiThangPage" or "cuocThiLamBaiPage";
     var site = Model.Root();
     var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
     var articleSeo = (Model as ArticlePageModel)?.ArticleSeo;
@@ -18,7 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @if (!string.IsNullOrWhiteSpace(description)) { <meta name="description" content="@description"> }
     <title>@(articleSeo?.Title ?? (Model.Value<string>("seoTitle") is { Length: > 0 } t ? t : Model.Name)) — @siteName</title>
-    @if (articleSeo?.HideFromSearch == true) { <meta name="robots" content="noindex, follow"> }
+    @if (site?.Value<bool>("showPreviewBanner") == true || articleSeo?.HideFromSearch == true) { <meta name="robots" content="noindex, follow"> }
     <script>try { var scale = localStorage.getItem('at_font_scale'); document.documentElement.dataset.fontScale = ['0', '1', '2'].includes(scale) ? scale : '0'; } catch (e) { document.documentElement.dataset.fontScale = '0'; }</script>
     <script>try { if (sessionStorage.getItem('at_contest_announcement') === 'hidden') document.documentElement.dataset.contestAnnouncementHidden = 'true'; } catch (e) { }</script>
     <link rel="stylesheet" href="~/assets/css/contest-announcement.css" asp-append-version="true">
@@ -34,20 +34,14 @@
 </head>
 <body class="@(contestStyle ? "contest-site" : null)">
     <a class="site-skip" href="#noi-dung">Bỏ qua, tới nội dung chính</a>
-    @if (contestStyle)
-    {
-        @await Html.PartialAsync("~/Views/Partials/_ContestHeader.cshtml", Model)
-    }
-    else
-    {
-        @await Html.PartialAsync("~/Views/Partials/_SiteHeader.cshtml", Model)
-    }
+    @await Html.PartialAsync("~/Views/Partials/_SiteHeader.cshtml", Model)
 
     <main id="noi-dung" tabindex="-1">
         @RenderBody()
     </main>
 
     @await Html.PartialAsync("~/Views/Partials/_SiteFooter.cshtml", Model)
+    @await Html.PartialAsync("~/Views/Partials/_SiteMobileNavigation.cshtml", Model)
 
     <script type="module" src="~/assets/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

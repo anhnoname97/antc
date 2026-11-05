@@ -1,60 +1,199 @@
 @using Umbraco.Cms.Core.Models.Blocks
-@using Umbraco.Plugin.Custom.Core.Questions
-@using Microsoft.AspNetCore.WebUtilities
-@inject IPublishedQuestionService PublishedQuestions
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Cms.Core.Strings
+@inject Umbraco.Cms.Web.Common.UmbracoHelper UmbracoHelper
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
-    var id = $"qa-published-{Model.ContentKey:N}";
-    var currentPage = int.TryParse(Context.Request.Query["qaPage"], out var requestedPage) && requestedPage > 0 ? requestedPage : 1;
-    var result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6), Context.RequestAborted);
-    if (currentPage > result.TotalPages)
+    var title = !string.IsNullOrWhiteSpace(T("title")) ? T("title") : "Hỏi – đáp nhanh";
+    var note = !string.IsNullOrWhiteSpace(T("note"))
+        ? T("note")
+        : "Bản dựng thử: đây là ví dụ cách trình bày. Khi vận hành, mỗi câu trả lời đều do Ban biên tập duyệt và dẫn về một nội dung đã thẩm định.";
+
+    // Lấy nội dung từ phần "Hỏi – đáp nhanh" trong Quản lý nội dung trong Backoffice
+    var allRoots = UmbracoHelper.ContentAtRoot();
+    var qaFolder = allRoots.SelectMany(r => r.DescendantsOrSelf())
+        .FirstOrDefault(x => x.ContentType.Alias is "quickQaFolderV2" or "quickQaFolder");
+
+    var cmsItems = qaFolder != null
+        ? qaFolder.Children().Where(x => x.IsVisible() && x.ContentType.Alias == "quickQaItem").OrderBy(x => x.SortOrder).ToList()
+        : allRoots.SelectMany(r => r.DescendantsOrSelfOfType("quickQaItem")).Where(x => x.IsVisible()).OrderBy(x => x.SortOrder).ToList();
+
+    var hasCmsItems = cmsItems.Count > 0;
+}
+
+<section class="sec" aria-labelledby="h-qa">
+    <h2 id="h-qa">@title</h2>
+    <div class="qalist">
+        @if (hasCmsItems)
+        {
+            @for (int i = 0; i < cmsItems.Count; i++)
+            {
+                var item = cmsItems[i];
+                var n = i + 1;
+                var panelId = $"qa-{n}";
+                var question = item.Value<string>("question") is { Length: > 0 } q ? q : item.Name;
+                var shortAnswer = item.Value<string>("shortAnswer");
+                var reason = item.Value<IHtmlEncodedString>("reason");
+                var actions = item.Value<IHtmlEncodedString>("actions");
+                var relatedPages = item.Value<IEnumerable<IPublishedContent>>("relatedPages");
+                var approvedBy = item.Value<string>("approvedBy");
+
+                <div class="qai">
+                    <button type="button" class="qaq" data-open="@panelId" aria-expanded="false" aria-controls="@panelId">
+                        <svg class="ic-q" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.2-2.5 4"/><circle cx="12" cy="17.2" r=".8" fill="currentColor"/>
+                        </svg>
+                        <span>@question</span>
+                        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m9 5 7 7-7 7"/>
+                        </svg>
+                    </button>
+                    <div class="qab" id="@panelId" hidden>
+                        @if (!string.IsNullOrWhiteSpace(shortAnswer))
+                        {
+                            <p class="qshort">@shortAnswer</p>
+                        }
+                        @if (reason is not null && !string.IsNullOrWhiteSpace(reason.ToHtmlString()))
+                        {
+                            <p class="qlab">Vì sao</p>
+                            <div class="qbody">@reason</div>
+                        }
+                        @if (actions is not null && !string.IsNullOrWhiteSpace(actions.ToHtmlString()))
+                        {
+                            <p class="qlab">Việc cần làm</p>
+                            <div class="qbody">@actions</div>
+                        }
+                        @if (relatedPages?.Any() == true)
+                        {
+                            <ul class="llist" aria-label="Nội dung liên quan">
+                                @foreach (var rel in relatedPages)
+                                {
+                                    <li>
+                                        <a href="@rel.Url()">
+                                            <svg class="ic-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M12 6.5C10.3 5 7.6 4.5 3.5 4.5v14c4.1 0 6.8.5 8.5 2 1.7-1.5 4.4-2 8.5-2v-14c-4.1 0-6.8.5-8.5 2z"/><path d="M12 6.5v14"/>
+                                            </svg>
+                                            <span>@rel.Name</span>
+                                            <svg class="ic-next" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="m9 5 7 7-7 7"/>
+                                            </svg>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(approvedBy))
+                        {
+                            <p class="qmeta">Duyệt bởi: @approvedBy</p>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            @* 7 câu hỏi mẫu chuẩn đặc tả (fallback khi CMS chưa publish node con) *@
+            var fallbackQuestions = new[]
+            {
+                (
+                    Q: "Có người gọi nói tài khoản của tôi sắp bị khóa, bảo đọc mã OTP để xác minh. Tôi phải làm gì?",
+                    A: "Không đọc mã. Cúp máy, rồi tự gọi số in ở mặt sau thẻ hoặc tự mở ứng dụng ngân hàng để hỏi.",
+                    Why: "Bảo bạn <b>đọc</b> hoặc <b>gửi</b> mật khẩu, mã OTP, mã PIN là một dấu hiệu phải dừng. Đừng nghe họ tự xưng là ai, hãy nhìn vào việc họ đang bảo mình làm.",
+                    Todo: "<b>Có thẻ ngân hàng:</b> lật mặt sau thẻ, gọi số chăm sóc khách hàng in trên thẻ.<br><b>Không có thẻ:</b> mở ứng dụng ngân hàng bạn đã cài từ trước, vào mục Trợ giúp hoặc Liên hệ.<br><b>Luôn luôn:</b> không bấm đường link và không gọi số do người kia gửi.",
+                    Links: new[] { ("/khan-cap", "Có người đang thúc bạn làm ngay"), ("/ung-pho", "Lỡ đọc mã rồi thì làm gì") }
+                ),
+                (
+                    Q: "Người lạ bảo tôi cài ứng dụng để được hỗ trợ. Có nên cài không?",
+                    A: "Không cài. Người khác gửi đường link và bảo bạn cài ứng dụng là một dấu hiệu phải dừng.",
+                    Why: "Cài công cụ điều khiển là giao cả điện thoại cho người khác. Đọc mã xác thực là giao luôn chìa khóa tài khoản. Không có cơ quan hay ngân hàng nào cần những thứ đó của mình.",
+                    Todo: "Nếu đã cài: ngắt mạng trên điện thoại hoặc máy tính đó, tắt Wi-Fi và tắt dữ liệu di động, rồi ngừng dùng máy. Từ đây trở đi, mọi việc làm trên một thiết bị khác mà bạn tin cậy.",
+                    Links: new[] { ("/khan-cap", "Người khác đang có quyền vào máy của bạn"), ("/thu-doan", "Cuộc gọi, tin nhắn, đường dẫn và giả mạo") }
+                ),
+                (
+                    Q: "Người quen đầu tư lãi nhiều, rủ tôi góp vốn. Có nên theo không?",
+                    A: "Trước hết hỏi ba câu: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
+                    Why: "Người thân quen có thể cũng đang bị dẫn. Nhiều mô hình sống được chính là nhờ người quen rủ người quen. Rút thử được một khoản nhỏ chỉ chứng minh lần rút đó đã xong; khoản trả đầu tiên thường chính là tiền mồi.",
+                    Todo: "Dùng phần kiểm tra nhanh “Trước khi đầu tư, vay”. Không vay, không thế chấp nhà đất, không dùng tiền dưỡng già để góp.",
+                    Links: new[] { ("/ung-pho", "Kiểm tra nhanh: Trước khi đầu tư, vay"), ("/thu-doan", "Có người mời bạn góp vốn, đầu tư") }
+                ),
+                (
+                    Q: "Ứng dụng vay đòi nộp phí trước rồi mới giải ngân. Có nên nộp?",
+                    A: "Chưa nộp. Xem tiền chảy về phía nào. Bạn phải nộp tiền trước thì dừng lại.",
+                    Why: "Ba con số phải ghi ra giấy trước khi quyết: số thực nhận là tiền thật sự về tay sau khi trừ phí, bảo hiểm và khoản giữ lại; tổng phải trả gồm gốc, lãi, phí và bảo hiểm cộng lại; mỗi kỳ trả là số phải nộp mỗi lần theo lịch.",
+                    Todo: "Với ứng dụng cho vay, xem thêm quyền mà nó đòi. Quyền nào không cần cho chức năng rõ ràng thì không cấp.",
+                    Links: new[] { ("/thu-doan", "Danh sách kiểm tra trước khi vay"), ("/thu-doan", "Vay, cho vay và bảo lãnh") }
+                ),
+                (
+                    Q: "Tôi lỡ chuyển tiền rồi. Bây giờ làm gì trước?",
+                    A: "Gọi ngay ngân hàng hoặc ví điện tử bạn đã chuyển. Làm bước này trước, rồi mới làm các bước còn lại.",
+                    Why: "Gọi càng sớm thì ngân hàng càng có cơ hội tra soát giao dịch. Số đúng là số bạn tự lấy từ thẻ hoặc ứng dụng của chính mình.",
+                    Todo: "Câu nói mẫu với tổng đài: “Tôi vừa chuyển tiền và nghi có rủi ro lừa đảo. Xin ghi nhận sự việc, tra soát giao dịch và hướng dẫn tôi cách bảo vệ tài khoản.”",
+                    Links: new[] { ("/khan-cap", "Bạn vừa chuyển tiền: các bước tiếp theo"), ("/ung-pho", "Kiểm tra nhanh: Khi nghi ngờ bị lừa") }
+                ),
+                (
+                    Q: "Có người chuyển nhầm tiền vào tài khoản tôi rồi gọi đòi lại. Tôi có nên chuyển trả ngay theo số họ đưa?",
+                    A: "Chưa chuyển trả theo số tài khoản người gọi đưa, và không tiêu, không rút khoản đó.",
+                    Why: "Không quét mã QR hoặc bấm đường dẫn trong tin nhắn báo “chuyển nhầm tiền” để hoàn lại.",
+                    Todo: "Liên hệ ngân hàng của chính bạn để báo có khoản tiền lạ, rồi chỉ hoàn trả theo đúng cách ngân hàng hướng dẫn.",
+                    Links: new[] { ("/khan-cap", "Tự nhiên có tiền lạ chuyển vào tài khoản") }
+                ),
+                (
+                    Q: "Có người nhờ tôi cho mượn tài khoản ngân hàng, trả tiền công. Có sao không?",
+                    A: "Từ chối ngay, dù được trả tiền công.",
+                    Why: "Không mở, cho mượn, cho thuê hay bán tài khoản ngân hàng, và không nhận chuyển tiền hộ. Đây là hành vi bị cấm, và nó kéo người đứng tên vào dòng tiền phạm pháp.",
+                    Todo: "Nếu đã lỡ giao thẻ, SIM hoặc mã xác thực, báo cả ngân hàng và nhà mạng bằng số chính thức bạn tự tìm.",
+                    Links: new[] { ("/thu-doan", "Việc làm, tuyển dụng và nhiệm vụ trực tuyến") }
+                )
+            };
+
+            for (int i = 0; i < fallbackQuestions.Length; i++)
+            {
+                var item = fallbackQuestions[i];
+                var n = i + 1;
+                var panelId = $"qa-{n}";
+
+                <div class="qai">
+                    <button type="button" class="qaq" data-open="@panelId" aria-expanded="false" aria-controls="@panelId">
+                        <svg class="ic-q" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.2-2.5 4"/><circle cx="12" cy="17.2" r=".8" fill="currentColor"/>
+                        </svg>
+                        <span>@item.Q</span>
+                        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m9 5 7 7-7 7"/>
+                        </svg>
+                    </button>
+                    <div class="qab" id="@panelId" hidden>
+                        <p class="qshort">@item.A</p>
+                        <p class="qlab">Vì sao</p>
+                        <div class="qbody"><p>@Html.Raw(item.Why)</p></div>
+                        <p class="qlab">Việc cần làm</p>
+                        <div class="qbody"><p>@Html.Raw(item.Todo)</p></div>
+                        <ul class="llist" aria-label="Nội dung liên quan">
+                            @foreach (var rel in item.Links)
+                            {
+                                <li>
+                                    <a href="@rel.Item1">
+                                        <svg class="ic-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M12 6.5C10.3 5 7.6 4.5 3.5 4.5v14c4.1 0 6.8.5 8.5 2 1.7-1.5 4.4-2 8.5-2v-14c-4.1 0-6.8.5-8.5 2z"/><path d="M12 6.5v14"/>
+                                        </svg>
+                                        <span>@rel.Item2</span>
+                                        <svg class="ic-next" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="m9 5 7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                        <p class="qmeta">Duyệt bởi: Ban biên tập</p>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    @if (!string.IsNullOrWhiteSpace(note))
     {
-        currentPage = result.TotalPages;
-        result = await PublishedQuestions.ListAsync(new PublishedQuestionQuery(Page: currentPage, PageSize: 6), Context.RequestAborted);
+        <p class="small" style="margin-top: 14px;">@note</p>
     }
-    string PageUrl(int number)
-    {
-        var query = Context.Request.Query.ToDictionary(x => x.Key, x => (string?)x.Value.ToString());
-        query["qaPage"] = number.ToString();
-        return QueryHelpers.AddQueryString(Context.Request.Path.ToString(), query) + "#da-tra-loi";
-    }
-}
-<section class="sec" id="da-tra-loi" data-qa-published aria-labelledby="@id">
-<div class="wrap">
-<div class="sec-head" data-published-reveal><div><p class="eyebrow">@T("eyebrow")</p><h2 id="@id">@T("title")<br><em>@T("titleAccent")</em></h2></div><p>@T("description")</p></div>
-@if (result.Items.Count > 0)
-{
-<div class="qa" data-published-list>
-@for (var index = 0; index < result.Items.Count; index++)
-{
-    var question = result.Items[index];
-<details open="@(index == 0)" data-question-id="@question.Id">
-<summary><span class="t"><span class="tag">@T("tagLabel")</span><h3>@question.Question</h3></span><span class="pm" aria-hidden="true">+</span></summary>
-<div class="ans"><p>@question.Answer</p>
-@if (!string.IsNullOrWhiteSpace(question.GuidanceLabel) && QuestionGuidanceLink.IsSafe(question.GuidanceUrl))
-{
-<a href="@question.GuidanceUrl">@question.GuidanceLabel <span aria-hidden="true">⟶</span></a>
-}
-</div>
-</details>
-}
-</div>
-@if (result.TotalPages > 1)
-{
-<nav class="qa-pagination" aria-label="Xem thêm câu hỏi đã trả lời">
-@if (currentPage > 1) { <a class="btn btn-line" href="@PageUrl(currentPage - 1)" rel="prev">← Trang trước</a> }
-<span class="skip" data-qa-visible-count>Đang hiển thị @result.Items.Count / @result.Total câu hỏi</span>
-@if (currentPage < result.TotalPages) { <a class="btn btn-line" data-qa-more href="@PageUrl(currentPage + 1)" rel="next">Xem thêm</a> }
-</nav>
-}
-}
-else
-{
-<p class="qa-empty" data-published-reveal>@T("emptyText")</p>
-}
-<p class="note" data-qa-more-status role="status" aria-live="polite"></p>
-@if (!string.IsNullOrWhiteSpace(T("note"))) { <p class="note" data-published-reveal>@T("note")</p> }
-</div>
 </section>

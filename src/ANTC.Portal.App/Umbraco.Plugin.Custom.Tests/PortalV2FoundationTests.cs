@@ -115,4 +115,94 @@ public class PortalV2FoundationTests
         Assert.Equal("goi", row.GetCode("contactMode"));
         Assert.Single(row.GetRows("options"));
     }
+
+    [Fact]
+    public void QuickQa_SchemaAndAssets_AreConfigured()
+    {
+        var quickQa = PortalV2Schema.LibraryItems().FirstOrDefault(x => x.Alias == "quickQaItem");
+        Assert.NotNull(quickQa);
+        var propAliases = quickQa!.Properties.Select(p => p.Alias).ToList();
+        Assert.Contains("question", propAliases);
+        Assert.Contains("shortAnswer", propAliases);
+        Assert.Contains("reason", propAliases);
+        Assert.Contains("actions", propAliases);
+        Assert.Contains("relatedPages", propAliases);
+        Assert.Contains("approvedBy", propAliases);
+
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "src", "ANTC.Portal.App", "Umbraco.Web.UI", "Views", "hoiDapPage.cshtml")))
+            dir = dir.Parent;
+        Assert.NotNull(dir);
+
+        string viewPath = Path.Combine(dir!.FullName, "src", "ANTC.Portal.App", "Umbraco.Web.UI", "Views", "hoiDapPage.cshtml");
+        string cssPath = Path.Combine(dir.FullName, "src", "ANTC.Portal.App", "Umbraco.Web.UI", "wwwroot", "assets", "css", "qa-portal.css");
+        string jsPath = Path.Combine(dir.FullName, "src", "ANTC.Portal.App", "Umbraco.Web.UI", "wwwroot", "assets", "js", "qa-portal.js");
+
+        Assert.True(File.Exists(viewPath), "hoiDapPage.cshtml must exist");
+        Assert.True(File.Exists(cssPath), "qa-portal.css must exist");
+        Assert.True(File.Exists(jsPath), "qa-portal.js must exist");
+
+        string viewContent = File.ReadAllText(viewPath);
+        Assert.Contains("qa-portal.css", viewContent);
+        Assert.Contains("qa-portal.js", viewContent);
+        Assert.Contains("quickQaItem", viewContent);
+        Assert.Contains("data-form=\"ask\"", viewContent);
+        Assert.Contains("qa-sent", viewContent);
+    }
+
+    [Fact]
+    public void HoiDap_BlockGrid_LayoutAndComponents_AreAlignedWithOutsidePortal()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "src", "ANTC.Portal.App", "Umbraco.Web.UI", "Views", "hoiDapPage.cshtml")))
+            dir = dir.Parent;
+        Assert.NotNull(dir);
+
+        var uSyncDir = Path.Combine(dir!.FullName, "src", "ANTC.Portal.App", "Umbraco.Web.UI", "uSync", "v18");
+        var viewsDir = Path.Combine(dir.FullName, "src", "ANTC.Portal.App", "Umbraco.Web.UI", "Views");
+
+        // 1. qaHeroBlock has image property
+        var heroConfig = File.ReadAllText(Path.Combine(uSyncDir, "ContentTypes", "qaheroblock.config"));
+        Assert.Contains("<Alias>image</Alias>", heroConfig);
+        Assert.Contains("89e3ef2d-532a-5d5c-947e-8aa017dbf46f", heroConfig); // Chon anh
+
+        // 2. qaHeroBlock.cshtml renders image and portal header
+        var heroView = File.ReadAllText(Path.Combine(viewsDir, "Partials", "blockgrid", "Components", "qaHeroBlock.cshtml"));
+        Assert.Contains("heroImage", heroView);
+        Assert.Contains("pageh", heroView);
+        Assert.Contains("btn red sm", heroView);
+
+        // 3. qaPublishedAnswersBlock is 'Khối hỏi – đáp nhanh' and queries CMS
+        var qaAnsConfig = File.ReadAllText(Path.Combine(uSyncDir, "ContentTypes", "qapublishedanswersblock.config"));
+        Assert.Contains("Khối hỏi – đáp nhanh", qaAnsConfig);
+
+        var qaAnsView = File.ReadAllText(Path.Combine(viewsDir, "Partials", "blockgrid", "Components", "qaPublishedAnswersBlock.cshtml"));
+        Assert.Contains("quickQaItem", qaAnsView);
+        Assert.Contains("qalist", qaAnsView);
+        Assert.Contains("qaq", qaAnsView);
+
+        // 4. qaSubmissionBlock has contactHint, publishLabel and handles form
+        var subConfig = File.ReadAllText(Path.Combine(uSyncDir, "ContentTypes", "qasubmissionblock.config"));
+        Assert.Contains("<Alias>contactHint</Alias>", subConfig);
+        Assert.Contains("<Alias>publishLabel</Alias>", subConfig);
+
+        var subView = File.ReadAllText(Path.Combine(viewsDir, "Partials", "blockgrid", "Components", "qaSubmissionBlock.cshtml"));
+        Assert.Contains("data-form=\"ask\"", subView);
+        Assert.Contains("qa-sent", subView);
+
+        // 5. BoCucHoiDapBlockGrid has 'Hỏi – đáp nhanh' block
+        var bgConfig = File.ReadAllText(Path.Combine(uSyncDir, "DataTypes", "BoCucHoiDapBlockGrid.config"));
+        Assert.Contains("Hỏi – đáp nhanh", bgConfig);
+
+        // 6. Content hỏi-đáp.config has block grid order: Hero -> PublishedAnswers -> Process -> Submission -> Guidelines
+        var contentConfig = File.ReadAllText(Path.Combine(uSyncDir, "Content", "hỏi-đáp.config"));
+        var heroIdx = contentConfig.IndexOf("0d7dcbf1-7171-5323-a36c-1a4494965e72", StringComparison.Ordinal);
+        var fastQaIdx = contentConfig.IndexOf("46fb6b08-4e10-5deb-a8ae-f1b44d68b7ba", StringComparison.Ordinal);
+        var processIdx = contentConfig.IndexOf("04c920c9-cd55-505a-a5a7-d702726947dd", StringComparison.Ordinal);
+        var subIdx = contentConfig.IndexOf("8458c717-71a3-5f4f-ad3a-1c36515a7d7d", StringComparison.Ordinal);
+
+        Assert.True(heroIdx < fastQaIdx, "Hero should be before Fast QA");
+        Assert.True(fastQaIdx < processIdx, "Fast QA should be before Process");
+        Assert.True(processIdx < subIdx, "Process should be before Submission");
+    }
 }
