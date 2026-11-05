@@ -13,6 +13,7 @@ public sealed class RiskContentRules(IContentService contents, IContentTypeServi
 
     public void Handle(ContentSavingNotification notification)
     {
+        if (Schema.RiskStructure.Reconciling.Value) return;
         foreach (var c in notification.SavedEntities.Where(x => x.ContentType.Alias == "alertPage"))
         {
             var node = Node(c);
