@@ -221,11 +221,25 @@ function selectContest(c) {
   pickBox.hidden = true;
   closedBox.hidden = true;
   regSec.hidden = false;
-  document.getElementById('cname').textContent = c.name;
+  const cnameEl = document.getElementById('cname');
+  if (cnameEl) cnameEl.textContent = c.name;
+  const vhEl = document.getElementById('vh');
+  if (vhEl) vhEl.textContent = c.name;
   const desc = document.getElementById('cdesc');
-  desc.textContent = c.description || '';
-  desc.hidden = !c.description;
-  document.getElementById('ctime').textContent = period(c);
+  if (desc) {
+    desc.textContent = c.description || '';
+    desc.hidden = !c.description;
+  }
+  const vlead = document.getElementById('vlead');
+  if (vlead) {
+    const topicCount = Array.isArray(c.topics) ? c.topics.length : 0;
+    const qCount = c.questionCount || 0;
+    const hasCd1 = Array.isArray(c.topics) && c.topics.some((t) => t.cd === '1' || t.cd === 1 || t.topicId === 1);
+    const cd1Text = hasCd1 ? (topicCount > 1 ? 'Làm Chuyên đề 1 trước, sau đó làm chuyên đề nào trước cũng được.' : 'Làm Chuyên đề 1 trước.') : '';
+    vlead.textContent = `${topicCount} chuyên đề, ${qCount} câu. Đăng ký xong là vào thi ngay. ${cd1Text}`.trim();
+  }
+  const ctimeEl = document.getElementById('ctime');
+  if (ctimeEl) ctimeEl.textContent = period(c);
   const attempts = Number(c.maxAttempts) === 0 ? 'Không giới hạn lượt thi cho mỗi số điện thoại' : `Mỗi số điện thoại thi tối đa ${c.maxAttempts} lượt`;
   document.querySelectorAll('[data-attempts-label]').forEach((el) => { el.textContent = attempts; });
 }

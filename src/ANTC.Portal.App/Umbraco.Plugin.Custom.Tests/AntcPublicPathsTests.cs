@@ -9,8 +9,8 @@ public class AntcPublicPathsTests
     [InlineData("home", "/")]
     [InlineData("ungPhoPage", "/ung-pho/")]
     [InlineData("thiThuPage", "/thu-suc/")]
-    [InlineData("thiPage", "/cuoc-thi/")]
-    [InlineData("cuocThiLamBaiPage", "/cuoc-thi/lam-bai/")]
+    [InlineData("thiThangPage", "/cuoc-thi/")]
+    [InlineData("cuocThiLamBaiPage", "/thi/")]
     [InlineData("searchPage", "/tim-kiem/")]
     [InlineData("chinhSachPage", "/chinh-sach/")]
     [InlineData("congCuPage", "/hay-tu-kiem-tra/")]
@@ -21,6 +21,17 @@ public class AntcPublicPathsTests
     {
         Assert.Equal(path, AntcPublicPaths.GetPath(alias, "ten-trang"));
         Assert.Equal(alias, AntcPublicPaths.FixedAlias(path.ToUpperInvariant()));
+    }
+
+    [Fact]
+    public void Legacy_contest_paths_resolve_correctly()
+    {
+        Assert.Equal("thiThangPage", AntcPublicPaths.FixedAlias("/cuoc-thi-thang/"));
+        Assert.Equal("cuocThiLamBaiPage", AntcPublicPaths.FixedAlias("/cuoc-thi/lam-bai/"));
+        Assert.Equal("cuocThiLamBaiPage", AntcPublicPaths.FixedAlias("/cuoc-thi/dang-ky/"));
+        Assert.Equal("cuocThiLamBaiPage", AntcPublicPaths.FixedAlias("/dang-ky/"));
+        Assert.Equal("cuocThiLamBaiPage", AntcPublicPaths.FixedAlias("/thi/"));
+        Assert.Equal("/cuoc-thi-truc-tuyen/", AntcPublicPaths.GetPath("thiPage", "cuoc-thi"));
     }
 
     [Fact]

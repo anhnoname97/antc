@@ -90,7 +90,8 @@ function topicOf(cd) {
 
 async function ensureQuestions(cd) {
   if (qcache.has(cd)) return true;
-  const r = await loadQuestions(cd);
+  const contestId = state.practice ? null : undefined;
+  const r = await loadQuestions(cd, contestId);
   if (r.ok && Array.isArray(r.data) && r.data.length) {
     qcache.set(cd, r.data);
     return true;
@@ -160,31 +161,74 @@ function phaseHtml() {
 function menuHtml() {
   const prog = progress();
   const n = topics.length;
-  const sub = esc(blockCopy('topics', 'description', '{topicCount} chuyên đề, tổng cộng {total} câu. Làm lần lượt từng chuyên đề theo thứ tự. Mỗi câu hiện phần giải thích sau khi bạn chọn.', { topicCount: n, total: totalQuestions() }));
-  let o = `<div class="qin">${headHtml(blockCopy('topics', 'eyebrow', 'Ngân hàng câu hỏi'), blockCopy('topics', 'title', 'Phần thi trắc nghiệm'), sub)}`;
+  const rawSub = blockCopy('topics', 'description', 'Tám chuyên đề, tổng cộng {total} câu. <b>Làm Chuyên đề 1 trước</b>, vì cách quyết định học ở đó được dùng lại ở cả bảy chuyên đề sau. Mỗi câu hiện phần giải thích sau khi bạn chọn.', { topicCount: n, total: totalQuestions() });
+  const sub = esc(rawSub).replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>');
+  let o = '<div class="activity-portal qin">';
+  o += '<div class="backrow"><a href="/cuoc-thi/" class="btn ghost sm">‹ Cuộc thi</a></div>';
+  o += '<header class="pageh">';
+  o += `<p class="eyebrow">${esc(blockCopy('topics', 'eyebrow', 'Kiểm tra kiến thức'))}</p>`;
+  o += `<h2 id="eh" tabindex="-1" class="pageh-title contest__h2">${esc(blockCopy('topics', 'title', 'Phần thi trắc nghiệm'))}</h2>`;
+  o += `<p class="pageh-lead exam__sub">${sub}</p>`;
+  o += '</header>';
   if (offline) o += box('warn', '<b>Chưa kết nối được máy chủ.</b> Tiến độ có thể chưa mới nhất; các đáp án chưa gửi sẽ tự gửi lại khi có mạng.');
   o += phaseHtml();
-  o += entryBoxHtml();
-  o += panelHtml(topics);
-  o += '<ol class="toplist">';
-  for (const t of topics) {
-    const p = prog.find((x) => x.cd === String(t.cd));
-    const lock = isLocked(String(t.cd), prog);
-    const done = p.done;
-    let subText = `${t.count} câu`;
-    if (lock) subText += ` · mở sau khi xong Chuyên đề ${prevTopic(t.cd).cd}`;
-    else if (done) subText += ' · đã làm xong';
-    else if (p.answered) subText += ` · đã trả lời ${p.answered}`;
-    const num = `<span class="qrow__n">${done ? ICO_OK : esc(t.cd)}</span>`;
-    const txt = `<span class="qrow__body"><span class="qrow__t">${esc(t.title)}</span><span class="qrow__meta">${esc(subText)}</span></span>`;
-    if (lock) {
-      o += `<li><div class="qrow qrow--lock" aria-disabled="true">${num}${txt}${ICO_LOCK}</div></li>`;
+
+  // Khối thông báo rgbar
+  if (state.entry) {
+    if (state.entry.mode === 'anon') {
+      o += `<div class="rgbar"><b>Đang thi ẩn danh.</b> Mã ẩn danh của bạn là <b>${esc(state.entry.code)}</b>. Bài làm không được xét giải.</div>`;
     } else {
-      o += `<li><a class="qrow${done ? ' qrow--done' : ''}" href="#chuyen-de-${esc(t.cd)}">${num}${txt}<span class="qrow__go" aria-hidden="true">›</span></a></li>`;
+      const pNum = state.entry.phone || state.phone || state.entry.code;
+      const nth = state.entry.attemptNo || 1;
+      const maxT = Number(state.entry.maxAttempts) === 0 ? '' : ` trên ${esc(state.entry.maxAttempts || 2)}`;
+      o += `<div class="rgbar"><b>Đã đăng ký.</b> Mã dự thi của bạn là số <b>${esc(pNum)}</b>. Đây là lượt thứ ${esc(nth)}${maxT}.</div>`;
+    }
+  } else {
+    o += '<div class="rgbar"><b>Chế độ tự luyện.</b> Làm bài không tính điểm, kết quả chỉ lưu trên thiết bị của bạn.</div>';
+  }
+
+  o += panelHtml(topics);
+
+  const cd1Done = !!(prog.find((x) => String(x.cd) === '1')?.done);
+  const gate = !cd1Done;
+
+  o += '<ol class="cdlist toplist">';
+  for (const t of topics) {
+    const p = prog.find((x) => String(x.cd) === String(t.cd)) || {};
+    const lock = isLocked(String(t.cd), prog);
+    const done = !!p.done;
+    const isCd1 = String(t.cd) === '1';
+    const cleanTitle = esc(t.title.replace(/^CHUYÊN ĐỀ\s*\d+\s*[-–—:]\s*/i, ''));
+
+    let meta = `${t.count} câu`;
+    if (lock) {
+      meta += ` · mở sau khi xong Chuyên đề ${prevTopic(t.cd)?.cd || '1'}`;
+    } else if (done) {
+      meta += ' · đã làm xong';
+    } else if (isCd1 && gate) {
+      meta += ' · làm chuyên đề này trước';
+    } else if (p.answered) {
+      meta += ` · đã trả lời ${p.answered}`;
+    }
+
+    if (lock) {
+      o += `<li><div class="lock qrow qrow--lock" aria-disabled="true"><span class="cn s qrow__n">${esc(t.cd)}</span><span class="ct qrow__body"><span class="qrow__t">${cleanTitle}</span><small class="qrow__meta">${esc(meta)}</small></span><span class="lock-ic" aria-hidden="true">${ICO_LOCK}</span></div></li>`;
+    } else {
+      o += `<li><a class="cdbtn qrow${done ? ' ok qrow--done' : ''}" href="#chuyen-de-${esc(t.cd)}"><span class="cn${done ? ' ok' : ''} qrow__n">${done ? '✓' : esc(t.cd)}</span><span class="ct qrow__body"><span class="qrow__t">${cleanTitle}</span><small class="qrow__meta">${esc(meta)}</small></span><span class="cdbtn__go qrow__go" aria-hidden="true">›</span></a></li>`;
     }
   }
   o += '</ol>';
-  return `${o}<p class="exam__note">${esc(blockCopy('topics', 'notice', NOT_POLICE))}</p></div>`;
+
+  if (gate) {
+    const cd1Count = topics[0]?.count || 19;
+    o += `<div class="gate note"><p><b>Bảy chuyên đề còn lại mở ngay khi bạn làm xong Chuyên đề 1.</b></p><p class="small">Chuyên đề 1 có ${cd1Count} câu. Sau đó thứ tự do bạn chọn.</p></div>`;
+  } else {
+    o += '<div class="gate open note"><p><b>Bảy chuyên đề còn lại đã mở.</b></p><p class="small">Làm chuyên đề nào gần với việc mình đang gặp thì nhớ lâu hơn.</p></div>';
+  }
+
+  o += `<p class="small pbfoot exam__note">${esc(blockCopy('topics', 'notice', NOT_POLICE))}</p>`;
+  o += '</div>';
+  return o;
 }
 
 // Nut chinh cua phan gioi thieu: bat dau, lam tiep tu cau k, hoac xem lai khi da xong
@@ -200,20 +244,32 @@ function startLabel(t) {
 function introHtml(t) {
   const intro = Array.isArray(t.intro) ? t.intro : (t.intro ? [t.intro] : []);
   const terms = Array.isArray(t.terms) ? t.terms : [];
-  let o = `<div class="qin"><a class="qnav o qnav--s" href="#ngan-hang">${esc(blockCopy('intro', 'backLabel', '‹ Danh sách chuyên đề'))}</a>`
-    + `<div class="exam__intro-head">${headHtml(`Ngân hàng câu hỏi · Chuyên đề ${t.cd}`, t.title, '')}</div>`
-    + `<div class="exam__intro">${intro.map((p) => `<p>${esc(p)}</p>`).join('')}</div>`;
+  const cleanTitle = esc(t.title.replace(/^CHUYÊN ĐỀ\s*\d+\s*[-–—:]\s*/i, ''));
+  const backLabel = esc(blockCopy('intro', 'backLabel', 'Danh sách chuyên đề')).replace(/^[‹<]\s*/, '');
+
+  let o = '<div class="activity-portal qin exam-intro-view">';
+  o += `<div class="backrow"><a class="btn ghost sm" href="#ngan-hang"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5 8 12l7 7"/></svg> ${backLabel}</a></div>`;
+  o += '<header class="pageh">';
+  o += `<p class="eyebrow">Ngân hàng câu hỏi · Chuyên đề ${esc(t.cd)}</p>`;
+  o += `<h1 id="eh" tabindex="-1">${cleanTitle}</h1>`;
+  o += '</header>';
+  o += `<div class="exam__intro intro-text">${intro.map((p) => `<p>${esc(p)}</p>`).join('')}</div>`;
+
   if (terms.length) {
-    o += `<details class="peek"><summary><span><b>${esc(blockCopy('intro', 'termsTitle', 'Hiểu nhanh mấy từ'))}</b><span class="peek__n">${terms.length} từ dùng trong chuyên đề này</span></span><span class="peek__pk" aria-hidden="true"></span></summary>`
-      + `<dl>${terms.map((x) => `<div><dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd></div>`).join('')}</dl></details>`;
+    o += `<div class="peek terms-peek"><button type="button" class="peekbtn" data-open="pk-terms" aria-expanded="false" aria-controls="pk-terms">`
+      + `<span><b>${esc(blockCopy('intro', 'termsTitle', 'Hiểu nhanh mấy từ'))}</b><small>${terms.length} từ dùng trong chuyên đề này</small></span></button>`
+      + `<div class="peekbody" id="pk-terms" hidden><dl class="terms">${terms.map((x) => `<div><dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd></div>`).join('')}</dl></div></div>`;
   }
+
   const redo = progress().find((x) => x.cd === String(t.cd));
   const isRedo = !!(redo && redo.done);
   if (isRedo && !state.practice) {
     o += box('soft', '<b>Làm lại là xem lại để học.</b> Điểm của lượt thi chỉ tính lần trả lời đầu tiên của mỗi câu.');
   }
-  o += `<div class="exam__actions"><button type="button" class="qnav f" ${isRedo ? 'data-redo' : 'data-start'}="${esc(t.cd)}">${esc(startLabel(t))}</button>`
-    + `<a class="qnav o" href="#ngan-hang">${esc(blockCopy('intro', 'otherLabel', 'Chọn chuyên đề khác'))}</a></div></div>`;
+
+  o += `<div class="btnrow exam__actions"><button type="button" class="btn pri" ${isRedo ? 'data-redo' : 'data-start'}="${esc(t.cd)}">${esc(startLabel(t))}</button>`
+    + `<a class="btn ghost" href="#ngan-hang">${esc(blockCopy('intro', 'otherLabel', 'Chọn chuyên đề khác'))}</a></div>`;
+  o += '</div>';
   return o;
 }
 
@@ -235,8 +291,8 @@ function doneHtml(t) {
   }
   o += panelHtml(topics);
   const next = rest ? `Chọn chuyên đề tiếp theo, còn ${rest} ›` : `Đã làm hết ${topics.length} chuyên đề, xem lại danh sách ›`;
-  o += `<div class="exam__actions"><a class="qnav f" href="#ngan-hang">${esc(next)}</a>`
-    + `<button type="button" class="qnav o" data-redo="${esc(cd)}">${esc(blockCopy('topic-result', 'retryLabel', 'Làm lại chuyên đề {cd}', { cd }))}</button></div>`
+  o += `<div class="btnrow exam__actions"><a class="btn pri" href="#ngan-hang">${esc(next)}</a>`
+    + `<button type="button" class="btn ghost" data-redo="${esc(cd)}">${esc(blockCopy('topic-result', 'retryLabel', 'Làm lại chuyên đề {cd}', { cd }))}</button></div>`
     + '<p class="exam__note">Làm hết câu hỏi không có nghĩa là an toàn. Gặp việc thật, vẫn phải chậm lại và tự kiểm tra bằng kênh do chính mình tìm ra.</p></div>';
   return o;
 }
@@ -527,7 +583,8 @@ function resetLoaded() {
 
 async function ensureTopics() {
   if (topics) return true;
-  const r = await loadTopics();
+  const contestId = state.practice ? null : undefined;
+  const r = await loadTopics(contestId);
   if (r.ok && Array.isArray(r.data)) {
     topics = byContest(r.data);
     topicsError = false;
@@ -557,7 +614,18 @@ async function route(focus) {
   const stale = () => seq !== routeSeq; // da co lan route moi hon: bo lan nay, khong ve de len man moi
   leaveQuestion();
   const want = parseHash();
-  const m = mode();
+  if (want && want.view === 'menu') {
+    // Ngan hang cau hoi: khong check bai thi, luon vao lam ngan hang cau hoi
+    if (!state.practice || state.contestId !== null) {
+      enterPractice();
+      resetLoaded();
+    }
+  }
+  let m = mode();
+  if (!m && want && want.view !== 'register') {
+    enterPractice();
+    m = mode();
+  }
   if (!m || (want && want.view === 'register')) {
     showRegister(focus);
     return;
@@ -598,7 +666,10 @@ async function route(focus) {
   if (view.view !== 'q') qs = null;
   const wantHash = view.view === 'q' ? `#chuyen-de-${view.cd}/cau-hoi` : view.view === 'done' ? `#chuyen-de-${view.cd}/xong`
     : view.view === 'intro' ? `#chuyen-de-${view.cd}` : view.view === 'result' ? '#ket-qua' : '#ngan-hang';
-  if (location.hash !== wantHash) history.replaceState(null, '', wantHash);
+  const needPath = (location.pathname === '/dang-ky/' || location.pathname === '/cuoc-thi/lam-bai/') ? '/thi/' : null;
+  if (needPath || location.hash !== wantHash) {
+    history.replaceState(null, '', (needPath || location.pathname) + (location.search || '') + wantHash);
+  }
   current = view;
   if (view.view === 'result') {
     await showResult(stale, focus);
@@ -689,6 +760,9 @@ function refresh() {
 examView.addEventListener('click', (e) => {
   const retry = e.target.closest('[data-retry]');
   if (retry) {
+    if (state.practice) state.contestId = null;
+    topics = null;
+    topicsError = false;
     route(true);
     return;
   }
@@ -799,10 +873,14 @@ on('token', () => {
 export async function enterExam() {
   regView.hidden = true;
   examView.hidden = false;
+  examView.classList.add('activity-portal');
   examView.innerHTML = '<p class="exam__loading" role="status">Đang tải tiến độ…</p>';
   resetLoaded();
   const r = await init(urlContest());
   offline = !!r.offline;
+  if (location.pathname !== '/thi/') {
+    history.pushState(null, '', '/thi/' + (location.search || '') + '#ngan-hang');
+  }
   go('#ngan-hang');
 }
 onRegistered(enterExam);
@@ -810,15 +888,30 @@ onRegistered(enterExam);
 // ---- Khoi dong ----
 
 async function boot() {
+  const want = parseHash();
+  // Vao ngan hang cau hoi (#ngan-hang): khong check da lam bai thi chua, mo thang ngan hang cau hoi
+  if (want && want.view === 'menu') {
+    enterPractice();
+    resetLoaded();
+    regView.hidden = true;
+    examView.hidden = false;
+    await route(false);
+    return;
+  }
   if (loadEntry(urlContest())) {
     // Co luot da luu: khong cho nhay man dang ky roi moi chuyen
+    regView.hidden = true;
+    examView.hidden = false;
+    examView.innerHTML = '<p class="exam__loading" role="status">Đang tải tiến độ…</p>';
+  } else if (want && want.view !== 'register') {
+    // Vao tu nut Tu luyen hoac link truc tiep toi ngan hang / cau hoi: vao thang tu luyen
+    enterPractice();
     regView.hidden = true;
     examView.hidden = false;
     examView.innerHTML = '<p class="exam__loading" role="status">Đang tải tiến độ…</p>';
   }
   const r = await init(urlContest());
   offline = !!r.offline;
-  const want = parseHash();
   // Luot da nop: mo lai trang luon hien man ket qua (tru khi dang o man dang ky de thi luot moi)
   if (r.view === 'exam' && state.status === 'submitted' && !(want && want.view === 'register')) {
     history.replaceState(null, '', '#ket-qua');
@@ -835,6 +928,11 @@ async function boot() {
     return;
   }
   if (r.practice && want && want.view !== 'register') {
+    await reopen();
+    return;
+  }
+  if (want && want.view !== 'register') {
+    enterPractice();
     await reopen();
     return;
   }

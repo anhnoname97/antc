@@ -1,21 +1,68 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var layoutBlocks = Model.Value<BlockGridModel>("layout");
 }
 @section Head {
-    <link rel="stylesheet" href="~/assets/css/quiz-fonts.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/assets/css/monthly-competition.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/assets/css/contest-shell.css" asp-append-version="true">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="~/assets/css/contest-activity.css" asp-append-version="true">
 }
+
 <div id="nj-cuoc-thi-thang">
-    @if (Model.Value<BlockGridModel>("layout") is { } blocks)
+    @if (layoutBlocks is { Count: > 0 })
     {
-        @await Html.GetBlockGridHtmlAsync(blocks)
+        @await Html.GetBlockGridHtmlAsync(layoutBlocks)
+    }
+    else
+    {
+        @await Html.PartialAsync("blockgrid/Components/contestActivityBlock", (BlockGridItem)null!)
     }
 </div>
+
 @section Scripts {
-    <script defer src="~/assets/js/vendor/gsap.min.js" asp-append-version="true"></script>
-    <script defer src="~/assets/js/vendor/ScrollTrigger.min.js" asp-append-version="true"></script>
-    <script type="module" src="~/assets/js/monthly-competition.js" asp-append-version="true"></script>
+    <script>
+        (async function() {
+            try {
+                const res = await fetch('/api/v1/contests');
+                if (!res.ok) return;
+                const data = await res.json();
+                const ongoing = data.ongoing && data.ongoing[0];
+                if (ongoing) {
+                    if (ongoing.name) {
+                        const titleEl = document.getElementById('act-title');
+                        if (titleEl) titleEl.textContent = ongoing.name;
+                    }
+                    if (ongoing.startAt && ongoing.endAt) {
+                        const fmt = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' });
+                        const timeStr = fmt.format(new Date(ongoing.startAt)) + ' – ' + fmt.format(new Date(ongoing.endAt));
+                        const timeEl = document.getElementById('act-time');
+                        if (timeEl) timeEl.textContent = timeStr;
+                    }
+                    const maxA = Number(ongoing.maxAttempts) === 0 ? 'Không giới hạn lượt thi cho mỗi số điện thoại.' : `Mỗi số điện thoại thi tối đa ${ongoing.maxAttempts} lượt.`;
+                    const eligEl = document.getElementById('act-eligibility');
+                    if (eligEl) {
+                        eligEl.textContent = `Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. ${maxA}`;
+                    }
+                    const formatEl = document.getElementById('act-format');
+                    if (formatEl) {
+                        const tCount = ongoing.topics ? ongoing.topics.length : 1;
+                        const qCount = ongoing.questionCount || 19;
+                        const cd1 = ongoing.topics && ongoing.topics.some(t => t.cd === '1') ? 'Làm Chuyên đề 1 trước. ' : '';
+                        formatEl.textContent = `Đăng ký bằng họ tên và số điện thoại, rồi vào thi ngay. ${tCount} chuyên đề, ${qCount} câu. ${cd1}${maxA}`;
+                    }
+                    const regBtn = document.getElementById('act-reg-btn');
+                    if (regBtn && ongoing.id) {
+                        regBtn.href = `/thi/?c=${ongoing.id}`;
+                    }
+                    const practiceBtn = document.querySelector('.activity-portal .btnrow .btn:not(.pri)');
+                    if (practiceBtn) {
+                        practiceBtn.href = '/thi/#ngan-hang';
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
 }

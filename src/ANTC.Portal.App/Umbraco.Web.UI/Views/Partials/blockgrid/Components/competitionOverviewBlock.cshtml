@@ -44,7 +44,7 @@ else
 @foreach (var promise in T("promises").Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)) { <li>@promise</li> }
 </ul>
 <p class="contest-safety-note">@ContestPromotionService.ShortSafetyNotice</p>
-<a class="btn btn-red" href="/cuoc-thi-thang/">Xem cuộc thi tháng @TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), vietnam).ToString("MM/yyyy") <span aria-hidden="true">⟶</span></a>
+<a class="btn btn-red" href="/cuoc-thi/">Xem cuộc thi tháng @TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(contest.StartAt, DateTimeKind.Utc), vietnam).ToString("MM/yyyy") <span aria-hidden="true">⟶</span></a>
 }
 else
 {

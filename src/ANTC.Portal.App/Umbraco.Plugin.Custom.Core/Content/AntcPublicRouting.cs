@@ -126,9 +126,9 @@ public sealed class AntcPublicContentFinder(
             }
         }
         IPublishedContent? found = fixedAlias == "home" ? home
-            : fixedAlias == "cuocThiLamBaiPage" ? Child(Child(home, "thiPage"), fixedAlias)
+            : fixedAlias == "cuocThiLamBaiPage" ? (Child(Child(home, "thiThangPage"), fixedAlias) ?? Child(Child(home, "thiPage"), fixedAlias) ?? Child(home, fixedAlias))
             : fixedAlias is "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" ? Child(Child(home, "congCuPage"), fixedAlias)
-            : fixedAlias is not null ? Child(home, fixedAlias) : null;
+            : fixedAlias is not null ? (Child(home, fixedAlias) ?? (fixedAlias == "thiThangPage" ? Child(home, "thiPage") : null)) : null;
         if (fixedAlias is null && parts.Length > 0)
         {
             if (parts.Length == 2 && parts[0].Equals("hoi-dap", StringComparison.OrdinalIgnoreCase))

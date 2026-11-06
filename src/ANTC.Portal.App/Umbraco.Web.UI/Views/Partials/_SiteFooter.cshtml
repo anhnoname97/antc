@@ -1,4 +1,4 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Models.PublishedContent
 @{
@@ -61,6 +61,17 @@
                     <h2 id="footer-support-title">@(site.Value<string>("footerSupportTitle"))</h2>
                     <nav class="site-footer__links" aria-labelledby="footer-support-title">
                         @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (support.AsEnumerable(), path, (string?)null, false))
+                        @{
+                            var hasContestLink = support.Any(i => (i.Content.Value<string>("label") ?? "").Contains("Cuộc thi"));
+                            if (!hasContestLink)
+                            {
+                                var contestPage = site.DescendantsOrSelfOfType("thiThangPage").FirstOrDefault();
+                                var contestUrl = contestPage?.Url() ?? "/cuoc-thi/";
+                                var isContestCurrent = path.TrimEnd('/').Equals(contestUrl.TrimEnd('/'), StringComparison.OrdinalIgnoreCase)
+                                    || path.StartsWith("/cuoc-thi", StringComparison.OrdinalIgnoreCase);
+                                <a href="@contestUrl" aria-current="@(isContestCurrent ? "page" : null)">Cuộc thi tìm hiểu</a>
+                            }
+                        }
                     </nav>
                 </div>
             }
