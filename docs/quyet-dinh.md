@@ -340,7 +340,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 
 ### QĐ-034 · Quy tắc trình hỏi sửa bằng màn ma trận
 
-- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Ngày: 2026-11-02 · Người xác nhận: anhnn · Trạng thái: Thay bởi QĐ-056
 - Phạm vi: `wizardPage`, property editor mới trong `App_Plugins`; đặc tả 5.7, 11.2
 - Vấn đề: đặc tả yêu cầu bảng ánh xạ [kênh] + [yêu cầu] + [lời hứa/đe dọa] → mức độ, tình huống, dấu hiệu, hành động, bài viết, cập nhật được từ CMS; Umbraco không có sẵn trình chọn phù hợp.
 - Quyết định: viết property editor "Ma trận tình huống": hàng là tình huống, cột là các lựa chọn của 3 bước, ô đánh dấu; mỗi hàng có mức độ, dấu hiệu, việc cần làm, bài viết liên quan; có khung thử kết quả. Dữ liệu lưu là giá trị JSON của trang `wizardPage`, đi theo lưu nháp, xuất bản và lịch sử phiên bản của Umbraco.
@@ -592,3 +592,17 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: bỏ `tacticItem.anchor` (website tô sáng theo chính thủ đoạn trong mục "Thủ đoạn thường gặp"); `tacticItem.topic` không còn là ô nhập, lấy theo `topic` của bài ở `containingArticle`. Form bài hướng dẫn có khối "Thủ đoạn trong bài" liệt kê thủ đoạn và nút tạo thủ đoạn gắn sẵn bài.
 - Lý do: ít ô, không lệch dữ liệu; biên tập viên thấy thủ đoạn ngay trong bài.
 - Ảnh hưởng: gói nền đã tạo `topic`, `anchor` trên `tacticItem` (V2-01f); V2-03c gỡ hai thuộc tính và chuyển giá trị chuyên đề sang suy ra.
+
+### QĐ-056 · Portal v2 Khẩn cấp: trình hỏi theo bản dựng, website tự lấy thay ma trận
+
+- Ngày: 2026-11-04 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: `wizardPage`, `tacticItem`, `khanCapPage`; dịch vụ tính kết quả trình hỏi, view Khẩn cấp và trình hỏi. Thay QĐ-034
+- Vấn đề: thiết kế đang dùng ma trận tình huống tự gõ (QĐ-034: hàng là tình huống, biên tập viên gõ mức độ, dấu hiệu, việc cần làm cho từng hàng). Trình hỏi của bản dựng `mockup/antoantaichinh_v2.html` không có ma trận: mức độ lấy từ loại của lựa chọn, "Tình huống gần giống" là các thủ đoạn trong Danh mục, "Việc cần làm ngay" là bước của trang Việc cần làm. Ô "Tình huống điển hình" của Khẩn cấp trùng với công tắc "Ẩn khỏi danh sách tình huống" của từng trang Việc cần làm.
+- Quyết định: làm theo bản dựng, cái gì suy ra được thì website tự lấy (cùng nguyên tắc QĐ-054).
+  - (1) Bỏ `wizardPage.situationMatrix` và data type `Antc.WizardMatrix`.
+  - (2) Lựa chọn câu 2, 3 có thêm Loại (Phải dừng, Tạm hoãn), Dấu hiệu phải dừng hoặc câu dấu hiệu, ghi chú. Có lựa chọn Phải dừng thì mức Rất cao; chỉ có Tạm hoãn hoặc "Tôi chưa biết" thì Cao; không thì Cần thận trọng. Lựa chọn câu 1 nối với một kênh trong Danh mục.
+  - (3) Thêm `tacticItem.wizardAnswers`: các lựa chọn câu 2, 3 mà thủ đoạn hay dùng. "Tình huống gần giống" là thủ đoạn đang dùng có lựa chọn trùng; điểm = 2 × số trùng, cộng 3 nếu kênh trùng; hòa điểm theo thứ tự trong Danh mục › Thủ đoạn. Bài chi tiết là bài chứa thủ đoạn đầu; danh sách kiểm tra theo chuyên đề của bài đó.
+  - (4) "Việc cần làm ngay" theo mức: bảng bước của trang Việc cần làm (hoặc câu riêng), mỗi dòng có "Chỉ khi chọn", "Bỏ khi chọn"; hiện tối đa 4 dòng. "Nếu bạn đã lỡ làm theo": bảng trang Việc cần làm, có "Chỉ khi chọn".
+  - (5) Bỏ `khanCapPage.typicalSituations`: website lấy mọi trang Việc cần làm không bật "Ẩn khỏi danh sách tình huống", theo thứ tự kéo ở Quản lý nội dung › Việc cần làm. Thêm `khanCapPage.principlesTitle`, `.principlesNote` cho khối "Bốn việc không làm khi nghi ngờ" (bốn việc lấy từ Cài đặt website).
+- Lý do: ít ô nhập; trình hỏi, thủ đoạn và trang Việc cần làm không lệch nhau; giống bản dựng.
+- Ảnh hưởng: sửa Phụ lục A (`wizardPage`, `tacticItem`, `khanCapPage`), thêm danh sách cố định "Loại lựa chọn trình hỏi"; bỏ việc làm editor ma trận (V2-07c, V2-07d), V2-07b đổi thành dịch vụ tính kết quả; `wizard-cases.json` sinh lại theo cách tính mới.

@@ -1,11 +1,15 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Web
+@inject IUmbracoContextAccessor SeoContextAccessor
 @{
     Layout = null;
     var contestStyle = Model.ContentType.Alias is "thiPage" or "thiThangPage" or "cuocThiLamBaiPage";
     var site = Model.Root();
     var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
     var articleSeo = (Model as ArticlePageModel)?.ArticleSeo;
-    var description = articleSeo?.Description ?? Model.Value<string>("seoDescription");
+    var preview = SeoContextAccessor.TryGetUmbracoContext(out var seoContext) && seoContext.InPreviewMode;
+    var selfCheckSeo = SelfCheckSeoBuilder.Supports(Model) ? SelfCheckSeoBuilder.Build(Model, Context.Request, preview) : null;
+    var description = selfCheckSeo?.Description ?? articleSeo?.Description ?? Model.Value<string>("seoDescription");
     if (string.IsNullOrWhiteSpace(description) && (Model.ContentType.Alias is "article" or "articleList"))
     {
         description = Model.Value<string>("summary");
@@ -17,8 +21,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @if (!string.IsNullOrWhiteSpace(description)) { <meta name="description" content="@description"> }
-    <title>@(articleSeo?.Title ?? (Model.Value<string>("seoTitle") is { Length: > 0 } t ? t : Model.Name)) — @siteName</title>
-    @if (site?.Value<bool>("showPreviewBanner") == true || articleSeo?.HideFromSearch == true) { <meta name="robots" content="noindex, follow"> }
+    <title>@(selfCheckSeo?.DocumentTitle ?? $"{articleSeo?.Title ?? (Model.Value<string>("seoTitle") is { Length: > 0 } t ? t : Model.Name)} — {siteName}")</title>
+    @if (selfCheckSeo?.NoIndex == true || site?.Value<bool>("showPreviewBanner") == true || articleSeo?.HideFromSearch == true) { <meta name="robots" content="noindex, follow"> }
+    @if (selfCheckSeo is not null) { @await Html.PartialAsync("~/Views/Partials/_SelfCheckSeo.cshtml", selfCheckSeo) }
     <script>try { var scale = localStorage.getItem('at_font_scale'); document.documentElement.dataset.fontScale = ['0', '1', '2'].includes(scale) ? scale : '0'; } catch (e) { document.documentElement.dataset.fontScale = '0'; }</script>
     <script>try { if (sessionStorage.getItem('at_contest_announcement') === 'hidden') document.documentElement.dataset.contestAnnouncementHidden = 'true'; } catch (e) { }</script>
     <link rel="stylesheet" href="~/assets/css/contest-announcement.css" asp-append-version="true">

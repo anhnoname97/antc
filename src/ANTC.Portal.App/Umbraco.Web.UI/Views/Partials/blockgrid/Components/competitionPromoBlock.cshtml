@@ -12,7 +12,7 @@
     var schedule = contest is null ? null : $"{Local(contest.StartAt):d/M/yyyy} – {Local(contest.EndAt):d/M/yyyy}";
     var summary = contest is null ? null : $"{contest.QuestionCount} câu hỏi · " + (contest.MaxAttempts == 0 ? "Không giới hạn lượt / số điện thoại" : $"Tối đa {contest.MaxAttempts} lượt / số điện thoại");
     var link = content.Value<Link>("link");
-    var contestUrl = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("thiThangPage").FirstOrDefault()?.Url() ?? "/cuoc-thi-thang/";
+    var contestUrl = Umbraco.AssignedContentItem.Root().DescendantsOrSelfOfType("thiThangPage").FirstOrDefault()?.Url() ?? "/cuoc-thi/";
     var safetyNote = ContestPromotionService.ShortSafetyNotice;
     var metadata = string.Join(" · ", new[] { schedule, summary }.Where(value => !string.IsNullOrWhiteSpace(value)));
 }

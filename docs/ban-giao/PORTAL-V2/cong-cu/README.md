@@ -6,13 +6,15 @@ Bộ script dựng mockup backoffice, phụ lục trường, dữ liệu mẫu (
 |---|---|
 | `tach-ban-dung-don.js` | Tách bản dựng một file `antoantaichinh_co_anh_nen_sang.html` (QĐ-051, QĐ-052) thành `ban-dung-moi/build/app.js`, `data.json` và 39 ảnh `ban-dung-moi/anh/minh-hoa-<số>.jpg` kèm `alt.json`. Thư mục `ban-dung-moi/` không commit |
 | `tach-du-lieu-ban-dung.js` | Tách các bảng dữ liệu trong `build/app.js` và `build/data.json` của bản dựng thành `v2data.json` |
-| `build_bo.py` | Dựng 157 nút mẫu từ `v2data.json` và `data.json`, ghép vào `mockup-src.html`, ra `mockup-o-nhap-backoffice.html` |
+| `build_bo.py` | Dựng 171 nút mẫu từ `v2data.json` và `data.json`, ghép vào `mockup-src.html`, ra `mockup-o-nhap-backoffice.html` |
 | `mockup-src.html` | Khung mockup: giao diện, schema form (`T`), các thành phần combobox, bảng, thẻ, ma trận |
 | `alias_map.js` | Bảng đổi alias viết tắt trong mockup sang alias chuẩn |
 | `dump_schema.js` | In Phụ lục A (trường của từng loại) từ schema mockup |
 | `xuat-seed.js` | Xuất `seed-portal-v2.json` cho công cụ `Tools/ImportPortalV2` (V2-01g, V2-12a) |
 | `make_xlsx.py` | Dựng file kế hoạch Excel từ `1-thiet-ke.md` và `docs/quyet-dinh.md` |
 | `seed-portal-v2.json` | Dữ liệu mẫu đã sinh. Không sửa tay |
+| `sinh-ca-kiem-trinh-hoi.js` | Sinh `wizard-cases.json` (bộ ca kiểm trình hỏi, QĐ-056) từ hàm `wzCompute` của mockup và seed |
+| `chup_khan_cap.py` | Chụp các màn Khẩn cấp của bản dựng vào `anh-portal-khan-cap/`, in vị trí số cho `dung_bo_khan_cap.py`. Cần Playwright cho Python |
 
 ## Chạy lại
 
@@ -27,6 +29,11 @@ node xuat-seed.js ../mockup/mockup-o-nhap-backoffice.html seed-portal-v2.json
 BO_SCOPE=rui-ro python build_bo.py v2data.json ban-dung-moi/build/data.json mockup-src.html ../mockup/backoffice-cac-rui-ro.html ban-dung-moi/anh   # chỉ phần Các rủi ro
 python -I dung_bo_cac_rui_ro.py anh-portal-rui-ro ../mockup/bo-cac-rui-ro.html   # bàn giao website ↔ backoffice
 python -I dung_goi_cac_rui_ro.py   # gói gửi dev: ../goi-cac-rui-ro/ (index.html + 2 mockup)
+node sinh-ca-kiem-trinh-hoi.js ../mockup/mockup-o-nhap-backoffice.html seed-portal-v2.json wizard-cases.json
+BO_SCOPE=khan-cap python build_bo.py v2data.json ban-dung-moi/build/data.json mockup-src.html ../mockup/backoffice-khan-cap.html ban-dung-moi/anh   # chỉ phần Khẩn cấp
+python chup_khan_cap.py ../mockup/antoantaichinh_v2.html anh-portal-khan-cap   # chỉ khi bản dựng đổi
+python -I dung_bo_khan_cap.py anh-portal-khan-cap ../mockup/bo-khan-cap.html
+python -I dung_goi_khan_cap.py   # gói gửi dev: ../goi-khan-cap/
 python make_xlsx.py ../1-thiet-ke.md ../../../quyet-dinh.md ../Ke-hoach-portal-v2.xlsx
 ```
 
@@ -44,7 +51,7 @@ Từ 2026-11-03 (QĐ-051) nguồn là bản dựng mới; trước đó: dựng 
 - Ảnh minh họa trong `media[]` mang tên `minh-hoa-<số>.jpg`, lấy ở `ban-dung-moi/anh/`.
 - Tham chiếu tới nút khác là `key` của nút đó.
 - Giá trị danh sách cố định là mã (`ratCao`, `goi`…). Bảng mã và chữ hiển thị ở `fixedLists`, theo Phụ lục B1. Công cụ nhập đổi mã sang chữ bằng `DanhMucCoDinh`.
-- Dòng của `Antc.InlineList` và hàng ma trận có `key` riêng. Ô bật tắt của ma trận nằm ở `match.step1`, `match.step2`, `match.step3`; giá trị là `key` của dòng lựa chọn ở `step1Options`, `step2Options`, `step3Options`.
+- Dòng của `Antc.InlineList` có `key` riêng. `tacticItem.wizardAnswers` và `onlyIf`, `skipIf` của trình hỏi là `key` của dòng ở `step1Options`…`step3Options` (QĐ-056; trước đó là ma trận).
 - Ảnh và tệp là `{ "media": "<tên tệp>" }`. Công cụ nhập tạo mục Phương tiện giữ chỗ nếu chưa có.
 - `fields`: kiểu của từng alias, để công cụ nhập biết cách ghi giá trị.
 

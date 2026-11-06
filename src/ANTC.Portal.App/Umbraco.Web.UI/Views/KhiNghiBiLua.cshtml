@@ -1,0 +1,55 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Text.Json
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var title = Model.Value<string>("title");
+    if (string.IsNullOrWhiteSpace(title)) { title = Model.Name; }
+    var lead = Model.Value<string>("lead");
+    var data = SelfCheckBranchDataBuilder.Build(Model);
+    var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+    var image = Model.Value<IPublishedContent>("illustration");
+    var urgentTitle = Model.Value<string>("urgT");
+    var urgent = Model.Value<string>("urg");
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/self-check-tool.css" asp-append-version="true">
+}
+<article class="self-check-page self-check-tool site-chrome-wrap" data-self-check-branch>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li><li aria-current="page">@title</li></ol></nav>
+    <header class="self-check-heading"><p class="self-check-eyebrow">Kiểm tra nhanh</p><div class="self-check-heading__title"><span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Value<string>("icon") ?? "icon-alert")</span><h1>@title</h1></div><p>@lead</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
+    <p class="self-check-privacy">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-lock")<span>Không cần đăng nhập. Câu trả lời không được lưu và không gửi đi đâu. Không cần nhập tên, số điện thoại hay số tài khoản.</span></p>
+    @if (!string.IsNullOrWhiteSpace(urgentTitle) && !string.IsNullOrWhiteSpace(urgent))
+    {
+        <aside class="self-check-urgent" aria-labelledby="self-check-urgent-title"><h2 id="self-check-urgent-title">@urgentTitle</h2><p>@urgent</p></aside>
+    }
+    @if (image is not null) { <figure class="self-check-illustration"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" loading="lazy" decoding="async"></figure> }
+    @if (data.Ready)
+    {
+        <div data-self-check-stage></div>
+        <div data-self-check-more hidden>
+            <section class="self-check-section"><h2>Đọc thêm</h2><div class="self-check-knowledge">
+            @foreach (var item in Model.Value<BlockListModel>("more")?.AsEnumerable() ?? Enumerable.Empty<BlockListItem>())
+            {
+                var target = item.Content.Value<IPublishedContent>("trang");
+                var url = target?.TemplateId is > 0 ? target.Url() : null;
+                if (url is not null && (!url.StartsWith('/') || url.StartsWith("//"))) { url = null; }
+                @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(item.Content.Value<string>("nhan") ?? "Đọc thêm", null, item.Content.Value<string>("ic") ?? "icon-book", url))
+            }
+            </div></section>
+        </div>
+        <div data-self-check-hit-notes hidden>
+            <aside class="self-check-urgent"><h2>Đừng trả phí cho người hứa lấy lại tiền</h2><p>Nếu họ yêu cầu trả tiền trước, hãy dừng liên hệ ngay. Muốn thuê dịch vụ thật thì bạn tự đi tìm, đừng dùng người tự nhắn tin đến.</p></aside>
+            <aside class="self-check-advice"><h2>Muốn trình báo</h2><p>Website này không phải là nơi tiếp nhận tố giác, tin báo về tội phạm. Nếu bạn cần trình báo, hãy liên hệ trực tiếp cơ quan Công an nơi bạn cư trú. Mang theo tin nhắn, biên lai và mọi bằng chứng đang có.</p></aside>
+        </div>
+        <script type="application/json" data-self-check-data>@Html.Raw(json)</script>
+        <noscript><section class="self-check-empty"><p>Bật JavaScript để trả lời từng câu và xem kết quả. Bạn có thể mở trực tiếp hướng dẫn cho tình huống của mình:</p><ul>@foreach (var question in data.Questions) { <li><a href="@question.Url">@question.Text</a></li> }</ul></section></noscript>
+    }
+    else
+    {
+        <p class="self-check-empty">Bộ câu hỏi đang được cập nhật. Nếu đang có việc gấp, hãy <a href="/ung-pho/">xem hướng dẫn ứng phó khẩn cấp</a>.</p>
+    }
+</article>
+@section Scripts { <script type="module" src="~/assets/js/self-check-branch.js" asp-append-version="true"></script> }

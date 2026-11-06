@@ -249,6 +249,16 @@
     "code": "chuaBiet",
     "label": "Chưa biết"
    }
+  ],
+  "Danh mục · Loại lựa chọn trình hỏi": [
+   {
+    "code": "phaiDung",
+    "label": "Phải dừng"
+   },
+   {
+    "code": "tamHoan",
+    "label": "Tạm hoãn"
+   }
   ]
  },
  "media": [
@@ -498,6 +508,14 @@
     "kind": "text",
     "max": 32
    },
+   "principlesTitle": {
+    "kind": "text",
+    "max": 60
+   },
+   "principlesNote": {
+    "kind": "area",
+    "max": 200
+   },
    "doorLead": {
     "kind": "area",
     "max": 220
@@ -523,6 +541,10 @@
     "kind": "fixed",
     "list": "Danh mục · Kiểu cửa vào",
     "multiple": false
+   },
+   "doors[].optionsLead": {
+    "kind": "area",
+    "max": 160
    },
    "doors[].targetPage": {
     "kind": "content",
@@ -555,12 +577,6 @@
    "helperNote": {
     "kind": "text",
     "max": 160
-   },
-   "typicalSituations": {
-    "kind": "content",
-    "multiple": true,
-    "source": "VCL",
-    "max": 10
    },
    "stateHotlines": {
     "kind": "table",
@@ -634,6 +650,18 @@
    }
   },
   "wizardPage": {
+   "title": {
+    "kind": "text",
+    "max": 90
+   },
+   "lead": {
+    "kind": "area",
+    "max": 220
+   },
+   "privacyNote": {
+    "kind": "area",
+    "max": 240
+   },
    "step1Question": {
     "kind": "text",
     "max": 120
@@ -652,6 +680,15 @@
     "multiple": false
    },
    "step1Options[].label": {
+    "kind": "text",
+    "max": 60
+   },
+   "step1Options[].channel": {
+    "kind": "content",
+    "multiple": false,
+    "source": "CH"
+   },
+   "step1OtherLabel": {
     "kind": "text",
     "max": 60
    },
@@ -674,6 +711,28 @@
    },
    "step2Options[].label": {
     "kind": "text",
+    "max": 120
+   },
+   "step2Options[].optionKind": {
+    "kind": "fixed",
+    "list": "Danh mục · Loại lựa chọn trình hỏi",
+    "multiple": false
+   },
+   "step2Options[].stopSign": {
+    "kind": "content",
+    "multiple": false,
+    "source": "SIGN"
+   },
+   "step2Options[].signText": {
+    "kind": "area",
+    "max": 300
+   },
+   "step2Options[].hint": {
+    "kind": "text",
+    "max": 160
+   },
+   "step2NoneLabel": {
+    "kind": "text",
     "max": 60
    },
    "step3Question": {
@@ -695,7 +754,37 @@
    },
    "step3Options[].label": {
     "kind": "text",
+    "max": 120
+   },
+   "step3Options[].optionKind": {
+    "kind": "fixed",
+    "list": "Danh mục · Loại lựa chọn trình hỏi",
+    "multiple": false
+   },
+   "step3Options[].stopSign": {
+    "kind": "content",
+    "multiple": false,
+    "source": "SIGN"
+   },
+   "step3Options[].signText": {
+    "kind": "area",
+    "max": 300
+   },
+   "step3Options[].hint": {
+    "kind": "text",
+    "max": 160
+   },
+   "step3NoneLabel": {
+    "kind": "text",
     "max": 60
+   },
+   "unknownLabel": {
+    "kind": "text",
+    "max": 60
+   },
+   "unknownSignText": {
+    "kind": "area",
+    "max": 200
    },
    "illustration": {
     "kind": "media"
@@ -703,39 +792,6 @@
    "illustrationAlt": {
     "kind": "text",
     "max": 160
-   },
-   "situationMatrix": {
-    "kind": "matrix"
-   },
-   "situationMatrix.rows[].name": {
-    "kind": "text",
-    "max": 80
-   },
-   "situationMatrix.rows[].cautionLevel": {
-    "kind": "fixed",
-    "list": "Danh mục · Mức độ cần thận trọng",
-    "multiple": false
-   },
-   "situationMatrix.rows[].signs": {
-    "kind": "lines",
-    "max": 3
-   },
-   "situationMatrix.rows[].actions": {
-    "kind": "lines",
-    "max": 4
-   },
-   "situationMatrix.rows[].guideArticle": {
-    "kind": "content",
-    "multiple": false,
-    "source": "GUIDE"
-   },
-   "situationMatrix.rows[].checklist": {
-    "kind": "content",
-    "multiple": false,
-    "source": "CHK"
-   },
-   "situationMatrix.rows[].enabled": {
-    "kind": "toggle"
    },
    "resultHeading1": {
     "kind": "text",
@@ -753,17 +809,130 @@
     "kind": "text",
     "max": 40
    },
+   "resultHeading5": {
+    "kind": "text",
+    "max": 40
+   },
    "maxSituations": {
     "kind": "num"
+   },
+   "situationNote": {
+    "kind": "area",
+    "max": 200
    },
    "noMatchText": {
     "kind": "area",
     "max": 200
    },
+   "clearNote": {
+    "kind": "area",
+    "max": 240
+   },
    "defaultChecklist": {
     "kind": "content",
     "multiple": false,
     "source": "CHK"
+   },
+   "stopActions": {
+    "kind": "table",
+    "max": 8
+   },
+   "stopActions[].page": {
+    "kind": "content",
+    "multiple": false,
+    "source": "VCL"
+   },
+   "stopActions[].stepNumber": {
+    "kind": "num"
+   },
+   "stopActions[].text": {
+    "kind": "area",
+    "max": 240
+   },
+   "stopActions[].onlyIf": {
+    "kind": "content",
+    "multiple": true,
+    "source": "WZANS"
+   },
+   "stopActions[].skipIf": {
+    "kind": "content",
+    "multiple": true,
+    "source": "WZANS"
+   },
+   "holdActions": {
+    "kind": "table",
+    "max": 8
+   },
+   "holdActions[].page": {
+    "kind": "content",
+    "multiple": false,
+    "source": "VCL"
+   },
+   "holdActions[].stepNumber": {
+    "kind": "num"
+   },
+   "holdActions[].text": {
+    "kind": "area",
+    "max": 240
+   },
+   "holdActions[].onlyIf": {
+    "kind": "content",
+    "multiple": true,
+    "source": "WZANS"
+   },
+   "holdActions[].skipIf": {
+    "kind": "content",
+    "multiple": true,
+    "source": "WZANS"
+   },
+   "clearActions": {
+    "kind": "table",
+    "max": 8
+   },
+   "clearActions[].page": {
+    "kind": "content",
+    "multiple": false,
+    "source": "VCL"
+   },
+   "clearActions[].stepNumber": {
+    "kind": "num"
+   },
+   "clearActions[].text": {
+    "kind": "area",
+    "max": 240
+   },
+   "clearActions[].onlyIf": {
+    "kind": "content",
+    "multiple": true,
+    "source": "WZANS"
+   },
+   "clearActions[].skipIf": {
+    "kind": "content",
+    "multiple": true,
+    "source": "WZANS"
+   },
+   "ifAlreadyLinks": {
+    "kind": "table",
+    "max": 6
+   },
+   "ifAlreadyLinks[].icon": {
+    "kind": "fixed",
+    "list": "Danh mục · Biểu tượng",
+    "multiple": false
+   },
+   "ifAlreadyLinks[].label": {
+    "kind": "text",
+    "max": 80
+   },
+   "ifAlreadyLinks[].targetPage": {
+    "kind": "content",
+    "multiple": false,
+    "source": "VCL"
+   },
+   "ifAlreadyLinks[].onlyIf": {
+    "kind": "content",
+    "multiple": true,
+    "source": "WZANS"
    },
    "button1Text": {
     "kind": "text",
@@ -800,129 +969,6 @@
    },
    "displayUpdatedDate": {
     "kind": "date"
-   }
-  },
-  "viecCanLamPage": {
-   "title": {
-    "kind": "text",
-    "max": 90
-   },
-   "umbracoUrlName": {
-    "kind": "text",
-    "max": 60
-   },
-   "icon": {
-    "kind": "fixed",
-    "list": "Danh mục · Biểu tượng",
-    "multiple": false
-   },
-   "lead": {
-    "kind": "area",
-    "max": 220
-   },
-   "hideFromSituations": {
-    "kind": "toggle"
-   },
-   "screeningQuestions": {
-    "kind": "table",
-    "max": 8
-   },
-   "screeningQuestions[].question": {
-    "kind": "area",
-    "max": 240
-   },
-   "screeningQuestions[].buttonText": {
-    "kind": "text",
-    "max": 60
-   },
-   "screeningQuestions[].targetPage": {
-    "kind": "content",
-    "multiple": false,
-    "source": "VCL"
-   },
-   "screeningQuestions[].note": {
-    "kind": "text",
-    "max": 200
-   },
-   "steps": {
-    "kind": "cards",
-    "max": 12
-   },
-   "reviewDate": {
-    "kind": "date"
-   },
-   "verificationSource": {
-    "kind": "text",
-    "max": 200
-   },
-   "illustration": {
-    "kind": "media"
-   },
-   "illustrationAlt": {
-    "kind": "text",
-    "max": 160
-   },
-   "seoTitle": {
-    "kind": "text",
-    "max": 60
-   },
-   "seoDescription": {
-    "kind": "area",
-    "max": 160
-   },
-   "shareImage": {
-    "kind": "media"
-   },
-   "hideFromSearch": {
-    "kind": "toggle"
-   },
-   "canonicalUrl": {
-    "kind": "text"
-   },
-   "displayUpdatedDate": {
-    "kind": "date"
-   },
-   "steps[].mainText": {
-    "kind": "area",
-    "max": 240
-   },
-   "steps[].details": {
-    "kind": "lines",
-    "max": 6
-   },
-   "steps[].sampleScript": {
-    "kind": "area",
-    "max": 240
-   },
-   "steps[].showBankLookup": {
-    "kind": "toggle"
-   },
-   "steps[].onlyIf": {
-    "kind": "content",
-    "multiple": false,
-    "source": "SNIP"
-   },
-   "steps[].snippetAfter": {
-    "kind": "content",
-    "multiple": false,
-    "source": "SNIP"
-   },
-   "steps[].followUpQuestion": {
-    "kind": "area",
-    "max": 240
-   },
-   "steps[].followUpButton": {
-    "kind": "text",
-    "max": 60
-   },
-   "steps[].followUpNote": {
-    "kind": "text",
-    "max": 200
-   },
-   "steps[].followUpPage": {
-    "kind": "content",
-    "multiple": false,
-    "source": "VCL"
    }
   },
   "congCuPage": {
@@ -2041,33 +2087,6 @@
     "max": 300
    }
   },
-  "tacticItem": {
-   "code": {
-    "kind": "code",
-    "max": 40
-   },
-   "isActive": {
-    "kind": "toggle"
-   },
-   "containingArticle": {
-    "kind": "content",
-    "multiple": false,
-    "source": "ART"
-   },
-   "channels": {
-    "kind": "content",
-    "multiple": true,
-    "source": "CH"
-   },
-   "cautionLevel": {
-    "kind": "fixed",
-    "list": "Danh mục · Mức độ cần thận trọng",
-    "multiple": false
-   },
-   "searchKeywords": {
-    "kind": "tags"
-   }
-  },
   "quickQaItem": {
    "question": {
     "kind": "area",
@@ -2101,6 +2120,162 @@
    },
    "bodyText": {
     "kind": "rte"
+   }
+  },
+  "viecCanLamPage": {
+   "title": {
+    "kind": "text",
+    "max": 90
+   },
+   "umbracoUrlName": {
+    "kind": "text",
+    "max": 60
+   },
+   "icon": {
+    "kind": "fixed",
+    "list": "Danh mục · Biểu tượng",
+    "multiple": false
+   },
+   "lead": {
+    "kind": "area",
+    "max": 220
+   },
+   "hideFromSituations": {
+    "kind": "toggle"
+   },
+   "screeningQuestions": {
+    "kind": "table",
+    "max": 8
+   },
+   "steps": {
+    "kind": "cards",
+    "max": 12
+   },
+   "steps[].mainText": {
+    "kind": "area",
+    "max": 240
+   },
+   "steps[].details": {
+    "kind": "lines",
+    "max": 6
+   },
+   "steps[].sampleScript": {
+    "kind": "area",
+    "max": 240
+   },
+   "steps[].showBankLookup": {
+    "kind": "toggle"
+   },
+   "steps[].onlyIf": {
+    "kind": "content",
+    "multiple": false,
+    "source": "SNIP"
+   },
+   "steps[].snippetAfter": {
+    "kind": "content",
+    "multiple": false,
+    "source": "SNIP"
+   },
+   "reviewDate": {
+    "kind": "date"
+   },
+   "verificationSource": {
+    "kind": "text",
+    "max": 200
+   },
+   "illustration": {
+    "kind": "media"
+   },
+   "illustrationAlt": {
+    "kind": "text",
+    "max": 160
+   },
+   "seoTitle": {
+    "kind": "text",
+    "max": 60
+   },
+   "seoDescription": {
+    "kind": "area",
+    "max": 160
+   },
+   "shareImage": {
+    "kind": "media"
+   },
+   "hideFromSearch": {
+    "kind": "toggle"
+   },
+   "canonicalUrl": {
+    "kind": "text"
+   },
+   "displayUpdatedDate": {
+    "kind": "date"
+   },
+   "steps[].followUpQuestion": {
+    "kind": "area",
+    "max": 240
+   },
+   "steps[].followUpButton": {
+    "kind": "text",
+    "max": 60
+   },
+   "steps[].followUpNote": {
+    "kind": "text",
+    "max": 200
+   },
+   "steps[].followUpPage": {
+    "kind": "content",
+    "multiple": false,
+    "source": "VCL"
+   },
+   "screeningQuestions[].question": {
+    "kind": "area",
+    "max": 240
+   },
+   "screeningQuestions[].buttonText": {
+    "kind": "text",
+    "max": 60
+   },
+   "screeningQuestions[].targetPage": {
+    "kind": "content",
+    "multiple": false,
+    "source": "VCL"
+   },
+   "screeningQuestions[].note": {
+    "kind": "text",
+    "max": 200
+   }
+  },
+  "tacticItem": {
+   "code": {
+    "kind": "code",
+    "max": 40
+   },
+   "isActive": {
+    "kind": "toggle"
+   },
+   "containingArticle": {
+    "kind": "content",
+    "multiple": false,
+    "source": "ART"
+   },
+   "channels": {
+    "kind": "content",
+    "multiple": true,
+    "source": "CH"
+   },
+   "cautionLevel": {
+    "kind": "fixed",
+    "list": "Danh mục · Mức độ cần thận trọng",
+    "multiple": false
+   },
+   "searchKeywords": {
+    "kind": "tags"
+   },
+   "wizardAnswers": {
+    "kind": "content",
+    "multiple": true,
+    "source": "WZANS23",
+    "max": 8
    }
   },
   "siteSettings": {
@@ -2276,6 +2451,14 @@
    "refuseLendingNote": {
     "kind": "area",
     "max": 300
+   },
+   "actionStepsNote": {
+    "kind": "area",
+    "max": 300
+   },
+   "notOnDutyNote": {
+    "kind": "area",
+    "max": 300
    }
   }
  },
@@ -2288,7 +2471,6 @@
   "homePage": 1,
   "khanCapPage": 1,
   "wizardPage": 1,
-  "viecCanLamPage": 10,
   "congCuPage": 1,
   "toolCountPage": 2,
   "toolBranchPage": 1,
@@ -2317,11 +2499,12 @@
   "topicFolder": 1,
   "topicItem": 8,
   "tacticFolder": 1,
-  "tacticItem": 32,
   "quickQaFolder": 1,
   "quickQaItem": 7,
   "snippetFolder": 1,
   "sharedSnippet": 6,
+  "viecCanLamPage": 10,
+  "tacticItem": 32,
   "libraryFolder": 1,
   "otherPagesFolder": 1,
   "pagesRoot": 1,
@@ -2423,6 +2606,8 @@
     "wizardTitle": "Tôi đang gặp chuyện gì?",
     "wizardDescription": "Trả lời 3 câu hỏi ngắn để nhận dấu hiệu cảnh báo và việc cần làm ngay. Không cần đăng nhập, không lưu câu trả lời.",
     "wizardButtonText": "Bắt đầu",
+    "principlesTitle": "Bốn việc không làm khi nghi ngờ",
+    "principlesNote": "Rút từ “Năm việc phải chặn ngay” của Bài đọc Chuyên đề 1 và bước 1 của trang “Có người đang thúc bạn làm ngay”.",
     "doorLead": "Chọn ô gần đúng nhất. Việc cần làm đi theo điều đã xảy ra, bạn không cần kể đúng câu chuyện.",
     "doors": [
      {
@@ -2440,6 +2625,7 @@
       "description": "Đã đưa đi, đã mất, hoặc bị người khác dùng.",
       "illustration": "harm",
       "openMode": "moDanhSach",
+      "optionsLead": "Chọn dòng gần đúng nhất với điều bạn nhìn thấy. Không cần biết vì sao nó xảy ra.",
       "options": [
        {
         "key": "1ca8c0e5-00e5-54a9-a7a8-12c669b11133",
@@ -2485,6 +2671,7 @@
       "description": "Còn kịp. Kiểm tra trước khi đưa bất cứ thứ gì.",
       "illustration": "check",
       "openMode": "moDanhSach",
+      "optionsLead": "Còn kịp. Chọn dòng gần đúng nhất.",
       "options": [
        {
         "key": "f412163a-5884-56cc-9979-16762a5c94d7",
@@ -2515,17 +2702,6 @@
     ],
     "noMatchPage": "d0ed3e7f-415e-5109-8906-5f47e134faf3",
     "helperNote": "Đang giúp người thân, hay xử lý việc của cửa hàng? Chọn theo điều đã xảy ra với người đó.",
-    "typicalSituations": [
-     "d473400b-dc16-5274-92c2-6bdc670719c5",
-     "8f95afcc-b47f-5201-9892-a2dcc83563df",
-     "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
-     "3326906d-b9f7-5757-9ab4-014544319437",
-     "c07ba1d5-04dd-5265-824e-63a48c48dd7e",
-     "ced0f2ff-a349-590d-a486-21ac72df96f0",
-     "bd846b9c-73d0-506b-b3a8-109cad2a623b",
-     "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
-     "d4e2999b-5d4f-59ef-8bf0-adfc55f13bc9"
-    ],
     "stateHotlines": [
      {
       "key": "67ebee5e-587a-544c-94ea-21916a7cfbb6",
@@ -2549,8 +2725,13 @@
     "footerButtons": [
      {
       "key": "a6005080-6f0e-53a3-bde3-64a6fe6895e9",
-      "label": "Mở Công cụ & checklist",
-      "targetPage": "17029f01-72cd-5287-9a0c-0099268a3c1e"
+      "label": "Liên hệ đúng nơi",
+      "targetPage": "ac21724f-923b-5c8f-b4b4-6e3530bb4ab2"
+     },
+     {
+      "key": "c16fff61-13f2-5032-a6a4-882e56e24cbf",
+      "label": "Kiểm tra nhanh: Khi nghi ngờ bị lừa",
+      "targetPage": "bcc4cf78-2ef7-58f2-b70c-b2e9e0a0f62b"
      }
     ],
     "illustration": {
@@ -2568,1255 +2749,329 @@
    "state": "published",
    "sortOrder": 0,
    "values": {
-    "step1Question": "Bạn nhận được thông tin qua kênh nào?",
-    "step1Hint": "Chọn một kênh. Nếu nhiều kênh, chọn kênh đầu tiên họ liên hệ.",
+    "title": "Tôi đang gặp chuyện gì?",
+    "lead": "Trả lời 3 câu hỏi ngắn để nhận dấu hiệu cảnh báo và việc cần làm ngay.",
+    "privacyNote": "Không cần đăng nhập. Câu trả lời không được lưu và không gửi đi đâu. Đừng nhập số điện thoại, số tài khoản hay tên riêng ở bất kỳ đâu.",
+    "step1Question": "Họ liên hệ với bạn qua đâu?",
+    "step1Hint": "Chọn một dòng.",
     "step1Options": [
      {
       "key": "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
       "icon": "call",
-      "label": "Cuộc gọi"
+      "label": "Cuộc gọi",
+      "channel": "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
      },
      {
       "key": "028a1fbb-7121-5d28-9e76-75bd2ce25d3f",
       "icon": "chat",
-      "label": "Tin nhắn SMS/Zalo/WhatsApp"
+      "label": "SMS, Zalo, WhatsApp",
+      "channel": "f97aea5d-7998-5afb-a72e-b16ab9c09467"
      },
      {
       "key": "6c160825-3d84-53ff-ae8b-ce9788494353",
       "icon": "mail",
-      "label": "Email"
+      "label": "Email",
+      "channel": "6d5f3f8e-69f8-5293-8fbf-ba2a96765b85"
      },
      {
       "key": "85b1223e-a55e-54ec-808a-25d6e9f725f5",
       "icon": "users",
-      "label": "Facebook/TikTok/YouTube"
+      "label": "Facebook, TikTok, YouTube",
+      "channel": "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
      },
      {
       "key": "639267ed-f021-51da-aaf5-dbb0f6c1e36d",
       "icon": "globe",
-      "label": "Website hoặc quảng cáo"
+      "label": "Website, quảng cáo",
+      "channel": "19576116-c761-5aa9-b178-239b0480748d"
      },
      {
       "key": "ffec5f18-e82b-5e7d-be3e-9a5acd8791ee",
       "icon": "person",
-      "label": "Người quen giới thiệu"
+      "label": "Người quen giới thiệu",
+      "channel": "76b7a1cc-28b4-5785-a044-8759bd2954ca"
      }
     ],
+    "step1OtherLabel": "Kênh khác, hoặc không nhớ",
     "step2Question": "Họ yêu cầu bạn làm gì?",
-    "step2Hint": "Chọn tất cả việc họ yêu cầu.",
+    "step2Hint": "Chọn tất cả những dòng đúng. Không chắc thì chọn “Tôi chưa biết”.",
     "step2Options": [
-     {
-      "key": "26585ada-af77-58ee-a8b6-38be1cf5afa5",
-      "icon": "money",
-      "label": "Chuyển tiền hoặc đặt cọc"
-     },
      {
       "key": "350b745c-24f3-53b8-b422-d706ca11b469",
       "icon": "key",
-      "label": "Cung cấp OTP, mật khẩu, mã PIN"
+      "label": "Đọc hoặc gửi mã OTP, mật khẩu, mã PIN",
+      "optionKind": "phaiDung",
+      "stopSign": "f74c57ed-2d94-53a8-ac9e-6d91337edc07"
      },
      {
       "key": "75de4617-259e-5e6c-8494-aad99d95652c",
       "icon": "app",
-      "label": "Cài ứng dụng hoặc nhấn link"
-     },
-     {
-      "key": "194c7231-c370-5005-867a-4410e65cbc20",
-      "icon": "chart",
-      "label": "Đầu tư, mua coin, mở tài khoản"
-     },
-     {
-      "key": "3ec30f57-36be-560c-8335-605143736de1",
-      "icon": "coins",
-      "label": "Vay tiền hoặc trả phí trước"
+      "label": "Cài ứng dụng, hoặc cho họ xem, điều khiển màn hình",
+      "optionKind": "phaiDung",
+      "stopSign": "cc7eee4f-3ee1-5a85-883a-24a249019f73"
      },
      {
       "key": "6bc5293d-905b-5e1e-8919-62704403d55d",
       "icon": "face",
-      "label": "Gửi ảnh CCCD, ảnh khuôn mặt, chữ ký"
+      "label": "Gửi ảnh giấy tờ, quét khuôn mặt",
+      "optionKind": "phaiDung",
+      "stopSign": "56174d3c-3414-54bb-81c9-574982163ea1",
+      "hint": "Bạn tự mở ứng dụng của mình cho việc do chính bạn bắt đầu thì không chọn dòng này."
+     },
+     {
+      "key": "13ef17c7-7c8e-5234-ae0f-81ff0b52ce10",
+      "icon": "money",
+      "label": "Cho mượn, cho thuê, mở hộ tài khoản ngân hàng, SIM, hoặc nhận chuyển tiền hộ",
+      "optionKind": "phaiDung",
+      "signText": "Từ chối ngay lời đề nghị cho mượn, cho thuê, bán hoặc mở hộ tài khoản ngân hàng, ví điện tử, SIM, dù được trả tiền công."
+     },
+     {
+      "key": "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+      "icon": "money",
+      "label": "Chuyển tiền, đặt cọc, nộp phí",
+      "optionKind": "tamHoan",
+      "signText": "Họ yêu cầu chuyển tiền, đặt cọc hoặc nộp phí."
+     },
+     {
+      "key": "ebfd2d6f-96c8-5585-a8a3-526084100002",
+      "icon": "link",
+      "label": "Bấm vào đường link, quét mã QR họ gửi",
+      "optionKind": "tamHoan",
+      "signText": "Họ gửi đường link hoặc mã QR và bảo bạn bấm, quét."
      }
     ],
-    "step3Question": "Họ nói gì để thuyết phục bạn?",
-    "step3Hint": "Chọn tất cả câu bạn đã nghe.",
+    "step2NoneLabel": "Chưa yêu cầu gì cụ thể",
+    "step3Question": "Họ hứa hẹn hoặc đe dọa điều gì?",
+    "step3Hint": "Chọn tất cả những dòng đúng. Không chắc thì chọn “Tôi chưa biết”.",
     "step3Options": [
      {
-      "key": "15dd6893-6089-5dc6-8f2f-79cb52349d64",
-      "icon": "chart",
-      "label": "“Lợi nhuận cao, bảo đảm vốn”"
-     },
-     {
-      "key": "2f75554e-6116-59b1-8c01-6b0f1922e74e",
+      "key": "829dbf26-d099-52ca-a369-4e6f3bcc607c",
       "icon": "lock",
-      "label": "“Tài khoản sẽ bị khóa”"
-     },
-     {
-      "key": "f865fcc0-6a64-5e9a-8576-3a1e30648131",
-      "icon": "shield",
-      "label": "“Cơ quan chức năng đang liên hệ”"
-     },
-     {
-      "key": "8f769767-f6f9-59cb-8f30-20f3b2f8f97d",
-      "icon": "brief",
-      "label": "“Việc nhẹ, lương cao”"
-     },
-     {
-      "key": "eca00f11-f2df-56c8-ad4f-f3191a483eb5",
-      "icon": "gift",
-      "label": "“Hoàn tiền, trúng thưởng, hỗ trợ hoàn vốn”"
+      "label": "Nói tiền hoặc hàng của bạn đang bị giữ, phải nộp phí mới lấy được",
+      "optionKind": "phaiDung",
+      "stopSign": "92496662-8472-5d56-8bea-6c244bbf57e0"
      },
      {
       "key": "caba6979-1395-5ff7-9dda-933ef4066841",
-      "icon": "clock",
-      "label": "“Cần quyết định ngay hôm nay”"
+      "icon": "hush",
+      "label": "Bắt quyết định ngay, giữ bí mật, không cho hỏi người thân",
+      "optionKind": "phaiDung",
+      "stopSign": "7b761a74-cde8-5a49-9e52-7c2135041518"
+     },
+     {
+      "key": "b047b049-5891-5b52-a6da-8d5eee6f776b",
+      "icon": "call",
+      "label": "Không cho bạn tự gọi lại số chính thức hoặc tự mở website chính thức",
+      "optionKind": "phaiDung",
+      "stopSign": "139001e8-6ff5-5848-87ef-f81abc5a3228"
+     },
+     {
+      "key": "c583f773-a99a-55c3-a604-5ed5f4baebc9",
+      "icon": "alert",
+      "label": "Dọa bạn dính vào vụ án, bị phạt, bị khóa tài khoản",
+      "optionKind": "tamHoan",
+      "signText": "Họ dọa bạn sắp mất: dính án, bị phạt, bị khóa tài khoản."
+     },
+     {
+      "key": "15dd6893-6089-5dc6-8f2f-79cb52349d64",
+      "icon": "gift",
+      "label": "Hứa lợi nhuận cao, hoa hồng, việc nhẹ lương cao, vay dễ, trúng thưởng",
+      "optionKind": "tamHoan",
+      "signText": "Họ hứa cho bạn được nhiều hơn: lãi cao, hoa hồng, việc nhẹ lương cao, vay dễ, trúng thưởng."
+     },
+     {
+      "key": "219ca254-8b4f-5b08-a6dc-97b3fc7406b8",
+      "icon": "users",
+      "label": "Tự xưng người thân, người quen đang cần tiền gấp",
+      "optionKind": "tamHoan",
+      "signText": "Họ đóng vai người thân, người quen đang cần tiền gấp."
      }
     ],
+    "step3NoneLabel": "Không hứa hẹn, không đe dọa gì",
+    "unknownLabel": "Tôi chưa biết, không nhớ rõ",
+    "unknownSignText": "Bạn chưa biết chắc họ đã yêu cầu hoặc hứa hẹn những gì.",
     "illustration": {
      "media": "minh-hoa-10.jpg"
     },
     "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính",
-    "situationMatrix": {
-     "rows": [
-      {
-       "key": "24cc1d67-3d43-56cd-912f-f193548a6aba",
-       "name": "Giả mạo ngân hàng yêu cầu OTP",
-       "cautionLevel": "ratCao",
-       "signs": [
-        "Người gọi hoặc tin nhắn tự xưng ngân hàng",
-        "Yêu cầu đọc hoặc nhập mã OTP, mật khẩu",
-        "Dọa tài khoản sắp bị khóa"
-       ],
-       "actions": [
-        "Không đọc, không gửi mã OTP cho bất kỳ ai.",
-        "Cúp máy, tự gọi số in ở mặt sau thẻ.",
-        "Không bấm đường link trong tin nhắn.",
-        "Nếu đã đọc mã, gọi ngân hàng ngay để khóa tài khoản."
-       ],
-       "guideArticle": "19709819-f36c-5446-8857-0a286180ceef",
-       "checklist": "b0400eca-232b-5a61-a5fe-ea4d73ff730e",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f",
-         "6c160825-3d84-53ff-ae8b-ce9788494353"
-        ],
-        "step2": [
-         "350b745c-24f3-53b8-b422-d706ca11b469",
-         "75de4617-259e-5e6c-8494-aad99d95652c"
-        ],
-        "step3": [
-         "2f75554e-6116-59b1-8c01-6b0f1922e74e"
-        ]
-       }
-      },
-      {
-       "key": "0a2e0c64-f6d4-5fa2-ba4c-1cf4887d23ca",
-       "name": "Giả mạo công an, thuế, tòa án",
-       "cautionLevel": "ratCao",
-       "signs": [
-        "Tự xưng cơ quan chức năng, nói bạn liên quan vụ việc",
-        "Yêu cầu chuyển tiền để “xác minh”",
-        "Bắt giữ bí mật, quyết định ngay"
-       ],
-       "actions": [
-        "Không chuyển tiền.",
-        "Cúp máy, tự liên hệ cơ quan Công an nơi cư trú.",
-        "Kể với người thân trước khi làm gì tiếp.",
-        "Không cài ứng dụng theo yêu cầu."
-       ],
-       "guideArticle": "19709819-f36c-5446-8857-0a286180ceef",
-       "checklist": "b0400eca-232b-5a61-a5fe-ea4d73ff730e",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f"
-        ],
-        "step2": [
-         "26585ada-af77-58ee-a8b6-38be1cf5afa5",
-         "75de4617-259e-5e6c-8494-aad99d95652c",
-         "6bc5293d-905b-5e1e-8919-62704403d55d"
-        ],
-        "step3": [
-         "f865fcc0-6a64-5e9a-8576-3a1e30648131",
-         "caba6979-1395-5ff7-9dda-933ef4066841"
-        ]
-       }
-      },
-      {
-       "key": "b8fbc758-7881-5a65-8b2b-8d1cd48f22e4",
-       "name": "Giả mạo bưu điện, giao hàng, hoàn tiền",
-       "cautionLevel": "cao",
-       "signs": [
-        "Báo có đơn hàng, bưu phẩm hoặc khoản hoàn tiền",
-        "Gửi đường link để “nhận hoàn tiền”",
-        "Yêu cầu nộp phí nhỏ trước"
-       ],
-       "actions": [
-        "Không chuyển tiền ngay.",
-        "Gọi lại qua số chính thức.",
-        "Hỏi người thân tin cậy.",
-        "Nếu đã chuyển, liên hệ ngân hàng ngay."
-       ],
-       "guideArticle": "db25568f-45a3-58b6-9c7c-becc6c1669d9",
-       "checklist": "03d15cda-9627-50a5-a621-cfa90156661c",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f"
-        ],
-        "step2": [
-         "75de4617-259e-5e6c-8494-aad99d95652c",
-         "26585ada-af77-58ee-a8b6-38be1cf5afa5",
-         "350b745c-24f3-53b8-b422-d706ca11b469"
-        ],
-        "step3": [
-         "eca00f11-f2df-56c8-ad4f-f3191a483eb5"
-        ]
-       }
-      },
-      {
-       "key": "f28d47a4-b142-5711-b88b-8a9374c34fa9",
-       "name": "Lừa đảo việc làm online, cọc việc làm",
-       "cautionLevel": "ratCao",
-       "signs": [
-        "Việc nhẹ, lương cao, làm tại nhà",
-        "Bắt nạp tiền hoặc đặt cọc để nhận việc",
-        "Trả hoa hồng vài lần đầu rồi đòi nạp thêm"
-       ],
-       "actions": [
-        "Không nạp, không đặt cọc để nhận việc.",
-        "Tra tên công ty qua kênh do bạn tự tìm.",
-        "Hỏi người thân tin cậy.",
-        "Nếu đã chuyển, liên hệ ngân hàng ngay."
-       ],
-       "guideArticle": "b657db29-6d04-5efd-9968-d526eb918e8f",
-       "checklist": "320ee0ee-a568-5bac-9835-9a2f749e526d",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "85b1223e-a55e-54ec-808a-25d6e9f725f5",
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f",
-         "639267ed-f021-51da-aaf5-dbb0f6c1e36d"
-        ],
-        "step2": [
-         "26585ada-af77-58ee-a8b6-38be1cf5afa5",
-         "75de4617-259e-5e6c-8494-aad99d95652c"
-        ],
-        "step3": [
-         "8f769767-f6f9-59cb-8f30-20f3b2f8f97d"
-        ]
-       }
-      },
-      {
-       "key": "909ca5f4-5d95-5346-a052-a7995a625a92",
-       "name": "Lừa đảo đầu tư crypto, forex, chứng khoán",
-       "cautionLevel": "ratCao",
-       "signs": [
-        "Hứa lợi nhuận cao, bảo đảm vốn",
-        "Mời mở tài khoản trên ứng dụng lạ",
-        "Thúc quyết định ngay hôm nay"
-       ],
-       "actions": [
-        "Không chuyển tiền vào tài khoản cá nhân.",
-        "Kiểm tra giấy phép của bên mời.",
-        "Hỏi người thân tin cậy.",
-        "Nếu đã chuyển, liên hệ ngân hàng ngay."
-       ],
-       "guideArticle": "5f835b6b-c66b-594c-816b-8a4530997b3f",
-       "checklist": "40b15a36-af02-57eb-ac1f-ea7f119a7ad0",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "85b1223e-a55e-54ec-808a-25d6e9f725f5",
-         "639267ed-f021-51da-aaf5-dbb0f6c1e36d",
-         "ffec5f18-e82b-5e7d-be3e-9a5acd8791ee",
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f"
-        ],
-        "step2": [
-         "194c7231-c370-5005-867a-4410e65cbc20",
-         "26585ada-af77-58ee-a8b6-38be1cf5afa5",
-         "75de4617-259e-5e6c-8494-aad99d95652c"
-        ],
-        "step3": [
-         "15dd6893-6089-5dc6-8f2f-79cb52349d64",
-         "caba6979-1395-5ff7-9dda-933ef4066841"
-        ]
-       }
-      },
-      {
-       "key": "a1cc5db9-bd3e-52fd-9a96-62231968d19f",
-       "name": "App vay, phí trước, vay nhanh",
-       "cautionLevel": "cao",
-       "signs": [
-        "Vay nhanh, duyệt trong vài phút",
-        "Đòi phí trước khi giải ngân",
-        "Xin quyền danh bạ, ảnh, giấy tờ"
-       ],
-       "actions": [
-        "Không trả phí trước khi nhận tiền vay.",
-        "Không gửi ảnh giấy tờ cho ứng dụng lạ.",
-        "Hỏi người thân tin cậy.",
-        "Chỉ vay ở tổ chức có giấy phép."
-       ],
-       "guideArticle": "d129abd5-0eb0-57b3-8d40-0875027f0c73",
-       "checklist": "b1e28dba-fa92-5c09-ac90-fcd840cd6425",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "639267ed-f021-51da-aaf5-dbb0f6c1e36d",
-         "85b1223e-a55e-54ec-808a-25d6e9f725f5",
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f"
-        ],
-        "step2": [
-         "3ec30f57-36be-560c-8335-605143736de1",
-         "75de4617-259e-5e6c-8494-aad99d95652c",
-         "6bc5293d-905b-5e1e-8919-62704403d55d"
-        ],
-        "step3": [
-         "caba6979-1395-5ff7-9dda-933ef4066841"
-        ]
-       }
-      },
-      {
-       "key": "267f3541-fe72-5c97-93e7-37c695291fb2",
-       "name": "Giả mạo người thân, sếp, khách hàng",
-       "cautionLevel": "cao",
-       "signs": [
-        "Tự xưng người quen đang cần tiền gấp",
-        "Đổi số tài khoản nhận tiền",
-        "Dặn đừng hỏi ai"
-       ],
-       "actions": [
-        "Không chuyển tiền ngay.",
-        "Gọi lại số bạn vẫn lưu của người đó.",
-        "Hỏi người thân tin cậy.",
-        "Nếu đã chuyển, liên hệ ngân hàng ngay."
-       ],
-       "guideArticle": "19709819-f36c-5446-8857-0a286180ceef",
-       "checklist": "b0400eca-232b-5a61-a5fe-ea4d73ff730e",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f",
-         "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
-         "85b1223e-a55e-54ec-808a-25d6e9f725f5"
-        ],
-        "step2": [
-         "26585ada-af77-58ee-a8b6-38be1cf5afa5"
-        ],
-        "step3": [
-         "caba6979-1395-5ff7-9dda-933ef4066841"
-        ]
-       }
-      },
-      {
-       "key": "d089d8f2-8339-5106-b144-99620a0082b2",
-       "name": "Mua bán online, người mua giả, QR lừa đảo",
-       "cautionLevel": "cao",
-       "signs": [
-        "Người mua gửi mã QR hoặc link để “nhận tiền”",
-        "Yêu cầu nhập OTP để nhận thanh toán",
-        "Nói đã chuyển thừa, đòi hoàn lại"
-       ],
-       "actions": [
-        "Không quét mã QR người lạ gửi để nhận tiền.",
-        "Tự mở ứng dụng ngân hàng xem tiền đã về chưa.",
-        "Không đọc mã OTP.",
-        "Hỏi người thân tin cậy."
-       ],
-       "guideArticle": "db25568f-45a3-58b6-9c7c-becc6c1669d9",
-       "checklist": "03d15cda-9627-50a5-a621-cfa90156661c",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "85b1223e-a55e-54ec-808a-25d6e9f725f5",
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f",
-         "639267ed-f021-51da-aaf5-dbb0f6c1e36d"
-        ],
-        "step2": [
-         "75de4617-259e-5e6c-8494-aad99d95652c",
-         "350b745c-24f3-53b8-b422-d706ca11b469",
-         "26585ada-af77-58ee-a8b6-38be1cf5afa5"
-        ],
-        "step3": [
-         "eca00f11-f2df-56c8-ad4f-f3191a483eb5"
-        ]
-       }
-      },
-      {
-       "key": "6f77f780-0cd4-514e-9271-ab31ec7ace03",
-       "name": "Bảo hiểm giả, bảo hiểm đầu tư",
-       "cautionLevel": "thuong",
-       "signs": [
-        "Giới thiệu bảo hiểm như khoản tiết kiệm lãi cao",
-        "Không đưa hợp đồng đầy đủ để đọc trước"
-       ],
-       "actions": [
-        "Đọc hết hợp đồng trước khi ký.",
-        "Hỏi rõ phí, quyền lợi và cách dừng hợp đồng.",
-        "Hỏi người thân tin cậy."
-       ],
-       "guideArticle": "a49b7c19-ff8f-5b39-a6d1-981d2e47c64d",
-       "checklist": "15d756fa-99e8-5a4f-8d38-9a03efb55219",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
-         "ffec5f18-e82b-5e7d-be3e-9a5acd8791ee",
-         "85b1223e-a55e-54ec-808a-25d6e9f725f5"
-        ],
-        "step2": [
-         "194c7231-c370-5005-867a-4410e65cbc20",
-         "26585ada-af77-58ee-a8b6-38be1cf5afa5"
-        ],
-        "step3": [
-         "15dd6893-6089-5dc6-8f2f-79cb52349d64"
-        ]
-       }
-      },
-      {
-       "key": "6eee1044-26d2-5513-abae-0db07c9e302b",
-       "name": "Lộ CCCD, ảnh khuôn mặt, chữ ký",
-       "cautionLevel": "cao",
-       "signs": [
-        "Bị yêu cầu gửi ảnh giấy tờ hoặc quét khuôn mặt cho người lạ"
-       ],
-       "actions": [
-        "Không gửi thêm giấy tờ.",
-        "Theo dõi tài khoản ngân hàng, ví điện tử.",
-        "Cảnh giác với cuộc gọi mạo danh sau đó."
-       ],
-       "guideArticle": "ced0f2ff-a349-590d-a486-21ac72df96f0",
-       "checklist": "cae1df7e-fefb-5b2e-b87f-41ab55b0dc13",
-       "enabled": true,
-       "match": {
-        "step1": [
-         "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
-         "028a1fbb-7121-5d28-9e76-75bd2ce25d3f",
-         "6c160825-3d84-53ff-ae8b-ce9788494353",
-         "85b1223e-a55e-54ec-808a-25d6e9f725f5",
-         "639267ed-f021-51da-aaf5-dbb0f6c1e36d",
-         "ffec5f18-e82b-5e7d-be3e-9a5acd8791ee"
-        ],
-        "step2": [
-         "6bc5293d-905b-5e1e-8919-62704403d55d"
-        ],
-        "step3": []
-       }
-      }
-     ]
-    },
     "resultHeading1": "Mức độ cần thận trọng",
-    "resultHeading2": "Có thể là",
-    "resultHeading3": "Dấu hiệu phù hợp",
+    "resultHeading2": "Tình huống gần giống",
+    "resultHeading3": "Dấu hiệu cần chú ý",
     "resultHeading4": "Việc cần làm ngay",
+    "resultHeading5": "Nếu bạn đã lỡ làm theo",
     "maxSituations": "3",
-    "noMatchText": "Chưa khớp tình huống nào trong danh sách. Hãy giữ bốn nguyên tắc dừng lại.",
-    "defaultChecklist": "73d32f20-7620-5cc8-a6e3-948225c57744",
-    "button1Text": "Xem bài hướng dẫn chi tiết",
-    "button2Text": "Tải danh sách kiểm tra (PDF)",
+    "situationNote": "Đây là ví dụ để bạn đối chiếu, không phải kết luận về việc bạn đang gặp.",
+    "noMatchText": "Chưa có tình huống mẫu khớp với lựa chọn của bạn. Điều đó không có nghĩa là an toàn. Trong lúc chưa rõ, nhớ bốn điều:",
+    "clearNote": "Không thấy dấu hiệu nào không có nghĩa là an toàn. Vẫn tự kiểm tra bằng kênh do chính bạn tìm ra trước khi đưa tiền hay thông tin.",
+    "defaultChecklist": "b0400eca-232b-5a61-a5fe-ea4d73ff730e",
+    "stopActions": [
+     {
+      "key": "0a2e0c64-f6d4-5fa2-ba4c-1cf4887d23ca",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "1",
+      "onlyIf": [],
+      "skipIf": []
+     },
+     {
+      "key": "b8fbc758-7881-5a65-8b2b-8d1cd48f22e4",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "2",
+      "onlyIf": [],
+      "skipIf": []
+     },
+     {
+      "key": "f28d47a4-b142-5711-b88b-8a9374c34fa9",
+      "text": "Từ chối ngay lời đề nghị cho mượn, cho thuê, bán hoặc mở hộ tài khoản ngân hàng, ví điện tử, SIM, dù được trả tiền công.",
+      "onlyIf": [
+       "13ef17c7-7c8e-5234-ae0f-81ff0b52ce10"
+      ],
+      "skipIf": []
+     },
+     {
+      "key": "909ca5f4-5d95-5346-a052-a7995a625a92",
+      "page": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
+      "stepNumber": "2",
+      "onlyIf": [
+       "c583f773-a99a-55c3-a604-5ed5f4baebc9",
+       "caba6979-1395-5ff7-9dda-933ef4066841"
+      ],
+      "skipIf": [
+       "13ef17c7-7c8e-5234-ae0f-81ff0b52ce10"
+      ]
+     },
+     {
+      "key": "a1cc5db9-bd3e-52fd-9a96-62231968d19f",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "4",
+      "onlyIf": [],
+      "skipIf": [
+       "13ef17c7-7c8e-5234-ae0f-81ff0b52ce10",
+       "c583f773-a99a-55c3-a604-5ed5f4baebc9",
+       "caba6979-1395-5ff7-9dda-933ef4066841"
+      ]
+     },
+     {
+      "key": "267f3541-fe72-5c97-93e7-37c695291fb2",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "6",
+      "onlyIf": [
+       "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
+       "028a1fbb-7121-5d28-9e76-75bd2ce25d3f"
+      ],
+      "skipIf": []
+     },
+     {
+      "key": "d089d8f2-8339-5106-b144-99620a0082b2",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "5",
+      "onlyIf": [],
+      "skipIf": [
+       "0bcfd66b-021b-59f5-bcb2-341cc9d772a0",
+       "028a1fbb-7121-5d28-9e76-75bd2ce25d3f"
+      ]
+     }
+    ],
+    "holdActions": [
+     {
+      "key": "6f77f780-0cd4-514e-9271-ab31ec7ace03",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "2",
+      "onlyIf": [],
+      "skipIf": []
+     },
+     {
+      "key": "6eee1044-26d2-5513-abae-0db07c9e302b",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "3",
+      "onlyIf": [
+       "26585ada-af77-58ee-a8b6-38be1cf5afa5"
+      ],
+      "skipIf": []
+     },
+     {
+      "key": "708c44a3-b951-5f63-a1d6-a145720bad0b",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "1",
+      "onlyIf": [],
+      "skipIf": [
+       "26585ada-af77-58ee-a8b6-38be1cf5afa5"
+      ]
+     },
+     {
+      "key": "de14b15c-0f91-53cf-8f88-bdb6b0adbe1a",
+      "page": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
+      "stepNumber": "1",
+      "onlyIf": [],
+      "skipIf": []
+     },
+     {
+      "key": "1a46aaa6-efb0-5f33-9600-2ecced255c59",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "4",
+      "onlyIf": [],
+      "skipIf": []
+     }
+    ],
+    "clearActions": [
+     {
+      "key": "69d00071-de37-5cab-a4b0-4d490e263096",
+      "page": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
+      "stepNumber": "1",
+      "onlyIf": [],
+      "skipIf": []
+     },
+     {
+      "key": "9cd31d55-cead-50a2-a67a-18c0ddf77bfc",
+      "page": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
+      "stepNumber": "2",
+      "onlyIf": [],
+      "skipIf": []
+     },
+     {
+      "key": "a52e6e1d-c5d4-5ae1-9f95-70d6bf085f49",
+      "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "stepNumber": "4",
+      "onlyIf": [],
+      "skipIf": []
+     }
+    ],
+    "ifAlreadyLinks": [
+     {
+      "key": "60740b40-4d4b-55e2-9e72-c4b18c8e4739",
+      "icon": "key",
+      "label": "Đã đọc mã OTP, đưa mật khẩu, cài ứng dụng",
+      "targetPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
+      "onlyIf": []
+     },
+     {
+      "key": "c97f39a3-c05a-523d-9d3f-43691da6f266",
+      "icon": "money",
+      "label": "Đã chuyển tiền hoặc giao hàng đi",
+      "targetPage": "8f95afcc-b47f-5201-9892-a2dcc83563df",
+      "onlyIf": []
+     },
+     {
+      "key": "5a39f5b0-cb73-529f-a78c-d88697addb43",
+      "icon": "id",
+      "label": "Đã gửi ảnh giấy tờ, quét khuôn mặt, ký giấy",
+      "targetPage": "ced0f2ff-a349-590d-a486-21ac72df96f0",
+      "onlyIf": []
+     },
+     {
+      "key": "56dc6f4a-6892-5ccc-8fce-f61a04d44e1c",
+      "icon": "alert",
+      "label": "Đang bị đe dọa, ép buộc",
+      "targetPage": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
+      "onlyIf": [
+       "c583f773-a99a-55c3-a604-5ed5f4baebc9",
+       "caba6979-1395-5ff7-9dda-933ef4066841"
+      ]
+     }
+    ],
+    "button1Text": "Đọc bài chi tiết",
+    "button2Text": "Mở danh sách kiểm tra",
     "button3Text": "Gửi cho người thân",
     "button4Text": "Kiểm tra lại"
-   }
-  },
-  {
-   "key": "d0ed3e7f-415e-5109-8906-5f47e134faf3",
-   "mockupId": "p0",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Trả lời vài câu hỏi ngắn",
-   "state": "published",
-   "sortOrder": 0,
-   "values": {
-    "title": "Trả lời vài câu hỏi ngắn",
-    "umbracoUrlName": "tra-loi-nhanh",
-    "icon": "quiz",
-    "lead": "Đọc từ trên xuống. Gặp câu nào đúng với bạn thì bấm nút của câu đó và dừng lại ở đây.",
-    "hideFromSituations": true,
-    "screeningQuestions": [
-     {
-      "key": "9a0145f9-bd2f-5221-96fa-a98895707a81",
-      "question": "1. Có ai đang đe dọa bạn, ép bạn phải trả tiền hoặc phải im lặng không?",
-      "buttonText": "Có — xem việc cần làm",
-      "targetPage": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
-      "note": "Câu này để đầu tiên vì nó liên quan đến an toàn của bạn, không chỉ tiền bạc."
-     },
-     {
-      "key": "8f1023c9-47d5-50b4-94e7-3429b57c86da",
-      "question": "2. Bạn đã đọc mã OTP, đưa mật khẩu, cài ứng dụng theo lời người khác, cho ai đó điều khiển màn hình — hoặc điện thoại, SIM, tài khoản của bạn có chuyện: bị mất, mất sóng, không đăng nhập được, có giao dịch lạ?",
-      "buttonText": "Đúng — xem việc cần làm",
-      "targetPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
-      "note": "Câu này để trước câu tiền, vì đây là thứ đang tiếp tục gây thiệt hại trong lúc bạn đọc."
-     },
-     {
-      "key": "23a2f875-d439-5ec8-a0ec-bf2ee24379ea",
-      "question": "3. Bạn đã chuyển tiền, đã đưa tiền, hoặc đã giao hàng đi chưa?",
-      "buttonText": "Rồi — xem việc cần làm",
-      "targetPage": "8f95afcc-b47f-5201-9892-a2dcc83563df",
-      "note": "Nếu bạn lỡ cả câu 2 và câu 3, hãy làm xong câu 2 trước rồi quay lại đây."
-     },
-     {
-      "key": "ceb33a6c-2313-5529-9f12-467fbcb9e9fb",
-      "question": "4. Giấy tờ, khuôn mặt, chữ ký hoặc tên của bạn đã được gửi đi, hoặc bị người khác dùng — kể cả khi bạn không hề làm việc đó?",
-      "buttonText": "Rồi — xem việc cần làm",
-      "targetPage": "ced0f2ff-a349-590d-a486-21ac72df96f0",
-      "note": "Kể cả khi bạn chưa mất đồng nào, việc này vẫn cần xử lý."
-     },
-     {
-      "key": "33e363e7-cd59-5aee-9ac5-ece1ebc3de7c",
-      "question": "5. Có khoản tiền lạ nào tự nhiên chuyển vào tài khoản của bạn không?",
-      "buttonText": "Có — xem việc cần làm",
-      "targetPage": "d4e2999b-5d4f-59ef-8bf0-adfc55f13bc9",
-      "note": "Đừng tiêu và đừng chuyển trả cho tới khi đọc xong."
-     },
-     {
-      "key": "6098ebcc-c766-55e1-9488-cbcc13994fab",
-      "question": "Chưa câu nào ở trên đúng với bạn?",
-      "buttonText": "Vậy bạn chưa mất gì — xem cách dừng đúng lúc",
-      "targetPage": "d473400b-dc16-5274-92c2-6bdc670719c5",
-      "note": "Chưa mất gì là tình thế tốt nhất. Việc cần làm bây giờ là kiểm chứng trước khi đưa bất cứ thứ gì."
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-20.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
-   }
-  },
-  {
-   "key": "d473400b-dc16-5274-92c2-6bdc670719c5",
-   "mockupId": "p1",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Có người đang thúc bạn làm ngay, bạn chưa đưa gì",
-   "state": "published",
-   "sortOrder": 1,
-   "values": {
-    "title": "Có người đang thúc bạn làm ngay, bạn chưa đưa gì",
-    "umbracoUrlName": "dang-bi-thuc-ep",
-    "icon": "clock",
-    "lead": "Làm bước 1 trước. Các bước còn lại bạn quay lại làm sau cũng được.",
-    "hideFromSituations": false,
-    "steps": [
-     {
-      "key": "c531e192-d17f-50f6-a2d0-723071625c2d",
-      "mainText": "Dừng liên lạc. Không bấm vào bất kỳ đường link nào họ đã gửi.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "2782b3ff-ca8a-5e29-b464-80fe7e65f8ac",
-      "mainText": "Tự tìm đường liên hệ chính thức của nơi được nhắc tới, rồi gọi lại để hỏi.",
-      "details": [
-       "Lấy số từ ứng dụng bạn đã cài từ trước, từ giấy tờ bạn đang có, hoặc từ cổng thông tin của cơ quan nhà nước.",
-       "Không dùng số người đó đưa. Cũng không dùng số lấy từ quảng cáo hoặc từ kết quả tìm kiếm đầu tiên — số giả vẫn mua được chỗ hiển thị trên cùng."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "69a17918-b95e-5772-9c63-b91b33e0ed8f",
-      "mainText": "Kiểm tra tên chủ tài khoản nhận tiền.",
-      "details": [
-       "Tên không khớp với bên bạn đang giao dịch thì dừng lại.",
-       "Nhưng tên khớp cũng KHÔNG chứng minh yêu cầu là thật. Kẻ lừa đảo có thể dùng tài khoản mang đúng tên một doanh nghiệp có thật."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "98146c4e-dd67-5285-9e4d-a1b5aa2730c4",
-      "mainText": "Nói chuyện với một người bạn tin cậy trước khi quyết định.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "2def8af0-a462-5f3a-8856-f84426e99413",
-      "mainText": "Không vay tiền, không thế chấp tài sản để đáp ứng một yêu cầu gấp.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "d5729117-6f47-543c-a711-a7bbdd92c06d",
-      "mainText": "Nếu việc bắt đầu từ cuộc gọi hoặc tin nhắn, phản ánh tới 156.",
-      "details": [
-       "Đây là nơi phản ánh cuộc gọi, tin nhắn có dấu hiệu lừa đảo. Việc này không thay cho việc báo ngân hàng hay trình báo Công an."
-      ],
-      "showBankLookup": false,
-      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
-      "hasFollowUp": false
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-10.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
-   }
-  },
-  {
-   "key": "8f95afcc-b47f-5201-9892-a2dcc83563df",
-   "mockupId": "p2",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Bạn vừa chuyển tiền, hoặc vừa giao hàng đi",
-   "state": "published",
-   "sortOrder": 2,
-   "values": {
-    "title": "Bạn vừa chuyển tiền, hoặc vừa giao hàng đi",
-    "umbracoUrlName": "da-chuyen-tien",
-    "icon": "money",
-    "lead": "Hai trường hợp làm khác nhau. Đọc bước 1 và bước 2, làm bước đúng với bạn trước.",
-    "hideFromSituations": false,
-    "steps": [
-     {
-      "key": "74df872e-e408-5238-8401-063b9dd9e6d6",
-      "mainText": "NẾU BẠN ĐÃ CHUYỂN TIỀN — gọi ngay ngân hàng hoặc ví điện tử bạn đã chuyển.",
-      "details": [],
-      "sampleScript": "Tôi vừa chuyển tiền và nghi có rủi ro lừa đảo. Xin ghi nhận sự việc, tra soát giao dịch và hướng dẫn tôi cách bảo vệ tài khoản.",
-      "showBankLookup": true,
-      "hasFollowUp": false
-     },
-     {
-      "key": "190c78b0-23eb-5d6a-9fd6-d98a8c5431fc",
-      "mainText": "NẾU BẠN LÀ NGƯỜI BÁN VÀ ĐÃ GIAO HÀNG ĐI — liên hệ ngay nơi đang giữ hàng hoặc người giao hàng để đề nghị dừng giao, giữ hàng lại.",
-      "details": [
-       "Việc này làm trước, vì hàng còn đang trên đường thì còn giữ lại được.",
-       "Sau đó mở ứng dụng ngân hàng của chính bạn và xem số tiền đã thật sự vào tài khoản và dùng được hay chưa.",
-       "Ảnh biên lai và tin nhắn báo có tiền đều làm giả được. Và ngay cả khi tiền đã vào thật, điều đó cũng không chứng minh người chuyển hay yêu cầu của họ là đáng tin — nhất là khi họ đòi bạn hoàn lại một khoản “chuyển thừa”.",
-       "Nếu nhận qua một đơn vị thanh toán, xem khoản đó đã về tài khoản chưa hay mới chỉ báo đang xử lý. Khoản đang xử lý chưa phải tiền đã nhận xong và vẫn có thể bị hủy hoặc bị trừ lại."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": true,
-      "followUpQuestion": "Bạn cũng đã đưa mã OTP, mật khẩu, hoặc cài ứng dụng theo lời người khác?",
-      "followUpButton": "Làm thêm: bảo vệ tài khoản và thiết bị",
-      "followUpNote": "Nếu có thể, hãy dùng một thiết bị khác mà bạn tin cậy để làm các bước đó.",
-      "followUpPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f"
-     },
-     {
-      "key": "a6e14555-c14e-5766-81e5-a971010ff189",
-      "mainText": "Lưu lại bằng chứng đang có: biên lai, tin nhắn, cuộc gọi, số tài khoản nhận tiền, đường link, thời gian và diễn biến.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "d69c590a-a969-50ca-a497-c2f1936e1750",
-      "mainText": "Đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo. Mang theo bằng chứng đã lưu.",
-      "details": [
-       "ĐỪNG CHỜ kết quả tra soát của ngân hàng rồi mới đi trình báo. Hai việc này làm song song được, và càng sớm thì càng còn dấu vết để lần theo."
-      ],
-      "showBankLookup": false,
-      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
-      "hasFollowUp": false
-     },
-     {
-      "key": "f87fd04b-8ae2-5103-89ad-3b5cba12130a",
-      "mainText": "Nếu việc bắt đầu từ cuộc gọi hoặc tin nhắn, phản ánh tới 156 hoặc 5656.",
-      "details": [
-       "Đây là nơi phản ánh cuộc gọi, tin nhắn có dấu hiệu lừa đảo. Không phải nơi thu hồi tiền, và không thay cho việc trình báo."
-      ],
-      "showBankLookup": false,
-      "onlyIf": "92582c5c-33f3-56a9-b383-2e03ae5ded43",
-      "hasFollowUp": false
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-31.jpg"
-    },
-    "illustrationAlt": "Thời gian quan trọng để ngăn thiệt hại và lưu chứng cứ"
-   }
-  },
-  {
-   "key": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
-   "mockupId": "p3",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Người khác đang có quyền vào tài khoản hoặc điện thoại của bạn",
-   "state": "published",
-   "sortOrder": 3,
-   "values": {
-    "title": "Người khác đang có quyền vào tài khoản hoặc điện thoại của bạn",
-    "umbracoUrlName": "bi-chiem-quyen-tai-khoan",
-    "icon": "key",
-    "lead": "Dù bạn tự đưa hay bị lấy mất, việc cần làm gần như giống nhau. Đọc ba dòng đầu, làm dòng đúng với bạn trước.",
-    "hideFromSituations": false,
-    "steps": [
-     {
-      "key": "f68f4b10-a3d8-596c-932c-4487873f2d50",
-      "mainText": "NẾU BẠN ĐÃ CÀI ỨNG DỤNG LẠ, cho người khác nhìn hoặc điều khiển màn hình, hoặc thấy máy tự bật tắt, tự thao tác: ngắt mạng trên điện thoại hoặc máy tính đó — tắt Wi-Fi và tắt dữ liệu di động — rồi ngừng dùng máy.",
-      "details": [
-       "Từ đây trở đi, mọi việc làm trên một thiết bị khác mà bạn tin cậy."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "c22d35dd-8b49-5a20-8faf-53eee57fe5a0",
-      "mainText": "NẾU BẠN CHỈ MỚI ĐỌC MÃ OTP HOẶC ĐƯA MẬT KHẨU, còn máy vẫn bình thường — không cần tắt mạng. Dùng ngay một thiết bị khác gọi ngân hàng.",
-      "details": [
-       "Tắt mạng lúc này chỉ làm bạn không nhận được thông báo và không liên lạc được, trong khi máy chưa có dấu hiệu bị điều khiển."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "9104b401-159d-5776-b4b6-712dfbe999af",
-      "mainText": "NẾU SIM ĐỘT NHIÊN MẤT SÓNG, hoặc bạn nhận được thông báo đổi SIM mà không phải bạn làm — gọi nhà mạng ngay từ một thiết bị khác để khóa SIM và hỏi lại các yêu cầu đổi SIM gần nhất.",
-      "details": [
-       "Mất quyền với SIM là mất luôn nơi nhận mã OTP. Việc này gấp ngang với việc gọi ngân hàng."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "cc26f240-1a29-5cfc-80c4-af9052dd6049",
-      "mainText": "Gọi ngân hàng, đề nghị khóa tạm thời dịch vụ ngân hàng trên điện thoại và trên internet, cùng với thẻ.",
-      "details": [],
-      "sampleScript": "Tôi nghi tài khoản ngân hàng của tôi đã bị lộ. Xin tạm khóa giao dịch online và thẻ, rồi hướng dẫn tôi bước tiếp theo.",
-      "showBankLookup": true,
-      "hasFollowUp": false
-     },
-     {
-      "key": "aba8c5a2-23aa-5b22-81e4-02a73a2157e3",
-      "mainText": "Từ thiết bị tin cậy, đổi mật khẩu và xem lại lịch sử giao dịch cùng những điện thoại, máy tính đang đăng nhập tài khoản của bạn.",
-      "details": [
-       "Xem từ thời điểm bạn bắt đầu nghi ngờ. Nếu không nhớ rõ từ khi nào, xem lại toàn bộ giao dịch gần đây và đề nghị ngân hàng hỗ trợ tra soát."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "90fcc4f8-8a57-5902-943e-d8de8bedd7ae",
-      "mainText": "Đừng vội gỡ ứng dụng hoặc xóa dữ liệu trong máy. Những thứ đó có thể cần để ngân hàng và cơ quan Công an kiểm tra.",
-      "details": [
-       "Chụp ảnh màn hình những gì lấy được mà không cần nối mạng: tên ứng dụng lạ, tin nhắn, cuộc gọi.",
-       "Chưa tự khôi phục cài đặt gốc nếu trong máy còn dữ liệu bạn cần. Sau khi đã khóa tài khoản và lưu bằng chứng, hãy gỡ ứng dụng lạ hoặc làm sạch máy theo hướng dẫn của nơi sửa chữa.",
-       "Không dùng lại máy đó cho việc ngân hàng cho tới khi máy đã được làm sạch."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "64545742-0e88-5aa3-b0cd-2e456f093d07",
-      "mainText": "Mang máy tới nơi sửa chữa hoặc bảo hành do bạn tự chọn — không phải nơi người kia giới thiệu.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "05dc4f7d-fbd6-58a1-acc6-869d57ad2366",
-      "mainText": "Nếu đã phát sinh giao dịch, đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo.",
-      "details": [
-       "Không chờ ngân hàng trả lời xong mới đi."
-      ],
-      "showBankLookup": false,
-      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
-      "hasFollowUp": false
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-39.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
-   }
-  },
-  {
-   "key": "3326906d-b9f7-5757-9ab4-014544319437",
-   "mockupId": "p4",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Có người mời bạn góp vốn, đầu tư, làm ăn hoặc mời việc làm",
-   "state": "published",
-   "sortOrder": 4,
-   "values": {
-    "title": "Có người mời bạn góp vốn, đầu tư, làm ăn hoặc mời việc làm",
-    "umbracoUrlName": "duoc-moi-dau-tu",
-    "icon": "chart",
-    "lead": "Còn một câu chưa trả lời được thì chưa quyết định.",
-    "hideFromSituations": false,
-    "steps": [
-     {
-      "key": "3ba7212a-d84a-54eb-85b4-78e554569d18",
-      "mainText": "Hỏi ba câu trước khi bỏ tiền: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
-      "details": [
-       "Nếu còn điều chưa rõ, đừng chuyển tiền. Hãy hỏi lại, đọc kỹ giấy tờ, hoặc nhờ một người bạn tin cậy xem giúp.",
-       "Đây là ba câu trở đi trở lại của Chuyên đề 3."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "31fedd1c-5905-56cb-9aeb-9b97a1a262aa",
-      "mainText": "Kiểm tra xem họ có giấy cho phép làm đúng loại dịch vụ đang mời bạn hay không.",
-      "details": [
-       "Có đăng ký doanh nghiệp mới chỉ là có đăng ký kinh doanh. Nhận tiền của người khác để đầu tư, cho vay hay bảo hiểm còn cần giấy phép riêng."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "4da5cdc8-c756-585c-9d9f-00dc8f5562b9",
-      "mainText": "Xin toàn bộ điều kiện bằng văn bản, mang về đọc. Không ký, không chuyển tiền tại chỗ.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "269c5023-0ab8-59cc-9998-3baa2bf17fc4",
-      "mainText": "Xác định trước mức thiệt hại tối đa bạn chấp nhận được, và những khoản bạn có thể phải trả thêm về sau.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "ec474145-32cb-54df-81f9-abf1ccc17b37",
-      "mainText": "Không vay tiền, không dùng tiền dành cho việc thiết yếu để đầu tư.",
-      "details": [],
-      "showBankLookup": false,
-      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
-      "hasFollowUp": false
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-40.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
-   }
-  },
-  {
-   "key": "c07ba1d5-04dd-5265-824e-63a48c48dd7e",
-   "mockupId": "p5",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Tiền đã đưa đi nhưng không lấy lại được, hoặc hợp đồng phát sinh vấn đề",
-   "state": "published",
-   "sortOrder": 5,
-   "values": {
-    "title": "Tiền đã đưa đi nhưng không lấy lại được, hoặc hợp đồng phát sinh vấn đề",
-    "umbracoUrlName": "khong-lay-lai-duoc-tien",
-    "icon": "doc",
-    "lead": "Bước 1 là việc quan trọng nhất: đừng chuyển thêm bất cứ khoản nào.",
-    "hideFromSituations": false,
-    "steps": [
-     {
-      "key": "57875935-190b-5a5b-8940-b4f18a7c3d03",
-      "mainText": "Không chuyển thêm tiền cho bên đang giữ tiền của bạn, hoặc vào tài khoản họ chỉ định, để được rút hoặc được nhận lại tiền.",
-      "details": [
-       "Họ có thể gọi khoản đó là “gỡ lỗ”, “tiền thuế”, “phí xác minh”, “phí mở khóa rút tiền”.",
-       "Nếu họ nói đó là khoản bắt buộc theo quy định, hãy tự kiểm tra với cơ quan nhà nước phụ trách trước khi chuyển bất cứ đồng nào."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "67354bfb-5cd2-5cfb-96a0-f17ac91a874b",
-      "mainText": "Ghi ra ba việc, càng cụ thể càng tốt: bạn đã được hứa những gì; hợp đồng hoặc thỏa thuận nói gì; và lý do họ đưa ra để không trả tiền cho bạn.",
-      "details": [
-       "Bạn không cần tự kết luận đây là lừa đảo hay là rủi ro kinh doanh. Việc đó không phải của bạn."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "09b02cce-e595-5ee1-b11d-bbe338d3f1ee",
-      "mainText": "Tìm lại hợp đồng, sao kê, tin nhắn và điều kiện rút vốn bạn đã ký hoặc đã đồng ý.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "99c38a95-a4bf-5756-8c01-401358f37154",
-      "mainText": "Liên hệ đơn vị đã nhận, giữ hoặc chuyển tiền trong giao dịch, và cơ quan nhà nước cấp phép cho loại dịch vụ đó.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "087e2803-9952-51c3-b467-db6dbcbc6999",
-      "mainText": "Nếu bạn nghi mình bị đưa thông tin giả, giấy tờ giả, hoặc tiền bị cố ý giữ lại — đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo những gì bạn đang có.",
-      "details": [
-       "Không chờ tới khi tự thấy đã đủ chứng cứ. Việc xác định đúng sai là của cơ quan có thẩm quyền."
-      ],
-      "showBankLookup": false,
-      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
-      "hasFollowUp": false
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-13.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
-   }
-  },
-  {
-   "key": "ced0f2ff-a349-590d-a486-21ac72df96f0",
-   "mockupId": "p6",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Giấy tờ, chữ ký hoặc tên của bạn đã được gửi đi, hoặc bị người khác dùng",
-   "state": "published",
-   "sortOrder": 6,
-   "values": {
-    "title": "Giấy tờ, chữ ký hoặc tên của bạn đã được gửi đi, hoặc bị người khác dùng",
-    "umbracoUrlName": "lo-giay-to-chu-ky",
-    "icon": "id",
-    "lead": "Có thể bạn chưa nhìn thấy thiệt hại nào, nhưng giấy tờ và tên của bạn có thể đang tiếp tục bị dùng. Làm bước 1 trước.",
-    "hideFromSituations": false,
-    "steps": [
-     {
-      "key": "e86c8fdd-7c68-5e42-bc65-69767376f6f0",
-      "mainText": "Dừng lại. Không đưa thêm bất kỳ giấy tờ, chữ ký hay mã OTP nào nữa.",
-      "details": [
-       "Kể cả khi họ nói cần thêm một lần nữa để “hoàn tất”, để “hủy bỏ” hoặc để “lấy lại” thứ bạn đã đưa."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "be1ab617-2156-516a-9aba-41beef729775",
-      "mainText": "Nếu bạn đã cho mượn, cho thuê, bán hoặc mở hộ tài khoản ngân hàng, ví điện tử, SIM: liên hệ ngay nơi quản lý tài khoản hoặc SIM đó để đề nghị khóa tạm thời và làm theo hướng dẫn xử lý.",
-      "details": [
-       "Hãy nói đầy đủ sự việc khi liên hệ và khi trình báo. Trình báo sớm giúp ghi nhận thời điểm bạn phát hiện và những việc bạn đã làm để dừng lại.",
-       "Để càng lâu, tài khoản mang tên bạn càng bị dùng vào nhiều việc hơn."
-      ],
-      "showBankLookup": true,
-      "hasFollowUp": false
-     },
-     {
-      "key": "e9637e60-69f2-58d4-b536-98b03a760542",
-      "mainText": "Nếu bạn đã gửi ảnh giấy tờ hoặc đã quét khuôn mặt: kiểm tra tài khoản và giao dịch tại từng ngân hàng bạn đang dùng.",
-      "details": [
-       "Ứng dụng của một ngân hàng chỉ cho biết tài khoản tại chính ngân hàng đó, không cho biết tài khoản bạn có ở nơi khác.",
-       "Để xem có khoản vay hay thẻ tín dụng nào đứng tên mình, hãy xem báo cáo tín dụng của CIC — trung tâm thông tin tín dụng thuộc Ngân hàng Nhà nước. Báo cáo này cho biết các khoản vay, không cho biết mọi tài khoản thanh toán."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "bec7eea4-83c2-56be-8935-5365820ddff2",
-      "mainText": "Nếu bạn đã ký giấy tờ: đề nghị được nhận một bản của đúng thứ bạn đã ký, và giữ lại bằng chứng rằng bạn đã đề nghị.",
-      "details": [
-       "Không ký thêm giấy nào theo chỉ dẫn của chính bên đang bị nghi ngờ.",
-       "Chỉ ký giấy sửa, hủy hay chấm dứt sau khi đã đọc hết, được một người độc lập giải thích, và bạn giữ được một bản."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "4ff5e83f-e78d-57c5-8898-1214a295af7f",
-      "mainText": "Nói cho người thân trong nhà biết, để họ không làm theo nếu có ai lấy danh nghĩa bạn liên hệ.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "7e53f7b3-7250-55cf-895d-f70081f1bdad",
-      "mainText": "Lưu bằng chứng: ai nhờ, nhờ qua kênh nào, bạn đã gửi những gì, ngày giờ, và khoản tiền công đã nhận nếu có.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "a237fdad-bd3a-50a1-babf-1b09763de760",
-      "mainText": "Nếu bạn phát hiện có tài khoản, khoản vay, doanh nghiệp hoặc hợp đồng mang tên mình mà bạn chưa từng làm: giữ nguyên mọi giấy tờ, tin nhắn, thông báo đã nhận.",
-      "details": [
-       "Trường hợp này bạn không hề đưa gì cho ai — giấy tờ của bạn bị lấy được từ nơi khác. Trình báo sớm là cách ghi nhận rằng bạn không phải người thực hiện."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "c0e37cd3-82c2-591f-ae6d-4025e580a766",
-      "mainText": "Đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo. Mang theo bằng chứng đã lưu.",
-      "details": [],
-      "showBankLookup": false,
-      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
-      "hasFollowUp": false
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-41.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
-   }
-  },
-  {
-   "key": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
-   "mockupId": "p7",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Cách tự kiểm chứng trước khi đưa",
-   "state": "published",
-   "sortOrder": 7,
-   "values": {
-    "title": "Cách tự kiểm chứng trước khi đưa",
-    "umbracoUrlName": "tu-kiem-chung",
-    "icon": "search",
-    "lead": "Dùng khi bạn sắp làm một việc và muốn kiểm tra trước, khi không có dấu hiệu nào rõ ràng, hoặc khi bạn thấy phân vân mà không gọi tên được vì sao.",
-    "hideFromSituations": true,
-    "steps": [
-     {
-      "key": "158975b4-96b2-56ab-831e-d4d6d187b534",
-      "mainText": "Trước hết, chậm lại. Bộ chuyên đề gọi đây là bốn việc phải làm theo thứ tự: CHẬM LẠI — XÁC MINH ĐỘC LẬP — LÀM RÕ ĐIỀU KIỆN — RỒI MỚI QUYẾT.",
-      "details": [
-       "Đặt điện thoại xuống hai phút. Tự trả lời bốn câu: mình sắp làm gì, làm với ai, sẽ hỏi lại ở đâu, và còn chỗ nào chưa rõ."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "bb3fb7bd-3816-5919-8a8d-cf6dc35da883",
-      "mainText": "Xác minh bằng KÊNH CHÍNH THỨC — nghĩa là nơi do chính mình tự tìm ra.",
-      "details": [
-       "Số in trên thẻ ngân hàng; ứng dụng chính mình đã tự cài và vẫn dùng; địa chỉ mình tự nhập có tên miền kết thúc đúng bằng .gov.vn; số công bố trên trang chính thức; hoặc cơ quan Công an nơi gần nhất.",
-       "Không phải số máy hay đường dẫn do người kia đưa. Cũng không phải số lấy từ quảng cáo hay từ kết quả tìm kiếm đầu tiên.",
-       "Nếu người kia cản bạn làm việc này, bạn đã có câu trả lời."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "5a94fa31-cd48-5996-ab2f-1d759df614b0",
-      "mainText": "Xem mình đang ở lĩnh vực nào, rồi hỏi đúng bộ câu hỏi của lĩnh vực đó.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "4d79c2f2-bbe9-578f-ae23-9b9cb6622b5d",
-      "mainText": "Có người mời góp vốn, đầu tư — hỏi ba câu: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
-      "details": [
-       "Chỉ dùng số tiền mà nếu mất thì đời sống gia đình vẫn ổn. Dừng nếu phải vay, thế chấp tài sản thiết yếu, hoặc dùng tiền dưỡng già, tiền chữa bệnh để góp vốn."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "4b979db5-b582-54a8-b8b9-8dc58c8327f4",
-      "mainText": "Có người mời việc làm, mời làm thêm — hỏi sáu nhóm: chiều tiền, công việc, ai tuyển, trả công, giấy tờ, đường ra.",
-      "details": [
-       "Chiều tiền là câu quan trọng nhất: việc làm thật thì người ta trả tiền cho mình. Hễ bị yêu cầu nộp tiền để mở việc, mở nhiệm vụ, giữ chỗ hay bảo đảm thực hiện công việc thì dừng, và đừng nộp thử."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "a91ee33a-0990-577d-a1b5-8fd2914b6dd1",
-      "mainText": "Sắp mua bán, đặt cọc — hỏi năm câu: tiền vào ai, mình nhận gì, trả qua đâu, giao thế nào, hoàn trả ra sao.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "92e77a66-34bc-591f-aaff-16963c58b0af",
-      "mainText": "Sắp ký hợp đồng — bốn điều phải rõ trước khi ký: ai là bên cung cấp, mình phải trả bao nhiêu, mình được hưởng gì, và muốn dừng thì làm thế nào.",
-      "details": [
-       "Xin toàn bộ giấy tờ mang về đọc. Không ký, không trả tiền tại chỗ. Còn chỗ quan trọng chưa rõ thì hoãn ký."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "72cf0f0a-084f-5ad1-baea-5b017c6c64d4",
-      "mainText": "Sắp vay tiền — ghi ra giấy ba con số: mình nhận về bao nhiêu, tổng cộng phải trả bao nhiêu, mỗi kỳ trả bao nhiêu. Rồi đặt cạnh thu nhập và các khoản chi cần thiết của gia đình.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "ec261d1b-c644-5a8d-bd5b-25efb609a334",
-      "mainText": "Cuối cùng, chọn một trong ba: HOÃN, DỪNG, hoặc CÓ THỂ QUYẾT ĐỊNH.",
-      "details": [
-       "HOÃN là tạm dừng để hỏi thêm khi còn thiếu thông tin.",
-       "DỪNG là ngừng hẳn khi gặp yêu cầu nguy hiểm, hoặc khi điều kiện không thể chấp nhận.",
-       "CÓ THỂ QUYẾT ĐỊNH là khi đã đủ thông tin để tự quyết. Đây là ba cách xử lý của bộ chuyên đề."
-      ],
-      "showBankLookup": false,
-      "snippetAfter": "2553dcb3-bd03-593a-99b8-1ac873c0f0f4",
-      "hasFollowUp": false
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-15.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
-   }
-  },
-  {
-   "key": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
-   "mockupId": "p8",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Có người đang đe dọa, ép buộc bạn",
-   "state": "published",
-   "sortOrder": 8,
-   "values": {
-    "title": "Có người đang đe dọa, ép buộc bạn",
-    "umbracoUrlName": "bi-de-doa",
-    "icon": "alert",
-    "lead": "Bạn không có lỗi vì bị đe dọa. Việc quan trọng nhất là không xử lý một mình.",
-    "hideFromSituations": false,
-    "steps": [
-     {
-      "key": "682fe6ab-ed36-556a-b3b7-1f0dc1bcc0d9",
-      "mainText": "Nếu bạn đang bị đe dọa tính mạng, sức khỏe, hoặc có người tìm đến tận nơi: gọi 113 ngay.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "33229d60-aaf7-5dd1-8dec-f5f52dc3fc14",
-      "mainText": "Nói cho một người thân mà bạn tin cậy biết ngay hôm nay.",
-      "details": [
-       "Sức ép của kẻ đe dọa dựa vào việc bạn giữ kín và tự xoay xở.",
-       "Nếu bạn đang thấy quá căng thẳng, hãy nói với người đó trước, rồi mới làm các bước còn lại. Không có bước nào ở đây quan trọng hơn việc bạn có người bên cạnh."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "c50b1c54-8d9f-510f-addd-0fd57640bab9",
-      "mainText": "Không chuyển thêm tiền theo yêu cầu đe dọa.",
-      "details": [
-       "Trả tiền không bảo đảm lời đe dọa sẽ dừng lại.",
-       "Nếu bạn đã lỡ trả rồi thì cũng không sao — điều đó không làm bạn mất quyền được giúp đỡ, và không có gì phải ngại khi trình báo."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "1b563d3a-9177-5354-a732-36615f5ead98",
-      "mainText": "Không tự thương lượng, không hứa hẹn thêm, và không gửi thêm bất kỳ thông tin, hình ảnh hay giấy tờ nào nữa.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "6294558e-01f2-5f83-88a5-101f07429dfc",
-      "mainText": "Nếu làm được nhanh và bạn thấy an toàn: chụp lại bằng chứng — tin nhắn, cuộc gọi, số tài khoản họ đòi chuyển, ngày giờ — rồi ngừng trả lời hoặc chặn.",
-      "details": [
-       "Chặn rồi thì phần lớn bằng chứng không lấy lại được, nên chụp trước nếu kịp.",
-       "Nhưng nếu việc tiếp tục liên lạc khiến bạn thấy không an toàn hoặc quá căng thẳng, hãy ngừng liên lạc trước. An toàn của bạn đứng trên bằng chứng."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "59bd31c5-46cc-5739-ba29-3c8fed925fce",
-      "mainText": "Nếu họ dọa gọi cho người trong danh bạ của bạn, hãy báo trước cho người thân, bạn bè.",
-      "details": [
-       "Nói với họ rằng có thể có cuộc gọi như vậy, và đó có thể là cuộc gọi quấy rối hoặc đe dọa. Người được báo trước sẽ không hoang mang. Đừng tranh luận với người gọi về danh nghĩa của họ."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "33b686b1-c7b9-5a88-9742-871950767f50",
-      "mainText": "Đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo. Mang theo những gì bạn đang có.",
-      "details": [
-       "Nếu bị đe dọa tung hình ảnh hoặc thông tin riêng tư để đòi tiền: người bị đe dọa là người bị hại. Đừng gửi thêm, đừng trả thêm, hãy trình báo."
-      ],
-      "showBankLookup": false,
-      "snippetAfter": "2553dcb3-bd03-593a-99b8-1ac873c0f0f4",
-      "hasFollowUp": false
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-37.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
-   }
-  },
-  {
-   "key": "d4e2999b-5d4f-59ef-8bf0-adfc55f13bc9",
-   "mockupId": "p9",
-   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
-   "contentType": "viecCanLamPage",
-   "name": "Tự nhiên có tiền lạ chuyển vào tài khoản của bạn",
-   "state": "published",
-   "sortOrder": 9,
-   "values": {
-    "title": "Tự nhiên có tiền lạ chuyển vào tài khoản của bạn",
-    "umbracoUrlName": "tien-la-chuyen-vao",
-    "icon": "inbox",
-    "lead": "Đây có thể là chuyển nhầm thật, cũng có thể là một thủ đoạn. Trong cả hai trường hợp, việc cần làm giống nhau.",
-    "hideFromSituations": false,
-    "steps": [
-     {
-      "key": "5a8fb23e-f3d6-5621-9350-9106016990e6",
-      "mainText": "Không tiêu, không rút, không chuyển khoản tiền đó đi đâu.",
-      "details": [],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "071dff12-2eab-5d39-8bdc-ead446921d27",
-      "mainText": "Không chuyển trả theo số tài khoản mà người gọi điện đưa cho bạn — kể cả khi họ nói là chuyển nhầm.",
-      "details": [
-       "Cách thường gặp: họ chuyển tiền vào, sau đó gọi đòi lại kèm tiền lãi, hoặc yêu cầu bạn chuyển sang một tài khoản khác. Khi đó bạn vừa mất tiền, vừa dính vào đường đi của tiền không rõ nguồn gốc."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "d97be5b7-a377-51db-a2d8-d1bac1a3641f",
-      "mainText": "Liên hệ ngân hàng của chính bạn để báo có khoản tiền lạ và đề nghị hướng dẫn xử lý.",
-      "details": [],
-      "sampleScript": "Tài khoản của tôi vừa nhận một khoản tiền không rõ nguồn gốc. Tôi chưa sử dụng khoản này. Xin hướng dẫn cách xử lý và ghi nhận sự việc.",
-      "showBankLookup": true,
-      "hasFollowUp": false
-     },
-     {
-      "key": "933a7e08-b85f-5bbc-8459-2a02a6a5e864",
-      "mainText": "Chỉ hoàn trả theo đúng cách ngân hàng hướng dẫn, hoặc theo hướng dẫn của cơ quan có thẩm quyền.",
-      "details": [
-       "Đây là điều nhiều người chưa biết, nên bị thuyết phục chuyển thẳng. Không chuyển thẳng cho người lạ, không chuyển sang một tài khoản khác, và không trả thêm bất kỳ khoản lãi hay phí nào."
-      ],
-      "showBankLookup": false,
-      "hasFollowUp": false
-     },
-     {
-      "key": "509879a9-6b9e-5d2d-a8a8-c45139864a17",
-      "mainText": "Giữ nguyên tin nhắn báo có tiền và mọi liên hệ của người đòi lại tiền.",
-      "details": [],
-      "showBankLookup": false,
-      "snippetAfter": "2553dcb3-bd03-593a-99b8-1ac873c0f0f4",
-      "hasFollowUp": true,
-      "followUpQuestion": "Người đó có đe dọa bạn không?",
-      "followUpButton": "Có — xem việc cần làm khi bị đe dọa",
-      "followUpNote": "Bị đe dọa là chuyện khác và cần xử lý theo hướng khác.",
-      "followUpPage": "b046a5f9-515c-547d-b8ff-4c0bd38074d0"
-     }
-    ],
-    "reviewDate": "2026-10-20",
-    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
-    "illustration": {
-     "media": "minh-hoa-11.jpg"
-    },
-    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
    }
   },
   {
@@ -3841,14 +3096,14 @@
     "knowledgeTitle": "Kiểm tra kiến thức",
     "knowledgeLinks": [
      {
-      "key": "736d4898-ac9e-515b-bb5e-56ff140f4401",
+      "key": "b32524d8-1b87-5b48-9215-83db316945b9",
       "icon": "question",
       "label": "Thử sức: 8 câu",
       "description": "Mỗi chuyên đề một câu, chọn xong là có giải thích.",
       "targetPage": "c06f9837-10e0-53b9-8e65-17a19294923d"
      },
      {
-      "key": "c40329a4-f30f-5573-8de9-7a1b9f428075",
+      "key": "605b9de8-967f-5db3-b42e-e291eb15311d",
       "icon": "book",
       "label": "Tự luyện 200 câu",
       "description": "Toàn bộ ngân hàng câu hỏi 8 chuyên đề. Không tính điểm, không lưu bài.",
@@ -3878,53 +3133,53 @@
     "showAdviceBox": false,
     "questions": [
      {
-      "key": "cd9a2657-8195-5da3-a101-87e48a928673",
+      "key": "e76260d2-c71b-5560-bdc3-aef83acd078a",
       "questionKind": "phaiDung",
       "question": "Khoản tiền này là **phí** để lấy lại tiền hoặc hàng **đang bị giữ**: phí rút tiền, phí mở khóa, tiền xác minh, tiền bảo lãnh?",
       "answerOptions": []
      },
      {
-      "key": "9ab5608d-95ab-59fe-8132-5c7945c51c4e",
+      "key": "21bfb0e5-42a5-5c6b-b69c-5c64abdd1b64",
       "questionKind": "phaiDung",
       "question": "Người nhận bắt bạn chuyển ngay, giữ bí mật, hoặc không cho hỏi người thân?",
       "answerOptions": []
      },
      {
-      "key": "955ea1fe-82ea-51cb-9947-5aabe0e188c0",
+      "key": "2583a7bb-eff6-5cbb-a50f-2a248b70194e",
       "questionKind": "phaiDung",
       "question": "Họ cản bạn tự gọi lại số chính thức hoặc tự mở website chính thức để hỏi?",
       "answerOptions": []
      },
      {
-      "key": "f59b1de3-3137-5938-be89-f096e2339d40",
+      "key": "f6bcd9dd-146d-509f-bd00-d9b845f71d76",
       "questionKind": "tamHoan",
       "question": "Tiền chuyển tới một tài khoản cá nhân, hoặc tên chủ tài khoản không khớp với bên bạn đang giao dịch?",
       "hint": "Tên khớp cũng không chứng minh yêu cầu là thật. Kẻ lừa đảo có thể dùng tài khoản mang đúng tên một doanh nghiệp có thật.",
       "answerOptions": []
      },
      {
-      "key": "99a44428-b18e-59c7-8da5-d9bb3e0bd808",
+      "key": "a2a90f43-0832-5bff-a4fd-a3c0232af053",
       "questionKind": "canKiemTra",
       "question": "Bạn đã **tự liên hệ lại** bằng số điện thoại hoặc địa chỉ do chính bạn tìm ra chưa?",
       "hint": "Số in trên thẻ, ứng dụng bạn đã tự cài và vẫn dùng, địa chỉ bạn tự nhập. Không phải số hay đường dẫn do người kia đưa.",
       "answerOptions": [
        {
-        "key": "2ae0c492-fed0-53a2-9a29-e53cb2ab13f5",
+        "key": "8878c7d4-9e99-56e2-8df5-0ae6b083f15c",
         "label": "Rồi",
         "meaning": "co"
        },
        {
-        "key": "f593771b-e658-5f47-baa8-ccf830cb86eb",
+        "key": "4400c364-51ff-5999-8868-0baaaecadc10",
         "label": "Việc này do chính tôi bắt đầu, trên ứng dụng tôi vẫn dùng, thông tin đều khớp",
         "meaning": "co"
        },
        {
-        "key": "5a7dbb7e-3be3-557a-abe0-0875b3862054",
+        "key": "47cb8850-1ecf-5539-b27c-be11c7c7bba5",
         "label": "Chưa",
         "meaning": "khong"
        },
        {
-        "key": "d267e36c-81eb-5a6b-bc5f-5270c4c427fa",
+        "key": "8e810a21-aad7-586b-bf06-11c4c88d5c52",
         "label": "Tôi chưa biết",
         "meaning": "chuaBiet"
        }
@@ -3937,71 +3192,71 @@
     "clearNote": "Qua được các câu này cũng chưa có nghĩa là giao dịch an toàn. Vẫn tự kiểm tra bằng kênh do chính bạn tìm ra.",
     "stopActions": [
      {
-      "key": "eb868102-3fac-5833-a4c7-3228c2cd92aa",
+      "key": "cd00e17c-d94b-5502-a95a-29f730899460",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "1"
      },
      {
-      "key": "e76260d2-c71b-5560-bdc3-aef83acd078a",
+      "key": "553500c0-a6db-555a-b875-525a862454a6",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "2"
      },
      {
-      "key": "21bfb0e5-42a5-5c6b-b69c-5c64abdd1b64",
+      "key": "5a47083f-58e0-5797-8c14-db168066ef8a",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "4"
      }
     ],
     "holdActions": [
      {
-      "key": "2583a7bb-eff6-5cbb-a50f-2a248b70194e",
+      "key": "4c732e9a-b8f9-51f6-b07c-d32c0877515c",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "2"
      },
      {
-      "key": "f6bcd9dd-146d-509f-bd00-d9b845f71d76",
+      "key": "0b3555aa-cd39-5b05-96f7-d9f8a2090107",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "3"
      },
      {
-      "key": "a2a90f43-0832-5bff-a4fd-a3c0232af053",
+      "key": "0f797e3e-2a5e-55bf-a4e8-d5ecf91c321f",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "4"
      }
     ],
     "clearActions": [
      {
-      "key": "8878c7d4-9e99-56e2-8df5-0ae6b083f15c",
+      "key": "9154c689-4d47-57b1-9c94-847ce2d11d44",
       "page": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
       "stepNumber": "1"
      },
      {
-      "key": "4400c364-51ff-5999-8868-0baaaecadc10",
+      "key": "2eca7256-d25a-593d-934c-30fefd35cec0",
       "page": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
       "stepNumber": "2"
      }
     ],
     "readMore": [
      {
-      "key": "47cb8850-1ecf-5539-b27c-be11c7c7bba5",
+      "key": "e00808bd-0e18-5674-ab1c-aba1cdbbe27e",
       "icon": "clock",
       "label": "Có người đang thúc bạn làm ngay",
       "targetPage": "d473400b-dc16-5274-92c2-6bdc670719c5"
      },
      {
-      "key": "8e810a21-aad7-586b-bf06-11c4c88d5c52",
+      "key": "b127235f-4cbf-59b8-b910-cfcb97c30cba",
       "icon": "search",
       "label": "Cách tự kiểm chứng trước khi đưa",
       "targetPage": "bd846b9c-73d0-506b-b3a8-109cad2a623b"
      },
      {
-      "key": "cd00e17c-d94b-5502-a95a-29f730899460",
+      "key": "447e0fa6-3303-5139-b945-ff75699016ae",
       "icon": "quiz",
       "label": "Danh sách kiểm tra: Trước khi mua, chuyển khoản, đặt cọc",
       "targetPage": "03d15cda-9627-50a5-a621-cfa90156661c"
      },
      {
-      "key": "553500c0-a6db-555a-b875-525a862454a6",
+      "key": "a4c95c38-34c0-5bf6-a625-27156a013a51",
       "icon": "money",
       "label": "Nếu đã lỡ chuyển tiền: việc cần làm",
       "targetPage": "8f95afcc-b47f-5201-9892-a2dcc83563df"
@@ -4030,64 +3285,64 @@
     "showAdviceBox": true,
     "questions": [
      {
-      "key": "1d8f8199-83d8-5f06-921f-315beeb2c839",
+      "key": "b9174183-9be1-5515-a0c6-c1a1aba3f26e",
       "questionKind": "phaiDung",
       "question": "Bạn bị bắt **nộp phí trước** — phí giải ngân, phí rút tiền, phí mở khóa, phí nâng gói — mới được nhận khoản vay hoặc mới rút được tiền?",
       "hint": "Xem tiền chảy về phía nào. Bạn phải nộp tiền trước thì dừng lại.",
       "answerOptions": []
      },
      {
-      "key": "e6fc115c-afd8-5c8e-bf47-419ab0bd67de",
+      "key": "742fbc97-fa0f-54f4-88f8-7e379cdb8780",
       "questionKind": "phaiDung",
       "question": "Họ thúc bạn quyết định ngay, giữ bí mật, hoặc không cho hỏi người thân?",
       "answerOptions": []
      },
      {
-      "key": "26e3b952-d34f-5b64-af7e-6094c2b410fc",
+      "key": "7f890ec3-c434-5978-aaa7-e44a89e77430",
       "questionKind": "tamHoan",
       "question": "Họ cam kết lợi nhuận cao, đều đặn, nói “không thể thua lỗ”, hoặc trả thưởng theo số người bạn rủ thêm?",
       "answerOptions": []
      },
      {
-      "key": "66d2830d-9054-52fc-93fc-25012492d2ed",
+      "key": "b891eb3e-fca1-53cf-9b7e-3712df33f884",
       "questionKind": "canKiemTra",
       "question": "Bạn đã trả lời được rõ ràng các câu phải hỏi chưa?",
       "hint": "**Đầu tư:** lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, muốn rút thì rút bằng cách nào. **Vay:** mình nhận về bao nhiêu, tổng cộng phải trả bao nhiêu, mỗi kỳ trả bao nhiêu.",
       "answerOptions": [
        {
-        "key": "a7bafb4b-4cc0-558c-9bd3-63d69aeb2136",
+        "key": "84343966-7bc8-5ea8-87f6-f49312061dee",
         "label": "Rồi, đã rõ",
         "meaning": "co"
        },
        {
-        "key": "40332b2d-462f-51ad-b888-08533d2bd565",
+        "key": "01ebe9b7-c427-5a47-bb64-4aa126581243",
         "label": "Chưa rõ",
         "meaning": "khong"
        },
        {
-        "key": "659e4685-832b-5823-95df-aa35a3220b73",
+        "key": "21513f52-0a86-57ab-bc4f-d30fcd5ba7d7",
         "label": "Tôi chưa biết",
         "meaning": "chuaBiet"
        }
       ]
      },
      {
-      "key": "1a043b31-33ae-5549-bc32-8d013958c4d3",
+      "key": "ff867aa9-0278-5ff8-8794-5ee956c7635b",
       "questionKind": "canKiemTra",
       "question": "Bạn đã kiểm tra bên mời có **giấy phép** làm đúng loại dịch vụ này chưa — không chỉ có đăng ký doanh nghiệp?",
       "answerOptions": [
        {
-        "key": "17064709-86fb-5cb8-bbcc-06f5dc679a56",
+        "key": "ea5c7313-c4bd-50b5-b7ab-4eed034299fc",
         "label": "Rồi",
         "meaning": "co"
        },
        {
-        "key": "0c20284e-c9be-55b7-a532-5b6b0d9484c6",
+        "key": "202fb126-d674-5696-a49c-cda715c8ad6c",
         "label": "Chưa",
         "meaning": "khong"
        },
        {
-        "key": "b9174183-9be1-5515-a0c6-c1a1aba3f26e",
+        "key": "46be61b9-ff5c-5e67-be1e-728c3f813af5",
         "label": "Tôi chưa biết",
         "meaning": "chuaBiet"
        }
@@ -4100,71 +3355,71 @@
     "clearNote": "Qua được các câu này cũng chưa có nghĩa là giao dịch an toàn. Vẫn tự kiểm tra bằng kênh do chính bạn tìm ra.",
     "stopActions": [
      {
-      "key": "742fbc97-fa0f-54f4-88f8-7e379cdb8780",
+      "key": "7ca5ec82-9e9e-5afc-8c48-4aadd98a6ead",
       "page": "3326906d-b9f7-5757-9ab4-014544319437",
       "stepNumber": "3"
      },
      {
-      "key": "7f890ec3-c434-5978-aaa7-e44a89e77430",
+      "key": "8771c693-3260-5a88-8f02-7de4da187284",
       "page": "3326906d-b9f7-5757-9ab4-014544319437",
       "stepNumber": "5"
      },
      {
-      "key": "b891eb3e-fca1-53cf-9b7e-3712df33f884",
+      "key": "20d9faeb-0bbe-5d37-84d5-7ff7b6ec0ccf",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "4"
      }
     ],
     "holdActions": [
      {
-      "key": "84343966-7bc8-5ea8-87f6-f49312061dee",
+      "key": "ede58220-3784-582f-8684-69dbc344022d",
       "page": "3326906d-b9f7-5757-9ab4-014544319437",
       "stepNumber": "1"
      },
      {
-      "key": "01ebe9b7-c427-5a47-bb64-4aa126581243",
+      "key": "bccb4e17-6a9d-5658-89e9-5ad5213ada22",
       "page": "3326906d-b9f7-5757-9ab4-014544319437",
       "stepNumber": "2"
      },
      {
-      "key": "21513f52-0a86-57ab-bc4f-d30fcd5ba7d7",
+      "key": "a779edf8-d60f-567e-8c76-f7a519b5979d",
       "page": "3326906d-b9f7-5757-9ab4-014544319437",
       "stepNumber": "4"
      }
     ],
     "clearActions": [
      {
-      "key": "ff867aa9-0278-5ff8-8794-5ee956c7635b",
+      "key": "e577c3fa-76e7-5b66-8508-ac355a90dec6",
       "page": "3326906d-b9f7-5757-9ab4-014544319437",
       "stepNumber": "4"
      },
      {
-      "key": "ea5c7313-c4bd-50b5-b7ab-4eed034299fc",
+      "key": "90844e90-2cf4-53a8-8890-330afed23375",
       "page": "3326906d-b9f7-5757-9ab4-014544319437",
       "stepNumber": "5"
      }
     ],
     "readMore": [
      {
-      "key": "202fb126-d674-5696-a49c-cda715c8ad6c",
+      "key": "0f8a35b9-6b25-5abd-ae2f-a8826fed91e2",
       "icon": "chart",
       "label": "Có người mời bạn góp vốn, đầu tư",
       "targetPage": "3326906d-b9f7-5757-9ab4-014544319437"
      },
      {
-      "key": "46be61b9-ff5c-5e67-be1e-728c3f813af5",
+      "key": "67ea8b5f-e70b-5761-a0a1-d149a2a5bb33",
       "icon": "quiz",
       "label": "Danh sách kiểm tra: Trước khi đầu tư, góp vốn",
       "targetPage": "40b15a36-af02-57eb-ac1f-ea7f119a7ad0"
      },
      {
-      "key": "7ca5ec82-9e9e-5afc-8c48-4aadd98a6ead",
+      "key": "82378b56-2e99-5f73-ac2f-4259403f0c12",
       "icon": "quiz",
       "label": "Danh sách kiểm tra: Trước khi vay, bảo lãnh, đứng tên",
       "targetPage": "b1e28dba-fa92-5c09-ac90-fcd840cd6425"
      },
      {
-      "key": "8771c693-3260-5a88-8f02-7de4da187284",
+      "key": "0a5264a1-6177-5930-955f-0e706e47e31b",
       "icon": "doc",
       "label": "Đã góp tiền mà không rút được: việc cần làm",
       "targetPage": "c07ba1d5-04dd-5265-824e-63a48c48dd7e"
@@ -4194,21 +3449,21 @@
     "urgentText": "Nếu bạn đang bị đe dọa tính mạng, sức khỏe, hoặc có người tìm đến tận nơi: gọi 113 ngay.",
     "questions": [
      {
-      "key": "20418df1-8241-5972-99af-8dd4008fe3ea",
+      "key": "0c824a69-d8ee-5a59-954b-e5e62f11ea6c",
       "question": "Có ai đang đe dọa, ép buộc bạn phải trả tiền hoặc phải im lặng không?",
       "situationLabel": "Bạn đang bị đe dọa, ép buộc",
       "actionPage": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
       "takeSteps": "1,2,3,4"
      },
      {
-      "key": "9a0e80e6-ba1c-5fe3-b829-4ae310955e5d",
+      "key": "0e424d36-ebbd-5189-b90d-d8a057cbde77",
       "question": "Bạn đã đọc mã OTP, đưa mật khẩu, cài ứng dụng theo lời người khác, hoặc cho người khác xem, điều khiển màn hình?",
       "situationLabel": "Người khác có thể đang có quyền vào tài khoản hoặc điện thoại của bạn",
       "actionPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
       "takeSteps": "1,2,4,6"
      },
      {
-      "key": "905fd610-69ff-5023-b203-c922c7c6c90a",
+      "key": "a0249050-370b-5a15-b345-c7739cce9d92",
       "question": "Bạn đã chuyển tiền, đưa tiền, hoặc đã giao hàng đi chưa?",
       "situationLabel": "Bạn đã chuyển tiền hoặc đã giao hàng",
       "yesLabel": "Rồi",
@@ -4217,7 +3472,7 @@
       "takeSteps": "1,2,3,4"
      },
      {
-      "key": "2cc57af2-395d-5929-9ee8-528bd6472dbd",
+      "key": "46463414-ce9c-5ead-a7dd-eb27fbd03d47",
       "question": "Bạn đã gửi ảnh giấy tờ, quét khuôn mặt, ký giấy, hoặc cho mượn tài khoản, SIM?",
       "situationLabel": "Giấy tờ, chữ ký hoặc tài khoản của bạn đã được đưa đi",
       "yesLabel": "Rồi",
@@ -4230,17 +3485,17 @@
     "allNoText": "Chưa mất gì là tình thế tốt nhất. Việc cần làm bây giờ là kiểm chứng trước khi đưa bất cứ thứ gì.",
     "allNoActions": [
      {
-      "key": "537f2642-4e18-5638-b300-06d67aaf21ac",
+      "key": "1381d399-44a8-5143-9c4c-f6980c586f2a",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "1"
      },
      {
-      "key": "e95324b7-8004-5b56-a022-c7dac0c98b62",
+      "key": "22ed5d7e-7a6b-5c51-be81-82a8452d6d15",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "2"
      },
      {
-      "key": "b3c24e21-65e0-5b3e-9e5b-6bb9481c00e0",
+      "key": "26a6dc71-73f7-5898-bdb0-ba4cc42b351a",
       "page": "d473400b-dc16-5274-92c2-6bdc670719c5",
       "stepNumber": "4"
      }
@@ -4249,13 +3504,13 @@
     "hitText": "Làm xong nhóm 1 rồi mới sang nhóm 2. Bạn không có lỗi vì đã gặp chuyện này; việc quan trọng là không xử lý một mình.",
     "readMore": [
      {
-      "key": "01702603-af6e-58ae-85eb-5ae16d596931",
+      "key": "960bfe94-efbc-525e-b08e-c8251ff9c6bb",
       "icon": "clock",
       "label": "Có người đang thúc bạn làm ngay: đủ các bước",
       "targetPage": "d473400b-dc16-5274-92c2-6bdc670719c5"
      },
      {
-      "key": "032b1f7f-7e0d-57d2-a360-5aa4139ec80f",
+      "key": "178206df-af1e-599c-bc7d-3d189b0b1195",
       "icon": "quiz",
       "label": "Tôi đang gặp chuyện gì? Trả lời 3 câu",
       "targetPage": "620db892-e73b-564c-9553-7c6185e1e04a"
@@ -5389,7 +4644,7 @@
     ],
     "references": [
      {
-      "key": "87026347-c6b6-5b99-9702-e4d30fa2846e",
+      "key": "2fa99a36-12d9-58d0-8c48-a129311d62bd",
       "title": "Bài đọc Chuyên đề 7: Cuộc gọi, tin nhắn, đường dẫn và giả mạo",
       "organization": "Ban biên tập"
      }
@@ -5439,7 +4694,7 @@
     ],
     "references": [
      {
-      "key": "a2f11646-6bf7-5af6-a643-a1e3833978b5",
+      "key": "401307e8-080b-5219-bcca-c25745f898d0",
       "title": "Bài đọc Chuyên đề 6: Mua bán, đặt cọc và dịch vụ tiêu dùng",
       "organization": "Ban biên tập"
      }
@@ -5489,7 +4744,7 @@
     ],
     "references": [
      {
-      "key": "c176325f-1edc-510f-b526-0ccd1201f557",
+      "key": "88cfca49-89c1-5d5c-b6d4-b4771c3df337",
       "title": "Bài đọc Chuyên đề 5: Việc làm, tuyển dụng và nhiệm vụ trực tuyến",
       "organization": "Ban biên tập"
      }
@@ -5539,7 +4794,7 @@
     ],
     "references": [
      {
-      "key": "cdb93152-a371-50ff-bc2d-ff335949d4df",
+      "key": "e10389c5-b1de-5f9e-af4e-9e85681600c6",
       "title": "Bài đọc Chuyên đề 3: Đầu tư, góp vốn và tài sản",
       "organization": "Ban biên tập"
      }
@@ -5589,7 +4844,7 @@
     ],
     "references": [
      {
-      "key": "56ae3c37-f22d-55d8-8654-c12d2da22276",
+      "key": "02cffb9d-a7cf-52ad-83f2-d836bc73b393",
       "title": "Bài đọc Chuyên đề 4: Vay, cho vay và bảo lãnh",
       "organization": "Ban biên tập"
      }
@@ -5639,7 +4894,7 @@
     ],
     "references": [
      {
-      "key": "a7d07b34-0ba2-5d25-bfd4-ef3ea425234e",
+      "key": "9cd86856-1850-5d47-913c-c6390d3eb842",
       "title": "Bài đọc Chuyên đề 2: Ký hợp đồng và cam kết dịch vụ",
       "organization": "Ban biên tập"
      }
@@ -5920,7 +5175,7 @@
     "lead": "Mỗi việc có một nơi nhận. Gọi đúng nơi thì việc được xử lý nhanh hơn.",
     "contactGroups": [
      {
-      "key": "4a7261f3-e9a8-5aa4-8c54-af033bd1436b",
+      "key": "36bbb95f-f725-5c05-bf75-8fa94711b1f5",
       "groupName": "Ngân hàng, ví điện tử của bạn",
       "organization": "Tổng đài in trên thẻ hoặc trong ứng dụng bạn đã cài",
       "contactMethods": [
@@ -5929,7 +5184,7 @@
       ]
      },
      {
-      "key": "7589a682-8038-5256-8b6a-9c8ef20cd8bc",
+      "key": "2fbc61d6-23fa-536d-bbbf-f97bfb3500ce",
       "groupName": "Phản ánh cuộc gọi, tin nhắn lừa đảo",
       "organization": "Tổng đài 156, 5656",
       "contactMethods": [
@@ -5938,7 +5193,7 @@
       ]
      },
      {
-      "key": "3a4dc8c4-ab87-5525-b27d-f28937870852",
+      "key": "45718e38-0871-555d-b48b-1ebc9222c6a7",
       "groupName": "Trình báo sự việc",
       "organization": "Công an xã, phường nơi gần nhất hoặc nơi bạn cư trú",
       "contactMethods": [
@@ -6705,609 +5960,6 @@
    "values": {}
   },
   {
-   "key": "38a76f93-d5b7-5616-a0c3-30b7993e7e40",
-   "mockupId": "t0",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Ép ký, ép bấm đồng ý khi bạn chưa đọc hết điều khoản",
-   "state": "published",
-   "sortOrder": 0,
-   "values": {
-    "code": "ep-ky-ep-bam-dong-y-khi-ban-chua-doc-het",
-    "isActive": true,
-    "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "b0d9b979-1de4-5379-9e6a-c569204a8b65",
-   "mockupId": "t1",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Quảng cáo một đằng, hợp đồng một nẻo",
-   "state": "published",
-   "sortOrder": 1,
-   "values": {
-    "code": "quang-cao-mot-dang-hop-dong-mot-neo",
-    "isActive": true,
-    "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "thuong"
-   }
-  },
-  {
-   "key": "d70dd60b-5870-5366-979f-4601f7049a93",
-   "mockupId": "t2",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Bảo bạn ký vào giấy còn chỗ trống, thiếu số tiền, thiếu phụ lục",
-   "state": "published",
-   "sortOrder": 2,
-   "values": {
-    "code": "bao-ban-ky-vao-giay-con-cho-trong-thieu",
-    "isActive": true,
-    "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "a69d3646-43eb-55f4-bc2c-ef9cf3ef3824",
-   "mockupId": "t3",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Phí định kỳ và tự động gia hạn giấu trong phụ lục chưa ai đọc",
-   "state": "published",
-   "sortOrder": 3,
-   "values": {
-    "code": "phi-dinh-ky-va-tu-dong-gia-han-giau-tron",
-    "isActive": true,
-    "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "thuong"
-   }
-  },
-  {
-   "key": "2e0a2ba6-9ff2-503e-a1c7-9259263a128b",
-   "mockupId": "t4",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Sàn đầu tư cam kết lợi nhuận, cho rút thử lần đầu để làm mồi",
-   "state": "published",
-   "sortOrder": 4,
-   "values": {
-    "code": "san-dau-tu-cam-ket-loi-nhuan-cho-rut-thu",
-    "isActive": true,
-    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
-    "channels": [
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "3ffd375f-52c4-52fb-8e8a-698eed694889",
-   "mockupId": "t5",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Hoa hồng theo tầng, thưởng tính theo số người mới kéo vào",
-   "state": "published",
-   "sortOrder": 5,
-   "values": {
-    "code": "hoa-hong-theo-tang-thuong-tinh-theo-so-n",
-    "isActive": true,
-    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "69816132-74c2-5d14-b9e7-668246d95e19",
-   "mockupId": "t6",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Nhập nhèm giữa góp vốn, cho vay và tiền gửi tiết kiệm",
-   "state": "published",
-   "sortOrder": 6,
-   "values": {
-    "code": "nhap-nhem-giua-gop-von-cho-vay-va-tien-g",
-    "isActive": true,
-    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
-    ],
-    "cautionLevel": "thuong"
-   }
-  },
-  {
-   "key": "b4fd74fb-ff76-57dd-b2b1-815b8f48499d",
-   "mockupId": "t7",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Chặn không cho rút rồi đẻ thêm điều kiện: thuế xác minh, phí VIP, phí mở khóa",
-   "state": "published",
-   "sortOrder": 7,
-   "values": {
-    "code": "chan-khong-cho-rut-roi-de-them-dieu-kien",
-    "isActive": true,
-    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
-    "channels": [
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "63befa8e-68fa-5eee-a86b-c288ab2fe53d",
-   "mockupId": "t8",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Đặt cọc đất, suất nội bộ, tiền chuyển vào tài khoản cá nhân",
-   "state": "published",
-   "sortOrder": 8,
-   "values": {
-    "code": "dat-coc-dat-suat-noi-bo-tien-chuyen-vao",
-    "isActive": true,
-    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "15f4da83-55f4-576f-bb03-159f8827bba3",
-   "mockupId": "t9",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Ứng dụng vay nhanh đòi quyền vào danh bạ, hình ảnh, tin nhắn",
-   "state": "published",
-   "sortOrder": 9,
-   "values": {
-    "code": "ung-dung-vay-nhanh-doi-quyen-vao-danh-ba",
-    "isActive": true,
-    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
-    "channels": [
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "5312a30d-abc1-5ca5-9257-0260e56c37c9",
-   "mockupId": "t10",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Khấu trừ khi giải ngân: hồ sơ ghi một số, thực nhận một số khác",
-   "state": "published",
-   "sortOrder": 10,
-   "values": {
-    "code": "khau-tru-khi-giai-ngan-ho-so-ghi-mot-so",
-    "isActive": true,
-    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "thuong"
-   }
-  },
-  {
-   "key": "4aaf8f97-c073-5937-8226-0e05f465da40",
-   "mockupId": "t11",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Nhờ bạn đứng tên vay hộ hoặc bảo lãnh cho người chỉ quen qua mạng",
-   "state": "published",
-   "sortOrder": 11,
-   "values": {
-    "code": "nho-ban-dung-ten-vay-ho-hoac-bao-lanh-ch",
-    "isActive": true,
-    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
-    "channels": [
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "77475a6e-e849-5164-aad5-c0f4a193ea50",
-   "mockupId": "t12",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Đòi nợ sai người, gọi vào danh bạ để gây sức ép",
-   "state": "published",
-   "sortOrder": 12,
-   "values": {
-    "code": "doi-no-sai-nguoi-goi-vao-danh-ba-de-gay",
-    "isActive": true,
-    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
-    "channels": [
-     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "f69f6a7a-b13b-53e8-bc2f-e6ebff833b9d",
-   "mockupId": "t13",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Bị đòi một khoản vay mang tên mình mà mình chưa từng vay",
-   "state": "published",
-   "sortOrder": 13,
-   "values": {
-    "code": "bi-doi-mot-khoan-vay-mang-ten-minh-ma-mi",
-    "isActive": true,
-    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
-    "channels": [
-     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "974fb467-e949-5a46-89e2-321b9343b6d7",
-   "mockupId": "t14",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Nhiệm vụ trực tuyến, cộng tác viên: nạp tiền kích hoạt, nâng gói",
-   "state": "published",
-   "sortOrder": 14,
-   "values": {
-    "code": "nhiem-vu-truc-tuyen-cong-tac-vien-nap-ti",
-    "isActive": true,
-    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
-    "channels": [
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "314db7e7-ba09-5e44-b701-60e75987b792",
-   "mockupId": "t15",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Việc nhẹ lương cao, đưa đi làm xa hoặc đi làm ở nước ngoài",
-   "state": "published",
-   "sortOrder": 15,
-   "values": {
-    "code": "viec-nhe-luong-cao-dua-di-lam-xa-hoac-di",
-    "isActive": true,
-    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
-    "channels": [
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "34a7ff16-387c-5213-b9ae-277bef2a3fd3",
-   "mockupId": "t16",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Giữ bản chính bằng cấp, giấy tờ tùy thân của người xin việc",
-   "state": "published",
-   "sortOrder": 16,
-   "values": {
-    "code": "giu-ban-chinh-bang-cap-giay-to-tuy-than",
-    "isActive": true,
-    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "f77280e6-0782-583b-b43e-2f639be94970",
-   "mockupId": "t17",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Dụ mở, cho mượn, cho thuê hoặc bán tài khoản ngân hàng, SIM; nhờ nhận và chuyển tiền hộ",
-   "state": "published",
-   "sortOrder": 17,
-   "values": {
-    "code": "du-mo-cho-muon-cho-thue-hoac-ban-tai-kho",
-    "isActive": true,
-    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
-    "channels": [
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "34a0f294-12d9-56ad-9c05-901d95288deb",
-   "mockupId": "t18",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Bảo cài ứng dụng tuyển việc từ đường dẫn lạ, xin quyền trợ năng",
-   "state": "published",
-   "sortOrder": 18,
-   "values": {
-    "code": "bao-cai-ung-dung-tuyen-viec-tu-duong-dan",
-    "isActive": true,
-    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
-    "channels": [
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "c8c0124c-fbee-5a6e-b95a-016b1eff5642",
-   "mockupId": "t19",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Chuyển khoản trước, rời khỏi sàn, rồi không nhận được hàng",
-   "state": "published",
-   "sortOrder": 19,
-   "values": {
-    "code": "chuyen-khoan-truoc-roi-khoi-san-roi-khon",
-    "isActive": true,
-    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
-    "channels": [
-     "140e127b-2fd1-54b5-87eb-9c39e0abf402",
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "5bf44dc5-4be0-5024-b058-0054c8d61ed7",
-   "mockupId": "t20",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Đặt cọc dịch vụ, thuê tài sản không có chứng từ",
-   "state": "published",
-   "sortOrder": 20,
-   "values": {
-    "code": "dat-coc-dich-vu-thue-tai-san-khong-co-ch",
-    "isActive": true,
-    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
-    "channels": [
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "77e710df-db37-524e-b12b-b58fea924ec8",
-   "mockupId": "t21",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Hội thảo, bán hàng lưu động, ép mua hoặc ép đặt cọc ngay tại chỗ",
-   "state": "published",
-   "sortOrder": 21,
-   "values": {
-    "code": "hoi-thao-ban-hang-luu-dong-ep-mua-hoac-e",
-    "isActive": true,
-    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "44d5ae50-8154-5159-80c1-44436f8941f5",
-   "mockupId": "t22",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Giả biên lai chuyển khoản, rồi đòi hoàn lại tiền chuyển thừa",
-   "state": "published",
-   "sortOrder": 22,
-   "values": {
-    "code": "gia-bien-lai-chuyen-khoan-roi-doi-hoan-l",
-    "isActive": true,
-    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
-    "channels": [
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "df556cd5-12e3-546f-92a7-ec8eef71176a",
-   "mockupId": "t23",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Chuyển nhầm tiền vào tài khoản của bạn, kèm mã QR hoặc đường dẫn hoàn lại",
-   "state": "published",
-   "sortOrder": 23,
-   "values": {
-    "code": "chuyen-nham-tien-vao-tai-khoan-cua-ban-k",
-    "isActive": true,
-    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
-    "channels": [
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
-     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "3851b553-a784-54e0-a814-2f599bd017c5",
-   "mockupId": "t24",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Giả danh cơ quan, ngân hàng, người giao hàng qua điện thoại",
-   "state": "published",
-   "sortOrder": 24,
-   "values": {
-    "code": "gia-danh-co-quan-ngan-hang-nguoi-giao-ha",
-    "isActive": true,
-    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
-    "channels": [
-     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "22bc1106-acae-52d4-96ba-25c561b7c06a",
-   "mockupId": "t25",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Bắt cóc online: giả cơ quan tố tụng, ép ở một mình, ép chuyển tiền xác minh",
-   "state": "published",
-   "sortOrder": 25,
-   "values": {
-    "code": "bat-coc-online-gia-co-quan-to-tung-ep-o",
-    "isActive": true,
-    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
-    "channels": [
-     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "4c93251d-0dd7-5e75-8098-2a2457e84359",
-   "mockupId": "t26",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Ghép hình ảnh, giọng nói người thân trong cuộc gọi video",
-   "state": "published",
-   "sortOrder": 26,
-   "values": {
-    "code": "ghep-hinh-anh-giong-noi-nguoi-than-trong",
-    "isActive": true,
-    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
-    "channels": [
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "02c671fa-7049-57ba-88bd-afa247ccf1b1",
-   "mockupId": "t27",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Tin nhắn giả chen vào đúng luồng tin thật của ngân hàng",
-   "state": "published",
-   "sortOrder": 27,
-   "values": {
-    "code": "tin-nhan-gia-chen-vao-dung-luong-tin-tha",
-    "isActive": true,
-    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
-    "channels": [
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "147da3f7-042a-549d-99c2-d7122ef750c1",
-   "mockupId": "t28",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Chiếm tài khoản mạng xã hội rồi giả người quen hỏi vay tiền",
-   "state": "published",
-   "sortOrder": 28,
-   "values": {
-    "code": "chiem-tai-khoan-mang-xa-hoi-roi-gia-nguo",
-    "isActive": true,
-    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
-    "channels": [
-     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "ec1436ab-0cea-5ad0-b167-326adc5bcfd6",
-   "mockupId": "t29",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Dụ chia sẻ màn hình hoặc cài công cụ điều khiển máy từ xa",
-   "state": "published",
-   "sortOrder": 29,
-   "values": {
-    "code": "du-chia-se-man-hinh-hoac-cai-cong-cu-die",
-    "isActive": true,
-    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
-    "channels": [
-     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
-     "19576116-c761-5aa9-b178-239b0480748d"
-    ],
-    "cautionLevel": "ratCao"
-   }
-  },
-  {
-   "key": "8495a901-1dd7-5a08-a516-d732b120e93f",
-   "mockupId": "t30",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Tâm linh, giải hạn: dọa gia đình sắp gặp nạn để đòi tiền",
-   "state": "published",
-   "sortOrder": 30,
-   "values": {
-    "code": "tam-linh-giai-han-doa-gia-dinh-sap-gap-n",
-    "isActive": true,
-    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
-    "channels": [
-     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
-     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
-    ],
-    "cautionLevel": "cao"
-   }
-  },
-  {
-   "key": "a34e95cc-96f5-5e6e-8f11-7727d73baa6e",
-   "mockupId": "t-cu",
-   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
-   "contentType": "tacticItem",
-   "name": "Tin nhắn trúng thưởng, nhận quà tri ân",
-   "state": "published",
-   "sortOrder": 31,
-   "values": {
-    "code": "tin-nhan-trung-thuong",
-    "isActive": false,
-    "containingArticle": "19709819-f36c-5446-8857-0a286180ceef",
-    "channels": [
-     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
-    ],
-    "cautionLevel": "cao",
-    "searchKeywords": [
-     "trúng thưởng"
-    ]
-   }
-  },
-  {
    "key": "f71ab491-9f0c-592b-a25f-1c61da77dcf4",
    "mockupId": "f-qa",
    "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
@@ -7518,6 +6170,1536 @@
    }
   },
   {
+   "key": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
+   "mockupId": "p8",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Có người đang đe dọa, ép buộc bạn",
+   "state": "published",
+   "sortOrder": 0,
+   "values": {
+    "title": "Có người đang đe dọa, ép buộc bạn",
+    "umbracoUrlName": "bi-de-doa",
+    "icon": "alert",
+    "lead": "Bạn không có lỗi vì bị đe dọa. Việc quan trọng nhất là không xử lý một mình.",
+    "hideFromSituations": false,
+    "steps": [
+     {
+      "key": "33dc04c9-2231-50ab-8d8a-20eae473436e",
+      "mainText": "Nếu bạn đang bị đe dọa tính mạng, sức khỏe, hoặc có người tìm đến tận nơi: gọi 113 ngay.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "d9659519-6edd-5c5d-914e-f3bdce7480d8",
+      "mainText": "Nói cho một người thân mà bạn tin cậy biết ngay hôm nay.",
+      "details": [
+       "Sức ép của kẻ đe dọa dựa vào việc bạn giữ kín và tự xoay xở.",
+       "Nếu bạn đang thấy quá căng thẳng, hãy nói với người đó trước, rồi mới làm các bước còn lại. Không có bước nào ở đây quan trọng hơn việc bạn có người bên cạnh."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "658c5550-999b-5703-a448-7b8b41b97281",
+      "mainText": "Không chuyển thêm tiền theo yêu cầu đe dọa.",
+      "details": [
+       "Trả tiền không bảo đảm lời đe dọa sẽ dừng lại.",
+       "Nếu bạn đã lỡ trả rồi thì cũng không sao — điều đó không làm bạn mất quyền được giúp đỡ, và không có gì phải ngại khi trình báo."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "4270b8a9-12e7-53af-ba98-f608891c4bc3",
+      "mainText": "Không tự thương lượng, không hứa hẹn thêm, và không gửi thêm bất kỳ thông tin, hình ảnh hay giấy tờ nào nữa.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "69670958-756d-548b-ad30-8fca3a4a582a",
+      "mainText": "Nếu làm được nhanh và bạn thấy an toàn: chụp lại bằng chứng — tin nhắn, cuộc gọi, số tài khoản họ đòi chuyển, ngày giờ — rồi ngừng trả lời hoặc chặn.",
+      "details": [
+       "Chặn rồi thì phần lớn bằng chứng không lấy lại được, nên chụp trước nếu kịp.",
+       "Nhưng nếu việc tiếp tục liên lạc khiến bạn thấy không an toàn hoặc quá căng thẳng, hãy ngừng liên lạc trước. An toàn của bạn đứng trên bằng chứng."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "95adac36-61ca-5d79-a04b-3a9bbee9a0dd",
+      "mainText": "Nếu họ dọa gọi cho người trong danh bạ của bạn, hãy báo trước cho người thân, bạn bè.",
+      "details": [
+       "Nói với họ rằng có thể có cuộc gọi như vậy, và đó có thể là cuộc gọi quấy rối hoặc đe dọa. Người được báo trước sẽ không hoang mang. Đừng tranh luận với người gọi về danh nghĩa của họ."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "1be00575-9efa-5631-beb1-41d0b44f363c",
+      "mainText": "Đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo. Mang theo những gì bạn đang có.",
+      "details": [
+       "Nếu bị đe dọa tung hình ảnh hoặc thông tin riêng tư để đòi tiền: người bị đe dọa là người bị hại. Đừng gửi thêm, đừng trả thêm, hãy trình báo."
+      ],
+      "showBankLookup": false,
+      "snippetAfter": "2553dcb3-bd03-593a-99b8-1ac873c0f0f4",
+      "hasFollowUp": false
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-37.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "8f95afcc-b47f-5201-9892-a2dcc83563df",
+   "mockupId": "p2",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Bạn vừa chuyển tiền, hoặc vừa giao hàng đi",
+   "state": "published",
+   "sortOrder": 1,
+   "values": {
+    "title": "Bạn vừa chuyển tiền, hoặc vừa giao hàng đi",
+    "umbracoUrlName": "da-chuyen-tien",
+    "icon": "money",
+    "lead": "Hai trường hợp làm khác nhau. Đọc bước 1 và bước 2, làm bước đúng với bạn trước.",
+    "hideFromSituations": false,
+    "steps": [
+     {
+      "key": "78d5887d-b202-5612-bbc0-49b7898e4154",
+      "mainText": "NẾU BẠN ĐÃ CHUYỂN TIỀN — gọi ngay ngân hàng hoặc ví điện tử bạn đã chuyển.",
+      "details": [],
+      "sampleScript": "Tôi vừa chuyển tiền và nghi có rủi ro lừa đảo. Xin ghi nhận sự việc, tra soát giao dịch và hướng dẫn tôi cách bảo vệ tài khoản.",
+      "showBankLookup": true,
+      "hasFollowUp": false
+     },
+     {
+      "key": "14c9dcf6-bb7f-566a-a91b-608841fbab73",
+      "mainText": "NẾU BẠN LÀ NGƯỜI BÁN VÀ ĐÃ GIAO HÀNG ĐI — liên hệ ngay nơi đang giữ hàng hoặc người giao hàng để đề nghị dừng giao, giữ hàng lại.",
+      "details": [
+       "Việc này làm trước, vì hàng còn đang trên đường thì còn giữ lại được.",
+       "Sau đó mở ứng dụng ngân hàng của chính bạn và xem số tiền đã thật sự vào tài khoản và dùng được hay chưa.",
+       "Ảnh biên lai và tin nhắn báo có tiền đều làm giả được. Và ngay cả khi tiền đã vào thật, điều đó cũng không chứng minh người chuyển hay yêu cầu của họ là đáng tin — nhất là khi họ đòi bạn hoàn lại một khoản “chuyển thừa”.",
+       "Nếu nhận qua một đơn vị thanh toán, xem khoản đó đã về tài khoản chưa hay mới chỉ báo đang xử lý. Khoản đang xử lý chưa phải tiền đã nhận xong và vẫn có thể bị hủy hoặc bị trừ lại."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": true,
+      "followUpQuestion": "Bạn cũng đã đưa mã OTP, mật khẩu, hoặc cài ứng dụng theo lời người khác?",
+      "followUpButton": "Làm thêm: bảo vệ tài khoản và thiết bị",
+      "followUpNote": "Nếu có thể, hãy dùng một thiết bị khác mà bạn tin cậy để làm các bước đó.",
+      "followUpPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f"
+     },
+     {
+      "key": "d61c252a-48d5-57aa-88a5-7050631dd84e",
+      "mainText": "Lưu lại bằng chứng đang có: biên lai, tin nhắn, cuộc gọi, số tài khoản nhận tiền, đường link, thời gian và diễn biến.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "841ae83e-0da9-5366-b4f3-238822a0348d",
+      "mainText": "Đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo. Mang theo bằng chứng đã lưu.",
+      "details": [
+       "ĐỪNG CHỜ kết quả tra soát của ngân hàng rồi mới đi trình báo. Hai việc này làm song song được, và càng sớm thì càng còn dấu vết để lần theo."
+      ],
+      "showBankLookup": false,
+      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
+      "hasFollowUp": false
+     },
+     {
+      "key": "65159a66-339b-5034-9e80-d3b16e3af3b6",
+      "mainText": "Nếu việc bắt đầu từ cuộc gọi hoặc tin nhắn, phản ánh tới 156 hoặc 5656.",
+      "details": [
+       "Đây là nơi phản ánh cuộc gọi, tin nhắn có dấu hiệu lừa đảo. Không phải nơi thu hồi tiền, và không thay cho việc trình báo."
+      ],
+      "showBankLookup": false,
+      "onlyIf": "92582c5c-33f3-56a9-b383-2e03ae5ded43",
+      "hasFollowUp": false
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-31.jpg"
+    },
+    "illustrationAlt": "Thời gian quan trọng để ngăn thiệt hại và lưu chứng cứ"
+   }
+  },
+  {
+   "key": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
+   "mockupId": "p3",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Người khác đang có quyền vào tài khoản hoặc điện thoại của bạn",
+   "state": "published",
+   "sortOrder": 2,
+   "values": {
+    "title": "Người khác đang có quyền vào tài khoản hoặc điện thoại của bạn",
+    "umbracoUrlName": "bi-chiem-quyen-tai-khoan",
+    "icon": "key",
+    "lead": "Dù bạn tự đưa hay bị lấy mất, việc cần làm gần như giống nhau. Đọc ba dòng đầu, làm dòng đúng với bạn trước.",
+    "hideFromSituations": false,
+    "steps": [
+     {
+      "key": "e1a0f689-5d3f-5c31-bad5-ec230add22e5",
+      "mainText": "NẾU BẠN ĐÃ CÀI ỨNG DỤNG LẠ, cho người khác nhìn hoặc điều khiển màn hình, hoặc thấy máy tự bật tắt, tự thao tác: ngắt mạng trên điện thoại hoặc máy tính đó — tắt Wi-Fi và tắt dữ liệu di động — rồi ngừng dùng máy.",
+      "details": [
+       "Từ đây trở đi, mọi việc làm trên một thiết bị khác mà bạn tin cậy."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "0d9d4d91-39a9-553b-b577-059b193da61c",
+      "mainText": "NẾU BẠN CHỈ MỚI ĐỌC MÃ OTP HOẶC ĐƯA MẬT KHẨU, còn máy vẫn bình thường — không cần tắt mạng. Dùng ngay một thiết bị khác gọi ngân hàng.",
+      "details": [
+       "Tắt mạng lúc này chỉ làm bạn không nhận được thông báo và không liên lạc được, trong khi máy chưa có dấu hiệu bị điều khiển."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "046c2971-1ccf-5431-bf9f-11ce2d0ad971",
+      "mainText": "NẾU SIM ĐỘT NHIÊN MẤT SÓNG, hoặc bạn nhận được thông báo đổi SIM mà không phải bạn làm — gọi nhà mạng ngay từ một thiết bị khác để khóa SIM và hỏi lại các yêu cầu đổi SIM gần nhất.",
+      "details": [
+       "Mất quyền với SIM là mất luôn nơi nhận mã OTP. Việc này gấp ngang với việc gọi ngân hàng."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "448a1e66-e200-557d-acf4-174c62125ce4",
+      "mainText": "Gọi ngân hàng, đề nghị khóa tạm thời dịch vụ ngân hàng trên điện thoại và trên internet, cùng với thẻ.",
+      "details": [],
+      "sampleScript": "Tôi nghi tài khoản ngân hàng của tôi đã bị lộ. Xin tạm khóa giao dịch online và thẻ, rồi hướng dẫn tôi bước tiếp theo.",
+      "showBankLookup": true,
+      "hasFollowUp": false
+     },
+     {
+      "key": "5f139fc0-e4d6-5962-af90-2411d9785196",
+      "mainText": "Từ thiết bị tin cậy, đổi mật khẩu và xem lại lịch sử giao dịch cùng những điện thoại, máy tính đang đăng nhập tài khoản của bạn.",
+      "details": [
+       "Xem từ thời điểm bạn bắt đầu nghi ngờ. Nếu không nhớ rõ từ khi nào, xem lại toàn bộ giao dịch gần đây và đề nghị ngân hàng hỗ trợ tra soát."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "5e31248b-ee43-5a8b-8a4f-67e6c090c1e4",
+      "mainText": "Đừng vội gỡ ứng dụng hoặc xóa dữ liệu trong máy. Những thứ đó có thể cần để ngân hàng và cơ quan Công an kiểm tra.",
+      "details": [
+       "Chụp ảnh màn hình những gì lấy được mà không cần nối mạng: tên ứng dụng lạ, tin nhắn, cuộc gọi.",
+       "Chưa tự khôi phục cài đặt gốc nếu trong máy còn dữ liệu bạn cần. Sau khi đã khóa tài khoản và lưu bằng chứng, hãy gỡ ứng dụng lạ hoặc làm sạch máy theo hướng dẫn của nơi sửa chữa.",
+       "Không dùng lại máy đó cho việc ngân hàng cho tới khi máy đã được làm sạch."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "f4fcba46-c31c-5afc-acf4-8dcf0330dfaa",
+      "mainText": "Mang máy tới nơi sửa chữa hoặc bảo hành do bạn tự chọn — không phải nơi người kia giới thiệu.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "96065dff-b18f-5d21-88b6-42dcc3acbe94",
+      "mainText": "Nếu đã phát sinh giao dịch, đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo.",
+      "details": [
+       "Không chờ ngân hàng trả lời xong mới đi."
+      ],
+      "showBankLookup": false,
+      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
+      "hasFollowUp": false
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-39.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "ced0f2ff-a349-590d-a486-21ac72df96f0",
+   "mockupId": "p6",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Giấy tờ, chữ ký hoặc tên của bạn đã được gửi đi, hoặc bị người khác dùng",
+   "state": "published",
+   "sortOrder": 3,
+   "values": {
+    "title": "Giấy tờ, chữ ký hoặc tên của bạn đã được gửi đi, hoặc bị người khác dùng",
+    "umbracoUrlName": "lo-giay-to-chu-ky",
+    "icon": "id",
+    "lead": "Có thể bạn chưa nhìn thấy thiệt hại nào, nhưng giấy tờ và tên của bạn có thể đang tiếp tục bị dùng. Làm bước 1 trước.",
+    "hideFromSituations": false,
+    "steps": [
+     {
+      "key": "6cdb414c-3ffb-5204-b66b-45e9815a55de",
+      "mainText": "Dừng lại. Không đưa thêm bất kỳ giấy tờ, chữ ký hay mã OTP nào nữa.",
+      "details": [
+       "Kể cả khi họ nói cần thêm một lần nữa để “hoàn tất”, để “hủy bỏ” hoặc để “lấy lại” thứ bạn đã đưa."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "b0485bf0-c171-54d8-9bbd-7440eaa7bdd7",
+      "mainText": "Nếu bạn đã cho mượn, cho thuê, bán hoặc mở hộ tài khoản ngân hàng, ví điện tử, SIM: liên hệ ngay nơi quản lý tài khoản hoặc SIM đó để đề nghị khóa tạm thời và làm theo hướng dẫn xử lý.",
+      "details": [
+       "Hãy nói đầy đủ sự việc khi liên hệ và khi trình báo. Trình báo sớm giúp ghi nhận thời điểm bạn phát hiện và những việc bạn đã làm để dừng lại.",
+       "Để càng lâu, tài khoản mang tên bạn càng bị dùng vào nhiều việc hơn."
+      ],
+      "showBankLookup": true,
+      "hasFollowUp": false
+     },
+     {
+      "key": "94fcaa32-3561-5195-a8e5-4739c64a21e0",
+      "mainText": "Nếu bạn đã gửi ảnh giấy tờ hoặc đã quét khuôn mặt: kiểm tra tài khoản và giao dịch tại từng ngân hàng bạn đang dùng.",
+      "details": [
+       "Ứng dụng của một ngân hàng chỉ cho biết tài khoản tại chính ngân hàng đó, không cho biết tài khoản bạn có ở nơi khác.",
+       "Để xem có khoản vay hay thẻ tín dụng nào đứng tên mình, hãy xem báo cáo tín dụng của CIC — trung tâm thông tin tín dụng thuộc Ngân hàng Nhà nước. Báo cáo này cho biết các khoản vay, không cho biết mọi tài khoản thanh toán."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "7a5b4cb6-c298-55d2-bf21-b10addcd1d33",
+      "mainText": "Nếu bạn đã ký giấy tờ: đề nghị được nhận một bản của đúng thứ bạn đã ký, và giữ lại bằng chứng rằng bạn đã đề nghị.",
+      "details": [
+       "Không ký thêm giấy nào theo chỉ dẫn của chính bên đang bị nghi ngờ.",
+       "Chỉ ký giấy sửa, hủy hay chấm dứt sau khi đã đọc hết, được một người độc lập giải thích, và bạn giữ được một bản."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "e2c02411-f56c-513b-8dfd-dfaf42dfd04b",
+      "mainText": "Nói cho người thân trong nhà biết, để họ không làm theo nếu có ai lấy danh nghĩa bạn liên hệ.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "9b3fc01e-5578-571f-be51-0d8379e58c91",
+      "mainText": "Lưu bằng chứng: ai nhờ, nhờ qua kênh nào, bạn đã gửi những gì, ngày giờ, và khoản tiền công đã nhận nếu có.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "44166f5f-e6e1-59ea-9994-44623d26a77a",
+      "mainText": "Nếu bạn phát hiện có tài khoản, khoản vay, doanh nghiệp hoặc hợp đồng mang tên mình mà bạn chưa từng làm: giữ nguyên mọi giấy tờ, tin nhắn, thông báo đã nhận.",
+      "details": [
+       "Trường hợp này bạn không hề đưa gì cho ai — giấy tờ của bạn bị lấy được từ nơi khác. Trình báo sớm là cách ghi nhận rằng bạn không phải người thực hiện."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "ad68152a-38b4-5078-b45c-32df2dc63296",
+      "mainText": "Đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo. Mang theo bằng chứng đã lưu.",
+      "details": [],
+      "showBankLookup": false,
+      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
+      "hasFollowUp": false
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-41.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "c07ba1d5-04dd-5265-824e-63a48c48dd7e",
+   "mockupId": "p5",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Tiền đã đưa đi nhưng không lấy lại được, hoặc hợp đồng phát sinh vấn đề",
+   "state": "published",
+   "sortOrder": 4,
+   "values": {
+    "title": "Tiền đã đưa đi nhưng không lấy lại được, hoặc hợp đồng phát sinh vấn đề",
+    "umbracoUrlName": "khong-lay-lai-duoc-tien",
+    "icon": "doc",
+    "lead": "Bước 1 là việc quan trọng nhất: đừng chuyển thêm bất cứ khoản nào.",
+    "hideFromSituations": false,
+    "steps": [
+     {
+      "key": "6927e67b-a3fb-5205-9e70-de033a78060a",
+      "mainText": "Không chuyển thêm tiền cho bên đang giữ tiền của bạn, hoặc vào tài khoản họ chỉ định, để được rút hoặc được nhận lại tiền.",
+      "details": [
+       "Họ có thể gọi khoản đó là “gỡ lỗ”, “tiền thuế”, “phí xác minh”, “phí mở khóa rút tiền”.",
+       "Nếu họ nói đó là khoản bắt buộc theo quy định, hãy tự kiểm tra với cơ quan nhà nước phụ trách trước khi chuyển bất cứ đồng nào."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "95d77698-0685-53e8-bd5a-91fcb3e221b7",
+      "mainText": "Ghi ra ba việc, càng cụ thể càng tốt: bạn đã được hứa những gì; hợp đồng hoặc thỏa thuận nói gì; và lý do họ đưa ra để không trả tiền cho bạn.",
+      "details": [
+       "Bạn không cần tự kết luận đây là lừa đảo hay là rủi ro kinh doanh. Việc đó không phải của bạn."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "40fa4a45-a76f-5ad0-a83f-e7a212e4f344",
+      "mainText": "Tìm lại hợp đồng, sao kê, tin nhắn và điều kiện rút vốn bạn đã ký hoặc đã đồng ý.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "8a684a62-305d-5b53-b547-d8d5e0849882",
+      "mainText": "Liên hệ đơn vị đã nhận, giữ hoặc chuyển tiền trong giao dịch, và cơ quan nhà nước cấp phép cho loại dịch vụ đó.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "009db6d6-4fdd-5123-9338-91f70a657f5b",
+      "mainText": "Nếu bạn nghi mình bị đưa thông tin giả, giấy tờ giả, hoặc tiền bị cố ý giữ lại — đến Công an nơi gần nhất hoặc nơi bạn cư trú để trình báo những gì bạn đang có.",
+      "details": [
+       "Không chờ tới khi tự thấy đã đủ chứng cứ. Việc xác định đúng sai là của cơ quan có thẩm quyền."
+      ],
+      "showBankLookup": false,
+      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
+      "hasFollowUp": false
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-13.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "d4e2999b-5d4f-59ef-8bf0-adfc55f13bc9",
+   "mockupId": "p9",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Tự nhiên có tiền lạ chuyển vào tài khoản của bạn",
+   "state": "published",
+   "sortOrder": 5,
+   "values": {
+    "title": "Tự nhiên có tiền lạ chuyển vào tài khoản của bạn",
+    "umbracoUrlName": "tien-la-chuyen-vao",
+    "icon": "inbox",
+    "lead": "Đây có thể là chuyển nhầm thật, cũng có thể là một thủ đoạn. Trong cả hai trường hợp, việc cần làm giống nhau.",
+    "hideFromSituations": false,
+    "steps": [
+     {
+      "key": "35336eb2-f811-5a26-8345-27372d436f99",
+      "mainText": "Không tiêu, không rút, không chuyển khoản tiền đó đi đâu.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "a4a78bb9-d54e-5dae-a82f-8109bb2c84c4",
+      "mainText": "Không chuyển trả theo số tài khoản mà người gọi điện đưa cho bạn — kể cả khi họ nói là chuyển nhầm.",
+      "details": [
+       "Cách thường gặp: họ chuyển tiền vào, sau đó gọi đòi lại kèm tiền lãi, hoặc yêu cầu bạn chuyển sang một tài khoản khác. Khi đó bạn vừa mất tiền, vừa dính vào đường đi của tiền không rõ nguồn gốc."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "2537468b-c4d7-5403-899b-24b014d18a21",
+      "mainText": "Liên hệ ngân hàng của chính bạn để báo có khoản tiền lạ và đề nghị hướng dẫn xử lý.",
+      "details": [],
+      "sampleScript": "Tài khoản của tôi vừa nhận một khoản tiền không rõ nguồn gốc. Tôi chưa sử dụng khoản này. Xin hướng dẫn cách xử lý và ghi nhận sự việc.",
+      "showBankLookup": true,
+      "hasFollowUp": false
+     },
+     {
+      "key": "9d2a8211-05c8-5c39-92ad-7a31db08956b",
+      "mainText": "Chỉ hoàn trả theo đúng cách ngân hàng hướng dẫn, hoặc theo hướng dẫn của cơ quan có thẩm quyền.",
+      "details": [
+       "Đây là điều nhiều người chưa biết, nên bị thuyết phục chuyển thẳng. Không chuyển thẳng cho người lạ, không chuyển sang một tài khoản khác, và không trả thêm bất kỳ khoản lãi hay phí nào."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "a7971f7c-081a-56b6-98ea-af8e53e5a06c",
+      "mainText": "Giữ nguyên tin nhắn báo có tiền và mọi liên hệ của người đòi lại tiền.",
+      "details": [],
+      "showBankLookup": false,
+      "snippetAfter": "2553dcb3-bd03-593a-99b8-1ac873c0f0f4",
+      "hasFollowUp": true,
+      "followUpQuestion": "Người đó có đe dọa bạn không?",
+      "followUpButton": "Có — xem việc cần làm khi bị đe dọa",
+      "followUpNote": "Bị đe dọa là chuyện khác và cần xử lý theo hướng khác.",
+      "followUpPage": "b046a5f9-515c-547d-b8ff-4c0bd38074d0"
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-11.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "d473400b-dc16-5274-92c2-6bdc670719c5",
+   "mockupId": "p1",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Có người đang thúc bạn làm ngay, bạn chưa đưa gì",
+   "state": "published",
+   "sortOrder": 6,
+   "values": {
+    "title": "Có người đang thúc bạn làm ngay, bạn chưa đưa gì",
+    "umbracoUrlName": "dang-bi-thuc-ep",
+    "icon": "clock",
+    "lead": "Làm bước 1 trước. Các bước còn lại bạn quay lại làm sau cũng được.",
+    "hideFromSituations": false,
+    "steps": [
+     {
+      "key": "dfed23c1-b6e2-50d6-bc1d-e36984fd6bf3",
+      "mainText": "Dừng liên lạc. Không bấm vào bất kỳ đường link nào họ đã gửi.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "510c67fd-ce86-584a-afce-c8b11ff89756",
+      "mainText": "Tự tìm đường liên hệ chính thức của nơi được nhắc tới, rồi gọi lại để hỏi.",
+      "details": [
+       "Lấy số từ ứng dụng bạn đã cài từ trước, từ giấy tờ bạn đang có, hoặc từ cổng thông tin của cơ quan nhà nước.",
+       "Không dùng số người đó đưa. Cũng không dùng số lấy từ quảng cáo hoặc từ kết quả tìm kiếm đầu tiên — số giả vẫn mua được chỗ hiển thị trên cùng."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "709c545a-759b-525c-a593-29d782b5c615",
+      "mainText": "Kiểm tra tên chủ tài khoản nhận tiền.",
+      "details": [
+       "Tên không khớp với bên bạn đang giao dịch thì dừng lại.",
+       "Nhưng tên khớp cũng KHÔNG chứng minh yêu cầu là thật. Kẻ lừa đảo có thể dùng tài khoản mang đúng tên một doanh nghiệp có thật."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "b35dc112-718d-561c-802a-096e39538a58",
+      "mainText": "Nói chuyện với một người bạn tin cậy trước khi quyết định.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "49be2115-1957-59a2-b05b-08be5d610fad",
+      "mainText": "Không vay tiền, không thế chấp tài sản để đáp ứng một yêu cầu gấp.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "e477dc15-79cf-5b97-b54b-01e57c209c68",
+      "mainText": "Nếu việc bắt đầu từ cuộc gọi hoặc tin nhắn, phản ánh tới 156.",
+      "details": [
+       "Đây là nơi phản ánh cuộc gọi, tin nhắn có dấu hiệu lừa đảo. Việc này không thay cho việc báo ngân hàng hay trình báo Công an."
+      ],
+      "showBankLookup": false,
+      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
+      "hasFollowUp": false
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-10.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "3326906d-b9f7-5757-9ab4-014544319437",
+   "mockupId": "p4",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Có người mời bạn góp vốn, đầu tư, làm ăn hoặc mời việc làm",
+   "state": "published",
+   "sortOrder": 7,
+   "values": {
+    "title": "Có người mời bạn góp vốn, đầu tư, làm ăn hoặc mời việc làm",
+    "umbracoUrlName": "duoc-moi-dau-tu",
+    "icon": "chart",
+    "lead": "Còn một câu chưa trả lời được thì chưa quyết định.",
+    "hideFromSituations": false,
+    "steps": [
+     {
+      "key": "ef881881-af18-5ca9-a978-0bd1d454f527",
+      "mainText": "Hỏi ba câu trước khi bỏ tiền: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
+      "details": [
+       "Nếu còn điều chưa rõ, đừng chuyển tiền. Hãy hỏi lại, đọc kỹ giấy tờ, hoặc nhờ một người bạn tin cậy xem giúp.",
+       "Đây là ba câu trở đi trở lại của Chuyên đề 3."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "606618f4-0adc-514b-9bde-545fc445e54d",
+      "mainText": "Kiểm tra xem họ có giấy cho phép làm đúng loại dịch vụ đang mời bạn hay không.",
+      "details": [
+       "Có đăng ký doanh nghiệp mới chỉ là có đăng ký kinh doanh. Nhận tiền của người khác để đầu tư, cho vay hay bảo hiểm còn cần giấy phép riêng."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "b5328bf8-a02c-536b-8c52-00fbb03fdb72",
+      "mainText": "Xin toàn bộ điều kiện bằng văn bản, mang về đọc. Không ký, không chuyển tiền tại chỗ.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "1bcd4361-1c2d-5a4c-ae9e-e0abc0fac5b3",
+      "mainText": "Xác định trước mức thiệt hại tối đa bạn chấp nhận được, và những khoản bạn có thể phải trả thêm về sau.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "267b9879-6988-5d61-83a1-b280eccbdad8",
+      "mainText": "Không vay tiền, không dùng tiền dành cho việc thiết yếu để đầu tư.",
+      "details": [],
+      "showBankLookup": false,
+      "snippetAfter": "33ccaf04-9d9d-59cb-90d2-e36e1d5c745d",
+      "hasFollowUp": false
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-40.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "bd846b9c-73d0-506b-b3a8-109cad2a623b",
+   "mockupId": "p7",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Cách tự kiểm chứng trước khi đưa",
+   "state": "published",
+   "sortOrder": 8,
+   "values": {
+    "title": "Cách tự kiểm chứng trước khi đưa",
+    "umbracoUrlName": "tu-kiem-chung",
+    "icon": "search",
+    "lead": "Dùng khi bạn sắp làm một việc và muốn kiểm tra trước, khi không có dấu hiệu nào rõ ràng, hoặc khi bạn thấy phân vân mà không gọi tên được vì sao.",
+    "hideFromSituations": true,
+    "steps": [
+     {
+      "key": "aa95e80e-3517-5527-a3f5-8c12342bbdd9",
+      "mainText": "Trước hết, chậm lại. Bộ chuyên đề gọi đây là bốn việc phải làm theo thứ tự: CHẬM LẠI — XÁC MINH ĐỘC LẬP — LÀM RÕ ĐIỀU KIỆN — RỒI MỚI QUYẾT.",
+      "details": [
+       "Đặt điện thoại xuống hai phút. Tự trả lời bốn câu: mình sắp làm gì, làm với ai, sẽ hỏi lại ở đâu, và còn chỗ nào chưa rõ."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "99217d38-d6a4-5dca-ad7b-937def284c98",
+      "mainText": "Xác minh bằng KÊNH CHÍNH THỨC — nghĩa là nơi do chính mình tự tìm ra.",
+      "details": [
+       "Số in trên thẻ ngân hàng; ứng dụng chính mình đã tự cài và vẫn dùng; địa chỉ mình tự nhập có tên miền kết thúc đúng bằng .gov.vn; số công bố trên trang chính thức; hoặc cơ quan Công an nơi gần nhất.",
+       "Không phải số máy hay đường dẫn do người kia đưa. Cũng không phải số lấy từ quảng cáo hay từ kết quả tìm kiếm đầu tiên.",
+       "Nếu người kia cản bạn làm việc này, bạn đã có câu trả lời."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "6c87b7a1-1688-5ffe-b87b-e35da8d27f2e",
+      "mainText": "Xem mình đang ở lĩnh vực nào, rồi hỏi đúng bộ câu hỏi của lĩnh vực đó.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "a583196c-17a1-515d-b424-93ba5a877a4c",
+      "mainText": "Có người mời góp vốn, đầu tư — hỏi ba câu: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
+      "details": [
+       "Chỉ dùng số tiền mà nếu mất thì đời sống gia đình vẫn ổn. Dừng nếu phải vay, thế chấp tài sản thiết yếu, hoặc dùng tiền dưỡng già, tiền chữa bệnh để góp vốn."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "834b06c3-c300-52e4-bc97-2e9986925c2b",
+      "mainText": "Có người mời việc làm, mời làm thêm — hỏi sáu nhóm: chiều tiền, công việc, ai tuyển, trả công, giấy tờ, đường ra.",
+      "details": [
+       "Chiều tiền là câu quan trọng nhất: việc làm thật thì người ta trả tiền cho mình. Hễ bị yêu cầu nộp tiền để mở việc, mở nhiệm vụ, giữ chỗ hay bảo đảm thực hiện công việc thì dừng, và đừng nộp thử."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "e96d3153-884d-5168-af9c-da315409f733",
+      "mainText": "Sắp mua bán, đặt cọc — hỏi năm câu: tiền vào ai, mình nhận gì, trả qua đâu, giao thế nào, hoàn trả ra sao.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "1d6547ed-8451-5c2a-9edb-3ff068909389",
+      "mainText": "Sắp ký hợp đồng — bốn điều phải rõ trước khi ký: ai là bên cung cấp, mình phải trả bao nhiêu, mình được hưởng gì, và muốn dừng thì làm thế nào.",
+      "details": [
+       "Xin toàn bộ giấy tờ mang về đọc. Không ký, không trả tiền tại chỗ. Còn chỗ quan trọng chưa rõ thì hoãn ký."
+      ],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "97d70856-63c4-50a0-ad1a-2e601ce12a06",
+      "mainText": "Sắp vay tiền — ghi ra giấy ba con số: mình nhận về bao nhiêu, tổng cộng phải trả bao nhiêu, mỗi kỳ trả bao nhiêu. Rồi đặt cạnh thu nhập và các khoản chi cần thiết của gia đình.",
+      "details": [],
+      "showBankLookup": false,
+      "hasFollowUp": false
+     },
+     {
+      "key": "dbebb5a6-b2f3-5015-a00b-5e4f49c3be20",
+      "mainText": "Cuối cùng, chọn một trong ba: HOÃN, DỪNG, hoặc CÓ THỂ QUYẾT ĐỊNH.",
+      "details": [
+       "HOÃN là tạm dừng để hỏi thêm khi còn thiếu thông tin.",
+       "DỪNG là ngừng hẳn khi gặp yêu cầu nguy hiểm, hoặc khi điều kiện không thể chấp nhận.",
+       "CÓ THỂ QUYẾT ĐỊNH là khi đã đủ thông tin để tự quyết. Đây là ba cách xử lý của bộ chuyên đề."
+      ],
+      "showBankLookup": false,
+      "snippetAfter": "2553dcb3-bd03-593a-99b8-1ac873c0f0f4",
+      "hasFollowUp": false
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-15.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "d0ed3e7f-415e-5109-8906-5f47e134faf3",
+   "mockupId": "p0",
+   "parentKey": "80b6e0a2-a03d-571d-a68e-fb3b15108138",
+   "contentType": "viecCanLamPage",
+   "name": "Trả lời vài câu hỏi ngắn",
+   "state": "published",
+   "sortOrder": 9,
+   "values": {
+    "title": "Trả lời vài câu hỏi ngắn",
+    "umbracoUrlName": "tra-loi-nhanh",
+    "icon": "quiz",
+    "lead": "Đọc từ trên xuống. Gặp câu nào đúng với bạn thì bấm nút của câu đó và dừng lại ở đây.",
+    "hideFromSituations": true,
+    "screeningQuestions": [
+     {
+      "key": "7839ccae-1a29-59cf-86de-c31c9806a4ef",
+      "question": "1. Có ai đang đe dọa bạn, ép bạn phải trả tiền hoặc phải im lặng không?",
+      "buttonText": "Có — xem việc cần làm",
+      "targetPage": "b046a5f9-515c-547d-b8ff-4c0bd38074d0",
+      "note": "Câu này để đầu tiên vì nó liên quan đến an toàn của bạn, không chỉ tiền bạc."
+     },
+     {
+      "key": "5758d4d3-9718-5434-b002-19b7594fa832",
+      "question": "2. Bạn đã đọc mã OTP, đưa mật khẩu, cài ứng dụng theo lời người khác, cho ai đó điều khiển màn hình — hoặc điện thoại, SIM, tài khoản của bạn có chuyện: bị mất, mất sóng, không đăng nhập được, có giao dịch lạ?",
+      "buttonText": "Đúng — xem việc cần làm",
+      "targetPage": "abc4d8e5-db8c-524b-a201-7e5b0c71ae8f",
+      "note": "Câu này để trước câu tiền, vì đây là thứ đang tiếp tục gây thiệt hại trong lúc bạn đọc."
+     },
+     {
+      "key": "482a057f-3524-52da-be3c-26722eb7ff55",
+      "question": "3. Bạn đã chuyển tiền, đã đưa tiền, hoặc đã giao hàng đi chưa?",
+      "buttonText": "Rồi — xem việc cần làm",
+      "targetPage": "8f95afcc-b47f-5201-9892-a2dcc83563df",
+      "note": "Nếu bạn lỡ cả câu 2 và câu 3, hãy làm xong câu 2 trước rồi quay lại đây."
+     },
+     {
+      "key": "70377536-ff28-5e24-b23b-42c6f7205ed9",
+      "question": "4. Giấy tờ, khuôn mặt, chữ ký hoặc tên của bạn đã được gửi đi, hoặc bị người khác dùng — kể cả khi bạn không hề làm việc đó?",
+      "buttonText": "Rồi — xem việc cần làm",
+      "targetPage": "ced0f2ff-a349-590d-a486-21ac72df96f0",
+      "note": "Kể cả khi bạn chưa mất đồng nào, việc này vẫn cần xử lý."
+     },
+     {
+      "key": "abd6857b-0f18-5aae-ae2b-01269ff23876",
+      "question": "5. Có khoản tiền lạ nào tự nhiên chuyển vào tài khoản của bạn không?",
+      "buttonText": "Có — xem việc cần làm",
+      "targetPage": "d4e2999b-5d4f-59ef-8bf0-adfc55f13bc9",
+      "note": "Đừng tiêu và đừng chuyển trả cho tới khi đọc xong."
+     },
+     {
+      "key": "d4659027-bf6b-54f6-a775-64aaa70dfe6a",
+      "question": "Chưa câu nào ở trên đúng với bạn?",
+      "buttonText": "Vậy bạn chưa mất gì — xem cách dừng đúng lúc",
+      "targetPage": "d473400b-dc16-5274-92c2-6bdc670719c5",
+      "note": "Chưa mất gì là tình thế tốt nhất. Việc cần làm bây giờ là kiểm chứng trước khi đưa bất cứ thứ gì."
+     }
+    ],
+    "reviewDate": "2026-10-20",
+    "verificationSource": "Bài đọc Chuyên đề 1 và Chuyên đề 8, bản 2.0",
+    "illustration": {
+     "media": "minh-hoa-20.jpg"
+    },
+    "illustrationAlt": "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính"
+   }
+  },
+  {
+   "key": "3851b553-a784-54e0-a814-2f599bd017c5",
+   "mockupId": "t24",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Giả danh cơ quan, ngân hàng, người giao hàng qua điện thoại",
+   "state": "published",
+   "sortOrder": 0,
+   "values": {
+    "code": "gia-danh-co-quan-ngan-hang-nguoi-giao-ha",
+    "isActive": true,
+    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
+    "channels": [
+     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "350b745c-24f3-53b8-b422-d706ca11b469",
+     "75de4617-259e-5e6c-8494-aad99d95652c",
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "ebfd2d6f-96c8-5585-a8a3-526084100002",
+     "c583f773-a99a-55c3-a604-5ed5f4baebc9",
+     "caba6979-1395-5ff7-9dda-933ef4066841",
+     "b047b049-5891-5b52-a6da-8d5eee6f776b"
+    ]
+   }
+  },
+  {
+   "key": "22bc1106-acae-52d4-96ba-25c561b7c06a",
+   "mockupId": "t25",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Bắt cóc online: giả cơ quan tố tụng, ép ở một mình, ép chuyển tiền xác minh",
+   "state": "published",
+   "sortOrder": 1,
+   "values": {
+    "code": "bat-coc-online-gia-co-quan-to-tung-ep-o",
+    "isActive": true,
+    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
+    "channels": [
+     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "75de4617-259e-5e6c-8494-aad99d95652c",
+     "c583f773-a99a-55c3-a604-5ed5f4baebc9",
+     "caba6979-1395-5ff7-9dda-933ef4066841",
+     "b047b049-5891-5b52-a6da-8d5eee6f776b"
+    ]
+   }
+  },
+  {
+   "key": "ec1436ab-0cea-5ad0-b167-326adc5bcfd6",
+   "mockupId": "t29",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Dụ chia sẻ màn hình hoặc cài công cụ điều khiển máy từ xa",
+   "state": "published",
+   "sortOrder": 2,
+   "values": {
+    "code": "du-chia-se-man-hinh-hoac-cai-cong-cu-die",
+    "isActive": true,
+    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
+    "channels": [
+     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
+     "19576116-c761-5aa9-b178-239b0480748d",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "75de4617-259e-5e6c-8494-aad99d95652c",
+     "350b745c-24f3-53b8-b422-d706ca11b469",
+     "c583f773-a99a-55c3-a604-5ed5f4baebc9"
+    ]
+   }
+  },
+  {
+   "key": "02c671fa-7049-57ba-88bd-afa247ccf1b1",
+   "mockupId": "t27",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Tin nhắn giả chen vào đúng luồng tin thật của ngân hàng",
+   "state": "published",
+   "sortOrder": 3,
+   "values": {
+    "code": "tin-nhan-gia-chen-vao-dung-luong-tin-tha",
+    "isActive": true,
+    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
+    "channels": [
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
+     "6d5f3f8e-69f8-5293-8fbf-ba2a96765b85"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "ebfd2d6f-96c8-5585-a8a3-526084100002",
+     "350b745c-24f3-53b8-b422-d706ca11b469",
+     "c583f773-a99a-55c3-a604-5ed5f4baebc9"
+    ]
+   }
+  },
+  {
+   "key": "147da3f7-042a-549d-99c2-d7122ef750c1",
+   "mockupId": "t28",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Chiếm tài khoản mạng xã hội rồi giả người quen hỏi vay tiền",
+   "state": "published",
+   "sortOrder": 4,
+   "values": {
+    "code": "chiem-tai-khoan-mang-xa-hoi-roi-gia-nguo",
+    "isActive": true,
+    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
+    "channels": [
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "350b745c-24f3-53b8-b422-d706ca11b469",
+     "219ca254-8b4f-5b08-a6dc-97b3fc7406b8"
+    ]
+   }
+  },
+  {
+   "key": "4c93251d-0dd7-5e75-8098-2a2457e84359",
+   "mockupId": "t26",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Ghép hình ảnh, giọng nói người thân trong cuộc gọi video",
+   "state": "published",
+   "sortOrder": 5,
+   "values": {
+    "code": "ghep-hinh-anh-giong-noi-nguoi-than-trong",
+    "isActive": true,
+    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
+    "channels": [
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "219ca254-8b4f-5b08-a6dc-97b3fc7406b8",
+     "caba6979-1395-5ff7-9dda-933ef4066841"
+    ]
+   }
+  },
+  {
+   "key": "8495a901-1dd7-5a08-a516-d732b120e93f",
+   "mockupId": "t30",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Tâm linh, giải hạn: dọa gia đình sắp gặp nạn để đòi tiền",
+   "state": "published",
+   "sortOrder": 6,
+   "values": {
+    "code": "tam-linh-giai-han-doa-gia-dinh-sap-gap-n",
+    "isActive": true,
+    "containingArticle": "02a6beb8-f532-5377-894a-d26e834b9c48",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
+     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "c583f773-a99a-55c3-a604-5ed5f4baebc9"
+    ]
+   }
+  },
+  {
+   "key": "974fb467-e949-5a46-89e2-321b9343b6d7",
+   "mockupId": "t14",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Nhiệm vụ trực tuyến, cộng tác viên: nạp tiền kích hoạt, nâng gói",
+   "state": "published",
+   "sortOrder": 7,
+   "values": {
+    "code": "nhiem-vu-truc-tuyen-cong-tac-vien-nap-ti",
+    "isActive": true,
+    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
+    "channels": [
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
+     "19576116-c761-5aa9-b178-239b0480748d"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64",
+     "829dbf26-d099-52ca-a369-4e6f3bcc607c"
+    ]
+   }
+  },
+  {
+   "key": "34a0f294-12d9-56ad-9c05-901d95288deb",
+   "mockupId": "t18",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Bảo cài ứng dụng tuyển việc từ đường dẫn lạ, xin quyền trợ năng",
+   "state": "published",
+   "sortOrder": 8,
+   "values": {
+    "code": "bao-cai-ung-dung-tuyen-viec-tu-duong-dan",
+    "isActive": true,
+    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
+    "channels": [
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
+     "19576116-c761-5aa9-b178-239b0480748d",
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "75de4617-259e-5e6c-8494-aad99d95652c",
+     "ebfd2d6f-96c8-5585-a8a3-526084100002",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64"
+    ]
+   }
+  },
+  {
+   "key": "f77280e6-0782-583b-b43e-2f639be94970",
+   "mockupId": "t17",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Dụ mở, cho mượn, cho thuê hoặc bán tài khoản ngân hàng, SIM; nhờ nhận và chuyển tiền hộ",
+   "state": "published",
+   "sortOrder": 9,
+   "values": {
+    "code": "du-mo-cho-muon-cho-thue-hoac-ban-tai-kho",
+    "isActive": true,
+    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
+    "channels": [
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "13ef17c7-7c8e-5234-ae0f-81ff0b52ce10",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64"
+    ]
+   }
+  },
+  {
+   "key": "314db7e7-ba09-5e44-b701-60e75987b792",
+   "mockupId": "t15",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Việc nhẹ lương cao, đưa đi làm xa hoặc đi làm ở nước ngoài",
+   "state": "published",
+   "sortOrder": 10,
+   "values": {
+    "code": "viec-nhe-luong-cao-dua-di-lam-xa-hoac-di",
+    "isActive": true,
+    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
+    "channels": [
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "6bc5293d-905b-5e1e-8919-62704403d55d",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64"
+    ]
+   }
+  },
+  {
+   "key": "2e0a2ba6-9ff2-503e-a1c7-9259263a128b",
+   "mockupId": "t4",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Sàn đầu tư cam kết lợi nhuận, cho rút thử lần đầu để làm mồi",
+   "state": "published",
+   "sortOrder": 11,
+   "values": {
+    "code": "san-dau-tu-cam-ket-loi-nhuan-cho-rut-thu",
+    "isActive": true,
+    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
+    "channels": [
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "19576116-c761-5aa9-b178-239b0480748d",
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "75de4617-259e-5e6c-8494-aad99d95652c",
+     "ebfd2d6f-96c8-5585-a8a3-526084100002",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64"
+    ]
+   }
+  },
+  {
+   "key": "b4fd74fb-ff76-57dd-b2b1-815b8f48499d",
+   "mockupId": "t7",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Chặn không cho rút rồi đẻ thêm điều kiện: thuế xác minh, phí VIP, phí mở khóa",
+   "state": "published",
+   "sortOrder": 12,
+   "values": {
+    "code": "chan-khong-cho-rut-roi-de-them-dieu-kien",
+    "isActive": true,
+    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
+    "channels": [
+     "19576116-c761-5aa9-b178-239b0480748d",
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "829dbf26-d099-52ca-a369-4e6f3bcc607c"
+    ]
+   }
+  },
+  {
+   "key": "3ffd375f-52c4-52fb-8e8a-698eed694889",
+   "mockupId": "t5",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Hoa hồng theo tầng, thưởng tính theo số người mới kéo vào",
+   "state": "published",
+   "sortOrder": 13,
+   "values": {
+    "code": "hoa-hong-theo-tang-thuong-tinh-theo-so-n",
+    "isActive": true,
+    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64"
+    ]
+   }
+  },
+  {
+   "key": "15f4da83-55f4-576f-bb03-159f8827bba3",
+   "mockupId": "t9",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Ứng dụng vay nhanh đòi quyền vào danh bạ, hình ảnh, tin nhắn",
+   "state": "published",
+   "sortOrder": 14,
+   "values": {
+    "code": "ung-dung-vay-nhanh-doi-quyen-vao-danh-ba",
+    "isActive": true,
+    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
+    "channels": [
+     "19576116-c761-5aa9-b178-239b0480748d",
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "75de4617-259e-5e6c-8494-aad99d95652c",
+     "6bc5293d-905b-5e1e-8919-62704403d55d",
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64"
+    ]
+   }
+  },
+  {
+   "key": "77475a6e-e849-5164-aad5-c0f4a193ea50",
+   "mockupId": "t12",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Đòi nợ sai người, gọi vào danh bạ để gây sức ép",
+   "state": "published",
+   "sortOrder": 15,
+   "values": {
+    "code": "doi-no-sai-nguoi-goi-vao-danh-ba-de-gay",
+    "isActive": true,
+    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
+    "channels": [
+     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "c583f773-a99a-55c3-a604-5ed5f4baebc9"
+    ]
+   }
+  },
+  {
+   "key": "f69f6a7a-b13b-53e8-bc2f-e6ebff833b9d",
+   "mockupId": "t13",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Bị đòi một khoản vay mang tên mình mà mình chưa từng vay",
+   "state": "published",
+   "sortOrder": 16,
+   "values": {
+    "code": "bi-doi-mot-khoan-vay-mang-ten-minh-ma-mi",
+    "isActive": true,
+    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
+    "channels": [
+     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "c583f773-a99a-55c3-a604-5ed5f4baebc9",
+     "6bc5293d-905b-5e1e-8919-62704403d55d"
+    ]
+   }
+  },
+  {
+   "key": "4aaf8f97-c073-5937-8226-0e05f465da40",
+   "mockupId": "t11",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Nhờ bạn đứng tên vay hộ hoặc bảo lãnh cho người chỉ quen qua mạng",
+   "state": "published",
+   "sortOrder": 17,
+   "values": {
+    "code": "nho-ban-dung-ten-vay-ho-hoac-bao-lanh-ch",
+    "isActive": true,
+    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
+    "channels": [
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "6bc5293d-905b-5e1e-8919-62704403d55d",
+     "13ef17c7-7c8e-5234-ae0f-81ff0b52ce10",
+     "219ca254-8b4f-5b08-a6dc-97b3fc7406b8"
+    ]
+   }
+  },
+  {
+   "key": "c8c0124c-fbee-5a6e-b95a-016b1eff5642",
+   "mockupId": "t19",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Chuyển khoản trước, rời khỏi sàn, rồi không nhận được hàng",
+   "state": "published",
+   "sortOrder": 18,
+   "values": {
+    "code": "chuyen-khoan-truoc-roi-khoi-san-roi-khon",
+    "isActive": true,
+    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
+    "channels": [
+     "140e127b-2fd1-54b5-87eb-9c39e0abf402",
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "19576116-c761-5aa9-b178-239b0480748d"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "ebfd2d6f-96c8-5585-a8a3-526084100002"
+    ]
+   }
+  },
+  {
+   "key": "df556cd5-12e3-546f-92a7-ec8eef71176a",
+   "mockupId": "t23",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Chuyển nhầm tiền vào tài khoản của bạn, kèm mã QR hoặc đường dẫn hoàn lại",
+   "state": "published",
+   "sortOrder": 19,
+   "values": {
+    "code": "chuyen-nham-tien-vao-tai-khoan-cua-ban-k",
+    "isActive": true,
+    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
+    "channels": [
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
+     "e1474e36-7b86-5a4b-bef9-c9a6afc284e3"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "ebfd2d6f-96c8-5585-a8a3-526084100002",
+     "c583f773-a99a-55c3-a604-5ed5f4baebc9"
+    ]
+   }
+  },
+  {
+   "key": "44d5ae50-8154-5159-80c1-44436f8941f5",
+   "mockupId": "t22",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Giả biên lai chuyển khoản, rồi đòi hoàn lại tiền chuyển thừa",
+   "state": "published",
+   "sortOrder": 20,
+   "values": {
+    "code": "gia-bien-lai-chuyen-khoan-roi-doi-hoan-l",
+    "isActive": true,
+    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
+    "channels": [
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467",
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5"
+    ]
+   }
+  },
+  {
+   "key": "77e710df-db37-524e-b12b-b58fea924ec8",
+   "mockupId": "t21",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Hội thảo, bán hàng lưu động, ép mua hoặc ép đặt cọc ngay tại chỗ",
+   "state": "published",
+   "sortOrder": 21,
+   "values": {
+    "code": "hoi-thao-ban-hang-luu-dong-ep-mua-hoac-e",
+    "isActive": true,
+    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "ratCao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "caba6979-1395-5ff7-9dda-933ef4066841",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64"
+    ]
+   }
+  },
+  {
+   "key": "63befa8e-68fa-5eee-a86b-c288ab2fe53d",
+   "mockupId": "t8",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Đặt cọc đất, suất nội bộ, tiền chuyển vào tài khoản cá nhân",
+   "state": "published",
+   "sortOrder": 22,
+   "values": {
+    "code": "dat-coc-dat-suat-noi-bo-tien-chuyen-vao",
+    "isActive": true,
+    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "19576116-c761-5aa9-b178-239b0480748d"
+    ],
+    "cautionLevel": "cao",
+    "wizardAnswers": [
+     "26585ada-af77-58ee-a8b6-38be1cf5afa5",
+     "15dd6893-6089-5dc6-8f2f-79cb52349d64",
+     "caba6979-1395-5ff7-9dda-933ef4066841"
+    ]
+   }
+  },
+  {
+   "key": "38a76f93-d5b7-5616-a0c3-30b7993e7e40",
+   "mockupId": "t0",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Ép ký, ép bấm đồng ý khi bạn chưa đọc hết điều khoản",
+   "state": "published",
+   "sortOrder": 23,
+   "values": {
+    "code": "ep-ky-ep-bam-dong-y-khi-ban-chua-doc-het",
+    "isActive": true,
+    "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
+     "19576116-c761-5aa9-b178-239b0480748d"
+    ],
+    "cautionLevel": "cao"
+   }
+  },
+  {
+   "key": "b0d9b979-1de4-5379-9e6a-c569204a8b65",
+   "mockupId": "t1",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Quảng cáo một đằng, hợp đồng một nẻo",
+   "state": "published",
+   "sortOrder": 24,
+   "values": {
+    "code": "quang-cao-mot-dang-hop-dong-mot-neo",
+    "isActive": true,
+    "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "19576116-c761-5aa9-b178-239b0480748d"
+    ],
+    "cautionLevel": "thuong"
+   }
+  },
+  {
+   "key": "d70dd60b-5870-5366-979f-4601f7049a93",
+   "mockupId": "t2",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Bảo bạn ký vào giấy còn chỗ trống, thiếu số tiền, thiếu phụ lục",
+   "state": "published",
+   "sortOrder": 25,
+   "values": {
+    "code": "bao-ban-ky-vao-giay-con-cho-trong-thieu",
+    "isActive": true,
+    "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "cao"
+   }
+  },
+  {
+   "key": "a69d3646-43eb-55f4-bc2c-ef9cf3ef3824",
+   "mockupId": "t3",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Phí định kỳ và tự động gia hạn giấu trong phụ lục chưa ai đọc",
+   "state": "published",
+   "sortOrder": 26,
+   "values": {
+    "code": "phi-dinh-ky-va-tu-dong-gia-han-giau-tron",
+    "isActive": true,
+    "containingArticle": "ef6cf801-44ae-55fa-91c0-26795b81415f",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
+     "19576116-c761-5aa9-b178-239b0480748d"
+    ],
+    "cautionLevel": "thuong"
+   }
+  },
+  {
+   "key": "69816132-74c2-5d14-b9e7-668246d95e19",
+   "mockupId": "t6",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Nhập nhèm giữa góp vốn, cho vay và tiền gửi tiết kiệm",
+   "state": "published",
+   "sortOrder": 27,
+   "values": {
+    "code": "nhap-nhem-giua-gop-von-cho-vay-va-tien-g",
+    "isActive": true,
+    "containingArticle": "9493a296-0278-5545-a659-eb7b2c3d337c",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "thuong"
+   }
+  },
+  {
+   "key": "5312a30d-abc1-5ca5-9257-0260e56c37c9",
+   "mockupId": "t10",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Khấu trừ khi giải ngân: hồ sơ ghi một số, thực nhận một số khác",
+   "state": "published",
+   "sortOrder": 28,
+   "values": {
+    "code": "khau-tru-khi-giai-ngan-ho-so-ghi-mot-so",
+    "isActive": true,
+    "containingArticle": "d14dde22-b363-54c4-b02e-19cfbf8a8efd",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca",
+     "19576116-c761-5aa9-b178-239b0480748d"
+    ],
+    "cautionLevel": "thuong"
+   }
+  },
+  {
+   "key": "34a7ff16-387c-5213-b9ae-277bef2a3fd3",
+   "mockupId": "t16",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Giữ bản chính bằng cấp, giấy tờ tùy thân của người xin việc",
+   "state": "published",
+   "sortOrder": 29,
+   "values": {
+    "code": "giu-ban-chinh-bang-cap-giay-to-tuy-than",
+    "isActive": true,
+    "containingArticle": "e61fcccd-5b08-5f53-8f16-fb010b6ee7fb",
+    "channels": [
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "cao"
+   }
+  },
+  {
+   "key": "5bf44dc5-4be0-5024-b058-0054c8d61ed7",
+   "mockupId": "t20",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Đặt cọc dịch vụ, thuê tài sản không có chứng từ",
+   "state": "published",
+   "sortOrder": 30,
+   "values": {
+    "code": "dat-coc-dich-vu-thue-tai-san-khong-co-ch",
+    "isActive": true,
+    "containingArticle": "ffb16362-bbf1-52e5-8a72-f2c721d89677",
+    "channels": [
+     "3ad175e9-c9e3-5a9f-a43a-8458a565dbbb",
+     "76b7a1cc-28b4-5785-a044-8759bd2954ca"
+    ],
+    "cautionLevel": "cao"
+   }
+  },
+  {
+   "key": "a34e95cc-96f5-5e6e-8f11-7727d73baa6e",
+   "mockupId": "t-cu",
+   "parentKey": "e1ec6266-23e3-5ee9-bcbb-4100c240fb97",
+   "contentType": "tacticItem",
+   "name": "Tin nhắn trúng thưởng, nhận quà tri ân",
+   "state": "published",
+   "sortOrder": 31,
+   "values": {
+    "code": "tin-nhan-trung-thuong",
+    "isActive": false,
+    "containingArticle": "19709819-f36c-5446-8857-0a286180ceef",
+    "channels": [
+     "f97aea5d-7998-5afb-a72e-b16ab9c09467"
+    ],
+    "cautionLevel": "cao",
+    "searchKeywords": [
+     "trúng thưởng"
+    ]
+   }
+  },
+  {
    "key": "46207bd9-7334-58d3-a56c-44660e190621",
    "mockupId": "lib",
    "parentKey": "02308def-050d-5f02-901f-d457d298ec5e",
@@ -7672,7 +7854,9 @@
      "<b>Không có thẻ:</b> mở ứng dụng ngân hàng bạn đã cài từ trước, vào mục Trợ giúp hoặc Liên hệ.",
      "<b>Luôn luôn:</b> không bấm đường link và không gọi số do người kia gửi."
     ],
-    "refuseLendingNote": "Từ chối ngay lời đề nghị cho mượn, cho thuê, bán hoặc mở hộ tài khoản ngân hàng, ví điện tử, SIM, dù được trả tiền công."
+    "refuseLendingNote": "Từ chối ngay lời đề nghị cho mượn, cho thuê, bán hoặc mở hộ tài khoản ngân hàng, ví điện tử, SIM, dù được trả tiền công.",
+    "actionStepsNote": "Các bước trên là việc nên làm ngay để giảm thiệt hại, chưa phải kết luận về vụ việc.",
+    "notOnDutyNote": "Website không trực 24/7. Khi đang xảy ra sự việc, hãy gọi ngay tổng đài ngân hàng của bạn và cơ quan Công an nơi cư trú."
    }
   }
  ]

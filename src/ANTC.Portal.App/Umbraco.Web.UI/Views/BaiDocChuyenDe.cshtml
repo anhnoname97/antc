@@ -1,0 +1,18 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Strings
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var title = Model.Value<string>("title") ?? Model.Name;
+    var description = Model.Value<string>("description");
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/self-check-tool.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/self-check-checklist.css" asp-append-version="true">
+}
+<article class="self-check-page self-check-tool self-check-reading site-chrome-wrap">
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li><li aria-current="page">Bài đọc Chuyên đề</li></ol></nav>
+    <header class="self-check-heading"><p class="self-check-eyebrow">Bài đọc Chuyên đề</p><h1>@title</h1><p>@description</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
+    <div class="self-check-reading-body">@(Model.Value<IHtmlEncodedString>("readingBody"))</div>
+    <a class="self-check-button self-check-source-link" href="/hay-tu-kiem-tra/">Về Hãy tự kiểm tra</a>
+</article>

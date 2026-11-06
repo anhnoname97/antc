@@ -52,7 +52,7 @@ class AntcSelfCheckInfo extends UmbLitElement {
 
   render() {
     if (this._mode === 'url') return html`<code>${this._loading ? 'Đang lấy đường dẫn…' : this._url || 'Chưa có đường dẫn công khai. Lưu và xuất bản trang để kiểm tra.'}</code>`;
-    if (this._mode === 'tool-rules') return html`<p>Câu “Phải dừng” trả lời Có thì kết luận ngay mức Rất cao. Còn lại: câu “Phải dừng” chưa biết; câu “Tạm hoãn” Có hoặc chưa biết; câu “Cần kiểm tra” Không hoặc chưa biết đều thành lý do. Có lý do thì mức Cao, không có thì mức Cần thận trọng (QĐ-051).</p>`;
+    if (this._mode === 'tool-rules') return html`<p>Câu “Phải dừng” trả lời Có thì dừng hỏi và hiện trạng thái DỪNG. Còn lại: câu “Phải dừng” chưa biết; câu “Tạm hoãn” Có hoặc chưa biết; câu “Cần kiểm tra” Không hoặc chưa biết đều thành lý do HOÃN VÀ KIỂM CHỨNG. Không có lý do thì CHƯA PHÁT HIỆN ĐIỂM DỪNG; kết quả này không có nghĩa giao dịch an toàn. Nhãn kết quả riêng lấy từ nhóm Kết quả của từng công cụ.</p>`;
     if (this._mode === 'checklist-pdf') return html`<p>${this._hasPdf ? 'Tải tệp đã chọn.' : 'Chưa có tệp: nút tải mở bản in A4.'}</p>`;
     // The stored value is a content key, never an arbitrary HTML fragment or URL.
     const key = String(this._target ?? this.value ?? '').replace(/^umb:\/\/document\//, '');

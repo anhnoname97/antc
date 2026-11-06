@@ -1,0 +1,8 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    var updated = Model.Value<DateTime?>("updatedDate") ?? Model.Value<DateTime?>("displayUpdatedDate");
+}
+@if (updated is { Year: > 1900 } date)
+{
+    <p class="self-check-updated">Cập nhật <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p>
+}

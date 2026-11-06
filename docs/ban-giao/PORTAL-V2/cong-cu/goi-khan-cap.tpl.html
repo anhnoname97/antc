@@ -1,0 +1,128 @@
+<meta charset="utf-8">
+<title>Gói Khẩn cấp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#F3F6F7;--panel:#FFFFFF;--panel-2:#EDF2F3;--fg:#15282A;--muted:#5B6E70;--line:#D9E2E3;--line-strong:#B9C7C9;--accent:#0E7C72;--accent-bg:#E3F3F0;--warn:#9A5B00;--warn-bg:#FFF4DF;
+  --fs-xs:.75rem;--fs-s:.8125rem;--fs-m:.9375rem;--fs-l:1.125rem;--fs-xl:1.625rem;--mono:'Roboto Mono',ui-monospace,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1718;--panel:#162123;--panel-2:#1C2A2C;--fg:#E3ECEC;--muted:#9DB0B1;--line:#2A3B3D;--line-strong:#3B5154;--accent:#4FC2B3;--accent-bg:#173A36;--warn:#F2C277;--warn-bg:#3A2C12;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1718;--panel:#162123;--panel-2:#1C2A2C;--fg:#E3ECEC;--muted:#9DB0B1;--line:#2A3B3D;--line-strong:#3B5154;--accent:#4FC2B3;--accent-bg:#173A36;--warn:#F2C277;--warn-bg:#3A2C12;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:Roboto,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:var(--fs-m);line-height:1.55;margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+code{font-family:var(--mono);font-size:.85em;background:var(--panel-2);border-radius:4px;padding:0 4px;overflow-wrap:anywhere}
+a{color:var(--accent)}
+h1,h2,h3{text-wrap:balance;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding-block:10px}
+.top nav{display:flex;gap:2px;flex-wrap:wrap}
+.top nav a{text-decoration:none;color:var(--fg);font-size:var(--fs-s);padding:6px 10px;border-radius:6px}
+.top nav a:hover{background:var(--accent-bg);color:var(--accent)}
+.hero{padding-block:32px 12px;display:grid;gap:10px;max-width:78ch}
+.hero h1{font-size:var(--fs-xl)}.hero p{margin:0;color:var(--muted)}
+.meta{display:flex;gap:8px;flex-wrap:wrap;font-size:var(--fs-s)}.meta span{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+section.blk{padding-block:22px;border-top:1px solid var(--line);display:grid;gap:14px;scroll-margin-top:60px}
+section.blk > h2{font-size:var(--fs-l)}
+section.blk > p{margin:0;max-width:80ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:8px;align-content:start;min-width:0}
+.card h3{font-size:var(--fs-m)}.card p{margin:0;color:var(--muted);font-size:var(--fs-s)}
+.card .go{justify-self:start;display:inline-block;text-decoration:none;background:var(--accent);color:var(--panel);border-radius:6px;padding:7px 12px;font-weight:500;font-size:var(--fs-s)}
+.steps{margin:0;padding-left:20px;display:grid;gap:4px}
+.tblwrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:var(--fs-s)}
+th{text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);padding:8px 10px;white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top}
+tr:last-child td{border-bottom:0}
+table.tasks td:first-child{font-weight:700;white-space:nowrap}
+table.tasks td:nth-child(4){min-width:360px}
+table.fields tr.sub td{color:var(--muted)}
+details.ft,details.qd{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+details.ft > summary,details.qd > summary{cursor:pointer;font-weight:500}
+details.ft[open],details.qd[open]{display:grid;gap:8px}
+details.ft .tblwrap{border:0}
+.qd ul{margin:0;padding-left:18px;display:grid;gap:3px;font-size:var(--fs-s)}.qd li.l1{margin-left:16px}.qd li.l2{margin-left:32px}
+.note{background:var(--warn-bg);color:var(--fg);border-radius:8px;padding:10px 14px;font-size:var(--fs-s)}
+.note b{color:var(--warn)}
+.small{font-size:var(--fs-s);color:var(--muted);margin:0}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+ul.plain{margin:0;padding-left:18px;display:grid;gap:3px}
+.foot{padding-block:24px 40px;color:var(--muted);font-size:var(--fs-s)}
+</style>
+<header class="top"><div class="wrap"><b>Gói Khẩn cấp</b><nav aria-label="Mục">
+<a href="#bat-dau">Bắt đầu</a><a href="#pham-vi">Phạm vi</a><a href="#viec">Việc của gói</a><a href="#phu-thuoc">Phụ thuộc</a><a href="#truong">Trường</a><a href="#luat">Luật tự lấy</a><a href="#quyet-dinh">Quyết định</a><a href="#du-lieu">Dữ liệu mẫu</a></nav></div></header>
+<main class="wrap">
+<section class="hero">
+  <h1>Gói Khẩn cấp: bàn giao cho dev</h1>
+  <p>Mục Khẩn cấp của antoantaichinh.vn: trang Khẩn cấp, trình hỏi “Tôi đang gặp chuyện gì?”, 10 trang Việc cần làm và các đoạn dùng chung đi kèm. Gói gồm {{NOWN}} task, làm riêng được trên nhánh <code>portal-v2</code> khi các task phụ thuộc đã xong.</p>
+  <div class="meta"><span>Cập nhật {{DATE}}</span><span>Umbraco 18 · .NET 10</span><span>Nhánh <code>portal-v2</code></span><span>Quyết định QĐ-053, QĐ-056</span></div>
+</section>
+
+<section class="blk" id="bat-dau">
+  <h2>Mở theo thứ tự này</h2>
+  <div class="cards">
+    <div class="card"><h3>1. Website và backoffice</h3><p>Ảnh từng màn trên website, đánh số từng khối; mỗi khối ghi lấy từ trường nào hoặc website tự lấy theo luật nào.</p><a class="go" href="website-va-backoffice.html">Mở trang đối chiếu</a></div>
+    <div class="card"><h3>2. Backoffice chạy thử</h3><p>Cây menu, danh sách, ô chọn, danh mục và form của phần này, có dữ liệu mẫu. Bấm được, không lưu thật. Đổi “Xem như” để thấy quyền Quản trị viên.</p><a class="go" href="backoffice.html">Mở backoffice</a></div>
+    <div class="card"><h3>3. Trang này</h3><p>Task, phụ thuộc, trường, luật tự lấy, quyết định. Bản đầy đủ của thiết kế ở <code>docs/ban-giao/PORTAL-V2/1-thiet-ke.md</code>.</p></div>
+  </div>
+  <div class="note"><b>Nguyên tắc của gói (QĐ-056, như QĐ-054):</b> cái gì suy ra được từ dữ liệu đã có thì website tự lấy; form chỉ giữ những gì chỉ người viết mới biết. Trình hỏi không có ma trận: mức độ theo loại của lựa chọn, “Tình huống gần giống” là các thủ đoạn trong Danh mục, “Việc cần làm ngay” là bước của trang Việc cần làm. Ô đánh dấu <b>mới*</b> là Claude đề xuất thêm cho các khối chưa có chỗ nhập, chờ duyệt.</div>
+</section>
+
+<section class="blk" id="pham-vi">
+  <h2>Phạm vi</h2>
+  <div class="two">
+    <div class="card"><h3>Màn trên website</h3><ul class="plain">{{SCREENS}}</ul></div>
+    <div class="card"><h3>Trong backoffice</h3><ul class="plain">
+      <li>Quản lý nội dung › <b>Việc cần làm</b>: danh sách 10 trang, kéo để sắp (thứ tự này là thứ tự “tình huống điển hình”)</li>
+      <li>Quản lý nội dung › <b>Đoạn dùng chung</b>: hộp số ngân hàng, “Đừng trả phí cho người hứa lấy lại tiền”, “Chỉ làm các bước dưới đây nếu…”</li>
+      <li>Quản lý nội dung › <b>Danh mục › Thủ đoạn</b>: ô “Câu trả lời ở trình hỏi”; Kênh tiếp cận, Dấu hiệu phải dừng chỉ đọc</li>
+      <li>Quản lý trang › <b>Khẩn cấp</b> › Kiểm tra tình huống (cố định; trình hỏi chỉ Quản trị viên mở)</li>
+      <li>Cài đặt website › Bốn nguyên tắc dừng; Câu cố định: nhãn mức độ, cách tự tìm số ngân hàng, câu dưới kết quả, câu dưới các bước, “Website không trực 24/7”</li></ul></div>
+  </div>
+  <p class="small">Không thuộc gói: trang chủ, Hãy tự kiểm tra, Danh sách kiểm tra, Các rủi ro (gói riêng <code>goi-cac-rui-ro/</code>). Gói này đọc dữ liệu của chúng: thủ đoạn và bài chứa thủ đoạn, chuyên đề, danh sách kiểm tra cùng chuyên đề.</p>
+</section>
+
+<section class="blk" id="viec">
+  <h2>Việc của gói ({{NOWN}} task)</h2>
+  <p>Thứ tự gợi ý: schema trước (V2-05a, V2-07a, V2-06a), rồi dịch vụ tính kết quả trình hỏi (V2-07b), cuối cùng là view (V2-13c, V2-13d, V2-13e). V2-07c, V2-07d (màn ma trận) đã bỏ theo QĐ-056.</p>
+  <ul class="plain">{{OWNLIST}}</ul>
+  {{OWN}}
+</section>
+
+<section class="blk" id="phu-thuoc">
+  <h2>Phụ thuộc (nhóm khác làm)</h2>
+  <p>Gói cần các task dưới đây. Task chưa xong thì làm phần độc lập trước, hoặc dùng ô nhập mặc định của Umbraco tạm thời cho tới khi giao diện tự viết (luồng V2-ui) xong.</p>
+  {{DEPS}}
+</section>
+
+<section class="blk" id="truong">
+  <h2>Trường của từng loại</h2>
+  <p>Theo Phụ lục A (sinh từ mockup). Alias, tên, data type, bắt buộc dùng đúng như bảng. “khi đăng” là lưu nháp được, chặn xuất bản. Dòng “— (không lưu)” là khối hiển thị, không phải thuộc tính.</p>
+  {{FIELDS}}
+</section>
+
+<section class="blk" id="luat">
+  <h2>Luật tự lấy (V2-07b và các view)</h2>
+  <p>Bộ quy tắc trình hỏi do máy chủ dựng (V2-07b), nhúng vào trang và tính trên trình duyệt; không gửi câu trả lời đi đâu, không cần API công khai. Lưu đệm, xóa khi lưu trình hỏi, thủ đoạn, trang Việc cần làm, Dấu hiệu phải dừng. Bộ ca kiểm dùng chung cho C# và JS: <code>cong-cu/wizard-cases.json</code> (10 ca, đã đối chiếu với bản dựng).</p>
+  <div class="tblwrap"><table><thead><tr><th>Khối</th><th>Luật</th></tr></thead><tbody>{{RULES}}</tbody></table></div>
+  <div class="two">
+    <div><h3 class="small">Bỏ khỏi form so với gói nền</h3><div class="tblwrap"><table><thead><tr><th>Trường</th><th>Tên</th><th>Thay bằng</th></tr></thead><tbody>{{DROP}}</tbody></table></div></div>
+    <div><h3 class="small">Thêm</h3><div class="tblwrap"><table><thead><tr><th>Trường</th><th>Tên</th><th>Kiểu</th></tr></thead><tbody>{{ADD}}</tbody></table></div></div>
+  </div>
+</section>
+
+<section class="blk" id="quyet-dinh">
+  <h2>Quyết định áp dụng</h2>
+  <p>Trích nguyên văn từ <code>docs/quyet-dinh.md</code>. Quyết định thắng tài liệu khi khác nhau.</p>
+  {{QD}}
+</section>
+
+<section class="blk" id="du-lieu">
+  <h2>Dữ liệu mẫu</h2>
+  <p>Trong <code>docs/ban-giao/PORTAL-V2/cong-cu/seed-portal-v2.json</code> (khóa GUID v5 cố định, xem <code>cong-cu/README.md</code>). Nạp bằng công cụ nhập V2-12a hoặc bộ dựng của gói nền. Số nút thuộc phần này:</p>
+  <div class="tblwrap"><table><thead><tr><th>Loại</th><th>Số nút</th></tr></thead><tbody>{{SEED}}</tbody></table></div>
+</section>
+<p class="foot">Sinh bằng <code>cong-cu/dung_goi_khan_cap.py</code> từ 1-thiet-ke.md, Phụ lục A, quyet-dinh.md và mockup. Sửa nguồn rồi chạy lại, không sửa tay.</p>
+</main>

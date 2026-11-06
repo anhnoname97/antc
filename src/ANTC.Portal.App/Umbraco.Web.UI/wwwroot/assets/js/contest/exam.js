@@ -1,9 +1,10 @@
 import { blockCopy } from './block-copy.js';
-// Dieu phoi man hinh cuoc thi (FE-26): Dang ky, Danh sach chuyen de (#ngan-hang), Gioi thieu chuyen de (#chuyen-de-N), cot ben.
+// Dieu phoi man hinh cuoc thi (FE-26): Dang ky, Danh sach chuyen de (#chuyen-de), Gioi thieu chuyen de (#chuyen-de-N), cot ben.
 // Man cau hoi (#chuyen-de-N/cau-hoi) co dong ho doc, man Xong chuyen de (#chuyen-de-N/xong), lam lai (FE-27).
+// Tu luyen o dia chi rieng /ngan-hang/ (QD-058), cung cac hash do, nen tai lai trang khong lan sang luot thi.
 // Trang thai lay tu contest-store.js. Nop bai, hop thoai va man ket qua (#ket-qua) o submit.js (FE-29).
 import { onRegistered, requestedContestId } from './register.js';
-import { loadEntry } from './contest-api.js';
+import { getSchedule, loadEntry } from './contest-api.js';
 import {
   state, answeringLocally, hasLateAnswers, init, on, enterPractice, resetPractice, topicProgress, loadTopics, loadQuestions, answer, getAnswer, submit as submitEntry,
 } from './contest-store.js';
@@ -24,17 +25,33 @@ const regView = document.getElementById('regview');
 const examView = document.getElementById('examview');
 const sideCards = document.getElementById('sidecards');
 const regSideHtml = sideCards.innerHTML;
-const practiceLink = document.querySelector('[data-practice]');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // register.js dat data-contest-status sau khi tai API-07: 'open' khi co cuoc dang dien ra de dang ky
 const contestOpen = () => main.dataset.contestStatus === 'open';
-// Cuoc cua man hinh: ?c=<id> neu co, khong thi luot gan nhat (init/loadEntry bo trong)
+// Cuoc dang dien ra (API-07). Moi luc chi co mot cuoc nen dia chi khong can ?c (QD-057)
+let currentContest;
+// Cuoc cua man hinh: ?c=<id> neu co, roi toi cuoc dang dien ra, khong thi luot gan nhat (init/loadEntry bo trong).
+// Phai uu tien cuoc dang dien ra: neu dung luot gan nhat, nguoi da thi cuoc cu se bi dua ve ket qua cu thay vi dang ky cuoc moi.
 // ?c sai (requestedContestId = 0) doi thanh -1 de khong trung luot nao da luu
 const urlContest = () => {
   const c = requestedContestId();
-  return c === null ? undefined : c || -1;
+  return c === null ? currentContest : c || -1;
 };
+
+// Lay cuoc dang dien ra; lien ket cu co ?c cua chinh cuoc do thi bo ?c khoi dia chi. Loi mang: giu cach cu, dung luot gan nhat
+async function resolveCurrentContest() {
+  let r;
+  try { r = await getSchedule(); } catch (e) { return; }
+  const ongoing = r.ok && r.data && Array.isArray(r.data.ongoing) ? r.data.ongoing : [];
+  if (ongoing.length !== 1) return;
+  currentContest = ongoing[0].id;
+  if (requestedContestId() !== currentContest) return;
+  const query = new URLSearchParams(location.search);
+  query.delete('c');
+  const rest = query.toString();
+  history.replaceState(null, '', location.pathname + (rest ? `?${rest}` : '') + location.hash);
+}
 
 // He so dong ho doc cua cuoc thi (API-02 contest.readTimerFactor): rong, sai dinh dang hoac am thi coi la 1; nhan ca "0,5" va "0.5".
 // Luyen tap khong co cuoc nen luon la 1.
@@ -90,7 +107,8 @@ function topicOf(cd) {
 
 async function ensureQuestions(cd) {
   if (qcache.has(cd)) return true;
-  const r = await loadQuestions(cd);
+  const contestId = state.practice ? null : undefined;
+  const r = await loadQuestions(cd, contestId);
   if (r.ok && Array.isArray(r.data) && r.data.length) {
     qcache.set(cd, r.data);
     return true;
@@ -104,11 +122,44 @@ function firstUnanswered(list) {
   return i < 0 ? 0 : i;
 }
 
+const BANK_PATH = '/ngan-hang/';
+const onBank = () => location.pathname.replace(/\/?$/, '/') === BANK_PATH;
+
+// Sang trang ngan hang cau hoi; tu luyen chi chay o dia chi nay
+function toBank(hash = '') {
+  location.replace(BANK_PATH + (hash === '#chuyen-de' ? '' : hash));
+}
+
+// Lien ket cu /thi/#ngan-hang, /thi/#ngan-hang-N: chuyen sang dia chi moi
+function redirectLegacyBank() {
+  const m = /^#ngan-hang(?:-(\d+)(\/cau-hoi|\/xong)?)?$/.exec(location.hash);
+  if (!m) return false;
+  toBank(m[1] ? `#chuyen-de-${m[1]}` : '');
+  return true;
+}
+
+// Hash cua danh sach chuyen de: tu luyen la chinh dia chi /ngan-hang/, khong co hash
+function listHash() {
+  return state.practice ? '' : '#chuyen-de';
+}
+
+// Dia chi cua danh sach chuyen de, dung cho lien ket
+function listHref() {
+  return state.practice ? BANK_PATH : '#chuyen-de';
+}
+
+// Hash man cua mot chuyen de; suffix: '', '/cau-hoi', '/xong'
+function topicHash(cd, suffix = '') {
+  return `#chuyen-de-${cd}${suffix}`;
+}
+
 function parseHash() {
   const h = location.hash;
-  if (h === '#ngan-hang') return { view: 'menu' };
+  const bank = onBank();
+  if (!h) return bank ? { view: 'menu', bank } : null;
+  if (h === '#chuyen-de') return { view: 'menu', bank };
   const m = /^#chuyen-de-(\d+)(\/cau-hoi|\/xong)?$/.exec(h);
-  if (m) return { view: m[2] === '/cau-hoi' ? 'q' : m[2] === '/xong' ? 'done' : 'intro', cd: m[1] };
+  if (m) return { view: m[2] === '/cau-hoi' ? 'q' : m[2] === '/xong' ? 'done' : 'intro', cd: m[1], bank };
   if (h === '#dang-ky') return { view: 'register' };
   if (h === '#ket-qua') return { view: 'result' };
   return null;
@@ -116,6 +167,11 @@ function parseHash() {
 
 function go(hash) {
   if (location.hash === hash) route(true);
+  else if (!hash) {
+    // Danh sach tu luyen khong co hash: doi dia chi roi tu ve lai
+    history.pushState(null, '', BANK_PATH);
+    route(true);
+  }
   else location.hash = hash; // hashchange goi route
 }
 
@@ -160,31 +216,74 @@ function phaseHtml() {
 function menuHtml() {
   const prog = progress();
   const n = topics.length;
-  const sub = esc(blockCopy('topics', 'description', '{topicCount} chuyên đề, tổng cộng {total} câu. Làm lần lượt từng chuyên đề theo thứ tự. Mỗi câu hiện phần giải thích sau khi bạn chọn.', { topicCount: n, total: totalQuestions() }));
-  let o = `<div class="qin">${headHtml(blockCopy('topics', 'eyebrow', 'Ngân hàng câu hỏi'), blockCopy('topics', 'title', 'Phần thi trắc nghiệm'), sub)}`;
+  const rawSub = blockCopy('topics', 'description', 'Tám chuyên đề, tổng cộng {total} câu. <b>Làm Chuyên đề 1 trước</b>, vì cách quyết định học ở đó được dùng lại ở cả bảy chuyên đề sau. Mỗi câu hiện phần giải thích sau khi bạn chọn.', { topicCount: n, total: totalQuestions() });
+  const sub = esc(rawSub).replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>');
+  let o = '<div class="activity-portal qin">';
+  o += '<div class="backrow"><a href="/cuoc-thi/" class="btn ghost sm">‹ Cuộc thi</a></div>';
+  o += '<header class="pageh">';
+  o += `<p class="eyebrow">${esc(blockCopy('topics', 'eyebrow', 'Kiểm tra kiến thức'))}</p>`;
+  o += `<h2 id="eh" tabindex="-1" class="pageh-title contest__h2">${esc(blockCopy('topics', 'title', 'Phần thi trắc nghiệm'))}</h2>`;
+  o += `<p class="pageh-lead exam__sub">${sub}</p>`;
+  o += '</header>';
   if (offline) o += box('warn', '<b>Chưa kết nối được máy chủ.</b> Tiến độ có thể chưa mới nhất; các đáp án chưa gửi sẽ tự gửi lại khi có mạng.');
   o += phaseHtml();
-  o += entryBoxHtml();
-  o += panelHtml(topics);
-  o += '<ol class="toplist">';
-  for (const t of topics) {
-    const p = prog.find((x) => x.cd === String(t.cd));
-    const lock = isLocked(String(t.cd), prog);
-    const done = p.done;
-    let subText = `${t.count} câu`;
-    if (lock) subText += ` · mở sau khi xong Chuyên đề ${prevTopic(t.cd).cd}`;
-    else if (done) subText += ' · đã làm xong';
-    else if (p.answered) subText += ` · đã trả lời ${p.answered}`;
-    const num = `<span class="qrow__n">${done ? ICO_OK : esc(t.cd)}</span>`;
-    const txt = `<span class="qrow__body"><span class="qrow__t">${esc(t.title)}</span><span class="qrow__meta">${esc(subText)}</span></span>`;
-    if (lock) {
-      o += `<li><div class="qrow qrow--lock" aria-disabled="true">${num}${txt}${ICO_LOCK}</div></li>`;
+
+  // Khối thông báo rgbar
+  if (state.entry) {
+    if (state.entry.mode === 'anon') {
+      o += `<div class="rgbar"><b>Đang thi ẩn danh.</b> Mã ẩn danh của bạn là <b>${esc(state.entry.code)}</b>. Bài làm không được xét giải.</div>`;
     } else {
-      o += `<li><a class="qrow${done ? ' qrow--done' : ''}" href="#chuyen-de-${esc(t.cd)}">${num}${txt}<span class="qrow__go" aria-hidden="true">›</span></a></li>`;
+      const pNum = state.entry.phone || state.phone || state.entry.code;
+      const nth = state.entry.attemptNo || 1;
+      const maxT = Number(state.entry.maxAttempts) === 0 ? '' : ` trên ${esc(state.entry.maxAttempts || 2)}`;
+      o += `<div class="rgbar"><b>Đã đăng ký.</b> Mã dự thi của bạn là số <b>${esc(pNum)}</b>. Đây là lượt thứ ${esc(nth)}${maxT}.</div>`;
+    }
+  } else {
+    o += '<div class="rgbar"><b>Chế độ tự luyện.</b> Làm bài không tính điểm, kết quả chỉ lưu trên thiết bị của bạn.</div>';
+  }
+
+  o += panelHtml(topics);
+
+  const cd1Done = !!(prog.find((x) => String(x.cd) === '1')?.done);
+  const gate = !cd1Done;
+
+  o += '<ol class="cdlist toplist">';
+  for (const t of topics) {
+    const p = prog.find((x) => String(x.cd) === String(t.cd)) || {};
+    const lock = isLocked(String(t.cd), prog);
+    const done = !!p.done;
+    const isCd1 = String(t.cd) === '1';
+    const cleanTitle = esc(t.title.replace(/^CHUYÊN ĐỀ\s*\d+\s*[-–—:]\s*/i, ''));
+
+    let meta = `${t.count} câu`;
+    if (lock) {
+      meta += ` · mở sau khi xong Chuyên đề ${prevTopic(t.cd)?.cd || '1'}`;
+    } else if (done) {
+      meta += ' · đã làm xong';
+    } else if (isCd1 && gate) {
+      meta += ' · làm chuyên đề này trước';
+    } else if (p.answered) {
+      meta += ` · đã trả lời ${p.answered}`;
+    }
+
+    if (lock) {
+      o += `<li><div class="lock qrow qrow--lock" aria-disabled="true"><span class="cn s qrow__n">${esc(t.cd)}</span><span class="ct qrow__body"><span class="qrow__t">${cleanTitle}</span><small class="qrow__meta">${esc(meta)}</small></span><span class="lock-ic" aria-hidden="true">${ICO_LOCK}</span></div></li>`;
+    } else {
+      o += `<li><a class="cdbtn qrow${done ? ' ok qrow--done' : ''}" href="${topicHash(esc(t.cd))}"><span class="cn${done ? ' ok' : ''} qrow__n">${done ? '✓' : esc(t.cd)}</span><span class="ct qrow__body"><span class="qrow__t">${cleanTitle}</span><small class="qrow__meta">${esc(meta)}</small></span><span class="cdbtn__go qrow__go" aria-hidden="true">›</span></a></li>`;
     }
   }
   o += '</ol>';
-  return `${o}<p class="exam__note">${esc(blockCopy('topics', 'notice', NOT_POLICE))}</p></div>`;
+
+  if (gate) {
+    const cd1Count = topics[0]?.count || 19;
+    o += `<div class="gate note"><p><b>Bảy chuyên đề còn lại mở ngay khi bạn làm xong Chuyên đề 1.</b></p><p class="small">Chuyên đề 1 có ${cd1Count} câu. Sau đó thứ tự do bạn chọn.</p></div>`;
+  } else {
+    o += '<div class="gate open note"><p><b>Bảy chuyên đề còn lại đã mở.</b></p><p class="small">Làm chuyên đề nào gần với việc mình đang gặp thì nhớ lâu hơn.</p></div>';
+  }
+
+  o += `<p class="small pbfoot exam__note">${esc(blockCopy('topics', 'notice', NOT_POLICE))}</p>`;
+  o += '</div>';
+  return o;
 }
 
 // Nut chinh cua phan gioi thieu: bat dau, lam tiep tu cau k, hoac xem lai khi da xong
@@ -200,20 +299,32 @@ function startLabel(t) {
 function introHtml(t) {
   const intro = Array.isArray(t.intro) ? t.intro : (t.intro ? [t.intro] : []);
   const terms = Array.isArray(t.terms) ? t.terms : [];
-  let o = `<div class="qin"><a class="qnav o qnav--s" href="#ngan-hang">${esc(blockCopy('intro', 'backLabel', '‹ Danh sách chuyên đề'))}</a>`
-    + `<div class="exam__intro-head">${headHtml(`Ngân hàng câu hỏi · Chuyên đề ${t.cd}`, t.title, '')}</div>`
-    + `<div class="exam__intro">${intro.map((p) => `<p>${esc(p)}</p>`).join('')}</div>`;
+  const cleanTitle = esc(t.title.replace(/^CHUYÊN ĐỀ\s*\d+\s*[-–—:]\s*/i, ''));
+  const backLabel = esc(blockCopy('intro', 'backLabel', 'Danh sách chuyên đề')).replace(/^[‹<]\s*/, '');
+
+  let o = '<div class="activity-portal qin exam-intro-view">';
+  o += `<div class="backrow"><a class="btn ghost sm" href="${listHref()}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5 8 12l7 7"/></svg> ${backLabel}</a></div>`;
+  o += '<header class="pageh">';
+  o += `<p class="eyebrow">Ngân hàng câu hỏi · Chuyên đề ${esc(t.cd)}</p>`;
+  o += `<h1 id="eh" tabindex="-1">${cleanTitle}</h1>`;
+  o += '</header>';
+  o += `<div class="exam__intro intro-text">${intro.map((p) => `<p>${esc(p)}</p>`).join('')}</div>`;
+
   if (terms.length) {
-    o += `<details class="peek"><summary><span><b>${esc(blockCopy('intro', 'termsTitle', 'Hiểu nhanh mấy từ'))}</b><span class="peek__n">${terms.length} từ dùng trong chuyên đề này</span></span><span class="peek__pk" aria-hidden="true"></span></summary>`
-      + `<dl>${terms.map((x) => `<div><dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd></div>`).join('')}</dl></details>`;
+    o += `<div class="peek terms-peek"><button type="button" class="peekbtn" data-open="pk-terms" aria-expanded="false" aria-controls="pk-terms">`
+      + `<span><b>${esc(blockCopy('intro', 'termsTitle', 'Hiểu nhanh mấy từ'))}</b><small>${terms.length} từ dùng trong chuyên đề này</small></span></button>`
+      + `<div class="peekbody" id="pk-terms" hidden><dl class="terms">${terms.map((x) => `<div><dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd></div>`).join('')}</dl></div></div>`;
   }
+
   const redo = progress().find((x) => x.cd === String(t.cd));
   const isRedo = !!(redo && redo.done);
   if (isRedo && !state.practice) {
     o += box('soft', '<b>Làm lại là xem lại để học.</b> Điểm của lượt thi chỉ tính lần trả lời đầu tiên của mỗi câu.');
   }
-  o += `<div class="exam__actions"><button type="button" class="qnav f" ${isRedo ? 'data-redo' : 'data-start'}="${esc(t.cd)}">${esc(startLabel(t))}</button>`
-    + `<a class="qnav o" href="#ngan-hang">${esc(blockCopy('intro', 'otherLabel', 'Chọn chuyên đề khác'))}</a></div></div>`;
+
+  o += `<div class="btnrow exam__actions"><button type="button" class="btn pri" ${isRedo ? 'data-redo' : 'data-start'}="${esc(t.cd)}">${esc(startLabel(t))}</button>`
+    + `<a class="btn ghost" href="${listHref()}">${esc(blockCopy('intro', 'otherLabel', 'Chọn chuyên đề khác'))}</a></div>`;
+  o += '</div>';
   return o;
 }
 
@@ -235,8 +346,8 @@ function doneHtml(t) {
   }
   o += panelHtml(topics);
   const next = rest ? `Chọn chuyên đề tiếp theo, còn ${rest} ›` : `Đã làm hết ${topics.length} chuyên đề, xem lại danh sách ›`;
-  o += `<div class="exam__actions"><a class="qnav f" href="#ngan-hang">${esc(next)}</a>`
-    + `<button type="button" class="qnav o" data-redo="${esc(cd)}">${esc(blockCopy('topic-result', 'retryLabel', 'Làm lại chuyên đề {cd}', { cd }))}</button></div>`
+  o += `<div class="btnrow exam__actions"><a class="btn pri" href="${listHref()}">${esc(next)}</a>`
+    + `<button type="button" class="btn ghost" data-redo="${esc(cd)}">${esc(blockCopy('topic-result', 'retryLabel', 'Làm lại chuyên đề {cd}', { cd }))}</button></div>`
     + '<p class="exam__note">Làm hết câu hỏi không có nghĩa là an toàn. Gặp việc thật, vẫn phải chậm lại và tự kiểm tra bằng kênh do chính mình tìm ra.</p></div>';
   return o;
 }
@@ -247,7 +358,7 @@ function sideHtml(view) {
   if (state.practice) {
     o = `<div class="sidecard">${eyebrowHtml('Luyện tập')}<p class="sidecard__text">Bài làm chỉ lưu trên máy bạn, không tính vào cuộc thi.</p>`
       + (state.entry && state.status === 'submitted' ? '<button type="button" class="qnav o qnav--s qnav--block" data-back-result>Về kết quả lượt thi</button>' : '')
-      + (contestOpen() ? '<a class="qnav o qnav--s qnav--block" href="#dang-ky">Đăng ký dự thi</a>' : '') + '</div>';
+      + (contestOpen() ? '<a class="qnav o qnav--s qnav--block" href="/thi/#dang-ky">Đăng ký dự thi</a>' : '') + '</div>';
   } else if (e) {
     const anon = e.mode === 'anon';
     o = `<div class="sidecard">${eyebrowHtml(anon ? blockCopy('sidebar', 'anonymousLabel', 'Thí sinh ẩn danh') : blockCopy('sidebar', 'participantLabel', 'Thí sinh'))}`
@@ -359,7 +470,7 @@ function startTimer(code, seconds) {
 // Het cau cuoi: chuyen de xong (da tra loi du) thi sang man Xong chuyen de, chua thi ve danh sach
 function onTopicEnd(cd) {
   const p = progress().find((x) => x.cd === String(cd));
-  go(p && p.done ? `#chuyen-de-${cd}/xong` : '#ngan-hang');
+  go(p && p.done ? topicHash(cd, '/xong') : listHash());
 }
 
 function curQuestion() {
@@ -386,7 +497,7 @@ function questionScreenHtml() {
   const nextAttrs = { id: 'qnext', 'data-next': '' };
   if (chosen == null || (qs.left.get(q.code) || 0) > 0) nextAttrs.disabled = '';
   const prev = i > 0 ? navButtonHtml(blockCopy('question', 'previousLabel', '‹ Câu trước'), 'o', { 'data-prev': '' }) : '';
-  return `<div class="qin"><div class="qtop"><a class="qnav o" href="#chuyen-de-${esc(cd)}">‹ Chuyên đề ${esc(cd)}</a>`
+  return `<div class="qin"><div class="qtop"><a class="qnav o" href="${topicHash(esc(cd))}">‹ Chuyên đề ${esc(cd)}</a>`
     + `<span class="qcount">Câu ${i + 1} / ${list.length}</span></div>`
     + `<div id="qprog">${progressHtml(i + (chosen != null ? 1 : 0), list.length, 'Tiến độ trong chuyên đề')}</div>`
     + `<div class="qstem">${eyebrowHtml(`Mã ${q.code} · ${q.kind || 'Chọn đáp án phù hợp nhất'}`)}${situationHtml(q.sit)}${questionHtml(q.q)}</div>`
@@ -527,7 +638,8 @@ function resetLoaded() {
 
 async function ensureTopics() {
   if (topics) return true;
-  const r = await loadTopics();
+  const contestId = state.practice ? null : undefined;
+  const r = await loadTopics(contestId);
   if (r.ok && Array.isArray(r.data)) {
     topics = byContest(r.data);
     topicsError = false;
@@ -540,7 +652,7 @@ async function ensureTopics() {
 function showQuestionsError(cd) {
   examView.innerHTML = `<div class="qin">${headHtml('Ngân hàng câu hỏi', `Chuyên đề ${cd}`, '')}`
     + box('warn', '<b>Chưa tải được câu hỏi của chuyên đề này.</b> Kiểm tra mạng rồi bấm thử lại.')
-    + `<div class="exam__actions"><button type="button" class="qnav f" data-retry>Thử lại</button><a class="qnav o" href="#ngan-hang">Về danh sách chuyên đề</a></div></div>`;
+    + `<div class="exam__actions"><button type="button" class="qnav f" data-retry>Thử lại</button><a class="qnav o" href="${listHref()}">Về danh sách chuyên đề</a></div></div>`;
   renderSide('menu');
 }
 
@@ -556,7 +668,19 @@ async function route(focus) {
   const seq = ++routeSeq;
   const stale = () => seq !== routeSeq; // da co lan route moi hon: bo lan nay, khong ve de len man moi
   leaveQuestion();
+  if (redirectLegacyBank()) return;
   const want = parseHash();
+  if (want && want.bank) {
+    // Ngan hang cau hoi: khong check bai thi, luon vao lam ngan hang cau hoi
+    if (!state.practice || state.contestId !== null) {
+      enterPractice();
+      resetLoaded();
+    }
+  } else if (want && want.view !== 'register' && mode() !== 'entry') {
+    // Khong co luot thi: man chuyen de chi con o ngan hang cau hoi
+    toBank(location.hash);
+    return;
+  }
   const m = mode();
   if (!m || (want && want.view === 'register')) {
     showRegister(focus);
@@ -596,9 +720,12 @@ async function route(focus) {
     if (view.view === 'done' && !progress().find((x) => x.cd === cd).done) view = { view: 'intro', cd };
   }
   if (view.view !== 'q') qs = null;
-  const wantHash = view.view === 'q' ? `#chuyen-de-${view.cd}/cau-hoi` : view.view === 'done' ? `#chuyen-de-${view.cd}/xong`
-    : view.view === 'intro' ? `#chuyen-de-${view.cd}` : view.view === 'result' ? '#ket-qua' : '#ngan-hang';
-  if (location.hash !== wantHash) history.replaceState(null, '', wantHash);
+  const wantHash = view.view === 'q' ? topicHash(view.cd, '/cau-hoi') : view.view === 'done' ? topicHash(view.cd, '/xong')
+    : view.view === 'intro' ? topicHash(view.cd) : view.view === 'result' ? '#ket-qua' : listHash();
+  const needPath = (location.pathname === '/dang-ky/' || location.pathname === '/cuoc-thi/lam-bai/') ? '/thi/' : null;
+  if (needPath || location.hash !== wantHash) {
+    history.replaceState(null, '', (needPath || location.pathname) + (location.search || '') + wantHash);
+  }
   current = view;
   if (view.view === 'result') {
     await showResult(stale, focus);
@@ -689,12 +816,15 @@ function refresh() {
 examView.addEventListener('click', (e) => {
   const retry = e.target.closest('[data-retry]');
   if (retry) {
+    if (state.practice) state.contestId = null;
+    topics = null;
+    topicsError = false;
     route(true);
     return;
   }
   const start = e.target.closest('[data-start]');
   if (start) {
-    go(`#chuyen-de-${start.dataset.start}/cau-hoi`);
+    go(topicHash(start.dataset.start, '/cau-hoi'));
     return;
   }
   if (e.target.closest('[data-result-retry]')) {
@@ -702,17 +832,15 @@ examView.addEventListener('click', (e) => {
     return;
   }
   if (e.target.closest('[data-review-bank]')) {
-    // Luyen tap dung ca ngan hang, khong loc theo de cua cuoc: bo du lieu da tai roi vao che do luyen tap
-    resetLoaded();
-    enterPractice();
-    go('#ngan-hang');
+    // Luyen tap dung ca ngan hang, khong loc theo de cua cuoc
+    location.href = BANK_PATH;
     return;
   }
   const redo = e.target.closest('[data-redo]');
   if (redo) {
     // Luot thi: xem lai cac cau da luu, khong gui API-03. Luyen tap: xoa bai lam cua chuyen de roi lam lai tu dau
     if (state.practice) resetPractice(redo.dataset.redo);
-    go(`#chuyen-de-${redo.dataset.redo}/cau-hoi`);
+    go(topicHash(redo.dataset.redo, '/cau-hoi'));
     return;
   }
   if (!qs) return;
@@ -750,7 +878,7 @@ setupSubmit({
     setNotice(message);
     const r = await init(urlContest());
     offline = !!r.offline;
-    go('#ngan-hang');
+    go(listHash());
   },
   onClosed: () => route(false),
   focusFallback: () => {
@@ -758,14 +886,6 @@ setupSubmit({
     else focusHeading(document.getElementById('eh'));
   },
 });
-
-if (practiceLink) {
-  practiceLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    enterPractice();
-    go('#ngan-hang');
-  });
-}
 
 window.addEventListener('hashchange', () => route(true));
 on('change', refresh);
@@ -799,17 +919,35 @@ on('token', () => {
 export async function enterExam() {
   regView.hidden = true;
   examView.hidden = false;
+  examView.classList.add('activity-portal');
   examView.innerHTML = '<p class="exam__loading" role="status">Đang tải tiến độ…</p>';
   resetLoaded();
   const r = await init(urlContest());
   offline = !!r.offline;
-  go('#ngan-hang');
+  if (location.pathname !== '/thi/') {
+    history.pushState(null, '', '/thi/' + (location.search || '') + '#chuyen-de');
+  }
+  go('#chuyen-de');
 }
 onRegistered(enterExam);
 
 // ---- Khoi dong ----
 
 async function boot() {
+  if (redirectLegacyBank()) return;
+  if (!onBank()) await resolveCurrentContest();
+  const want = parseHash();
+  // Trang ngan hang cau hoi: khong check da lam bai thi chua, mo thang ngan hang cau hoi
+  if (want && want.bank) {
+    enterPractice();
+    resetLoaded();
+    // Tai lai giua chuyen de thi ve danh sach, nhu luot thi
+    if (want.view === 'q' || want.view === 'done') history.replaceState(null, '', BANK_PATH);
+    regView.hidden = true;
+    examView.hidden = false;
+    await route(false);
+    return;
+  }
   if (loadEntry(urlContest())) {
     // Co luot da luu: khong cho nhay man dang ky roi moi chuyen
     regView.hidden = true;
@@ -818,7 +956,6 @@ async function boot() {
   }
   const r = await init(urlContest());
   offline = !!r.offline;
-  const want = parseHash();
   // Luot da nop: mo lai trang luon hien man ket qua (tru khi dang o man dang ky de thi luot moi)
   if (r.view === 'exam' && state.status === 'submitted' && !(want && want.view === 'register')) {
     history.replaceState(null, '', '#ket-qua');
@@ -827,15 +964,15 @@ async function boot() {
   }
   // Tai lai giua chuyen de (dang lam cau hoi hoac o man Xong) thi ve danh sach chuyen de; vao lai se tiep tu cau chua lam
   const reopen = () => {
-    if (want && (want.view === 'q' || want.view === 'done')) history.replaceState(null, '', '#ngan-hang');
+    if (want && (want.view === 'q' || want.view === 'done')) history.replaceState(null, '', listHref());
     return route(false);
   };
   if (r.view === 'exam') {
     await reopen();
     return;
   }
-  if (r.practice && want && want.view !== 'register') {
-    await reopen();
+  if (want && want.view !== 'register') {
+    toBank(location.hash);
     return;
   }
   showRegister(false);

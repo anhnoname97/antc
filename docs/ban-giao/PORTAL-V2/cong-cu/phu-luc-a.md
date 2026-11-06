@@ -50,6 +50,8 @@ Không có trang · Không xóa (trang cố định)
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `mustRemember` | Hai điều phải nhớ | Danh sách dòng (0–2) | ✔ | Hiện ở kiểm tra nhanh có bật hộp lưu ý |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `bankLookupSteps` | Cách tự tìm số ngân hàng | Danh sách dòng (0–5) | ✔ |  |
 | Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `refuseLendingNote` | Câu từ chối cho mượn tài khoản | Đoạn · 300 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `actionStepsNote` | Câu dưới các bước Việc cần làm | Đoạn · 300 | ✔ |  |
+| Câu cố định (chỉ Quản trị) | Câu bắt buộc khác | `notOnDutyNote` | Câu “Website không trực 24/7” | Đoạn · 300 | ✔ | Cuối trang Khẩn cấp và trang Việc cần làm |
 
 #### `homePage` · Trang chủ
 
@@ -87,12 +89,16 @@ Có template và đường dẫn · Không xóa (trang cố định)
 | Nội dung | Lối vào trình hỏi | `wizardTitle` | Tiêu đề | Chữ · 60 | ✔ |  |
 | Nội dung | Lối vào trình hỏi | `wizardDescription` | Mô tả | Đoạn · 220 | ✔ |  |
 | Nội dung | Lối vào trình hỏi | `wizardButtonText` | Chữ nút | Chữ · 32 | ✔ |  |
+| Nội dung | Bốn việc không làm khi nghi ngờ | `principlesTitle` | Tiêu đề khối | Chữ · 60 | ✔ |  |
+| Nội dung | Bốn việc không làm khi nghi ngờ | `principlesNote` | Câu nguồn dưới khối | Đoạn · 200 |  |  |
+| Nội dung | Bốn việc không làm khi nghi ngờ | — (không lưu) | Bốn việc | Không lưu (hiển thị) |  |  |
 | Nội dung | Việc cần làm ngay | `doorLead` | Câu dẫn | Đoạn · 220 | ✔ |  |
 | Nội dung | Việc cần làm ngay | `doors` | Ba cửa vào | InlineList · Thẻ | ✔ |  |
 |  | ↳ ô trong thẻ | `doors[].title` | Tiêu đề | Chữ · 70 | ✔ |  |
 |  | ↳ ô trong thẻ | `doors[].description` | Mô tả | Đoạn · 120 | ✔ |  |
 |  | ↳ ô trong thẻ | `doors[].illustration` | Hình minh họa | Danh mục · Hình minh họa cửa vào |  |  |
 |  | ↳ ô trong thẻ | `doors[].openMode` | Khi bấm | Danh mục · Kiểu cửa vào | ✔ |  |
+|  | ↳ ô trong thẻ | `doors[].optionsLead` | Câu dẫn danh sách | Đoạn · 160 |  | hiện có điều kiện |
 |  | ↳ ô trong thẻ | `doors[].targetPage` | Trang đích | Chọn · Việc cần làm (một) | ✔ | hiện có điều kiện |
 |  | ↳ ô trong thẻ | `doors[].options` | Lựa chọn | InlineList · Bảng | ✔ | hiện có điều kiện |
 | | ↳ cột | `doors[].options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
@@ -100,7 +106,8 @@ Có template và đường dẫn · Không xóa (trang cố định)
 | | ↳ cột | `doors[].options[].target` | Mở | Chọn · Việc cần làm hoặc trình hỏi (một) | ✔ |  |
 | Nội dung | Việc cần làm ngay | `noMatchPage` | Nút “Không ô nào giống” mở | Chọn · Việc cần làm (một) | ✔ |  |
 | Nội dung | Việc cần làm ngay | `helperNote` | Câu cho người đang giúp người thân | Chữ · 160 |  |  |
-| Nội dung | Tình huống điển hình | `typicalSituations` | Trang hiện trong danh sách | Chọn · Việc cần làm (nhiều, ≤ 10, sắp được) | ✔ | Kéo thẻ để sắp thứ tự hiện |
+| Nội dung | Tình huống điển hình | — (không lưu) | Trang hiện trong danh sách | Không lưu (hiển thị) |  |  |
+| Nội dung | Khi cần hỗ trợ | — (không lưu) | Cách tự tìm số ngân hàng | Không lưu (hiển thị) |  |  |
 | Nội dung | Khi cần hỗ trợ | `stateHotlines` | Số do Nhà nước vận hành | InlineList · Bảng | ✔ | Hiện theo đúng thứ tự trong bảng |
 | | ↳ cột | `stateHotlines[].number` | Số | Textstring | ✔ |  chỉ chữ số 3–6 |
 | | ↳ cột | `stateHotlines[].contactMode` | Hình thức | Danh mục · Hình thức liên hệ | ✔ |  |
@@ -125,38 +132,74 @@ Có template và đường dẫn · Không xóa (trang cố định) · Chỉ Qu
 
 | Tab | Nhóm | Alias | Tên trường | Kiểu nhập (data type) | Bắt buộc | Ghi chú |
 |---|---|---|---|---|---|---|
+| Câu hỏi | Đầu trang | `title` | Tiêu đề | Chữ · 90 | ✔ |  |
+| Câu hỏi | Đầu trang | `lead` | Mô tả | Đoạn · 220 | ✔ |  |
+| Câu hỏi | Đầu trang | `privacyNote` | Câu về quyền riêng tư | Đoạn · 240 | ✔ | Hiện trên khung câu hỏi |
 | Câu hỏi | Bước 1 | `step1Question` | Câu hỏi | Chữ · 120 | ✔ |  |
 | Câu hỏi | Bước 1 | `step1Hint` | Câu gợi ý dưới câu hỏi | Chữ · 160 |  |  |
-| Câu hỏi | Bước 1 | `step1Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn một. Sửa nhãn không làm hỏng ma trận, vì ma trận trỏ tới mã của từng dòng |
+| Câu hỏi | Bước 1 | `step1Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn một. Mỗi dòng nối với một kênh trong Danh mục để so với kênh của thủ đoạn |
 | | ↳ cột | `step1Options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
 | | ↳ cột | `step1Options[].label` | Nhãn | Chữ · 60 | ✔ |  |
+| | ↳ cột | `step1Options[].channel` | Kênh trong Danh mục | Chọn · Kênh (một) | ✔ |  |
+| Câu hỏi | Bước 1 | `step1OtherLabel` | Dòng cuối “không nhớ kênh” | Chữ · 60 | ✔ | Chọn dòng này thì không cộng điểm kênh |
 | Câu hỏi | Bước 2 | `step2Question` | Câu hỏi | Chữ · 120 | ✔ |  |
 | Câu hỏi | Bước 2 | `step2Hint` | Câu gợi ý dưới câu hỏi | Chữ · 160 |  |  |
-| Câu hỏi | Bước 2 | `step2Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Sửa nhãn không làm hỏng ma trận, vì ma trận trỏ tới mã của từng dòng |
+| Câu hỏi | Bước 2 | `step2Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Loại quyết định mức độ: có dòng Phải dừng thì Rất cao, chỉ có Tạm hoãn thì Cao. Thủ đoạn trỏ tới khóa của dòng nên sửa nhãn không làm hỏng |
 | | ↳ cột | `step2Options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
-| | ↳ cột | `step2Options[].label` | Nhãn | Chữ · 60 | ✔ |  |
+| | ↳ cột | `step2Options[].label` | Nhãn | Chữ · 120 | ✔ |  |
+| | ↳ cột | `step2Options[].optionKind` | Loại | Danh mục · Loại lựa chọn trình hỏi | ✔ |  |
+| | ↳ cột | `step2Options[].stopSign` | Dấu hiệu phải dừng | Chọn · Dấu hiệu phải dừng (một) |  |  |
+| | ↳ cột | `step2Options[].signText` | Câu ở “Dấu hiệu cần chú ý” | Đoạn · 300 |  | ở dòng mở rộng |
+| | ↳ cột | `step2Options[].hint` | Ghi chú dưới lựa chọn | Chữ · 160 |  | ở dòng mở rộng |
+| Câu hỏi | Bước 2 | `step2NoneLabel` | Dòng “không có gì” | Chữ · 60 | ✔ |  |
 | Câu hỏi | Bước 3 | `step3Question` | Câu hỏi | Chữ · 120 | ✔ |  |
 | Câu hỏi | Bước 3 | `step3Hint` | Câu gợi ý dưới câu hỏi | Chữ · 160 |  |  |
-| Câu hỏi | Bước 3 | `step3Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Sửa nhãn không làm hỏng ma trận, vì ma trận trỏ tới mã của từng dòng |
+| Câu hỏi | Bước 3 | `step3Options` | Lựa chọn | InlineList · Bảng | ✔ | Chọn nhiều. Loại quyết định mức độ: có dòng Phải dừng thì Rất cao, chỉ có Tạm hoãn thì Cao. Thủ đoạn trỏ tới khóa của dòng nên sửa nhãn không làm hỏng |
 | | ↳ cột | `step3Options[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
-| | ↳ cột | `step3Options[].label` | Nhãn | Chữ · 60 | ✔ |  |
+| | ↳ cột | `step3Options[].label` | Nhãn | Chữ · 120 | ✔ |  |
+| | ↳ cột | `step3Options[].optionKind` | Loại | Danh mục · Loại lựa chọn trình hỏi | ✔ |  |
+| | ↳ cột | `step3Options[].stopSign` | Dấu hiệu phải dừng | Chọn · Dấu hiệu phải dừng (một) |  |  |
+| | ↳ cột | `step3Options[].signText` | Câu ở “Dấu hiệu cần chú ý” | Đoạn · 300 |  | ở dòng mở rộng |
+| | ↳ cột | `step3Options[].hint` | Ghi chú dưới lựa chọn | Chữ · 160 |  | ở dòng mở rộng |
+| Câu hỏi | Bước 3 | `step3NoneLabel` | Dòng “không có gì” | Chữ · 60 | ✔ |  |
+| Câu hỏi | Dòng “Tôi chưa biết” của bước 2, 3 | `unknownLabel` | Nhãn | Chữ · 60 | ✔ |  |
+| Câu hỏi | Dòng “Tôi chưa biết” của bước 2, 3 | `unknownSignText` | Câu ở “Dấu hiệu cần chú ý” | Đoạn · 200 | ✔ | Chọn dòng này thì mức ít nhất là Cao |
 | Câu hỏi | Ảnh minh họa | `illustration` | Ảnh minh họa | Chọn ảnh |  | Ảnh lớn dưới tiêu đề trang |
 | Câu hỏi | Ảnh minh họa | `illustrationAlt` | Văn bản thay thế | Chữ · 160 | có điều kiện | Tả nội dung ảnh cho người không xem được ảnh |
-| Ma trận |  | `situationMatrix` | Ma trận tình huống | Antc.WizardMatrix | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].name` | Tên tình huống | Chữ · 80 | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].signs` | Dấu hiệu phù hợp | Danh sách dòng (1–3) | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].actions` | Việc cần làm ngay | Danh sách dòng (1–4) | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].guideArticle` | Bài hướng dẫn chi tiết | Chọn · Bài hoặc cảnh báo (một) | ✔ |  |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].checklist` | Danh sách kiểm tra | Chọn · Danh sách kiểm tra (một) |  | Trống thì dùng danh sách mặc định ở tab Kết quả |
-|  | ↳ mỗi hàng ma trận (JSON) | `situationMatrix.rows[].enabled` | Đang dùng | Bật/tắt |  |  |
-| Kết quả | Tiêu đề 4 khối kết quả | `resultHeading1` | Khối 1 | Chữ · 40 | ✔ |  |
-| Kết quả | Tiêu đề 4 khối kết quả | `resultHeading2` | Khối 2 | Chữ · 40 | ✔ |  |
-| Kết quả | Tiêu đề 4 khối kết quả | `resultHeading3` | Khối 3 | Chữ · 40 | ✔ |  |
-| Kết quả | Tiêu đề 4 khối kết quả | `resultHeading4` | Khối 4 | Chữ · 40 | ✔ |  |
+| Thủ đoạn | Tình huống gần giống | — (không lưu) | Thủ đoạn theo từng lựa chọn | Không lưu (hiển thị) |  |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading1` | Khối 1 (đứng trước tên mức) | Chữ · 40 | ✔ |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading2` | Khối 2 | Chữ · 40 | ✔ |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading3` | Khối 3 | Chữ · 40 | ✔ |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading4` | Khối 4 | Chữ · 40 | ✔ |  |
+| Kết quả | Tiêu đề các khối kết quả | `resultHeading5` | Khối “Nếu đã lỡ” | Chữ · 40 | ✔ |  |
 | Kết quả | Cách hiện | `maxSituations` | Số tình huống hiện tối đa | Số 1–3 | ✔ |  |
-| Kết quả | Cách hiện | `noMatchText` | Câu khi không khớp | Đoạn · 200 | ✔ | Hiện cùng trạng thái “Cần thận trọng” và 4 nguyên tắc dừng |
-| Kết quả | Cách hiện | `defaultChecklist` | Danh sách kiểm tra mặc định | Chọn · Danh sách kiểm tra (một) | ✔ |  |
+| Kết quả | Cách hiện | `situationNote` | Câu dưới tình huống | Đoạn · 200 |  |  |
+| Kết quả | Cách hiện | `noMatchText` | Câu khi không khớp | Đoạn · 200 | ✔ | Hiện cùng 4 nguyên tắc dừng |
+| Kết quả | Cách hiện | `clearNote` | Câu thêm ở mức Cần thận trọng | Đoạn · 240 |  |  |
+| Kết quả | Cách hiện | `defaultChecklist` | Danh sách kiểm tra khi không khớp thủ đoạn | Chọn · Danh sách kiểm tra (một) | ✔ | Có thủ đoạn khớp thì lấy danh sách kiểm tra cùng chuyên đề với bài chứa thủ đoạn đầu |
+| Kết quả | Việc cần làm ngay | `stopActions` | Mức Rất cao | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `stopActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
+| | ↳ cột | `stopActions[].stepNumber` | Bước số | Số |  |  |
+| | ↳ cột | `stopActions[].text` | Hoặc câu riêng | Đoạn · 240 |  |  |
+| | ↳ cột | `stopActions[].onlyIf` | Chỉ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| | ↳ cột | `stopActions[].skipIf` | Bỏ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| Kết quả | Việc cần làm ngay | `holdActions` | Mức Cao | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `holdActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
+| | ↳ cột | `holdActions[].stepNumber` | Bước số | Số |  |  |
+| | ↳ cột | `holdActions[].text` | Hoặc câu riêng | Đoạn · 240 |  |  |
+| | ↳ cột | `holdActions[].onlyIf` | Chỉ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| | ↳ cột | `holdActions[].skipIf` | Bỏ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| Kết quả | Việc cần làm ngay | `clearActions` | Mức Cần thận trọng | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `clearActions[].page` | Trang việc cần làm | Chọn · Việc cần làm (một) |  |  |
+| | ↳ cột | `clearActions[].stepNumber` | Bước số | Số |  |  |
+| | ↳ cột | `clearActions[].text` | Hoặc câu riêng | Đoạn · 240 |  |  |
+| | ↳ cột | `clearActions[].onlyIf` | Chỉ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| | ↳ cột | `clearActions[].skipIf` | Bỏ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
+| Kết quả | Nếu đã lỡ làm theo | `ifAlreadyLinks` | Trang việc cần làm | InlineList · Bảng | ✔ |  |
+| | ↳ cột | `ifAlreadyLinks[].icon` | Biểu tượng | Danh mục · Biểu tượng |  |  |
+| | ↳ cột | `ifAlreadyLinks[].label` | Chữ | Chữ · 80 | ✔ |  |
+| | ↳ cột | `ifAlreadyLinks[].targetPage` | Trang | Chọn · Việc cần làm (một) | ✔ |  |
+| | ↳ cột | `ifAlreadyLinks[].onlyIf` | Chỉ khi chọn | Chọn · Lựa chọn của trình hỏi (nhiều) |  | ở dòng mở rộng |
 | Kết quả | Chữ trên 4 nút | `button1Text` | Nút 1 | Chữ · 40 | ✔ |  |
 | Kết quả | Chữ trên 4 nút | `button2Text` | Nút 2 | Chữ · 40 | ✔ |  |
 | Kết quả | Chữ trên 4 nút | `button3Text` | Nút 3 | Chữ · 40 | ✔ |  |
@@ -661,6 +704,7 @@ Không có trang · Tạo: Biên tập viên · Xóa: Biên tập viên · Tên 
 | Nội dung | Thủ đoạn | `channels` | Kênh | Chọn · Kênh (nhiều) | ✔ |  |
 | Nội dung | Thủ đoạn | `cautionLevel` | Mức độ | Danh mục · Mức độ cần thận trọng | ✔ |  |
 | Nội dung | Thủ đoạn | `searchKeywords` | Từ khóa tìm kiếm | Thẻ · Từ khóa |  |  |
+| Nội dung | Trình hỏi “Tôi đang gặp chuyện gì?” | `wizardAnswers` | Câu trả lời ở trình hỏi | Chọn · Lựa chọn câu 2, 3 của trình hỏi (nhiều, ≤ 8) |  | Những yêu cầu, lời hứa hoặc lời đe dọa thủ đoạn này hay dùng (câu 2, 3 của trình hỏi). Trống thì thủ đoạn không hiện ở “Tình huống gần giống” |
 | Nội dung | Hiện trên website ở đâu | — (không lưu) | Nơi hiện | Không lưu (hiển thị) |  |  |
 
 #### `quickQaItem` · Hỏi – đáp nhanh

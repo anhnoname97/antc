@@ -42,7 +42,7 @@ public static class PageTreeRules
         }
         else if (alias == "cuocThiLamBaiPage")
         {
-            if (parentAlias != "thiPage") return "Trang Làm bài phải được đặt trực tiếp dưới Trang Cuộc thi.";
+            if (parentAlias != "thiPage" && parentAlias != "thiThangPage") return "Trang Làm bài phải được đặt trực tiếp dưới Trang Cuộc thi.";
         }
         else if (FixedPages.Contains(alias))
         {

@@ -78,3 +78,15 @@ if (notice) {
     });
   });
 }
+
+// Accordion / peek toggle for data-open
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-open]');
+  if (!btn) return;
+  const targetId = btn.getAttribute('data-open');
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', String(!isExpanded));
+  target.hidden = isExpanded;
+});
