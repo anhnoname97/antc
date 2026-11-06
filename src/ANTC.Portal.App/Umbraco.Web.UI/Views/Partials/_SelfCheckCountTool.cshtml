@@ -42,10 +42,10 @@
             }
         </div>
         <script type="application/json" data-self-check-data>@Html.Raw(json)</script>
-        <noscript><section class="self-check-empty"><p>Bật JavaScript để trả lời từng câu và xem kết quả. Bạn vẫn có thể đọc các câu hỏi dưới đây.</p><ol>@foreach (var question in data.Questions) { <li>@question.Text.Replace("**", "")</li> }</ol><a href="/ung-pho/">Xem hướng dẫn ứng phó khẩn cấp</a></section></noscript>
+        <noscript><section class="self-check-empty"><p>Bật JavaScript để trả lời từng câu và xem kết quả. Bạn vẫn có thể đọc các câu hỏi dưới đây.</p><ol>@foreach (var question in data.Questions) { <li>@question.Text.Replace("**", "")</li> }</ol><a href="/khan-cap/">Xem hướng dẫn ứng phó khẩn cấp</a></section></noscript>
     }
     else
     {
-        <p class="self-check-empty">Bộ câu hỏi đang được cập nhật. Nếu đang có việc gấp, hãy <a href="/ung-pho/">xem hướng dẫn ứng phó khẩn cấp</a>.</p>
+        <p class="self-check-empty">Bộ câu hỏi đang được cập nhật. Nếu đang có việc gấp, hãy <a href="/khan-cap/">xem hướng dẫn ứng phó khẩn cấp</a>.</p>
     }
 </article>

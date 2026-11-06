@@ -47,8 +47,9 @@ public sealed class AntcPublicUrlProvider(IDocumentNavigationQueryService naviga
             path = AntcPublicPaths.SelfCheckGuidancePath(content.Value<string>("slug", culture));
         if (content.ContentType.Alias == "checklistPage")
             path = AntcPublicPaths.SelfCheckChecklistPath(Segment(content));
-        if (content.ContentType.Alias == "riskArticlePage")
-            path = AntcPublicPaths.SelfCheckReadingPath(content.Value<string>("selfCheckSourceNumber", culture));
+        if (content.ContentType.Alias == "riskArticlePage"
+            && AntcPublicPaths.SelfCheckReadingPath(content.Value<string>("selfCheckSourceNumber", culture)) is { } readingPath)
+            path = readingPath;
         if (path is null) return null;
         return UrlInfo.AsUrl(mode == UrlMode.Absolute ? new Uri(current, path).AbsoluteUri : path, Alias, culture);
     }
@@ -96,6 +97,26 @@ public sealed class AntcPublicContentFinder(
 
         IPublishedContent? home = Child(Child(site, "pageManagement"), "home");
         string path = request.AbsolutePathDecoded.Trim('/');
+        if (!preview && AntcPublicPaths.LegacyEmergencyPath(path) is { } emergencyRedirect)
+        {
+            var emergency = Child(home, "ungPhoPage");
+            var destination = AntcPublicPaths.FixedAlias(emergencyRedirect) == "wizardPage" ? Child(emergency, "wizardPage") : emergency;
+            if (destination?.TemplateId is > 0)
+            {
+                request.SetRedirectPermanent(emergencyRedirect + request.Uri.Query);
+                return Task.FromResult(true);
+            }
+        }
+        if (!preview && (path.Equals("quan-ly-trang/trang-chu/lien-he-dung-noi", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("quan-ly-trang/trang-chu/lien-he", StringComparison.OrdinalIgnoreCase)))
+        {
+            var contact = Child(home, "lienHePage");
+            if (contact?.TemplateId is > 0)
+            {
+                request.SetRedirectPermanent("/lien-he/" + request.Uri.Query);
+                return Task.FromResult(true);
+            }
+        }
         if (!preview && (path.Equals("quan-ly-trang/trang-chu/hay-tu-kiem-tra", StringComparison.OrdinalIgnoreCase)
             || path.Equals("cong-cu-checklist", StringComparison.OrdinalIgnoreCase)))
         {
@@ -140,6 +161,7 @@ public sealed class AntcPublicContentFinder(
             }
         }
         IPublishedContent? found = fixedAlias == "home" ? home
+            : fixedAlias == "wizardPage" ? Child(Child(home, "ungPhoPage"), "wizardPage")
             : fixedAlias == "cuocThiLamBaiPage" ? (Child(Child(home, "thiThangPage"), fixedAlias) ?? Child(Child(home, "thiPage"), fixedAlias) ?? Child(home, fixedAlias))
             : fixedAlias is "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" ? Child(Child(home, "congCuPage"), fixedAlias)
             : fixedAlias is not null ? (Child(home, fixedAlias) ?? (fixedAlias == "thiThangPage" ? Child(home, "thiPage") : null)) : null;

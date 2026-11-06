@@ -16,7 +16,7 @@
     var groupPage = group is null ? null : Umbraco.Content(group.Key);
     var riskPage = Umbraco.Content(RiskStructure.Pages[0].Key);
     var title = Model.Value<string>("title") is { Length: > 0 } heading ? heading : Model.Name;
-    var body = ReadingBodyRenderer.Render(Model.Value<IHtmlEncodedString>("readingBody")?.ToHtmlString(), "/ung-pho/", "d" + number);
+    var body = ReadingBodyRenderer.Render(Model.Value<IHtmlEncodedString>("readingBody")?.ToHtmlString(), "/khan-cap/", "d" + number);
     var description = Model.Value<string>("description");
     if (string.IsNullOrWhiteSpace(description) && isTopicReading)
     {
@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="~/assets/css/contest-activity.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/reading-article.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency-wizard.css" asp-append-version="true">
 }
 <div class="activity-portal reading-page" data-reading>
     <nav class="crumbs" aria-label="Bạn đang ở">
@@ -84,6 +85,7 @@
         }
 
         <div class="reading-body" data-reading-body>@Html.Raw(body.Html)</div>
+        @await Html.PartialAsync("~/Views/Partials/_WizardTactics.cshtml", Model)
 
         @if (isTopicReading)
         {

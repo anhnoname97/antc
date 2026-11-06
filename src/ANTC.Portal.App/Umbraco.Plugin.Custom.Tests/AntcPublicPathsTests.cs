@@ -6,8 +6,21 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class AntcPublicPathsTests
 {
     [Theory]
+    [InlineData("/ung-pho/", "/khan-cap/")]
+    [InlineData("/UNG-PHO", "/khan-cap/")]
+    [InlineData("/ung-pho/kiem-tra/", "/khan-cap/kiem-tra/")]
+    [InlineData("/ung-pho/khong-ton-tai/", null)]
+    [InlineData("/khan-cap/", null)]
+    public void Legacy_emergency_urls_redirect_only_known_pages(string path, string? expected)
+    {
+        Assert.Equal(expected, AntcPublicPaths.LegacyEmergencyPath(path));
+    }
+
+    [Theory]
     [InlineData("home", "/")]
-    [InlineData("ungPhoPage", "/ung-pho/")]
+    [InlineData("ungPhoPage", "/khan-cap/")]
+    [InlineData("wizardPage", "/khan-cap/kiem-tra/")]
+    [InlineData("lienHePage", "/lien-he/")]
     [InlineData("thiThuPage", "/thu-suc/")]
     [InlineData("thiThangPage", "/cuoc-thi/")]
     [InlineData("cuocThiLamBaiPage", "/thi/")]

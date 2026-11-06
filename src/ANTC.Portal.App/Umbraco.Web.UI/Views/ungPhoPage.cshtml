@@ -1,21 +1,119 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Text.Json
+@using Umbraco.Cms.Core.PublishedCache
+@using Umbraco.Cms.Core.Services.Navigation
+@using Umbraco.Cms.Core.Web
+@inject IDocumentNavigationQueryService Navigation
+@inject IPublishedContentCache PublishedCache
+@inject IUmbracoContextAccessor ContextAccessor
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
-    var blocks = Model.Value<BlockGridModel>("layout");
+    var site = Model.Root();
+    var preview = ContextAccessor.TryGetUmbracoContext(out var context) && context.InPreviewMode;
+    var title = Model.Value<string>("title") ?? Model.Name;
+    var image = Model.Value<IPublishedContent>("illustration");
+    var doors = EmergencyContent.Rows(Model, "doors");
+    var principles = EmergencyContent.Rows(site, "stopPrinciples");
+    var bankSteps = site.Value<IEnumerable<string>>("bankLookupSteps") ?? [];
+    string? Link(JsonElement row, string alias) => EmergencyContent.DocumentKey(EmergencyContent.Text(row, alias)) is { } key
+        ? EmergencyContent.PublicUrl(PublishedCache.GetById(preview, key)) : null;
+    var noMatch = Model.Value<IPublishedContent>("noMatchPage");
+    var noMatchUrl = EmergencyContent.PublicUrl(noMatch);
+    var situations = new List<IPublishedContent>();
+    Navigation.TryGetChildrenKeysOfType(site.Key, "contentManagement", out var libraries);
+    foreach (var library in libraries)
+    {
+        if (PublishedCache.GetById(preview, library) is null) { continue; }
+        Navigation.TryGetChildrenKeysOfType(library, "viecCanLamPage", out var folders);
+        foreach (var folder in folders)
+        {
+            if (PublishedCache.GetById(preview, folder) is null) { continue; }
+            Navigation.TryGetChildrenKeysOfType(folder, "viecCanLamPage", out var children);
+            situations.AddRange(children.Select(key => PublishedCache.GetById(preview, key)).OfType<IPublishedContent>()
+                .Where(page => !page.Value<bool>("hideFromSituations") && EmergencyContent.PublicUrl(page) is not null));
+        }
+    }
+    Navigation.TryGetChildrenKeysOfType(Model.Key, "wizardPage", out var wizardKeys);
+    var wizardUrl = wizardKeys.Select(key => PublishedCache.GetById(preview, key)).OfType<IPublishedContent>()
+        .Select(EmergencyContent.PublicUrl).FirstOrDefault(url => url is not null);
+    var hasVerification = Model.Value<DateTime?>("hotlinesCheckedDate") is { Year: > 1900 } && !string.IsNullOrWhiteSpace(Model.Value<string>("hotlinesSource"));
 }
 @section Head {
-    <link rel="stylesheet" href="~/assets/css/home.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/assets/css/emergency.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/assets/css/emergency-overrides.css" asp-append-version="true">
-    <link rel="stylesheet" href="~/assets/css/emergency-responsive.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency-v2.css" asp-append-version="true">
 }
-@if (blocks?.Any() == true)
-{
-    <div class="home-content emergency-content" data-emergency-page>
-        @await Html.GetBlockGridHtmlAsync(blocks)
-    </div>
-}
-@section Scripts {
-    <script type="module" src="~/assets/js/emergency.js" asp-append-version="true"></script>
-}
+<article class="self-check-page emergency-v2 site-chrome-wrap" data-emergency-v2>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li aria-current="page">@title</li></ol></nav>
+    <header class="self-check-heading"><div class="self-check-heading__title"><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "alert")</span><h1>@title</h1></div><p>@Model.Value("lead")</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
+    @if (image is not null) { <figure class="emergency-image"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure> }
+    <section class="emergency-wizard" aria-labelledby="emergency-wizard-title"><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")</span><div><h2 id="emergency-wizard-title">@Model.Value("wizardTitle")</h2><p>@Model.Value("wizardDescription")</p></div>
+        @if (wizardUrl is not null) { <a class="emergency-button emergency-button--primary" href="@wizardUrl">@Model.Value("wizardButtonText") <span aria-hidden="true">›</span></a> }
+        else { <span class="emergency-pending">Sắp có</span> }
+    </section>
+    @if (principles.Length > 0)
+    {
+        <section class="self-check-section" aria-labelledby="emergency-principles-title"><h2 id="emergency-principles-title">@Model.Value("principlesTitle")</h2><div class="emergency-principles">
+            @foreach (var principle in principles) { <div><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", EmergencyContent.Text(principle, "icon"))</span><h3>@EmergencyContent.Text(principle, "title")</h3><p>@EmergencyContent.Text(principle, "description")</p></div> }
+        </div><p class="emergency-note">@Model.Value("principlesNote")</p></section>
+    }
+    <section class="self-check-section" id="viec-can-lam" aria-labelledby="emergency-doors-title"><h2 id="emergency-doors-title">Việc cần làm ngay</h2><p>@Model.Value("doorLead")</p>
+        <div class="emergency-doors">
+        @for (var i = 0; i < doors.Length; i++)
+        {
+            var door = doors[i];
+            var mode = EmergencyContent.Text(door, "openMode");
+            var doorTitle = EmergencyContent.Text(door, "title");
+            var illustration = EmergencyContent.Text(door, "illustration");
+            var panelId = $"emergency-door-{i}";
+            var targetUrl = Link(door, "targetPage");
+            <div class="emergency-door-wrap" data-emergency-door>
+                @if (mode == "moDanhSach")
+                {
+                    <details class="emergency-door-details"><summary class="emergency-door" aria-controls="@panelId">@await Html.PartialAsync("~/Views/Partials/_EmergencyDoorArt.cshtml", illustration)<span><b>@doorTitle</b><small>@EmergencyContent.Text(door, "description")</small></span><i aria-hidden="true">›</i></summary>
+                        <div class="emergency-options" id="@panelId"><p>@EmergencyContent.Text(door, "optionsLead")</p><ul>
+                        @foreach (var option in EmergencyContent.Rows(door, "options"))
+                        {
+                            var url = Link(option, "target");
+                            <li>@if (url is not null) { <a href="@url">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", EmergencyContent.Text(option, "icon"))<span>@EmergencyContent.Text(option, "text")</span><i aria-hidden="true">›</i></a> }
+                            else { <span class="emergency-unavailable">@EmergencyContent.Text(option, "text") <small>Sắp có</small></span> }</li>
+                        }
+                        </ul></div>
+                    </details>
+                }
+                else if (targetUrl is not null)
+                {
+                    <a class="emergency-door" href="@targetUrl">@await Html.PartialAsync("~/Views/Partials/_EmergencyDoorArt.cshtml", illustration)<span><b>@doorTitle</b><small>@EmergencyContent.Text(door, "description")</small></span><i aria-hidden="true">›</i></a>
+                }
+                else { <div class="emergency-door">@await Html.PartialAsync("~/Views/Partials/_EmergencyDoorArt.cshtml", illustration)<span><b>@doorTitle</b><small>@EmergencyContent.Text(door, "description")</small><small>Sắp có</small></span></div> }
+            </div>
+        }
+        </div>
+        @if (noMatchUrl is not null) { <a class="emergency-no-match" href="@noMatchUrl">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-help-alt")<span><b>Không ô nào giống trường hợp của tôi</b><small>@(noMatch?.Value<string>("title") ?? noMatch?.Name)</small></span><i aria-hidden="true">›</i></a> }
+        <p class="emergency-note">@Model.Value("helperNote")</p>
+    </section>
+    @if (situations.Count > 0) { <details class="emergency-situations"><summary><span><b>@situations.Count tình huống điển hình</b><small>Mở danh sách đầy đủ các trang việc cần làm</small></span><i aria-hidden="true">›</i></summary><ul>@foreach (var page in situations.OrderBy(page => page.SortOrder)) { <li><a href="@(page.Url())">@(page.Value<string>("title") ?? page.Name)<span aria-hidden="true">›</span></a></li> }</ul></details> }
+    <section class="self-check-section" aria-labelledby="emergency-help-title"><h2 id="emergency-help-title">Khi cần hỗ trợ</h2>
+        @if (bankSteps.Any()) { <div class="emergency-support"><h3>Cách tự tìm số ngân hàng của bạn</h3><ol class="emergency-bank-steps">@foreach (var step in bankSteps) { <li>@step</li> }</ol></div> }
+        @foreach (var group in new[] { (Alias: "stateHotlines", Title: "Số do Nhà nước vận hành"), (Alias: "bankHotlines", Title: "Đường dây nóng của tổ chức tín dụng") })
+        {
+            if (group.Alias == "bankHotlines") { @await Html.PartialAsync("~/Views/Partials/_ContactHotlines.cshtml", (Model, group.Alias, group.Title)) continue; }
+            var phones = EmergencyContent.Rows(Model, group.Alias).Where(row => EmergencyContent.IsPhoneNumber(EmergencyContent.Text(row, "number"))).ToArray();
+            if (phones.Length == 0) { continue; }
+            <div class="emergency-support"><h3>@group.Title</h3><div class="emergency-phones">
+            @foreach (var phone in phones)
+            {
+                var number = EmergencyContent.Text(phone, "number");
+                var mode = EmergencyContent.Text(phone, "contactMode");
+                <section data-hotline="@number"><b class="emergency-phone-number">@number</b><span class="emergency-phone-mode">@(mode == "goi" ? "Gọi" : mode == "nhanTin" ? "Chỉ nhắn tin" : mode == "goiVaNhanTin" ? "Gọi và nhắn tin" : "")</span><p>@EmergencyContent.Text(phone, "description")</p>
+                    @if (EmergencyContent.Text(phone, "smsSyntax") is { Length: > 0 } syntax) { <p>Cú pháp: @syntax</p> }
+                    <div class="emergency-phone-actions">@if (mode is "goi" or "goiVaNhanTin") { <a class="emergency-button" href="tel:@number">Gọi @number</a> }@if (mode is "nhanTin" or "goiVaNhanTin") { <a class="emergency-button" href="sms:@number">Nhắn tin</a> }</div>
+                </section>
+            }
+            </div>@if (hasVerification) { <p class="emergency-note">Kiểm chứng gần nhất: @(Model.Value<DateTime>("hotlinesCheckedDate").ToString("dd/MM/yyyy")) · Nguồn: @Model.Value("hotlinesSource")</p> } else { <p class="emergency-note emergency-verification">Chưa có thông tin kiểm chứng số tổng đài.</p> }</div>
+        }
+    </section>
+    <div class="emergency-footer-buttons">@foreach (var button in EmergencyContent.Rows(Model, "footerButtons")) { var url = Link(button, "targetPage"); if (url is not null) { <a class="emergency-button" href="@url">@EmergencyContent.Text(button, "label")</a> } else { <span class="emergency-button emergency-unavailable">@EmergencyContent.Text(button, "label") <small>Sắp có</small></span> } }</div>
+    <p class="emergency-note">@site.Value("notOnDutyNote")</p>
+    <p class="emergency-note">@site.Value("noReportNote")</p>
+</article>
+@section Scripts { <script type="module" src="~/assets/js/emergency-v2.js" asp-append-version="true"></script> }

@@ -179,7 +179,7 @@ class AntcRiskEditor extends UmbLitElement {
         </aside></div>`;
     }
     _taxonomy() {
-        return this._type === 'tacticItem' ? html`${this._box('Thủ đoạn', ['code', 'isActive', 'containingArticle', 'channels', 'cautionLevel', 'searchKeywords'])}${this._box('Hiện trên website ở đâu', [], null, this._auto())}`
+        return this._type === 'tacticItem' ? html`${this._box('Thủ đoạn', ['code', 'isActive', 'containingArticle', 'channels', 'cautionLevel', 'searchKeywords'])}${this._box('Trình hỏi', ['wizardAnswers'], 'Chọn yêu cầu hoặc lời thuyết phục tương ứng để thủ đoạn xuất hiện trong kết quả Kiểm tra tình huống.')}${this._box('Hiện trên website ở đâu', [], null, this._auto())}`
             : html`${this._box('Chuyên đề', ['code', 'icon', 'isActive', 'topicNumber', 'shortName', 'readingArticle', 'checklist'])}${this._box('Dùng chung cho bài hướng dẫn', ['rememberLine', 'mustAsk', 'stopWhen', 'holdWhen'])}`;
     }
     render() {

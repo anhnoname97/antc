@@ -15,9 +15,9 @@ const base = process.env.ANTC_TEST_URL || 'http://localhost:11000';
     assert.deepEqual(await root.locator('.self-check-tools .self-check-card__body > b').allTextContents(),
       ['Trước khi chuyển tiền', 'Trước khi đầu tư, vay', 'Khi nghi ngờ bị lừa']);
     const knowledge = root.locator('.self-check-knowledge');
-    assert.equal(await knowledge.getByRole('link').count(), 1);
-    assert.equal(await knowledge.getByRole('link').getAttribute('href'), '/thu-suc/');
-    assert.equal(await knowledge.locator('.self-check-card--pending').count(), 1);
+    assert.deepEqual(await knowledge.getByRole('link').evaluateAll(links => links.map(link => link.getAttribute('href'))),
+      ['/thu-suc/', '/ngan-hang/']);
+    assert.equal(await knowledge.locator('.self-check-card--pending').count(), 0);
     assert.equal(await root.locator('.self-check-lists a').count(), 8);
     assert.deepEqual(await root.locator('.self-check-lists .self-check-card__body > b').allTextContents(), [
       'Trước mọi quyết định có dính đến tiền', 'Trước khi ký hợp đồng, bấm đồng ý', 'Trước khi đầu tư, góp vốn',
@@ -41,8 +41,20 @@ const base = process.env.ANTC_TEST_URL || 'http://localhost:11000';
       const result = await page.request.get(new URL(href, base).href);
       assert.equal(result.status(), 200, href);
     }
+    await knowledge.locator('a[href="/ngan-hang/"]').click();
+    await page.locator('#examview a[href="#chuyen-de-1"]').waitFor();
+    assert.equal(new URL(page.url()).pathname, '/ngan-hang/');
+    assert.deepEqual(await page.evaluate(async () => {
+      const { state } = await import('/assets/js/contest/contest-store.js');
+      return { practice: state.practice, contestId: state.contestId, entry: state.entry,
+        registrationHidden: document.getElementById('regview').hidden };
+    }), { practice: true, contestId: null, entry: null, registrationHidden: true });
+    await page.reload();
+    await page.locator('#examview a[href="#chuyen-de-1"]').waitFor();
+    assert.equal(await page.evaluate(async () =>
+      (await import('/assets/js/contest/contest-store.js')).state.practice), true);
     assert.deepEqual(errors, []);
-    console.log('PASS: landing, 8 published checklist links in order, knowledge pending state, mobile/large text, active menu, redirects and public link destinations.');
+    console.log('PASS: landing, 8 published checklist links in order, both knowledge links, mobile/large text, active menu, redirects, public link destinations and practice mode after click/reload.');
   } finally {
     await browser.close();
   }

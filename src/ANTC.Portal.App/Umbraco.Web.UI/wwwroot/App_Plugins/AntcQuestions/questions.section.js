@@ -609,7 +609,7 @@ export class AntcQuestionsSection extends UmbLitElement {
                 <textarea class="answer-editor" aria-label="Câu trả lời" maxlength="10000" placeholder="Soạn câu trả lời…" .value=${this._draft.answer} ?disabled=${this._busy} @input=${e => this._editInline('answer', e.target.value)}></textarea>
                 ${row?.isPublished && this._draft.answer !== row?.publishedAnswer ? html`<p class="published-snapshot-note">Trang web vẫn hiển thị câu trả lời đã duyệt trước đó. Duyệt và công bố để cập nhật bản mới.</p>` : nothing}
                 ${(row?.type || 'cau-hoi') !== 'gop-y' ? html`<div class="guidance-fields"><label>Tên hướng dẫn đã thẩm định<input maxlength="200" .value=${this._draft.guidanceLabel} ?disabled=${this._busy} @input=${e => this._editInline('guidanceLabel', e.target.value)}></label>
-                    <label>Liên kết hướng dẫn<input maxlength="2048" placeholder="/ung-pho/" .value=${this._draft.guidanceUrl} ?disabled=${this._busy} @input=${e => this._editInline('guidanceUrl', e.target.value)}></label></div>` : nothing}
+                    <label>Liên kết hướng dẫn<input maxlength="2048" placeholder="/khan-cap/" .value=${this._draft.guidanceUrl} ?disabled=${this._busy} @input=${e => this._editInline('guidanceUrl', e.target.value)}></label></div>` : nothing}
                 <footer class="answer-footer">
                     <span class="answer-character-count">${this._draft.answer.length.toLocaleString('vi-VN')} / 10.000 ký tự</span>
                     <div class="answer-actions">${row ? html`<button class="delete-action" ?disabled=${this._busy || !!this._selected} @click=${() => this._deleteRows([row])}>Xóa</button>` : nothing}${row?.isPublished ? html`<button ?disabled=${this._busy} @click=${this._unpublishInline}>Gỡ công bố</button>` : nothing}
@@ -644,7 +644,7 @@ export class AntcQuestionsSection extends UmbLitElement {
                 <p class="private-meta">${this._draft.content.length} / 2.000 ký tự. Nội dung và câu trả lời sẽ được công khai khi lưu và xuất bản.</p>
                 <label class="common-question create-field">Câu trả lời<textarea placeholder="Soạn câu trả lời rõ ràng, dễ hiểu…" aria-label="Câu trả lời mới" rows="5" maxlength="10000" .value=${this._draft.answer} ?disabled=${this._busy} @input=${e => this._editInline('answer', e.target.value)}></textarea></label>
                 <div class="guidance-fields"><label>Tên hướng dẫn đã thẩm định<input maxlength="200" .value=${this._draft.guidanceLabel} ?disabled=${this._busy} @input=${e => this._editInline('guidanceLabel', e.target.value)}></label>
-                    <label>Liên kết hướng dẫn<input maxlength="2048" placeholder="/ung-pho/" .value=${this._draft.guidanceUrl} ?disabled=${this._busy} @input=${e => this._editInline('guidanceUrl', e.target.value)}></label></div>
+                    <label>Liên kết hướng dẫn<input maxlength="2048" placeholder="/khan-cap/" .value=${this._draft.guidanceUrl} ?disabled=${this._busy} @input=${e => this._editInline('guidanceUrl', e.target.value)}></label></div>
 </section><section class="submission-card create-internal"><h3 class="create-section-title">Thông tin nội bộ</h3>
                 <label class="common-question create-field">Ghi chú nội bộ<textarea aria-label="Ghi chú nội bộ mới" rows="3" maxlength="1000" .value=${this._draft.adminNote} ?disabled=${this._busy} @input=${e => this._editInline('adminNote', e.target.value)}></textarea></label>
                 <p class="private-meta">Ghi chú chỉ hiển thị trong quản trị.</p>
