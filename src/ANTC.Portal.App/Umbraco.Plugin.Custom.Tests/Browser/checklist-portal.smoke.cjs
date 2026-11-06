@@ -42,7 +42,7 @@ const base=process.env.ANTC_TEST_URL || 'http://localhost:11000';
       assert.equal(await page.locator('.self-check-reasons li').count(),1);
       await page.locator('input[name=checklist-answer-0][value=y]').check();await submit();await page.locator('.self-check-state--d').waitFor();
       assert.equal(await page.locator('.self-check-checklist-action').innerText(),'Làm ngay: '+data.stopAction);
-      assert.equal(await page.locator('[data-checklist-output] a').getAttribute('href'),'/ung-pho/');
+      assert.equal(await page.locator('[data-checklist-output] a').getAttribute('href'),'/khan-cap/');
       await page.getByRole('button',{name:'Xóa đánh dấu',exact:true}).click();
       assert.equal(await page.locator('[data-checklist-item]:checked').count(),0);
       assert.equal(await page.locator('input[type=radio]:checked').count(),5);
@@ -57,7 +57,7 @@ const base=process.env.ANTC_TEST_URL || 'http://localhost:11000';
       assert.equal(old.status(),301);assert.equal(old.headers().location,link.url+'?ref=test');
     }
     // The full source articles remain readable at phone size, including tables.
-    for(const source of sources){await page.goto(base+source);assert((await page.locator('.self-check-reading-body').innerText()).length>4000);assert.equal(await page.locator('.self-check-reading-body .k-stop').count(),1);assert.equal(await page.locator('.self-check-reading-body .k-pocket').count(),1);await page.setViewportSize({width:320,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,source);}
+    for(const source of sources){await page.goto(base+source);const reading=page.locator('.self-check-reading-body, [data-reading-body]');assert((await reading.innerText()).length>4000);assert.equal(await reading.locator('.k-stop').count(),1);assert.equal(await reading.locator('.k-pocket').count(),1);await page.setViewportSize({width:320,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,source);}
     await page.goto(base+links[0].url);await page.locator('[data-font-toggle]').click();await page.locator('[data-font-toggle]').click();
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Large text overflow');
     const first=page.locator('input[name=checklist-answer-0][value=y]');await first.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('input[name=checklist-answer-0][value=n]').isChecked(),true);

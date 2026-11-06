@@ -51,7 +51,7 @@ for (const root of document.querySelectorAll('[data-self-check-checklist]')) {
     const action = result.level === 'd' ? data.stopAction : result.level === 'h' ? data.holdAction : '';
     if (action) { const p = element('p', 'self-check-checklist-action'); p.append(element('strong', '', 'Làm ngay: '), document.createTextNode(action)); state.append(p); }
     panel.append(state);
-    if (result.level === 'd') { const link = element('a', 'self-check-button', 'Khẩn cấp: chọn việc cần làm ngay'); link.href = '/ung-pho/'; panel.append(link); }
+    if (result.level === 'd') { const link = element('a', 'self-check-button', 'Khẩn cấp: chọn việc cần làm ngay'); link.href = '/khan-cap/'; panel.append(link); }
     const notes = element('div', 'self-check-result-notes');
     notes.append(element('p', '', 'Kết quả chỉ mang tính tham khảo, không phải kết luận pháp lý và không thay thế việc liên hệ ngân hàng hoặc cơ quan có thẩm quyền.'), element('p', '', 'Kết quả này dựa trên thông tin bạn vừa nhập. Đây không phải kết luận về bất kỳ cá nhân, tổ chức nào.'));
     panel.append(notes); out.replaceChildren(panel);

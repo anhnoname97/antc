@@ -7,11 +7,13 @@ public static class AntcPublicPaths
 {
     private static readonly IReadOnlyDictionary<string, string> FixedPaths = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-        ["home"] = "/", ["ungPhoPage"] = "/ung-pho/", ["thuDoanPage"] = "/thu-doan/",
+        ["home"] = "/", ["ungPhoPage"] = "/khan-cap/", ["thuDoanPage"] = "/thu-doan/",
         ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi-truc-tuyen/",
         ["thiThangPage"] = "/cuoc-thi/", ["cuocThiLamBaiPage"] = "/thi/",
         ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/",
         ["congCuPage"] = "/hay-tu-kiem-tra/",
+        ["wizardPage"] = "/khan-cap/kiem-tra/",
+        ["lienHePage"] = "/lien-he/",
         ["truocKhiChuyenTienPage"] = "/hay-tu-kiem-tra/truoc-khi-chuyen-tien/",
         ["truocKhiDauTuVayPage"] = "/hay-tu-kiem-tra/truoc-khi-dau-tu-vay/",
         ["khiNghiBiLuaPage"] = "/hay-tu-kiem-tra/khi-nghi-bi-lua/"
@@ -20,6 +22,13 @@ public static class AntcPublicPaths
     public static bool IsManagement(string alias) =>
         alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement"
             or "fraudContent" or "policyContent" or "checklistFolderV2";
+
+    public static string? LegacyEmergencyPath(string path) => path.Trim('/').ToLowerInvariant() switch
+    {
+        "ung-pho" => "/khan-cap/",
+        "ung-pho/kiem-tra" => "/khan-cap/kiem-tra/",
+        _ => null
+    };
 
     public static string? FixedAlias(string path)
     {

@@ -1,0 +1,26 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Text.Json
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var data = EmergencyWizardDataBuilder.Build(Model);
+    var image = Model.Value<IPublishedContent>("illustration");
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency-v2.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency-wizard.css" asp-append-version="true">
+}
+<article class="self-check-page site-chrome-wrap emergency-wizard-page" data-emergency-wizard>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/khan-cap/">Khẩn cấp</a></li><li aria-current="page">@Model.Value("title")</li></ol></nav>
+    <header class="self-check-heading"><div class="self-check-heading__title"><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")</span><h1>@Model.Value("title")</h1></div><p>@Model.Value("lead")</p></header>
+    @if (image is not null) { <figure class="emergency-image"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" loading="lazy"></figure> }
+    <p class="wizard-privacy">@Model.Value("privacyNote")</p>
+    @if (data.Ready)
+    {
+        <div data-wizard-stage></div>
+        <script type="application/json" data-wizard-data>@Html.Raw(data.Data.ToJsonString())</script>
+        <noscript><p class="self-check-empty">Bật JavaScript để trả lời ba câu hỏi. Bạn cũng có thể <a href="/khan-cap/#viec-can-lam">chọn trực tiếp việc cần làm ngay</a>.</p></noscript>
+    }
+    else { <p class="self-check-empty">Bộ câu hỏi đang được cập nhật. Hãy <a href="/khan-cap/#viec-can-lam">chọn việc cần làm ngay</a>.</p> }
+</article>
+@section Scripts { <script type="module" src="~/assets/js/emergency-wizard.js" asp-append-version="true"></script> }

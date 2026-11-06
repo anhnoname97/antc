@@ -30,8 +30,8 @@ const path='/hay-tu-kiem-tra/khi-nghi-bi-lua/';
     await page.locator('.self-check-state--n').waitFor();
     assert.equal(await page.locator('.self-check-state h2').innerText(),'Bạn chưa mất gì');
     assert.equal(await page.locator('.self-check-actions li').count(),3);
-    assert.equal(await page.locator('[data-self-check-more] a').count(),1);
-    assert.equal(await page.locator('[data-self-check-more] .self-check-card--pending').count(),1);
+    assert.equal(await page.locator('[data-self-check-more] a').count(),2);
+    assert.equal(await page.locator('[data-self-check-more] .self-check-card--pending').count(),0);
     await reset();
     // All groups must appear, including unknown, without stopping at the first yes.
     await choose('y'); await choose('u'); await choose('y'); await choose('u');

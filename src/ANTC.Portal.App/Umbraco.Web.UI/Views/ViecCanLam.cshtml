@@ -6,10 +6,12 @@
     var title = Model.Value<string>("title");
     if (string.IsNullOrWhiteSpace(title)) { title = Model.Name; }
     var steps = Model.Value<BlockListModel>("steps");
+    var screening = EmergencyContent.Rows(Model, "screeningQuestions");
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/self-check-tool.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency-v2.css" asp-append-version="true">
 }
 <article class="self-check-page self-check-tool site-chrome-wrap">
     <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li><li aria-current="page">@title</li></ol></nav>
@@ -39,7 +41,21 @@
         </div>
         <p class="self-check-result-notes">Các bước trên là việc nên làm ngay để giảm thiệt hại, chưa phải kết luận về vụ việc. Website không tiếp nhận tố giác, tin báo về tội phạm.</p>
     }
-    else
+    @if (screening.Length > 0)
+    {
+        <div class="self-check-guidance" data-emergency-screening>
+        @foreach (var row in screening)
+        {
+            var target = EmergencyContent.DocumentKey(EmergencyContent.Text(row, "targetPage")) is { } key ? Umbraco.Content(key) : null;
+            var url = EmergencyContent.PublicUrl(target);
+            <section><h2>@EmergencyContent.Text(row, "question")</h2><p>@EmergencyContent.Text(row, "note")</p>
+                @if (url is not null) { <a class="emergency-button" href="@url">@EmergencyContent.Text(row, "buttonText")</a> }
+                else { <span class="emergency-pending">Sắp có</span> }
+            </section>
+        }
+        </div>
+    }
+    @if (steps?.Any() != true && screening.Length == 0)
     {
         <div class="self-check-knowledge">@foreach (var child in Model.Children().Where(p => p.ContentType.Alias == "viecCanLamPage" && p.Value<BlockListModel>("steps")?.Any() == true)) { @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(child.Value<string>("title") ?? child.Name, child.Value<string>("lead"), "icon-book", child.Url())) }</div>
     }

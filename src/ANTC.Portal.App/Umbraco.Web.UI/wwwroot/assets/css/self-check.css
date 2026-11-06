@@ -28,10 +28,14 @@ a.self-check-card:hover { color: var(--sc-ink); border-color: var(--sc-blue); bo
 .self-check-card__action .site-icon { width: 18px; height: 18px; }
 .self-check-card__status { grid-column: 2; justify-self: start; padding: 3px 9px; color: #526172; background: #edf1f5; border-radius: 999px; font-size: .8125rem; font-weight: 600; }
 .self-check-tools .self-check-card { border-top: 4px solid var(--sc-blue); }
-.self-check-tools .self-check-card--urgent { border-top-color: #d9531e; }
+.self-check-tools .self-check-card--urgent { --sc-blue: #b8431a; border-top-color: #d9531e; }
+.self-check-tools .self-check-card--urgent:focus-visible { outline-color: #b8431a; }
 .self-check-card--urgent .self-check-spot { color: #b8431a; background: #fcebe3; }
 .self-check-lists .self-check-card { align-items: center; border-radius: 14px; }
 .self-check-lists .self-check-card__body b { font-size: 1.03125rem; }
+.self-check-card--compact { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; }
+.self-check-card--compact .self-check-card__action { grid-column: 3; grid-row: 1; align-self: center; }
+.self-check-lists .self-check-card__body > span { font-size: .875rem; }
 .self-check-empty { padding: 20px; border: 1px dashed #b6c5d6; border-radius: 14px; color: var(--sc-muted); background: #fff; line-height: 1.7; }
 .self-check-illustration { margin: 0; max-width: 800px; justify-self: center; width: 100%; }
 .self-check-illustration img { display: block; width: 100%; max-height: 360px; object-fit: contain; border-radius: 16px; }

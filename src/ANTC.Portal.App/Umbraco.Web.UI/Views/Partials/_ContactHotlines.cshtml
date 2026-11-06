@@ -1,0 +1,31 @@
+@using System.Text.RegularExpressions
+@using System.Globalization
+@model (IPublishedContent Content, string Alias, string Title)
+@{
+    var bank = Model.Alias == "bankHotlines";
+    var checkedDate = Model.Content.Value<DateTime?>("hotlinesCheckedDate");
+    var source = Model.Content.Value<string>("hotlinesSource");
+    var verified = checkedDate is { Year: > 1900 } date && date.Date <= DateTime.UtcNow.Date && !string.IsNullOrWhiteSpace(source);
+    var rows = EmergencyContent.Rows(Model.Content, Model.Alias).Where(row => Regex.IsMatch(EmergencyContent.Text(row, "number"), bank ? "\\A[0-9]{3,15}\\z" : "\\A[0-9]{3,6}\\z"))
+        .Where(row => !bank || (!string.IsNullOrWhiteSpace(EmergencyContent.Text(row, "source"))
+            && DateTime.TryParseExact(EmergencyContent.Text(row, "checkedDate"), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var review)
+            && review.Year > 1900 && review.Date <= DateTime.UtcNow.Date)).ToArray();
+}
+@if (bank && rows.Length == 0) {
+    <p class="emergency-note" data-bank-empty>Chưa có số ngân hàng đủ thông tin nguồn và ngày kiểm chứng trong danh sách. Hãy tự tìm số ở mặt sau thẻ hoặc trong ứng dụng bạn đã cài từ trước.</p>
+}
+else if (rows.Length > 0) {
+    <div class="emergency-support"><h3>@Model.Title</h3><div class="emergency-phones">
+    @foreach (var row in rows) {
+        var number = EmergencyContent.Text(row, "number");
+        var mode = EmergencyContent.Text(row, "contactMode");
+        <section data-hotline="@number">@if (bank) { <h4>@EmergencyContent.Text(row, "organization")</h4> }<b class="emergency-phone-number">@number</b><span class="emergency-phone-mode">@(mode == "goi" ? "Gọi" : mode == "nhanTin" ? "Chỉ nhắn tin" : mode == "goiVaNhanTin" ? "Gọi và nhắn tin" : "")</span><p>@EmergencyContent.Text(row, "description")</p>
+            @if (EmergencyContent.Text(row, "smsSyntax") is { Length: > 0 } syntax) { <p>Cú pháp: @syntax</p> }
+            <div class="emergency-phone-actions">@if (mode is "goi" or "goiVaNhanTin") { <a class="emergency-button" href="tel:@number">Gọi @number</a> }@if (mode is "nhanTin" or "goiVaNhanTin") { <a class="emergency-button" href="sms:@number">Nhắn tin @number</a> }</div>
+            @if (bank) { var bankDate = DateTime.ParseExact(EmergencyContent.Text(row, "checkedDate"), "yyyy-MM-dd", CultureInfo.InvariantCulture); <p class="emergency-note">Nguồn: @EmergencyContent.Text(row, "source") · Kiểm chứng gần nhất: <time datetime="@bankDate.ToString("yyyy-MM-dd")">@bankDate.ToString("dd/MM/yyyy")</time></p>@if (bankDate.Date < DateTime.UtcNow.Date.AddDays(-90)) { <p class="emergency-note emergency-verification">Quá hạn rà soát. Hãy tự tìm số ở mặt sau thẻ hoặc trong ứng dụng của bạn.</p> } }
+        </section>
+    }</div>
+    @if (!bank) { @if (verified && checkedDate is { } reviewDate) { <p class="emergency-note">Nguồn: @source · Kiểm chứng gần nhất: <time datetime="@reviewDate.ToString("yyyy-MM-dd")">@reviewDate.ToString("dd/MM/yyyy")</time></p>@if (reviewDate.Date < DateTime.UtcNow.Date.AddDays(-90)) { <p class="emergency-note emergency-verification">Quá hạn rà soát. Hãy kiểm tra lại thông tin tại nguồn chính thức.</p> } }
+    else { <p class="emergency-note emergency-verification">Chưa có thông tin kiểm chứng số tổng đài.</p> } }
+    </div>
+}
