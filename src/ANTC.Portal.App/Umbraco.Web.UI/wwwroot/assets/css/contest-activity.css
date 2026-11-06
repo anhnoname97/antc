@@ -1,0 +1,1775 @@
+/* Giao diện Hoạt động / Cuộc thi trực tuyến & Đăng ký dự thi chuẩn 100% theo bản HTML (v2) */
+:root {
+  --act-bg: #F5F7FA;
+  --act-surface: #FFFFFF;
+  --act-sunk: #EBEFF5;
+  --act-line: #D6DEE8;
+  --act-line2: #AEBACB;
+  --act-ink: #0E1E30;
+  --act-ink2: #4A5A6E;
+  --act-navy: #123B63;
+  --act-navy-soft: #E3ECF5;
+  --act-blue: #0B6BCB;
+  --act-blue-soft: #E2EEFB;
+  --act-on-blue: #FFFFFF;
+  --act-yellow: #FFC94D;
+  --act-yellow-soft: #FFF4D6;
+  --act-orange: #D9531E;
+  --act-stop: #B8431A;
+  --act-stop-soft: #FCEBE3;
+  --act-on-stop: #FFFFFF;
+  --act-hold: #7A5300;
+  --act-hold-soft: #FFF1CC;
+  --act-shadow: 0 1px 2px rgba(18, 59, 99, .06), 0 6px 18px rgba(18, 59, 99, .07);
+  --act-f-ui: "Be Vietnam Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --act-r: 14px;
+}
+
+.activity-portal {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 16px 40px;
+  font-family: var(--act-f-ui) !important;
+  color: var(--act-ink);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .activity-portal {
+    padding: 20px 24px 60px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .activity-portal {
+    font-size: 18px;
+  }
+}
+
+.activity-portal *,
+.activity-portal *::before,
+.activity-portal *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Đường dẫn (Breadcrumbs) ---------- */
+.activity-portal .crumbs {
+  margin: 0 0 18px;
+}
+.activity-portal .crumbs ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 2px;
+  font-size: 15px;
+  color: var(--act-ink2);
+  line-height: 1.5;
+  font-family: var(--act-f-ui);
+}
+.activity-portal .crumbs li {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+.activity-portal .crumbs li + li::before {
+  content: "›" !important;
+  margin: 0 6px !important;
+  color: var(--act-line2) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  width: auto !important;
+  height: auto !important;
+  background: none !important;
+  display: inline !important;
+}
+.activity-portal .crumbs a {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--act-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.activity-portal .crumbs a:hover {
+  filter: brightness(1.1);
+}
+.activity-portal .crumbs [aria-current],
+.activity-portal .crumbs [aria-current="page"],
+.activity-portal .crumbs [aria-current] span,
+.activity-portal .crumbs [aria-current="page"] span {
+  font-weight: 700;
+  color: var(--act-ink);
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60vw;
+}
+
+/* ---------- Tiêu đề trang (Page header) ---------- */
+.activity-portal .pageh {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.activity-portal .pageh .eyebrow,
+.activity-portal .eyebrow {
+  display: block !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  color: var(--act-blue) !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .pageh .eyebrow::before,
+.activity-portal .eyebrow::before {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.activity-portal .pageh-title-wrap {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.activity-portal .pageh h1 {
+  font-family: var(--act-f-ui) !important;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--act-navy);
+  margin: 0;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+@media (min-width: 768px) {
+  .activity-portal .pageh h1 {
+    font-size: 32px;
+  }
+}
+@media (min-width: 1025px) {
+  .activity-portal .pageh h1 {
+    font-size: 36px;
+  }
+}
+.activity-portal .pageh h1:focus {
+  outline: none;
+}
+.activity-portal .pageh .lead {
+  font-family: var(--act-f-ui) !important;
+  font-size: 16.5px;
+  color: var(--act-ink2);
+  max-width: 64ch;
+  margin: 0;
+  line-height: 1.5;
+}
+@media (min-width: 1025px) {
+  .activity-portal .pageh .lead {
+    font-size: 17.5px;
+    max-width: 66ch;
+  }
+}
+
+/* Spot icon badge */
+.activity-portal .spot {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: var(--act-blue-soft);
+  color: var(--act-blue);
+}
+.activity-portal .spot.h {
+  background: var(--act-hold-soft);
+  color: var(--act-hold);
+}
+.activity-portal .spot.s {
+  background: var(--act-stop-soft);
+  color: var(--act-stop);
+}
+.activity-portal .ic {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+/* ---------- Ảnh banner minh họa (Hero Image / attc-visual) ---------- */
+.activity-portal .pageh-hero-wrap,
+.activity-portal .attc-visual {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  margin: 22px 0 26px;
+  border-radius: 18px;
+  background: #061A2E;
+  border: 1px solid rgba(11, 107, 203, 0.18);
+  box-shadow: 0 9px 26px rgba(6, 26, 46, 0.12);
+}
+
+.activity-portal .pageh-hero-img,
+.activity-portal .attc-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0 !important;
+  max-height: none !important;
+  color: transparent;
+}
+
+.activity-portal .pageh-hero-wrap.wide .pageh-hero-img,
+.activity-portal .attc-visual.wide img {
+  aspect-ratio: 1.91 / 1;
+}
+
+@media (max-width: 599px) {
+  .activity-portal .pageh-hero-wrap,
+  .activity-portal .attc-visual {
+    border-radius: 14px;
+    margin: 18px 0 22px;
+  }
+}
+
+@media print {
+  .activity-portal .pageh-hero-wrap,
+  .activity-portal .attc-visual {
+    display: none !important;
+  }
+}
+
+/* ---------- Hộp thông tin (Facts Box) ---------- */
+.activity-portal .box {
+  background: var(--act-surface);
+  border: 1px solid var(--act-line);
+  border-radius: var(--act-r);
+  padding: 16px;
+}
+@media (min-width: 768px) {
+  .activity-portal .box {
+    padding: 20px;
+  }
+}
+.activity-portal .facts {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.activity-portal .fact {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--act-ink);
+  font-family: var(--act-f-ui) !important;
+}
+@media (min-width: 1025px) {
+  .activity-portal .fact {
+    font-size: 16.5px;
+  }
+}
+.activity-portal .fact .spot {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--act-blue-soft);
+  color: var(--act-blue);
+}
+.activity-portal .fact .spot .ic {
+  width: 21px;
+  height: 21px;
+}
+.activity-portal .fact span:not(.spot) {
+  flex: 1;
+  min-width: 0;
+  color: var(--act-ink);
+}
+.activity-portal .fact b {
+  font-weight: 700;
+  color: var(--act-ink);
+}
+.activity-portal .fill {
+  border-bottom: 1px dotted var(--act-line2);
+  color: var(--act-ink);
+}
+.activity-portal .fill a {
+  color: var(--act-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Dòng nút hành động (Buttons) ---------- */
+.activity-portal .btnrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.activity-portal .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 11px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0;
+  line-height: 1.2;
+  font-family: var(--act-f-ui) !important;
+  transition: filter .15s, background-color .15s, border-color .15s;
+  box-sizing: border-box;
+}
+.activity-portal .btn .ic {
+  width: 20px;
+  height: 20px;
+}
+.activity-portal .btn.pri {
+  background: var(--act-blue);
+  color: var(--act-on-blue);
+}
+.activity-portal .btn.pri:hover {
+  filter: brightness(1.07);
+}
+.activity-portal .btn.ghost {
+  border: 1.5px solid var(--act-line2);
+  background: var(--act-surface);
+  color: var(--act-ink);
+}
+.activity-portal .btn.ghost:hover {
+  border-color: var(--act-blue);
+  color: var(--act-blue);
+}
+.activity-portal .btn.sm {
+  min-height: 42px;
+  padding: 8px 14px;
+  font-size: 15px;
+}
+.activity-portal .small {
+  font-family: var(--act-f-ui) !important;
+  font-size: 16px;
+  color: var(--act-ink2);
+  line-height: 1.5;
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+/* ---------- Trang Đăng ký dự thi (/cuoc-thi/lam-bai/) ---------- */
+.activity-portal .backrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.activity-portal .sec {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.activity-portal .sec > h2 {
+  font-family: var(--act-f-ui) !important;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--act-navy);
+  margin: 0;
+}
+.activity-portal .form {
+  display: grid;
+  gap: 14px;
+}
+.activity-portal .f2 {
+  display: grid;
+  gap: 14px;
+}
+@media (min-width: 640px) {
+  .activity-portal .f2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.activity-portal .f2 label {
+  font-size: 15px;
+  font-weight: 700;
+  display: grid;
+  gap: 6px;
+  color: var(--act-ink);
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .f2 label em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--act-ink2);
+}
+.activity-portal input[type=text],
+.activity-portal input[type=tel] {
+  width: 100%;
+  font-family: var(--act-f-ui) !important;
+  font-size: 16px;
+  color: var(--act-ink);
+  background: var(--act-surface);
+  border: 2px solid var(--act-line2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+.activity-portal input:focus {
+  border-color: var(--act-blue);
+  outline: none;
+}
+.activity-portal .note {
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 1.55;
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .note > b {
+  font-size: 16px;
+}
+.activity-portal .note.b {
+  background: var(--act-blue-soft);
+  color: var(--act-ink);
+}
+.activity-portal .note.b > b {
+  color: var(--act-blue);
+}
+.activity-portal .note.g {
+  background: var(--act-sunk) !important;
+  color: var(--act-ink) !important;
+}
+.activity-portal .plain {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--act-ink);
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .allin {
+  background: var(--act-sunk);
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .allin > b {
+  font-size: 16px;
+  color: var(--act-ink);
+}
+.activity-portal .allin ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--act-ink);
+}
+.activity-portal .check {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 2px solid var(--act-line2);
+  border-radius: 12px;
+  background: var(--act-surface);
+  font-size: 15px;
+  line-height: 1.5;
+  cursor: pointer;
+  color: var(--act-ink);
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .check input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: var(--act-blue);
+  flex: none;
+}
+.activity-portal .check.one {
+  border-color: var(--act-blue);
+  background: var(--act-blue-soft);
+}
+.activity-portal .err {
+  background: var(--act-stop-soft);
+  color: var(--act-stop);
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0;
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .peek {
+  display: grid !important;
+  gap: 8px !important;
+  margin: 22px 0 18px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.activity-portal .peekbtn {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 12px 14px !important;
+  border: 1px solid var(--act-line) !important;
+  border-radius: 14px !important;
+  background: var(--act-surface) !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  font-family: var(--act-f-ui) !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+}
+.activity-portal .peekbtn span:not(.spot) {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.activity-portal .peekbtn b {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--act-ink);
+  line-height: 1.35;
+}
+.activity-portal .peekbtn small {
+  font-size: 13.5px;
+  color: var(--act-ink2);
+  line-height: 1.35;
+}
+.activity-portal .peekbtn .ic {
+  width: 20px;
+  height: 20px;
+  transition: transform .15s ease;
+  color: var(--act-blue);
+  flex-shrink: 0;
+}
+.activity-portal .peekbtn[aria-expanded="true"] .ic {
+  transform: rotate(90deg);
+}
+.activity-portal .peekbody {
+  padding: 4px 2px;
+}
+.activity-portal .more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 15.5px;
+  color: var(--act-blue);
+  text-decoration: none;
+  padding: 6px 0;
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .more .ic {
+  width: 18px;
+  height: 18px;
+}
+
+/* ==========================================================================
+   Tối ưu & đồng bộ giao diện cho trang làm bài / đăng ký (/cuoc-thi/lam-bai/)
+   ========================================================================== */
+.contest-flow-page {
+  background: var(--act-bg, #F5F7FA) !important;
+  font-family: var(--act-f-ui) !important;
+  min-height: 80vh;
+}
+
+/* Luôn ẩn hero banner tối màu cũ trên trang làm bài */
+.contest-flow-page .page-hero--contest,
+.contest-flow-page .page-hero {
+  display: none !important;
+}
+
+/* Triệt tiêu margin-top: -120px của .contest để nội dung không bị kéo đè lên header */
+.contest-flow-page .contest {
+  position: static !important;
+  margin-top: 0 !important;
+  padding-top: 24px !important;
+  padding-bottom: 64px !important;
+  background: transparent !important;
+}
+
+/* Scroll margin phòng trường hợp focus() hoặc scrollIntoView() cuộn trang */
+.contest-flow-page .contest__main,
+.contest-flow-page #vh,
+.contest-flow-page #regview {
+  scroll-margin-top: calc(var(--site-header-height, 70px) + 24px) !important;
+}
+
+/* Khung hiển thị rộng tối đa 1200px, padding hai bên 16px/24px chuẩn như prototype */
+.contest-flow-page .contest .container,
+.contest-flow-page .contest__row {
+  display: block !important;
+  max-width: 1200px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding-inline: 16px !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 768px) {
+  .contest-flow-page .contest .container,
+  .contest-flow-page .contest__row {
+    padding-inline: 24px !important;
+  }
+}
+
+/* Ẩn sidebar cũ trên toàn bộ luồng trang làm bài / ngân hàng câu hỏi */
+.contest-flow-page .contest__side,
+.contest-flow-page #sidecards {
+  display: none !important;
+}
+
+/* Khối main trải rộng 100%, bỏ viền hộp và bóng đổ của template cũ */
+.contest-flow-page .contest__main {
+  flex: 0 0 100% !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+
+/* Bỏ padding thừa bên trong #regview và #examview vì container ngoài đã có padding */
+.contest-flow-page .activity-portal {
+  padding-top: 0 !important;
+  padding-inline: 0 !important;
+  max-width: 100% !important;
+}
+
+/* ---------- Trang Ngân hàng câu hỏi / Phần thi trắc nghiệm ---------- */
+.activity-portal .rgbar {
+  background: var(--act-blue-soft, #eef4fc);
+  border-radius: 12px;
+  padding: 13px 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--act-navy, #0a2540);
+  margin-bottom: 20px;
+}
+.activity-portal .rgbar b {
+  font-weight: 700;
+  color: var(--act-navy, #0a2540);
+}
+
+.activity-portal .cdlist {
+  list-style: none;
+  margin: 0 0 20px 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.activity-portal .cdlist li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.activity-portal .cdlist .cdbtn,
+.activity-portal .cdlist .lock {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--act-line, #e2e8f0);
+  border-radius: 14px;
+  background: var(--act-surface, #ffffff);
+  box-sizing: border-box;
+  text-decoration: none;
+  color: inherit;
+  font-family: var(--act-f-ui) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.activity-portal .cdlist .cdbtn:hover {
+  border-color: var(--act-blue, #1652f0);
+  box-shadow: 0 2px 8px rgba(22, 82, 240, 0.08);
+}
+.activity-portal .cdlist .lock {
+  background: var(--act-surface, #ffffff);
+  border-color: var(--act-line, #e2e8f0);
+  cursor: not-allowed;
+  opacity: 0.95;
+}
+.activity-portal .cn {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--act-blue, #1652f0);
+  color: var(--act-on-blue, #ffffff);
+  font-weight: 800;
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+}
+.activity-portal .cn.s {
+  background: #6ba6ff;
+  color: #ffffff;
+  font-weight: 700;
+}
+.activity-portal .cn.ok {
+  background: var(--act-blue-soft, #eef4fc);
+  color: var(--act-blue, #1652f0);
+}
+.activity-portal .cdlist .ct {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--act-navy, #0a2540);
+  line-height: 1.35;
+  text-align: left;
+}
+.activity-portal .cdlist .ct small {
+  font-weight: 400;
+  font-size: 13.5px;
+  color: var(--act-ink2, #64748b);
+}
+.activity-portal .cdlist .cdbtn__go {
+  flex: none;
+  margin-left: auto;
+  color: var(--act-blue, #1652f0);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+}
+.activity-portal .cdlist .lock-ic {
+  flex: none;
+  margin-left: auto;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+.activity-portal .cdlist .lock-ic svg,
+.activity-portal .cdlist .lock-ic .qrow__lock {
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+}
+
+.activity-portal .gate {
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  display: grid;
+  gap: 4px;
+  color: var(--act-ink, #1e293b);
+  margin-bottom: 20px;
+}
+.activity-portal .gate p {
+  margin: 0;
+}
+.activity-portal .gate b {
+  color: var(--act-navy, #0a2540);
+  font-weight: 700;
+}
+.activity-portal .gate.open {
+  background: var(--act-blue-soft, #eef4fc);
+}
+.activity-portal .pbfoot {
+  font-size: 13.5px;
+  color: var(--act-ink2, #64748b);
+  line-height: 1.5;
+  margin-top: 16px;
+}
+
+/* ---------- Màn chi tiết Chuyên đề (Intro Chuyên đề - Ảnh mô tả 2) ---------- */
+.activity-portal.exam-intro-view,
+.activity-portal .exam-intro-view {
+  display: block;
+}
+
+.activity-portal .exam-intro-view .backrow {
+  margin-bottom: 22px;
+}
+
+.activity-portal .exam-intro-view .backrow .btn.ghost.sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 6px 16px;
+  border-radius: 999px !important;
+  border: 1.5px solid var(--act-line2, #CBD5E1) !important;
+  background: var(--act-surface, #ffffff) !important;
+  color: var(--act-navy, #061A2E) !important;
+  font-family: var(--act-f-ui) !important;
+  font-weight: 700;
+  font-size: 14.5px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all .15s ease;
+}
+
+.activity-portal .exam-intro-view .backrow .btn.ghost.sm:hover {
+  background: #F1F5F9 !important;
+  border-color: #94A3B8 !important;
+}
+
+.activity-portal .exam-intro-view .backrow .btn.ghost.sm .ic {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+}
+
+.activity-portal .exam-intro-view .pageh {
+  margin-bottom: 20px;
+}
+
+.activity-portal .exam-intro-view .pageh .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--act-f-ui) !important;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--act-blue, #0B6BCB) !important;
+  margin-bottom: 12px;
+}
+
+.activity-portal .exam-intro-view .pageh .eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: var(--act-blue, #0B6BCB) !important;
+}
+
+.activity-portal .exam-intro-view .pageh h1 {
+  font-family: var(--act-f-hd) !important;
+  font-size: clamp(26px, 3.4vw, 36px);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--act-navy, #061A2E);
+  margin: 0 0 16px 0;
+  letter-spacing: -.02em;
+}
+
+.activity-portal .exam-intro-view .exam__intro {
+  margin: 16px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--act-f-ui) !important;
+  font-size: 16px;
+  line-height: 1.65;
+  color: #334155;
+}
+
+.activity-portal .exam-intro-view .exam__intro p {
+  margin: 0;
+}
+
+/* Accordion Hiểu nhanh mấy từ - Hộp bo tròn chuẩn, không có dấu + */
+.activity-portal .terms-peek {
+  margin: 24px 0 28px !important;
+  border: 1px solid var(--act-line, #D6DEE8) !important;
+  border-radius: 16px !important;
+  background: var(--act-surface, #ffffff) !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  padding: 0 !important;
+}
+
+.activity-portal .terms-peek .peekbtn {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  font-family: var(--act-f-ui) !important;
+  box-sizing: border-box !important;
+  transition: background-color .15s ease !important;
+}
+
+.activity-portal .terms-peek .peekbtn:hover {
+  background: #FAFBFC !important;
+}
+
+.activity-portal .terms-peek .peekbtn[aria-expanded="true"] {
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+.activity-portal .terms-peek .peekbtn::before,
+.activity-portal .terms-peek .peekbtn::after {
+  content: none !important;
+  display: none !important;
+}
+
+.activity-portal .terms-peek .peekbtn span {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  flex: 1 !important;
+  width: 100% !important;
+}
+
+.activity-portal .terms-peek .peekbtn b {
+  font-size: 16.5px !important;
+  font-weight: 700 !important;
+  color: var(--act-navy, #061A2E) !important;
+  line-height: 1.35 !important;
+}
+
+.activity-portal .terms-peek .peekbtn small {
+  font-size: 14px !important;
+  color: #64748B !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+}
+
+.activity-portal .terms-peek .peekbody {
+  background: #ffffff !important;
+  padding: 6px 20px 20px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.activity-portal .terms-peek .terms {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.activity-portal .terms-peek .terms div {
+  padding: 14px 0 !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.activity-portal .terms-peek .terms div:first-child {
+  padding-top: 10px !important;
+}
+
+.activity-portal .terms-peek .terms div:last-child {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+.activity-portal .terms-peek .terms dt {
+  font-weight: 700 !important;
+  font-size: 15.5px !important;
+  color: var(--act-navy, #061A2E) !important;
+  margin: 0 !important;
+}
+
+.activity-portal .terms-peek .terms dd {
+  margin: 0 !important;
+  font-size: 14.5px !important;
+  line-height: 1.55 !important;
+  color: #475569 !important;
+}
+
+/* Nút hành động Bắt đầu và Chọn chuyên đề khác */
+.activity-portal .btnrow.exam__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 28px;
+  margin-bottom: 24px;
+}
+
+.activity-portal .btnrow.exam__actions .btn.pri {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 28px;
+  border-radius: 999px !important;
+  background: var(--act-navy, #061A2E) !important;
+  color: #ffffff !important;
+  font-family: var(--act-f-ui) !important;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(6, 26, 46, 0.12);
+}
+
+.activity-portal .btnrow.exam__actions .btn.pri:hover {
+  background: #142F4C !important;
+  filter: none !important;
+}
+
+.activity-portal .btnrow.exam__actions .btn.ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 28px;
+  border-radius: 999px !important;
+  background: #F8F9FA !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: var(--act-navy, #061A2E) !important;
+  font-family: var(--act-f-ui) !important;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.activity-portal .btnrow.exam__actions .btn.ghost:hover {
+  background: #EDF2F7 !important;
+  border-color: #94A3B8 !important;
+  color: var(--act-navy, #061A2E) !important;
+}
+
+/* ==========================================================================
+   Màn hình làm câu hỏi trắc nghiệm (#chuyen-de-N/cau-hoi)
+   Đồng bộ màu sắc & UI 100% chuẩn theo trang 8 câu trong file .html prototype
+   ========================================================================== */
+
+/* Khung màn hình câu hỏi */
+.contest-flow-page .activity-portal .qin {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* Thanh điều hướng trên cùng (Nút quay lại chuyên đề & Bộ đếm câu hỏi) */
+.contest-flow-page .activity-portal .qtop {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.contest-flow-page .activity-portal .qtop .qnav.o {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px;
+  height: auto !important;
+  min-height: 38px !important;
+  padding: 6px 18px !important;
+  border-radius: 999px !important;
+  border: 1.5px solid var(--act-line2, #AEBACB) !important;
+  background: #FFFFFF !important;
+  color: var(--act-ink, #0E1E30) !important;
+  font-family: var(--act-f-ui) !important;
+  font-weight: 700 !important;
+  font-size: 14.5px !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+}
+
+.contest-flow-page .activity-portal .qtop .qnav.o:hover {
+  border-color: var(--act-blue, #0B6BCB) !important;
+  color: var(--act-blue, #0B6BCB) !important;
+  background: #F8FAFC !important;
+}
+
+.contest-flow-page .activity-portal .qcount {
+  font-family: var(--act-f-ui) !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+  color: var(--act-ink2, #4A5A6E) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thanh tiến độ bên trong chuyên đề (Màu xanh chuẩn #0B6BCB) */
+.contest-flow-page .activity-portal .qbar {
+  display: block !important;
+  width: 100% !important;
+  height: 6px !important;
+  margin: 10px 0 24px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  background: var(--act-line, #D6DEE8) !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.contest-flow-page .activity-portal .qbar::-webkit-progress-bar {
+  background: var(--act-line, #D6DEE8) !important;
+}
+
+.contest-flow-page .activity-portal .qbar::-webkit-progress-value {
+  background: var(--act-blue, #0B6BCB) !important;
+  border-radius: 999px !important;
+  transition: width .3s ease;
+}
+
+.contest-flow-page .activity-portal .qbar::-moz-progress-bar {
+  background: var(--act-blue, #0B6BCB) !important;
+  border-radius: 999px !important;
+}
+
+/* Tiêu đề phụ (Eyebrow mã câu hỏi & Loại câu hỏi) */
+.contest-flow-page .activity-portal .qstem .qeyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-family: var(--act-f-ui) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  color: var(--act-blue, #0B6BCB) !important;
+  margin: 0 0 12px 0 !important;
+}
+
+.contest-flow-page .activity-portal .qstem .qeyebrow__sq {
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--act-blue, #0B6BCB) !important;
+  border-radius: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Khối tình huống nếu có */
+.contest-flow-page .activity-portal .qsit {
+  background: var(--act-sunk, #EBEFF5) !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  font-size: 15.5px !important;
+  line-height: 1.55 !important;
+  color: var(--act-ink, #0E1E30) !important;
+  margin-bottom: 18px !important;
+  border: none !important;
+}
+
+.contest-flow-page .activity-portal .qsit b {
+  display: block !important;
+  font-size: 12px !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  color: var(--act-ink2, #4A5A6E) !important;
+  margin-bottom: 4px !important;
+  font-weight: 800 !important;
+}
+
+/* Nội dung câu hỏi chính */
+.contest-flow-page .activity-portal .qtitle {
+  font-family: var(--act-f-ui) !important;
+  font-size: clamp(20px, 2.2vw, 24px) !important;
+  font-weight: 800 !important;
+  line-height: 1.45 !important;
+  color: var(--act-ink, #0E1E30) !important;
+  margin: 0 0 20px 0 !important;
+  outline: none !important;
+}
+
+/* Danh sách đáp án lựa chọn */
+.contest-flow-page .activity-portal .qopts {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.contest-flow-page .activity-portal .qopt {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 13px 18px !important;
+  border: 2px solid var(--act-line2, #AEBACB) !important;
+  border-radius: 12px !important;
+  background: #FFFFFF !important;
+  font-family: var(--act-f-ui) !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: var(--act-ink, #0E1E30) !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: border-color .15s ease, background-color .15s ease !important;
+}
+
+.contest-flow-page .activity-portal .qopt .ql {
+  flex: none !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
+  background: var(--act-neut-soft, #E7ECF2) !important;
+  color: var(--act-ink2, #4A5A6E) !important;
+  font-weight: 800 !important;
+  font-size: 14px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  transition: background-color .15s ease, color .15s ease !important;
+}
+
+.contest-flow-page .activity-portal .qopt .qt {
+  flex: 1 !important;
+  min-width: 0 !important;
+  font-weight: 500 !important;
+  color: inherit !important;
+}
+
+.contest-flow-page .activity-portal .qopt:hover:not(:disabled) {
+  border-color: var(--act-blue, #0B6BCB) !important;
+  background: #FFFFFF !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.contest-flow-page .activity-portal .qopt:hover:not(:disabled) .ql {
+  background: var(--act-blue-soft, #E2EEFB) !important;
+  color: var(--act-blue, #0B6BCB) !important;
+}
+
+.contest-flow-page .activity-portal .qopt:disabled {
+  cursor: default !important;
+  opacity: 1 !important;
+}
+
+/* Đáp án đúng (Màu Xanh dương Soft Blue #E2EEFB & Viền #0B6BCB chuẩn file .html) */
+.contest-flow-page .activity-portal .qopt.right {
+  border-color: var(--act-blue, #0B6BCB) !important;
+  background: var(--act-blue-soft, #E2EEFB) !important;
+}
+
+.contest-flow-page .activity-portal .qopt.right .ql {
+  background: var(--act-blue, #0B6BCB) !important;
+  color: #FFFFFF !important;
+}
+
+.contest-flow-page .activity-portal .qmark--ok {
+  color: var(--act-blue, #0B6BCB) !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+}
+
+.contest-flow-page .activity-portal .qmark--ok svg {
+  stroke: var(--act-blue, #0B6BCB) !important;
+}
+
+/* Đáp án sai do người dùng chọn (Màu Cam Đỏ Terracotta Stop #FCEBE3 & Viền #B8431A) */
+.contest-flow-page .activity-portal .qopt.wrong {
+  border-color: var(--act-stop, #B8431A) !important;
+  background: var(--act-stop-soft, #FCEBE3) !important;
+}
+
+.contest-flow-page .activity-portal .qopt.wrong .ql {
+  background: var(--act-stop, #B8431A) !important;
+  color: #FFFFFF !important;
+}
+
+.contest-flow-page .activity-portal .qmark--no {
+  color: var(--act-stop, #B8431A) !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+}
+
+.contest-flow-page .activity-portal .qmark--no svg {
+  stroke: var(--act-stop, #B8431A) !important;
+}
+
+/* Các đáp án còn lại không chọn */
+.contest-flow-page .activity-portal .qopt.dim {
+  opacity: 0.65 !important;
+  border-color: var(--act-line, #D6DEE8) !important;
+  background: #FFFFFF !important;
+}
+
+/* Khối kết quả giải thích sau khi trả lời */
+.contest-flow-page .activity-portal .qresult {
+  margin-top: 24px !important;
+  padding-top: 18px !important;
+  border-top: 1px solid var(--act-line, #D6DEE8) !important;
+  display: grid !important;
+  gap: 12px !important;
+}
+
+.contest-flow-page .activity-portal .qresult__head {
+  font-family: var(--act-f-ui) !important;
+  font-size: 16.5px !important;
+  color: var(--act-ink, #0E1E30) !important;
+  margin: 0 !important;
+  outline: none !important;
+}
+
+.contest-flow-page .activity-portal .qok {
+  color: var(--act-blue, #0B6BCB) !important;
+  font-weight: 800 !important;
+}
+
+.contest-flow-page .activity-portal .qno {
+  color: var(--act-stop, #B8431A) !important;
+  font-weight: 800 !important;
+}
+
+.contest-flow-page .activity-portal .qexp {
+  display: grid !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+
+.contest-flow-page .activity-portal .qexp p {
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  color: var(--act-ink2, #4A5A6E) !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.contest-flow-page .activity-portal .qexp p b {
+  color: var(--act-ink, #0E1E30) !important;
+}
+
+/* Đoạn giải thích cho đáp án đúng: Nền Xanh Soft Blue #E2EEFB (không phải xanh lá) */
+.contest-flow-page .activity-portal .qexp p.isans {
+  background: var(--act-blue-soft, #E2EEFB) !important;
+  color: var(--act-ink, #0E1E30) !important;
+  font-weight: 600 !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+}
+
+/* HỘP HÀNH ĐỘNG AN TOÀN: Nền Xanh Soft Blue #E2EEFB & Chữ Navy/Blue (không phải nền tối đen) */
+.contest-flow-page .activity-portal .qsafe {
+  background: var(--act-blue-soft, #E2EEFB) !important;
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  font-size: 15.5px !important;
+  line-height: 1.55 !important;
+  color: var(--act-ink, #0E1E30) !important;
+  margin-top: 6px !important;
+  border: none !important;
+}
+
+.contest-flow-page .activity-portal .qsafe b {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 12px !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  color: var(--act-blue, #0B6BCB) !important;
+  margin-bottom: 4px !important;
+  font-weight: 800 !important;
+}
+
+.contest-flow-page .activity-portal .qsafe .qeyebrow__sq {
+  background: var(--act-blue, #0B6BCB) !important;
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 1px !important;
+}
+
+/* Hàng nút hành động câu hỏi & Đồng hồ đọc giải thích */
+.contest-flow-page .activity-portal .qactions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  align-items: center !important;
+  margin-top: 24px !important;
+}
+
+.contest-flow-page .activity-portal .qactions .qnav.o {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 48px !important;
+  padding: 11px 22px !important;
+  border-radius: 999px !important;
+  border: 1.5px solid var(--act-line2, #AEBACB) !important;
+  background: #FFFFFF !important;
+  color: var(--act-ink, #0E1E30) !important;
+  font-family: var(--act-f-ui) !important;
+  font-weight: 700 !important;
+  font-size: 15.5px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: border-color .15s ease, color .15s ease !important;
+}
+
+.contest-flow-page .activity-portal .qactions .qnav.o:hover:not(:disabled) {
+  border-color: var(--act-blue, #0B6BCB) !important;
+  color: var(--act-blue, #0B6BCB) !important;
+}
+
+.contest-flow-page .activity-portal .qactions .qnav.f {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 48px !important;
+  padding: 12px 28px !important;
+  border-radius: 999px !important;
+  background: var(--act-blue, #0B6BCB) !important;
+  color: #FFFFFF !important;
+  font-family: var(--act-f-ui) !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  border: none !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: background-color .15s ease !important;
+  box-shadow: 0 2px 4px rgba(11, 107, 203, 0.15) !important;
+}
+
+.contest-flow-page .activity-portal .qactions .qnav.f:hover:not(:disabled) {
+  background: #0959A8 !important;
+}
+
+.contest-flow-page .activity-portal .qactions .qnav.f:disabled,
+.contest-flow-page .activity-portal .qactions .qnav.f[disabled] {
+  background: #CBD5E1 !important;
+  color: #64748B !important;
+  opacity: 0.8 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.contest-flow-page .activity-portal .qwait,
+.contest-flow-page .activity-portal #qwait {
+  font-family: var(--act-f-ui) !important;
+  font-size: 14.5px !important;
+  color: var(--act-ink2, #4A5A6E) !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 560px) {
+  .contest-flow-page .activity-portal .qopt {
+    flex-wrap: wrap !important;
+  }
+  .contest-flow-page .activity-portal .qopt .qmark {
+    flex-basis: 100% !important;
+    padding-left: 40px !important;
+    margin-top: 4px !important;
+  }
+}
+
+/* Màn Xong chuyên đề (#chuyen-de-N/xong) */
+.contest-flow-page .activity-portal .exam__done {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.contest-flow-page .activity-portal .infobox {
+  border-radius: 14px !important;
+  padding: 14px 18px !important;
+  font-size: 15.5px !important;
+  line-height: 1.55 !important;
+}
+
+.contest-flow-page .activity-portal .infobox--ok {
+  background: var(--act-blue-soft, #E2EEFB) !important;
+  border: 1px solid var(--act-blue-soft, #E2EEFB) !important;
+  color: var(--act-ink, #0E1E30) !important;
+}
+
+.contest-flow-page .activity-portal .infobox--ok > b {
+  color: var(--act-blue, #0B6BCB) !important;
+}
+
+.contest-flow-page .activity-portal .infobox--soft {
+  background: var(--act-sunk, #EBEFF5) !important;
+  border: 1px solid var(--act-line, #D6DEE8) !important;
+  color: var(--act-ink, #0E1E30) !important;
+}
+
+.contest-flow-page .activity-portal .infobox--warn {
+  background: var(--act-stop-soft, #FCEBE3) !important;
+  border: 1px solid var(--act-stop-soft, #FCEBE3) !important;
+  color: var(--act-ink, #0E1E30) !important;
+}
+
+.contest-flow-page .activity-portal .infobox--warn > b {
+  color: var(--act-stop, #B8431A) !important;
+}
+
+/* ---------- Màn Thử sức: 8 câu (/thu-suc/) chuẩn theo bản dựng ---------- */
+.activity-portal .dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 24px;
+}
+.activity-portal .dots button {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 9px;
+  background: var(--act-surface, #ffffff);
+  border: 1.5px solid var(--act-line2, #CBD5E1);
+  color: var(--act-ink, #0E1E30);
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--act-f-ui) !important;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all .15s ease;
+}
+.activity-portal .dots button:hover {
+  border-color: var(--act-blue, #0B6BCB);
+  color: var(--act-blue, #0B6BCB);
+}
+.activity-portal .dots button[aria-current="true"] {
+  background: var(--act-blue, #0B6BCB) !important;
+  border-color: var(--act-blue, #0B6BCB) !important;
+  color: #ffffff !important;
+}
+.activity-portal .dots button.done {
+  border-color: var(--act-blue, #0B6BCB) !important;
+  color: var(--act-blue, #0B6BCB) !important;
+}
+.activity-portal .dots button[aria-current="true"].done {
+  background: var(--act-blue, #0B6BCB) !important;
+  border-color: var(--act-blue, #0B6BCB) !important;
+  color: #ffffff !important;
+}
+
+.activity-portal .qz {
+  background: var(--act-surface, #ffffff);
+  border: 1px solid var(--act-line, #D6DEE8);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: grid;
+  gap: 16px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.activity-portal .qzcd {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--act-blue, #0B6BCB);
+  letter-spacing: .02em;
+  margin: 0;
+}
+.activity-portal .qzsit {
+  background: var(--act-sunk, #EBEFF5);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--act-ink, #0E1E30);
+}
+.activity-portal .qzsit b {
+  display: block;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--act-ink2, #4A5A6E);
+  margin-bottom: 3px;
+}
+.activity-portal .qzq {
+  font-size: 18.5px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--act-ink, #0E1E30);
+  margin: 0;
+}
+.activity-portal .qzopts {
+  display: grid;
+  gap: 10px;
+}
+.activity-portal .qzo {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  padding: 13px 16px;
+  border: 2px solid var(--act-line2, #CBD5E1);
+  border-radius: 12px;
+  background: var(--act-surface, #ffffff);
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: var(--act-f-ui) !important;
+  cursor: pointer;
+  text-align: left;
+  color: var(--act-ink, #0E1E30);
+  box-sizing: border-box;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.activity-portal .qzo:hover:not(:disabled) {
+  border-color: var(--act-blue, #0B6BCB);
+}
+.activity-portal .qzo:disabled {
+  cursor: default;
+}
+.activity-portal .qzl {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--act-sunk, #EBEFF5);
+  color: var(--act-ink2, #4A5A6E);
+  font-weight: 800;
+  font-size: 14px;
+  display: grid;
+  place-items: center;
+  transition: all .15s ease;
+}
+.activity-portal .qzo span:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.activity-portal .qzo.right {
+  border-color: var(--act-blue, #0B6BCB) !important;
+  background: var(--act-blue-soft, #E2EEFB) !important;
+}
+.activity-portal .qzo.right .qzl {
+  background: var(--act-blue, #0B6BCB) !important;
+  color: #ffffff !important;
+}
+.activity-portal .qzo.wrong {
+  border-color: var(--act-stop, #B8431A) !important;
+  background: var(--act-stop-soft, #FCEBE3) !important;
+}
+.activity-portal .qzo.wrong .qzl {
+  background: var(--act-stop, #B8431A) !important;
+  color: #ffffff !important;
+}
+.activity-portal .qzres {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--act-line, #D6DEE8);
+  padding-top: 16px;
+}
+.activity-portal .qzhead {
+  font-size: 16.5px;
+  margin: 0;
+  color: var(--act-ink, #0E1E30);
+}
+.activity-portal .qzhead .ok {
+  color: var(--act-blue, #0B6BCB);
+  font-weight: 800;
+}
+.activity-portal .qzhead .no {
+  color: var(--act-stop, #B8431A);
+  font-weight: 800;
+}
+.activity-portal .qzexp {
+  display: grid;
+  gap: 8px;
+}
+.activity-portal .qzexp p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--act-ink2, #4A5A6E);
+  margin: 0;
+}
+.activity-portal .qzexp p.isans {
+  color: var(--act-ink, #0E1E30);
+  font-weight: 600;
+}
+.activity-portal .qzsafe {
+  background: var(--act-blue-soft, #E2EEFB);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--act-ink, #0E1E30);
+}
+.activity-portal .qzsafe b {
+  display: block;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--act-blue, #0B6BCB);
+  margin-bottom: 4px;
+}
+
+.activity-portal .more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 15.5px;
+  color: var(--act-blue, #0B6BCB);
+  text-decoration: none;
+  padding: 6px 0;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  font-family: var(--act-f-ui) !important;
+}
+.activity-portal .more:hover {
+  text-decoration: underline;
+}
+
+
+

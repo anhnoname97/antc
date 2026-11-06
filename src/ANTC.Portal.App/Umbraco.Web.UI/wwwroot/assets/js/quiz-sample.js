@@ -1,95 +1,184 @@
-import { escapeHtml as e, renderQuestion, renderFeedback, renderProgress, renderNavigation, renderSummary } from './quiz-components.js';
 import { loadSampleQuestions } from './quiz-sample-api.js';
+
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 const root = document.querySelector('[data-quiz-sample]');
 if (root) {
-  const get = name => root.querySelector(`[data-quiz-${name}]`);
-  const body = get('body'), feedback = get('feedback'), navigation = get('navigation');
-  const summary = get('summary'), progress = get('progress'), card = get('card');
-  const status = get('status'), message = get('message'), retry = get('retry');
-  let questions = [], answers = Object.create(null), index = 0;
+  const status = root.querySelector('[data-quiz-status]');
+  const message = root.querySelector('[data-quiz-message]');
+  const retry = root.querySelector('[data-quiz-retry]');
+  const content = root.querySelector('[data-quiz-content]');
+  const dotsWrap = root.querySelector('[data-quiz-dots]');
+  const cardWrap = root.querySelector('[data-quiz-card-wrap]');
+  const navWrap = root.querySelector('[data-quiz-nav]');
+  const moreWrap = root.querySelector('[data-quiz-more]');
 
-  function focusContent(target) {
-    target.focus({ preventScroll: true });
-    const rect = card.getBoundingClientRect();
-    const header = document.querySelector('.site-header');
-    const offset = header && getComputedStyle(header).position === 'fixed' ? header.offsetHeight : 0;
-    if (rect.top < offset || rect.top > innerHeight - 80) {
-      window.scrollTo({ top: Math.max(0, scrollY + rect.top - offset - 16),
-        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-    }
-  }
-  function show(focus = false) {
-    const result = location.hash === '#ket-qua';
+  let questions = [];
+  const answers = Object.create(null);
+  let currentIndex = 0;
+
+  function getIndexFromHash() {
     const match = /^#cau-([1-8])$/.exec(location.hash);
-    index = match ? Number(match[1]) - 1 : 0;
-    progress.innerHTML = renderProgress(questions, answers, result ? -1 : index);
-    body.hidden = feedback.hidden = navigation.hidden = result;
-    summary.hidden = !result;
-    if (result) {
-      summary.innerHTML = renderSummary(questions, answers) +
-        '<div class="qsummary-actions"><button type="button" class="qbutton" data-restart>Làm lại từ đầu</button>' +
-        '<a class="qbutton qbutton--primary" href="/cuoc-thi/">Làm đầy đủ 200 câu ›</a></div>';
-      if (focus) focusContent(summary.querySelector('[data-summary-title]'));
-      return;
+    return match ? Number(match[1]) - 1 : 0;
+  }
+
+  function renderDots() {
+    if (!dotsWrap) return;
+    dotsWrap.innerHTML = questions.map((q, idx) => {
+      const isCurrent = idx === currentIndex;
+      const isDone = answers[idx] != null;
+      return `<button type="button" data-dot="${idx}" aria-current="${isCurrent}" class="${isDone ? 'done' : ''}" aria-label="Câu ${idx + 1}">${idx + 1}</button>`;
+    }).join('');
+  }
+
+  function renderCard() {
+    if (!cardWrap || !questions[currentIndex]) return;
+    const q = questions[currentIndex];
+    const chosen = answers[currentIndex];
+    const answered = chosen != null;
+
+    const optsHtml = q.opt.map(([k, text]) => {
+      let stateClass = '';
+      if (answered) {
+        if (k === q.ans) stateClass = ' right';
+        else if (k === chosen) stateClass = ' wrong';
+      }
+      return `<button type="button" class="qzo${stateClass}" data-k="${esc(k)}" ${answered ? 'disabled' : ''}>` +
+        `<span class="qzl">${esc(k)}</span><span>${esc(text)}</span></button>`;
+    }).join('');
+
+    let resHtml = '';
+    if (answered) {
+      const isCorrect = chosen === q.ans;
+      const headHtml = isCorrect
+        ? '<b class="ok">Đúng.</b> Đáp án phù hợp là <b>' + esc(q.ans) + '</b>.'
+        : '<b class="no">Chưa đúng.</b> Đáp án phù hợp là <b>' + esc(q.ans) + '</b>.';
+
+      const expHtml = q.opt.map(([k]) => {
+        const isAns = k === q.ans;
+        return `<p${isAns ? ' class="isans"' : ''}><b>${esc(k)}.</b> ${esc(q.exp?.[k] || '')}</p>`;
+      }).join('');
+
+      const safeHtml = q.safe ? `<div class="qzsafe"><b>HÀNH ĐỘNG AN TOÀN</b>${esc(q.safe)}</div>` : '';
+
+      resHtml = `<div class="qzres"><p class="qzhead">${headHtml}</p><div class="qzexp">${expHtml}</div>${safeHtml}</div>`;
     }
-    const question = questions[index];
-    const done = questions.filter(q => answers[q.code] != null).length;
-    body.innerHTML = `<p class="qcount">Câu ${index + 1} / ${questions.length}</p>` +
-      `<p class="quiz-topic">Chuyên đề ${e(question.cd)} · ${e(question.lab)}</p>` +
-      `<progress class="qbar" max="${questions.length}" value="${done}" aria-label="Tiến độ trả lời">${done} / ${questions.length}</progress>` +
-      renderQuestion(question, answers[question.code]);
-    feedback.innerHTML = renderFeedback(question, answers[question.code]);
-    navigation.innerHTML = renderNavigation(index, questions.length);
-    if (focus) focusContent(body.querySelector('[data-question-title]'));
+
+    const sitHtml = q.sit ? `<div class="qzsit"><b>Tình huống</b>${esc(q.sit)}</div>` : '';
+
+    cardWrap.innerHTML = `
+      <div class="qz" data-mode="thu" data-i="${currentIndex}">
+        <p class="qzcd">Câu ${currentIndex + 1} / ${questions.length} · Chuyên đề ${esc(q.cd)} · ${esc(q.lab)}</p>
+        ${sitHtml}
+        <p class="qzq">${esc(q.q)}</p>
+        <div class="qzopts">${optsHtml}</div>
+        ${resHtml}
+      </div>
+    `;
   }
-  function go(hash) {
-    if (location.hash !== hash) history.pushState(null, '', hash);
-    show(true);
+
+  function renderNav() {
+    if (!navWrap) return;
+    const isFirst = currentIndex === 0;
+    const isLast = currentIndex === questions.length - 1;
+
+    let navHtml = '';
+    if (!isFirst) {
+      navHtml += '<button type="button" class="btn ghost" data-action="prev">‹ Câu trước</button>';
+    }
+    if (!isLast) {
+      navHtml += '<button type="button" class="btn pri" data-action="next">Câu tiếp ›</button>';
+    } else {
+      navHtml += '<a href="/thi/" class="btn pri">Tự luyện đầy đủ 200 câu ›</a>';
+    }
+    navWrap.innerHTML = navHtml;
   }
-  root.addEventListener('click', event => {
-    const button = event.target.closest('button');
-    if (!button || button.disabled || !questions.length) return;
-    if (button.hasAttribute('data-answer')) {
-      const question = questions[index], chosen = button.dataset.answer;
-      if (answers[question.code] != null || !question.opt.some(([letter]) => letter === chosen)) return;
-      answers[question.code] = chosen;
-      show();
-      feedback.querySelector('[data-result]').focus({ preventScroll: true });
-    } else if (button.hasAttribute('data-question')) {
-      const target = Number(button.dataset.question);
-      if (Number.isInteger(target) && target >= 0 && target < questions.length) go(`#cau-${target + 1}`);
-    } else if (button.dataset.direction === 'previous' && index > 0) {
-      go(`#cau-${index}`);
-    } else if (button.dataset.direction === 'next') {
-      go(index === questions.length - 1 ? '#ket-qua' : `#cau-${index + 2}`);
-    } else if (button.hasAttribute('data-show-summary')) {
-      go('#ket-qua');
-    } else if (button.hasAttribute('data-restart')) {
-      answers = Object.create(null);
-      go('#cau-1');
+
+  function renderMore() {
+    if (!moreWrap || !questions[currentIndex]) return;
+    const q = questions[currentIndex];
+    moreWrap.innerHTML = `<a href="/thu-doan/" class="more">Đọc bài Chuyên đề ${esc(q.cd)} ›</a>`;
+  }
+
+  function renderAll() {
+    renderDots();
+    renderCard();
+    renderNav();
+    renderMore();
+  }
+
+  function goTo(index) {
+    if (index < 0 || index >= questions.length) return;
+    currentIndex = index;
+    const newHash = `#cau-${index + 1}`;
+    if (location.hash !== newHash) {
+      history.pushState(null, '', newHash);
+    }
+    renderAll();
+  }
+
+  window.addEventListener('hashchange', () => {
+    if (questions.length) {
+      currentIndex = getIndexFromHash();
+      renderAll();
     }
   });
-  window.addEventListener('hashchange', () => { if (questions.length) show(true); });
+
+  root.addEventListener('click', (e) => {
+    const optBtn = e.target.closest('.qzo');
+    if (optBtn && !optBtn.disabled && answers[currentIndex] == null) {
+      const chosen = optBtn.dataset.k;
+      answers[currentIndex] = chosen;
+      renderAll();
+      return;
+    }
+
+    const dotBtn = e.target.closest('[data-dot]');
+    if (dotBtn) {
+      const idx = Number(dotBtn.dataset.dot);
+      goTo(idx);
+      return;
+    }
+
+    const actionBtn = e.target.closest('[data-action]');
+    if (actionBtn) {
+      const action = actionBtn.dataset.action;
+      if (action === 'prev') {
+        goTo(currentIndex - 1);
+      } else if (action === 'next') {
+        goTo(currentIndex + 1);
+      }
+    }
+  });
+
   async function load() {
     status.hidden = false;
-    status.setAttribute('aria-busy', 'true');
     message.textContent = 'Đang tải câu hỏi…';
     retry.hidden = true;
+    content.hidden = true;
+
     try {
       questions = await loadSampleQuestions();
       status.hidden = true;
-      get('content').hidden = false;
-      if (!/^#(?:cau-[1-8]|ket-qua)$/.test(location.hash)) history.replaceState(null, '', '#cau-1');
-      show(document.activeElement === retry);
-    } catch (error) {
-      message.textContent = error.message === 'Failed to fetch'
-        ? 'Không kết nối được máy chủ. Kiểm tra kết nối và thử lại.' : error.message;
+      content.hidden = false;
+      currentIndex = getIndexFromHash();
+      if (!/^#cau-[1-8]$/.test(location.hash)) {
+        history.replaceState(null, '', '#cau-1');
+      }
+      renderAll();
+    } catch (err) {
+      message.textContent = err.message || 'Không kết nối được máy chủ.';
       retry.hidden = false;
-    } finally {
-      status.setAttribute('aria-busy', 'false');
     }
   }
+
   retry.addEventListener('click', load);
   load();
 }

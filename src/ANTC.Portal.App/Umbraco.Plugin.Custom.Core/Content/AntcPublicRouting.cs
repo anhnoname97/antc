@@ -79,8 +79,8 @@ public sealed class AntcPublicContentFinder(
         string[] parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
         string? fixedAlias = AntcPublicPaths.FixedAlias(path);
         IPublishedContent? found = fixedAlias == "home" ? home
-            : fixedAlias == "cuocThiLamBaiPage" ? Child(Child(home, "thiPage"), fixedAlias)
-            : fixedAlias is not null ? Child(home, fixedAlias) : null;
+            : fixedAlias == "cuocThiLamBaiPage" ? (Child(Child(home, "thiThangPage"), fixedAlias) ?? Child(Child(home, "thiPage"), fixedAlias) ?? Child(home, fixedAlias))
+            : fixedAlias is not null ? (Child(home, fixedAlias) ?? (fixedAlias == "thiThangPage" ? Child(home, "thiPage") : null)) : null;
         if (fixedAlias is null && parts.Length > 0)
         {
             if (parts.Length == 2 && parts[0].Equals("hoi-dap", StringComparison.OrdinalIgnoreCase))
