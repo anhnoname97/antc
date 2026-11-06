@@ -12,9 +12,12 @@
       "forExtensions": ["Umb.Tiptap.HtmlTagDiv", "Umb.Tiptap.HtmlAttributeClass"],
       "items": [
         { "label": "Đoạn thường", "appearance": { "icon": "icon-paragraph" }, "data": { "tag": "p" } },
+        { "label": "Chuyện đang xảy ra", "appearance": { "icon": "icon-alert" }, "data": { "tag": "div", "class": "k-urgent" } },
         { "label": "Hộp “Câu hỏi của bài”", "appearance": { "icon": "icon-help-alt" }, "data": { "tag": "div", "class": "k-box" } },
         { "label": "Hộp “Nhớ một câu”", "appearance": { "icon": "icon-lightbulb" }, "data": { "tag": "div", "class": "k-now" } },
         { "label": "Hiểu nhanh", "appearance": { "icon": "icon-tags" }, "data": { "tag": "div", "class": "k-chips" } },
+        { "label": "Nhãn từ khóa", "appearance": { "icon": "icon-tag" }, "data": { "tag": "div", "class": "k-tags" } },
+        { "label": "Các bước", "appearance": { "icon": "icon-bulleted-list" }, "data": { "tag": "div", "class": "k-steps" } },
         { "label": "Trường hợp thật", "appearance": { "icon": "icon-user" }, "data": { "tag": "div", "class": "k-case" } },
         { "label": "Bỏ túi", "appearance": { "icon": "icon-checkbox" }, "data": { "tag": "div", "class": "k-pocket" } },
         { "label": "Dấu hiệu phải dừng", "appearance": { "icon": "icon-stop" }, "data": { "tag": "div", "class": "k-stop" } },

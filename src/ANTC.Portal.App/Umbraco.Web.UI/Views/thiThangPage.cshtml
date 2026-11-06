@@ -54,12 +54,12 @@
                         formatEl.textContent = `Đăng ký bằng họ tên và số điện thoại, rồi vào thi ngay. ${tCount} chuyên đề, ${qCount} câu. ${cd1}${maxA}`;
                     }
                     const regBtn = document.getElementById('act-reg-btn');
-                    if (regBtn && ongoing.id) {
-                        regBtn.href = `/thi/?c=${ongoing.id}`;
+                    if (regBtn) {
+                        regBtn.href = '/thi/';
                     }
                     const practiceBtn = document.querySelector('.activity-portal .btnrow .btn:not(.pri)');
                     if (practiceBtn) {
-                        practiceBtn.href = '/thi/#ngan-hang';
+                        practiceBtn.href = '/ngan-hang/';
                     }
                 }
             } catch (e) {}

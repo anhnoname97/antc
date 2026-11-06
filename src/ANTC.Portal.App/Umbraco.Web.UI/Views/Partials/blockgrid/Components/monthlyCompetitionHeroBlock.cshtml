@@ -50,7 +50,7 @@
         <div class="ph-links">
             @if (contest is not null && !Promotions.IsUpcoming(contest) && c.Value<Link>("primaryLink") is { } primary)
             {
-                <a class="btn btn-red" href="/thi/?c=@contest.Id" target="@primary.Target">@primary.Name <span aria-hidden="true">⟶</span></a>
+                <a class="btn btn-red" href="/thi/" target="@primary.Target">@primary.Name <span aria-hidden="true">⟶</span></a>
             }
             @if (c.Value<Link>("secondaryLink") is { } secondary)
             {

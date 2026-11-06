@@ -8,6 +8,7 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Services.Navigation;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
+using Umbraco.Plugin.Custom.Core.PortalV2.Schema;
 
 namespace Umbraco.Plugin.Custom.Core.Content;
 
@@ -38,6 +39,9 @@ public sealed class AntcPublicUrlProvider(IDocumentNavigationQueryService naviga
         if (content.ContentType.Alias == "article" && navigation.TryGetParentKey(content.Key, out Guid? parentKey)
             && parentKey is not null && cache.GetById(preview, parentKey.Value) is { } parent)
             parentPath = AntcPublicPaths.GetPath(parent.ContentType.Alias, Segment(parent), listRole: parent.Value<string>("listRole", culture));
+        if (content.ContentType.Alias == "riskArticlePage"
+            && RiskStructure.GroupOf(content.GetProperty("primaryGroup")?.GetSourceValue(culture)) is { } group)
+            parentPath = $"/cac-rui-ro/{RiskStructure.Slug(group)}/";
         string? path = AntcPublicPaths.GetPath(content.ContentType.Alias, Segment(content), parentPath, content.Value<string>("listRole", culture));
         if (content.ContentType.Alias == "viecCanLamPage")
             path = AntcPublicPaths.SelfCheckGuidancePath(content.Value<string>("slug", culture));
@@ -79,6 +83,16 @@ public sealed class AntcPublicContentFinder(
         IPublishedContent? Child(IPublishedContent? parent, string alias) => Children(parent, alias).FirstOrDefault();
         IPublishedContent? BySegment(IPublishedContent? parent, string alias, string segment) =>
             Children(parent, alias).FirstOrDefault(x => string.Equals(urls.GetUrlSegment(x.Key, request.Culture ?? string.Empty, preview), segment, StringComparison.OrdinalIgnoreCase));
+
+        // Bai viet nam trong thu muc, duong dan theo Nhom chinh: sai nhom thi 404, khong co hai dia chi cho mot bai.
+        IPublishedContent? RiskArticle(string group, string segment)
+        {
+            navigation.TryGetChildrenKeysOfType(RiskStructure.ArticleFolderKey, "riskArticlePage", out IEnumerable<Guid> keys);
+            return keys.Select(key => cache.GetById(preview, key)).OfType<IPublishedContent>().FirstOrDefault(x =>
+                string.Equals(urls.GetUrlSegment(x.Key, request.Culture ?? string.Empty, preview), segment, StringComparison.OrdinalIgnoreCase)
+                && RiskStructure.GroupOf(x.GetProperty("primaryGroup")?.GetSourceValue(request.Culture)) is { } primary
+                && string.Equals(RiskStructure.Slug(primary), group, StringComparison.OrdinalIgnoreCase));
+        }
 
         IPublishedContent? home = Child(Child(site, "pageManagement"), "home");
         string path = request.AbsolutePathDecoded.Trim('/');
@@ -169,6 +183,8 @@ public sealed class AntcPublicContentFinder(
             }
             if (list is not null)
                 found = parts.Length == articleIndex ? list : BySegment(list, "article", parts[articleIndex]);
+            if (parts.Length == 3 && parts[0].Equals("cac-rui-ro", StringComparison.OrdinalIgnoreCase))
+                found = RiskArticle(parts[1], parts[2]);
         }
         if (found is null) return Task.FromResult(false);
         request.SetPublishedContent(found);

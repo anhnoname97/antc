@@ -1,6 +1,101 @@
-﻿@using Umbraco.Cms.Web.Common.PublishedModels;
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.RiskArticlePage>
-@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Strings
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@using Umbraco.Plugin.Custom.Core.PortalV2.Schema
+@using Umbraco.Plugin.Custom.Core.Quiz
+@inject ReadingArticleDirectory ReadingArticles
+@inject IQuestionBank QuestionBank
 @{
-	Layout = null;
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var topic = Model.Value<IPublishedContent>("topic");
+    var number = topic?.Value<int>("topicNumber") ?? 0;
+    var isTopicReading = number > 0 && (Model.Value<string>("articleKind") ?? "").Contains("Bài đọc chuyên đề");
+    var questionCount = QuestionBank.Current.QuestionsByTopic.TryGetValue(number, out var topicQuestions) ? topicQuestions.Count : 0;
+    var questionText = questionCount > 0 ? $"{questionCount} câu" : "bộ câu hỏi";
+    var group = RiskStructure.GroupOf(Model.GetProperty("primaryGroup")?.GetSourceValue());
+    var groupPage = group is null ? null : Umbraco.Content(group.Key);
+    var riskPage = Umbraco.Content(RiskStructure.Pages[0].Key);
+    var title = Model.Value<string>("title") is { Length: > 0 } heading ? heading : Model.Name;
+    var body = ReadingBodyRenderer.Render(Model.Value<IHtmlEncodedString>("readingBody")?.ToHtmlString(), "/ung-pho/", "d" + number);
+    var description = Model.Value<string>("description");
+    if (string.IsNullOrWhiteSpace(description) && isTopicReading)
+    {
+        description = $"Đọc khoảng {body.Minutes} phút. Đọc xong rồi hãy làm {questionText} của Chuyên đề {number}.";
+    }
+    var topics = isTopicReading ? ReadingArticles.All() : [];
+}
+@section Head {
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="~/assets/css/contest-activity.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/reading-article.css" asp-append-version="true">
+}
+<div class="activity-portal reading-page" data-reading>
+    <nav class="crumbs" aria-label="Bạn đang ở">
+        <ol>
+            <li><a href="/">Trang chủ</a></li>
+            <li>@if (riskPage is not null) { <a href="@riskPage.Url()">Các rủi ro</a> } else { <span>Các rủi ro</span> }</li>
+            @if (group is not null)
+            {
+                <li>@if (groupPage is not null) { <a href="@groupPage.Url()">@group.Name</a> } else { <span>@group.Name</span> }</li>
+            }
+            <li><span aria-current="page">@Model.Name</span></li>
+        </ol>
+    </nav>
+
+    @if (topics.Count > 0)
+    {
+        <nav class="reading-tabs" aria-label="Chọn chuyên đề">
+            @foreach (var item in topics)
+            {
+                <a href="@item.Url" aria-current="@(item.Number == number ? "page" : null)">CĐ @item.Number<small>@item.ShortName</small></a>
+            }
+        </nav>
+    }
+
+    <article class="reading-doc">
+        @if (isTopicReading) { <p class="reading-kicker">Bài đọc · Chuyên đề @number</p> }
+        <h1>@title</h1>
+        @if (!string.IsNullOrWhiteSpace(description)) { <p class="reading-meta">@description</p> }
+
+        <div class="reading-tools" role="group" aria-label="Công cụ cho trang này">
+            <button type="button" class="tbtn" data-reading-speak hidden aria-pressed="false">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4zM15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg><span>Nghe bài viết</span>
+            </button>
+            <button type="button" class="tbtn" data-font-toggle data-font-label="Chữ lớn" aria-pressed="false"><b aria-hidden="true">A+</b><span>Chữ lớn</span></button>
+            <button type="button" class="tbtn" data-reading-print>
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 8V3h10v5M7 17H4v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7h-3M7 14h10v7H7z"/></svg><span>In</span>
+            </button>
+            <button type="button" class="tbtn" data-reading-share>
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Gửi</span>
+            </button>
+        </div>
+        <p class="reading-status" data-reading-status role="status" hidden></p>
+
+        @if (body.Headings.Count > 0)
+        {
+            <nav class="reading-toc" aria-label="Mục lục">
+                <b>Trong bài này</b>
+                <ol>
+                    @foreach (var item in body.Headings) { <li><a href="#@item.Id">@item.Text</a></li> }
+                </ol>
+            </nav>
+        }
+
+        <div class="reading-body" data-reading-body>@Html.Raw(body.Html)</div>
+
+        @if (isTopicReading)
+        {
+            <div class="reading-end">
+                <b>Giờ hãy làm bài</b>
+                <p>@(char.ToUpper(questionText[0]) + questionText[1..]) của Chuyên đề @number. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</p>
+                <a class="btn pri" href="/ngan-hang/#chuyen-de-@number">Bắt đầu @questionText của Chuyên đề @number ›</a>
+            </div>
+        }
+        <p class="reading-printfoot">Bản in từ antoantaichinh.vn — @Model.Name. Nội dung có thể đã được cập nhật sau ngày in.</p>
+    </article>
+</div>
+@section Scripts {
+    <script type="module" src="~/assets/js/reading-article.js" asp-append-version="true"></script>
 }

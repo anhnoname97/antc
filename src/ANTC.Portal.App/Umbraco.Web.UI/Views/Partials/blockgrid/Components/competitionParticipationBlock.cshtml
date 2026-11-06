@@ -42,7 +42,7 @@
         <div class="participation-actions" data-participation-reveal>
             @if (contest is not null && !Promotions.IsUpcoming(contest) && c.Value<Link>("registrationLink") is { } registration)
             {
-                <a class="btn btn-red" href="/thi/?c=@contest.Id" target="@registration.Target">@registration.Name <span aria-hidden="true">⟶</span></a>
+                <a class="btn btn-red" href="/thi/" target="@registration.Target">@registration.Name <span aria-hidden="true">⟶</span></a>
             }
         </div>
     </div>

@@ -37,7 +37,7 @@
 
     var primaryUrl = primaryLink?.Url ?? "/thi/";
     var primaryName = primaryLink?.Name ?? "Đăng ký dự thi";
-    var secondaryUrl = secondaryLink?.Url ?? "/thi/#ngan-hang";
+    var secondaryUrl = secondaryLink?.Url ?? "/ngan-hang/";
     var secondaryName = secondaryLink?.Name ?? "Tự luyện trước, không tính điểm";
 
     // Tự động lấy đúng thông tin cuộc thi đang diễn ra trong Backoffice
@@ -102,11 +102,11 @@
 
         if (primaryLink == null || string.IsNullOrWhiteSpace(primaryLink.Url) || primaryLink.Url == "/cuoc-thi/lam-bai/" || primaryLink.Url.StartsWith("/cuoc-thi/lam-bai/?c=") || primaryLink.Url == "/dang-ky/" || primaryLink.Url.StartsWith("/dang-ky/?c=") || primaryLink.Url == "/thi/")
         {
-            primaryUrl = $"/thi/?c={currentContest.Id}";
+            primaryUrl = "/thi/";
         }
         if (secondaryLink == null || string.IsNullOrWhiteSpace(secondaryLink.Url) || secondaryLink.Url == "/cuoc-thi/lam-bai/#ngan-hang" || secondaryLink.Url == "/dang-ky/#ngan-hang")
         {
-            secondaryUrl = "/thi/#ngan-hang";
+            secondaryUrl = "/ngan-hang/";
         }
     }
 }

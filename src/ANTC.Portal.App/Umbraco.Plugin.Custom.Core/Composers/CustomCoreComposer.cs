@@ -64,6 +64,7 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddTransient<RiskStructureAdoption>();
         builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, RiskSchemaMigration>();
         builder.Services.AddSingleton<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RuiRoDerivation>();
+        builder.Services.AddTransient<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.ReadingArticleDirectory>();
         builder.AddNotificationHandler<ContentSavingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentRules>();
         builder.AddNotificationHandler<ContentPublishingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentRules>();
         builder.AddNotificationHandler<ContentDeletingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskFixedPages>();
