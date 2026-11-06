@@ -90,3 +90,9 @@ Quản lý nội dung không còn cho tạo trực tiếp ba loại mục con tr
 Sao lưu trước áp dụng: `temp/risk-template-review/organize-original-20261105-110035/Umbraco.sqlite.db`. Đối chiếu toàn CSDL xác nhận toàn bộ giá trị thuộc tính hiện hành, khóa nội dung và trạng thái xuất bản giữ nguyên; chỉ ba trang gốc đổi cha/tên. `PRAGMA quick_check=ok`.
 
 Build thành công, 52 kiểm thử .NET đạt. Sau khởi động lại, Playwright xác nhận cả ba danh sách có đúng trang gốc, mở được cả ba màn biên tập và không có lỗi JavaScript. Bằng chứng: `temp/risk-template-review/organized-result.json`, `organized-database-result.json`, ảnh `organized-riskArticlePage.png`, `organized-alertPage.png`, `organized-sharedSnippet.png`, `organized-snippet-editor.png`.
+
+## Nút Đóng trong màn soạn Bài viết
+
+Thêm nút **Đóng** ở góc phải thanh tab của màn soạn Bài viết, hiển thị cả khi tạo mới và chỉnh sửa, trên tab Viết bài và SEO. Nút mở danh sách Bài viết theo thư mục cha trong catalog có quyền đọc. Dùng điều hướng gốc để giữ hộp thoại xác nhận của Umbraco nếu có thay đổi chưa lưu; không tự lưu bài. Manifest `1.1.1` đổi phiên bản URL của trình biên tập để tải bản mới.
+
+Playwright đã xác nhận: bài có sẵn và bài mới đều quay về danh sách; đóng từ tab SEO; chọn Ở lại giữ nội dung đang sửa, chọn Hủy thay đổi trở về danh sách; nút hiển thị và hoạt động ở 1440/390px. Không có yêu cầu lưu/xóa document hoặc lỗi JavaScript trong phiên kiểm thử. Bằng chứng: `temp/risk-template-review/article-close-result.json`, `article-close-1440.png`, `article-close-390.png`, `article-close-unsaved.png`.
