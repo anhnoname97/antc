@@ -1,0 +1,21 @@
+@model SelfCheckCard
+@{
+    var ready = !string.IsNullOrWhiteSpace(Model.Url);
+    var cardClass = "self-check-card" + (Model.Urgent ? " self-check-card--urgent" : "") + (!ready ? " self-check-card--pending" : "");
+}
+@if (ready)
+{
+    <a class="@cardClass" href="@Model.Url">
+        <span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Icon)</span>
+        <span class="self-check-card__body"><b>@Model.Title</b>@if (!string.IsNullOrWhiteSpace(Model.Description)) { <span>@Model.Description</span> }</span>
+        <span class="self-check-card__action">Mở @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-arrow-right")</span>
+    </a>
+}
+else
+{
+    <div class="@cardClass">
+        <span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Icon)</span>
+        <span class="self-check-card__body"><b>@Model.Title</b>@if (!string.IsNullOrWhiteSpace(Model.Description)) { <span>@Model.Description</span> }</span>
+        <span class="self-check-card__status">Sắp có</span>
+    </div>
+}

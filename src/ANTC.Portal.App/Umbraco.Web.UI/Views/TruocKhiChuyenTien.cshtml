@@ -1,0 +1,11 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var lead = Model.Value<string>("lead");
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/self-check-tool.css" asp-append-version="true">
+}
+@await Html.PartialAsync("~/Views/Partials/_SelfCheckCountTool.cshtml", Model)
+@section Scripts { <script type="module" src="~/assets/js/self-check-tool.js" asp-append-version="true"></script> }

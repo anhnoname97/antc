@@ -216,7 +216,10 @@ public sealed class PortalV2SchemaBuilder(
             bool changed = false;
             // AnVu29's original types may have no local tab. Add a real tab before adding fields,
             // otherwise AddPropertyType creates a Group that conflicts with illustrationBase's noiDung Tab.
-            var localTab = existing.PropertyGroups.FirstOrDefault(g => g.Alias == spec.TabAlias);
+            // Management API updates regenerate a container alias from its Vietnamese name.
+            // Its stable key still identifies the existing tab after that round trip.
+            var tabKey = PortalV2Keys.For($"tab:{spec.Alias}.{spec.TabAlias}");
+            var localTab = existing.PropertyGroups.FirstOrDefault(g => g.Alias == spec.TabAlias || g.Key == tabKey);
             if (localTab is null)
             {
                 existing.PropertyGroups.Add(new PropertyGroup(new PropertyTypeCollection(true)) {
@@ -225,6 +228,7 @@ public sealed class PortalV2SchemaBuilder(
                 changed = true;
             }
             else if (localTab.Type != PropertyGroupType.Tab) { localTab.Type = PropertyGroupType.Tab; changed = true; }
+            if (localTab is not null && localTab.Alias != spec.TabAlias) { localTab.Alias = spec.TabAlias; changed = true; }
             foreach (string alias in spec.Compositions ?? [])
                 if (!existing.ContentTypeCompositionExists(alias))
                 {

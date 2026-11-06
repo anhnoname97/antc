@@ -20,7 +20,9 @@
     var hiddenPages = site.Value<IEnumerable<IPublishedContent>>("footerSponsorHiddenPages") ?? Enumerable.Empty<IPublishedContent>();
     // A configured section also covers its tool, FAQ or contest detail pages.
     var currentSectionKeys = Model.AncestorsOrSelf().Select(p => p.Key).ToHashSet();
-    var hideSponsor = hiddenPages.Any(p => currentSectionKeys.Contains(p.Key));
+    var hideSponsor = hiddenPages.Any(p => currentSectionKeys.Contains(p.Key)
+        || (p.Url().TrimEnd('/') is { Length: > 0 } prefix && prefix.StartsWith('/')
+            && path.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)));
     var showSponsor = site.Value<bool>("sponsorShow") && !hideSponsor && (sponsorLogo is not null || !string.IsNullOrWhiteSpace(sponsorName));
 }
 <footer class="site-footer" id="site-footer">

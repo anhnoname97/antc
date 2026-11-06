@@ -1,0 +1,51 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Text.Json
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models.PublishedContent
+@{
+    var title = Model.Value<string>("title");
+    if (string.IsNullOrWhiteSpace(title)) { title = Model.Name; }
+    var lead = Model.Value<string>("lead");
+    var data = SelfCheckToolDataBuilder.Build(Model);
+    var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+    var more = Model.Value<BlockListModel>("more");
+    var image = Model.Value<IPublishedContent>("illustration");
+}
+<article class="self-check-page self-check-tool site-chrome-wrap" data-self-check-tool>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li><li aria-current="page">@title</li></ol></nav>
+    <header class="self-check-heading"><p class="self-check-eyebrow">Kiểm tra nhanh</p><div class="self-check-heading__title"><span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Value<string>("icon") ?? "icon-credit-card")</span><h1>@title</h1></div><p>@lead</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
+    <p class="self-check-privacy">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-lock")<span>Không cần đăng nhập. Câu trả lời không được lưu và không gửi đi đâu. Không cần nhập tên, số điện thoại hay số tài khoản.</span></p>
+    @if (Model.Value<bool>("showAdvice"))
+    {
+        <aside class="self-check-advice" aria-labelledby="self-check-advice-title"><h2 id="self-check-advice-title">Website không tư vấn tài chính</h2><p>Website không tư vấn đầu tư, không tư vấn tài chính cá nhân và không giới thiệu sản phẩm tài chính. Nội dung của mục Rủi ro tài chính chỉ nhằm giúp bạn đặt đúng câu hỏi trước khi quyết định.</p></aside>
+        <aside class="self-check-must" aria-labelledby="self-check-must-title"><h2 id="self-check-must-title">Hai điều phải nhớ trước khi trả lời</h2><ul><li>Có đăng ký doanh nghiệp không đồng nghĩa với được phép cung cấp dịch vụ tài chính. Nhiều dịch vụ tài chính đòi hỏi giấy phép chuyên ngành riêng; kiểm tra đăng ký doanh nghiệp là chưa đủ.</li><li>Một khoản đầu tư có thể làm mất tiền mà không có bất kỳ hành vi gian dối nào. Thua lỗ do biến động thị trường không phải là lừa đảo, và cần được xử lý theo cách khác.</li></ul></aside>
+    }
+    @if (image is not null) { <figure class="self-check-illustration"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" loading="lazy" decoding="async"></figure> }
+    @if (data.Ready)
+    {
+        <div data-self-check-stage></div>
+        <div data-self-check-more hidden>
+            @if (more?.Any() == true)
+            {
+                <section class="self-check-section" aria-labelledby="self-check-more-title"><h2 id="self-check-more-title">Đọc thêm</h2><div class="self-check-knowledge">
+                    @foreach (var item in more)
+                    {
+                        var target = item.Content.Value<IPublishedContent>("trang");
+                        var ready = target?.TemplateId is > 0;
+                        if (target?.ContentType.Alias == "checklistPage"
+                            && (target.Value<IPublishedContent>("src") is null || target.Value<IEnumerable<string>>("p1Qs")?.Any() != true)) { ready = false; }
+                        var url = ready ? target!.Url() : null;
+                        if (url is not null && (!url.StartsWith('/') || url.StartsWith("//"))) { url = null; }
+                        @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(item.Content.Value<string>("nhan") ?? "Đọc thêm", null, item.Content.Value<string>("ic") ?? "icon-book", url))
+                    }
+                </div></section>
+            }
+        </div>
+        <script type="application/json" data-self-check-data>@Html.Raw(json)</script>
+        <noscript><section class="self-check-empty"><p>Bật JavaScript để trả lời từng câu và xem kết quả. Bạn vẫn có thể đọc các câu hỏi dưới đây.</p><ol>@foreach (var question in data.Questions) { <li>@question.Text.Replace("**", "")</li> }</ol><a href="/ung-pho/">Xem hướng dẫn ứng phó khẩn cấp</a></section></noscript>
+    }
+    else
+    {
+        <p class="self-check-empty">Bộ câu hỏi đang được cập nhật. Nếu đang có việc gấp, hãy <a href="/ung-pho/">xem hướng dẫn ứng phó khẩn cấp</a>.</p>
+    }
+</article>
