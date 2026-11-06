@@ -1,7 +1,7 @@
 {
   "$schema": "../../umbraco-package-schema.json",
   "name": "ANTC Các rủi ro",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "allowPublicAccess": false,
   "extensions": [
     {
@@ -9,7 +9,7 @@
       "alias": "Antc.WorkspaceView.Risks.ruiRoPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · ruiRoPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -32,7 +32,7 @@
       "alias": "Antc.WorkspaceView.Risks.alertListPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · alertListPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -55,7 +55,7 @@
       "alias": "Antc.WorkspaceView.Risks.riskArticlePage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · riskArticlePage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -78,7 +78,7 @@
       "alias": "Antc.WorkspaceView.Risks.alertPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · alertPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -101,7 +101,7 @@
       "alias": "Antc.WorkspaceView.Risks.tacticItem",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · tacticItem",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -124,7 +124,7 @@
       "alias": "Antc.WorkspaceView.Risks.topicItem",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · topicItem",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -289,7 +289,7 @@
       "alias": "Antc.WorkspaceView.Risks.luaDaoPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · luaDaoPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -312,7 +312,7 @@
       "alias": "Antc.WorkspaceView.Risks.vayVaNoPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · vayVaNoPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -335,7 +335,7 @@
       "alias": "Antc.WorkspaceView.Risks.dauTuPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · dauTuPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -358,7 +358,7 @@
       "alias": "Antc.WorkspaceView.Risks.baoHiemVaTietKiemPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · baoHiemVaTietKiemPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
@@ -381,7 +381,7 @@
       "alias": "Antc.WorkspaceView.Risks.duLieuCaNhanPage",
       "overwrites": "Umb.WorkspaceView.Document.Edit",
       "name": "Các rủi ro · duLieuCaNhanPage",
-      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.0",
+      "element": "/App_Plugins/AntcRisks/risk-editor.js?v=1.1.1",
       "weight": 260,
       "meta": {
         "label": "Nội dung",
