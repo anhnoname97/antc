@@ -20,6 +20,9 @@ if (root) {
   const navWrap = root.querySelector('[data-quiz-nav]');
   const moreWrap = root.querySelector('[data-quiz-more]');
 
+  // Duong dan bai doc theo so chuyen de, may chu in vao trang. Chuyen de chua co bai thi khong hien lien ket
+  const readingUrls = JSON.parse(root.dataset.readingUrls || '{}');
+
   let questions = [];
   const answers = Object.create(null);
   let currentIndex = 0;
@@ -96,7 +99,7 @@ if (root) {
     if (!isLast) {
       navHtml += '<button type="button" class="btn pri" data-action="next">Câu tiếp ›</button>';
     } else {
-      navHtml += '<a href="/thi/" class="btn pri">Tự luyện đầy đủ 200 câu ›</a>';
+      navHtml += '<a href="/ngan-hang/" class="btn pri">Tự luyện đầy đủ 200 câu ›</a>';
     }
     navWrap.innerHTML = navHtml;
   }
@@ -104,7 +107,8 @@ if (root) {
   function renderMore() {
     if (!moreWrap || !questions[currentIndex]) return;
     const q = questions[currentIndex];
-    moreWrap.innerHTML = `<a href="/thu-doan/" class="more">Đọc bài Chuyên đề ${esc(q.cd)} ›</a>`;
+    const url = readingUrls[q.cd];
+    moreWrap.innerHTML = url ? `<a href="${esc(url)}" class="more">Đọc bài Chuyên đề ${esc(q.cd)} ›</a>` : '';
   }
 
   function renderAll() {

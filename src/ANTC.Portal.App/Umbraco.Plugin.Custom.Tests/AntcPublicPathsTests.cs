@@ -31,6 +31,7 @@ public class AntcPublicPathsTests
         Assert.Equal("cuocThiLamBaiPage", AntcPublicPaths.FixedAlias("/cuoc-thi/dang-ky/"));
         Assert.Equal("cuocThiLamBaiPage", AntcPublicPaths.FixedAlias("/dang-ky/"));
         Assert.Equal("cuocThiLamBaiPage", AntcPublicPaths.FixedAlias("/thi/"));
+        Assert.Equal("cuocThiLamBaiPage", AntcPublicPaths.FixedAlias("/ngan-hang/"));
         Assert.Equal("/cuoc-thi-truc-tuyen/", AntcPublicPaths.GetPath("thiPage", "cuoc-thi"));
     }
 

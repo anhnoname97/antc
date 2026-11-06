@@ -30,6 +30,7 @@ public static class AntcPublicPaths
             string.Equals(trimmed, "cuoc-thi/dang-ky", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(trimmed, "dang-ky", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(trimmed, "thi", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(trimmed, "ngan-hang", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(trimmed, "lam-bai", StringComparison.OrdinalIgnoreCase))
             return "cuocThiLamBaiPage";
         return FixedPaths
@@ -67,7 +68,7 @@ public static class AntcPublicPaths
         return alias switch
         {
             "articleList" => $"/thu-doan/{segment}/",
-            "article" when parentPath is not null => $"{parentPath.TrimEnd('/')}/{segment}/",
+            "article" or "riskArticlePage" when parentPath is not null => $"{parentPath.TrimEnd('/')}/{segment}/",
             "qaItem" => $"/hoi-dap/{segment}/",
             _ => null
         };
