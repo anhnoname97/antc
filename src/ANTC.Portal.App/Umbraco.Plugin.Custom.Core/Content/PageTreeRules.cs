@@ -10,7 +10,7 @@ public static class PageTreeRules
     };
 
     public static bool IsSingleton(string alias) =>
-        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement" or "home" or "fraudContent" or "policyContent"
+        alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement" or "home" or "fraudContent" or "policyContent" or "actionFolder"
         || FixedPages.Contains(alias);
 
     public static string? Validate(
@@ -23,6 +23,14 @@ public static class PageTreeRules
         else if (alias is "pageManagement" or "contentManagement")
         {
             if (parentAlias != "antc") return "Quản lý trang và Quản lý nội dung phải nằm dưới An toàn tài chính.";
+        }
+        else if (alias == "actionFolder" && parentAlias != "contentManagement")
+        {
+            return "Kho Việc cần làm phải nằm dưới Quản lý nội dung.";
+        }
+        else if (alias == "viecCanLamPage" && parentAlias != "actionFolder")
+        {
+            return "Trang Việc cần làm phải nằm trong kho Việc cần làm.";
         }
         else if (alias == "articleManagement")
         {

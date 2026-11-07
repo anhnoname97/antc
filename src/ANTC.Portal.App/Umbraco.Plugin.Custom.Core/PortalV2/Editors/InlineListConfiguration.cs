@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Text.Json;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.PropertyEditors;
 
@@ -61,7 +62,17 @@ public sealed class InlineListField
 public sealed class InlineListCondition
 {
     [JsonPropertyName("field")] public string Field { get; set; } = string.Empty;
-    [JsonPropertyName("equals")] public string? EqualsValue { get; set; }
+    [JsonPropertyName("equals"), JsonConverter(typeof(InlineListConditionValueConverter))] public string? EqualsValue { get; set; }
+}
+
+public sealed class InlineListConditionValueConverter : JsonConverter<string>
+{
+    public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.TokenType switch
+    {
+        JsonTokenType.String => reader.GetString(), JsonTokenType.True => "true", JsonTokenType.False => "false",
+        JsonTokenType.Null => null, _ => throw new JsonException("Điều kiện phải là chữ hoặc bật/tắt.")
+    };
+    public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) => writer.WriteStringValue(value);
 }
 
 /// <summary>Phan bat tat trong the, vi du "Hoi them".</summary>
