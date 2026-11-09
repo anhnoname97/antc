@@ -21,7 +21,7 @@ public static class AntcPublicPaths
 
     public static bool IsManagement(string alias) =>
         alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement"
-            or "fraudContent" or "policyContent" or "checklistFolderV2";
+            or "fraudContent" or "policyContent" or "checklistFolderV2" or "actionFolder";
 
     public static string? LegacyEmergencyPath(string path) => path.Trim('/').ToLowerInvariant() switch
     {

@@ -1,45 +1,56 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using Umbraco.Cms.Core.Models
-@using Umbraco.Cms.Core.Models.Blocks
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
-    var title = Model.Value<string>("title");
-    if (string.IsNullOrWhiteSpace(title)) { title = Model.Name; }
-    var steps = Model.Value<BlockListModel>("steps");
+    var site = Model.Root();
+    var title = Model.Value<string>("title") is { Length: > 0 } heading ? heading : Model.Name;
+    var steps = ActionGuideData.Steps(Model);
     var screening = EmergencyContent.Rows(Model, "screeningQuestions");
+    var image = Model.Value<IPublishedContent>("illustration");
+    var bankSteps = site.Value<IEnumerable<string>>("bankLookupSteps") ?? [];
+    var review = Model.Value<DateTime?>("reviewDate");
+    var verification = Model.Value<string>("verificationSource");
+    var hasReview = review is { Year: > 1900 } date && date.Date <= DateTime.UtcNow.Date && !string.IsNullOrWhiteSpace(verification);
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/self-check-tool.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/emergency-v2.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/action-guide.css" asp-append-version="true">
 }
-<article class="self-check-page self-check-tool site-chrome-wrap">
-    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li><li aria-current="page">@title</li></ol></nav>
-    <header class="self-check-heading"><p class="self-check-eyebrow">Việc cần làm</p><h1>@title</h1><p>@(Model.Value<string>("lead"))</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
-    @if (steps?.Any() == true)
+<article class="self-check-page self-check-tool action-guide site-chrome-wrap" data-action-guide>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/khan-cap/">Khẩn cấp</a></li><li aria-current="page">@title</li></ol></nav>
+    <header class="self-check-heading"><div class="self-check-heading__title"><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Value<string>("icon") ?? "alert")</span><h1>@title</h1></div><p>@Model.Value("lead")</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
+    @if (image is not null) { <figure class="emergency-image"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure> }
+    @if (hasReview && review is { } reviewDate) { <p class="action-guide-review">Rà soát gần nhất: <time datetime="@reviewDate.ToString("yyyy-MM-dd")">@reviewDate.ToString("dd/MM/yyyy")</time> · Nguồn: @verification</p>@if (reviewDate.Date < DateTime.UtcNow.Date.AddDays(-90)) { <aside class="action-guide-warning">Nội dung đã quá 90 ngày chưa rà soát. Hãy kiểm chứng lại thông tin tại nguồn chính thức trước khi dùng.</aside> } }
+    else { <p class="action-guide-warning">Chưa có đầy đủ thông tin nguồn và ngày rà soát.</p> }
+    @if (steps.Length > 0)
     {
+        <div class="action-guide-tools"><span role="status" aria-live="polite" data-guide-status>Đánh dấu những việc bạn đã làm. Tải lại trang sẽ bỏ các dấu này.</span><button class="self-check-button" type="button" data-guide-reset>Xóa đánh dấu</button></div>
         <div class="self-check-guidance">
-            @for (var i = 0; i < steps.Count; i++)
-            {
-                var content = steps[i].Content;
-                var summary = content.Value<string>("summary");
-                var notice = content.Value<string>("noticeTitle");
-                var details = content.Value<IEnumerable<string>>("details") ?? Enumerable.Empty<string>();
-                var quote = content.Value<string>("quote");
-                var links = content.Value<IEnumerable<Link>>("links");
-                <section id="buoc-@(i + 1)" class="@(string.IsNullOrWhiteSpace(summary) ? "self-check-guidance__notice" : null)">
-                    @if (!string.IsNullOrWhiteSpace(summary)) { <h2>@(i + 1). @summary</h2> }
-                    @if (!string.IsNullOrWhiteSpace(notice)) { <h2>@notice</h2> }
-                    @foreach (var paragraph in details) { <p>@paragraph</p> }
-                    @if (!string.IsNullOrWhiteSpace(quote)) { <blockquote>@quote</blockquote> }
-                    @if (links?.Any() == true)
-                    {
-                        <div class="self-check-controls">@foreach (var link in links) { if (link.Url?.StartsWith("tel:") == true || link.Url?.StartsWith("sms:") == true || (link.Url?.StartsWith('/') == true && !link.Url.StartsWith("//"))) { <a class="self-check-button" href="@link.Url">@link.Name</a> } }</div>
-                    }
-                </section>
-            }
+        @foreach (var step in steps)
+        {
+            var condition = step.OnlyIf is { } conditionKey ? Umbraco.Content(conditionKey) : null;
+            var after = step.SnippetAfter is { } snippetKey ? Umbraco.Content(snippetKey) : null;
+            var followUp = step.FollowUpPage is { } followUpKey ? Umbraco.Content(followUpKey) : null;
+            <section id="buoc-@step.Number" class="@(step.MainText.Length == 0 ? "self-check-guidance__notice" : "action-guide-step")" data-guide-step>
+                @if (condition is not null) { <aside class="action-guide-condition"><b>Điều kiện áp dụng</b>@await Html.PartialAsync("~/Views/Partials/_ActionGuideSnippet.cshtml", condition, new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["ShowSnippetBody"] = !steps.Any(item => item.SnippetAfter == step.OnlyIf) })</aside> }
+                @if (step.MainText.Length > 0) { <h2><label class="action-guide-check"><input type="checkbox" autocomplete="off" data-guide-check><span>@step.Number. @step.MainText</span></label></h2> }
+                @if (step.NoticeTitle.Length > 0 && (!step.HasFollowUp || step.NoticeTitle != step.FollowUpQuestion)) { <h2>@step.NoticeTitle</h2> }
+                @foreach (var paragraph in step.Details) { <p class="action-guide-paragraph">@paragraph</p> }
+                @if (step.SampleScript.Length > 0) { <blockquote><b>Câu nói mẫu</b><p>@step.SampleScript</p></blockquote> }
+                @if (step.ShowBankLookup && bankSteps.Any()) { <details class="action-guide-bank"><summary>Cách tự tìm số ngân hàng của bạn</summary><ol>@foreach (var line in bankSteps) { <li>@line</li> }</ol></details> }
+                @if (step.Links.Length > 0) { <div class="self-check-controls">@foreach (var link in step.Links) { if (ActionGuideLinks.IsAllowed(link.Url)) { <a class="self-check-button" href="@link.Url">@link.Label</a> } }</div> }
+                @if (after is not null) { <aside class="action-guide-snippet">@await Html.PartialAsync("~/Views/Partials/_ActionGuideSnippet.cshtml", after, new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["ShowSnippetTitle"] = step.NoticeTitle.Length == 0 })</aside> }
+                @if (step.HasFollowUp && step.FollowUpQuestion.Length > 0) {
+                    <aside class="action-guide-follow-up"><h3>@step.FollowUpQuestion</h3><p>@step.FollowUpNote</p>
+                        @if (EmergencyContent.PublicUrl(followUp) is { } followUpUrl) { <a class="emergency-button" href="@followUpUrl">@step.FollowUpButton</a> }
+                        else { <p>Hướng dẫn liên quan đang được cập nhật. <a href="/khan-cap/">Chọn việc cần làm ngay</a>.</p> }
+                    </aside>
+                }
+            </section>
+        }
         </div>
-        <p class="self-check-result-notes">Các bước trên là việc nên làm ngay để giảm thiệt hại, chưa phải kết luận về vụ việc. Website không tiếp nhận tố giác, tin báo về tội phạm.</p>
+        <p class="self-check-result-notes">@site.Value("actionStepsNote")</p>
     }
     @if (screening.Length > 0)
     {
@@ -55,8 +66,8 @@
         }
         </div>
     }
-    @if (steps?.Any() != true && screening.Length == 0)
-    {
-        <div class="self-check-knowledge">@foreach (var child in Model.Children().Where(p => p.ContentType.Alias == "viecCanLamPage" && p.Value<BlockListModel>("steps")?.Any() == true)) { @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(child.Value<string>("title") ?? child.Name, child.Value<string>("lead"), "icon-book", child.Url())) }</div>
-    }
+    @if (steps.Length == 0 && screening.Length == 0) { <p class="self-check-empty">Hướng dẫn đang được cập nhật. <a href="/khan-cap/">Chọn việc cần làm ngay</a>.</p> }
+    <p class="emergency-note">@site.Value("notOnDutyNote")</p><p class="emergency-note">@site.Value("noReportNote")</p>
+    <div class="action-guide-print"><button type="button" class="self-check-button" data-guide-print>In hoặc lưu PDF</button></div>
 </article>
+@section Scripts { <script type="module" src="~/assets/js/action-guide.js" asp-append-version="true"></script> }

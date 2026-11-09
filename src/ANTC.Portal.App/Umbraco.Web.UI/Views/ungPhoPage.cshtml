@@ -24,7 +24,9 @@
     foreach (var library in libraries)
     {
         if (PublishedCache.GetById(preview, library) is null) { continue; }
-        Navigation.TryGetChildrenKeysOfType(library, "viecCanLamPage", out var folders);
+        Navigation.TryGetChildrenKeysOfType(library, "actionFolder", out var actionFolders);
+        Navigation.TryGetChildrenKeysOfType(library, "viecCanLamPage", out var legacyFolders);
+        var folders = actionFolders.Concat(legacyFolders).Distinct();
         foreach (var folder in folders)
         {
             if (PublishedCache.GetById(preview, folder) is null) { continue; }

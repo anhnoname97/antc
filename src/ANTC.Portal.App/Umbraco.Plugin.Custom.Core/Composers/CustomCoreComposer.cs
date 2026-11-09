@@ -63,6 +63,13 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddTransient<PortalV2SchemaBuilder>();
         builder.Services.AddTransient<RiskStructureAdoption>();
         builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, RiskSchemaMigration>();
+        builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, Umbraco.Plugin.Custom.Core.Content.ActionFolderMigration>();
+        builder.AddNotificationHandler<ContentSavingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
+        builder.AddNotificationHandler<ContentSavedNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
+        builder.AddNotificationHandler<ContentPublishingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
+        builder.AddNotificationHandler<ContentDeletingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
+        builder.AddNotificationHandler<ContentMovingToRecycleBinNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
+        builder.AddNotificationHandler<ContentMovingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
         builder.Services.AddSingleton<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RuiRoDerivation>();
         builder.Services.AddTransient<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.ReadingArticleDirectory>();
         builder.AddNotificationHandler<ContentSavingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentRules>();

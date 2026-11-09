@@ -51,9 +51,8 @@ public static class EmergencyWizardDataBuilder
             {
                 var source = Resolve(Get(row, "page"));
                 var number = int.TryParse(row["stepNumber"]?.ToString(), out var index) ? index : 0;
-                var steps = source?.Value<BlockListModel>("steps");
                 var text = Get(row, "text");
-                if (string.IsNullOrWhiteSpace(text) && number > 0 && number <= (steps?.Count ?? 0)) text = String(steps![number - 1].Content, "summary");
+                if (string.IsNullOrWhiteSpace(text)) text = ActionGuideData.Step(source, number)?.MainText ?? "";
                 row["displayText"] = text;
                 row["url"] = EmergencyContent.PublicUrl(source) is { } url ? $"{url}#buoc-{number}" : null;
                 if (string.IsNullOrWhiteSpace(text) || !ValidConditions(row)) errors.Add("Việc cần làm hoặc điều kiện không hợp lệ.");

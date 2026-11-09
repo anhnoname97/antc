@@ -140,7 +140,9 @@ public static class InlineListRules
 
     /// <summary>O hien khi khong co dieu kien, hoac o dieu kien bang gia tri cho truoc.</summary>
     public static bool IsVisible(JsonObject row, InlineListField field)
-        => field.ShowWhen is null || Str(row[field.ShowWhen.Field]) == field.ShowWhen.EqualsValue;
+        => field.ShowWhen is null || (Str(row[field.ShowWhen.Field])
+            ?? (row[field.ShowWhen.Field] is JsonValue flag && flag.TryGetValue(out bool boolean) ? boolean ? "true" : "false"
+                : field.ShowWhen.EqualsValue is "true" or "false" ? "false" : null)) == field.ShowWhen.EqualsValue;
 
     public static bool IsDocumentUdi(string? s)
         => s is not null && s.StartsWith(DocumentUdiPrefix, StringComparison.Ordinal)

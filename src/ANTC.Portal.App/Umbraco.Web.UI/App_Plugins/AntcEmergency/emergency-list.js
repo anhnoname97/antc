@@ -58,6 +58,7 @@ class AntcEmergencyList extends UmbLitElement {
   }
   input(field, row, set) {
     const value = row[field.alias];
+    if (field.type === 'toggle') return html`<input class="toggle" aria-label=${field.label} type="checkbox" .checked=${value === true} ?disabled=${this.locked} @change=${e => set(e.target.checked)}>`;
     if (field.type === 'lines' && field.list === 'wizardAnswers') return html`<antc-wizard-answer-picker .value=${value || []} .target=${field.startNode} .disabled=${this.locked}
       @change=${e => { e.stopPropagation(); set(e.target.value); }}></antc-wizard-answer-picker>`;
     if (field.type === 'number') return html`<input aria-label=${field.label} type="number" min=${field.min ?? nothing} max=${field.max ?? nothing} .value=${value == null ? '' : String(value)} ?disabled=${this.locked} @input=${e => set(e.target.value === '' ? null : Number(e.target.value))}>`;
@@ -83,14 +84,14 @@ class AntcEmergencyList extends UmbLitElement {
             if (target < 0 || target >= rows.length) return;
             const next = [...rows]; next.splice(target, 0, next.splice(index, 1)[0]); save(next);
           }}>
-        <b>${index + 1}. ${row.title || row.question || row.label || row.groupName || row.organization || row.number || row.text || 'Mục nội dung'}</b>${this.tools(rows, index, save, min)}</summary>
-      <div class="fields">${fields.filter(f => !f.showWhen || row[f.showWhen.field] === f.showWhen.equals).map(field => html`<div class="field">
+        <b>${index + 1}. ${row.title || row.mainText || row.noticeTitle || row.question || row.label || row.groupName || row.organization || row.number || row.text || 'Mục nội dung'}</b>${this.tools(rows, index, save, min)}</summary>
+      <div class="fields">${fields.filter(f => !f.showWhen || String(row[f.showWhen.field] ?? false) === String(f.showWhen.equals)).map(field => html`<div class="field">
         <label>${field.label}${field.required ? html`<span class="required"> *</span>` : nothing}</label>
         ${this.input(field, row, value => this.edit(rows, index, field.alias, value, save))}
         ${field.description ? html`<small>${field.description}</small>` : nothing}
       </div>`)}</div>
     </details>`)}
-      ${rows.length < max ? html`<button class="add" type="button" ?disabled=${this.locked} @click=${() => save([...rows, { key: crypto.randomUUID() }])}>＋ Thêm ${cards ? 'cửa vào' : 'dòng'}</button>` : nothing}
+      ${rows.length < max ? html`<button class="add" type="button" ?disabled=${this.locked} @click=${() => save([...rows, { key: crypto.randomUUID(), ...Object.fromEntries(fields.filter(f => f.type === 'toggle').map(f => [f.alias, false])) }])}>＋ Thêm ${(listId === 'root' && this.setting('unitLabel')) || (cards ? 'mục' : 'dòng')}</button>` : nothing}
       <small>${rows.length}/${max}${min === max ? ' · Số mục cố định; có thể đổi thứ tự.' : ''}</small>
     </div>`;
   }
@@ -101,6 +102,7 @@ class AntcEmergencyList extends UmbLitElement {
     summary::-webkit-details-marker{display:none}summary::before{content:'›';font-size:20px;transition:transform .15s}details[open]>summary::before{transform:rotate(90deg)}summary>b{flex:1;min-width:0}umb-icon{width:16px;height:16px}
     .fields{padding:14px;display:grid;gap:16px}.field{display:grid;gap:6px}label{font-weight:600}.required{color:var(--uui-color-danger)}
     input,textarea,select{box-sizing:border-box;width:100%;font:inherit;border:1px solid var(--uui-color-border,#bbb);border-radius:5px;padding:9px;background:var(--uui-color-surface,#fff);color:inherit}
+    input.toggle{width:22px;height:22px;accent-color:var(--uui-color-interactive)}
     button{font:inherit;cursor:pointer;border:1px solid var(--uui-color-border,#ddd);padding:6px 10px;border-radius:5px;background:var(--uui-color-surface,#fff);color:inherit}
     button:disabled{opacity:.45;cursor:default}.tools{display:flex;gap:4px}.add{width:100%;border-style:dashed}small{display:block;color:var(--uui-color-text-alt,#666);margin-top:4px}
     .drag-handle{cursor:grab;touch-action:none}.drag-handle:active{cursor:grabbing}details[drag-placeholder]{opacity:.35}

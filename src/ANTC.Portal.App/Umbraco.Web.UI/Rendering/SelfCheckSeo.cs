@@ -81,7 +81,7 @@ public static class SelfCheckSeoBuilder
 {
     public static bool Supports(IPublishedContent content) => content.ContentType.Alias is "congCuPage" or "truocKhiChuyenTienPage"
         or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" or "checklistPage" or "ungPhoPage" or "wizardPage" or "lienHePage"
-        || (content.ContentType.Alias == "viecCanLamPage" && AntcPublicPaths.SelfCheckGuidancePath(content.Value<string>("slug")) is not null)
+        || (content.ContentType.Alias == "viecCanLamPage" && AntcPublicPaths.SelfCheckGuidancePath(ActionGuideData.Slug(content)) is not null)
         || (content.ContentType.Alias == "riskArticlePage" && (AntcPublicPaths.SelfCheckReadingPath(content.Value<string>("selfCheckSourceNumber")) is not null
             || (content.Value<string>("articleKind") ?? "").Contains("Bài hướng dẫn")));
 
@@ -93,7 +93,7 @@ public static class SelfCheckSeoBuilder
         "wizardPage" => EmergencyWizardDataBuilder.Build(content).Ready,
         "riskArticlePage" => !string.IsNullOrWhiteSpace(content.Value<string>("readingBody"))
             || (!string.IsNullOrWhiteSpace(content.Value<string>("summary")) && content.Value<IEnumerable<string>>("warningSigns")?.Any() == true),
-        "viecCanLamPage" => content.Value<BlockListModel>("steps")?.Any() == true || EmergencyContent.HasScreening(content),
+        "viecCanLamPage" => ActionGuideData.Steps(content).Any(step => !string.IsNullOrWhiteSpace(step.MainText)) || EmergencyContent.HasScreening(content),
         _ => true
     };
 

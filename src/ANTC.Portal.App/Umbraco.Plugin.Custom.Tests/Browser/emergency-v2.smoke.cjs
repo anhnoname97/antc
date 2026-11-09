@@ -61,7 +61,7 @@ const base = process.env.ANTC_TEST_URL || 'http://localhost:11000';
     await moneyLink.click();
     assert.match(await page.locator('h1').innerText(), /Tự nhiên có tiền lạ/);
     assert.equal(await page.locator('.self-check-guidance > section[id^="buoc-"]').count(), 5);
-    assert.equal(await page.locator('[data-emergency-screening] a').count(), 1);
+    assert.equal(await page.locator('.action-guide-follow-up a').count(), 1);
     assert.deepEqual(errors, []);
     await page.goto(`${base}/ung-pho/?source=legacy#viec-can-lam`);
     assert.equal(page.url(), `${base}/khan-cap/?source=legacy#viec-can-lam`, 'Redirect must retain query and fragment');

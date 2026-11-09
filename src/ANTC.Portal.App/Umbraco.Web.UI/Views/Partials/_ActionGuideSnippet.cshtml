@@ -1,0 +1,5 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Plugin.Custom.Core.Articles
+@inject ArticleHtmlSanitizer Sanitizer
+@if (ViewData["ShowSnippetTitle"] is not false) { <h3>@(Model.Value<string>("title") ?? Model.Name)</h3> }
+@if (ViewData["ShowSnippetBody"] is not false) { <div class="action-guide-snippet-body">@Html.Raw(Sanitizer.Clean(Model.Value<string>("bodyText") ?? ""))</div> }
