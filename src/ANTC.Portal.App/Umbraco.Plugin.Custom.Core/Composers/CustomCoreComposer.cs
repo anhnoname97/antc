@@ -67,6 +67,7 @@ public class CustomCoreComposer : IComposer
         builder.AddNotificationHandler<ContentSavingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
         builder.AddNotificationHandler<ContentSavedNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
         builder.AddNotificationHandler<ContentPublishingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
+        builder.AddNotificationHandler<ContentPublishingNotification, Umbraco.Plugin.Custom.Core.Content.HomePagePublishingHandler>();
         builder.AddNotificationHandler<ContentDeletingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
         builder.AddNotificationHandler<ContentMovingToRecycleBinNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
         builder.AddNotificationHandler<ContentMovingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
