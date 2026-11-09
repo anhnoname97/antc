@@ -1,6 +1,188 @@
-﻿@using Umbraco.Cms.Web.Common.PublishedModels;
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.AlertPage>
-@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Globalization
+@using Umbraco.Plugin.Custom.Core.Content
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@using Umbraco.Plugin.Custom.Core.PortalV2.Schema
 @{
-	Layout = null;
+    // V2-13i (phần cảnh báo): trang một cảnh báo (alertPage), theo màn #cb của mockup bo-cac-rui-ro.html.
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var site = Model.Root();
+    var listPage = Umbraco.Content(RiskStructure.Pages[1].Key);
+    var listTitle = listPage is null ? "Cảnh báo mới" : RiskAlertContent.Title(listPage);
+    var title = RiskAlertContent.Title(Model);
+    var agency = Model.Value<string>("issuingAgency")?.Trim();
+    var updated = RiskAlertContent.Date(Model, "updatedDate");
+    var level = RiskAlertContent.Level(Model);
+    var tone = AlertList.LevelTone(level);
+    var minutes = AlertList.ReadingMinutes(RiskAlertContent.ReadingText(Model));
+    var summary = Model.Value<string>("description");
+    var documentNumber = Model.Value<string>("documentNumber")?.Trim();
+    var documentDate = RiskAlertContent.Date(Model, "documentDate");
+    var documentUrl = Uri.TryCreate(Model.Value<string>("documentUrl")?.Trim(), UriKind.Absolute, out var parsed) && parsed.Scheme == Uri.UriSchemeHttps ? parsed.AbsoluteUri : null;
+    var audiences = RiskAlertContent.Picked(Model, "audiences");
+    var channels = RiskAlertContent.Picked(Model, "channels");
+    var steps = RiskAlertContent.Lines(Model, "scenarioSteps");
+    var stopSigns = RiskAlertContent.Picked(Model, "stopSigns").Select(RiskAlertContent.SignHtml).ToArray();
+    var otherSigns = RiskAlertContent.Lines(Model, "otherSigns");
+    var action = RiskAlertContent.Picked(Model, "actionPage").FirstOrDefault(x => x.TemplateId is > 0);
+    var related = RiskAlertContent.Related(Model, site);
+    var image = Model.Value<IPublishedContent>("illustration");
+    string Day(DateTime date) => date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+    string Filter(string name, string code) => $"{AntcPublicPaths.AlertListPath}?{name}={Uri.EscapeDataString(code)}";
 }
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/risk-alerts.css" asp-append-version="true">
+}
+@section Scripts {
+    @* Nghe, In, Gửi dùng chung với trang bài đọc; "Chữ lớn" do site.js xử lý qua data-font-toggle. *@
+    <script type="module" src="~/assets/js/reading-article.js" asp-append-version="true"></script>
+}
+<div class="self-check-page risk-page site-chrome-wrap" data-reading>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở">
+        <ol>
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/cac-rui-ro/">Các rủi ro</a></li>
+            <li><a href="@AntcPublicPaths.AlertListPath">@listTitle</a></li>
+            <li aria-current="page">@title</li>
+        </ol>
+    </nav>
+
+    <article class="risk-alert">
+        @if (!string.IsNullOrEmpty(agency))
+        {
+            <p class="risk-label risk-label--source risk-label--big">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "mega")<span>Dựa trên cảnh báo của @agency</span></p>
+        }
+        else
+        {
+            <p class="risk-label risk-label--check risk-label--big">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "clock")<span>Cần kiểm chứng · Chưa có kết luận</span></p>
+        }
+        <h1>@title</h1>
+        <p class="risk-docmeta">
+            @if (updated is { } date) { <span>Cập nhật: <time datetime="@date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">@Day(date)</time></span> }
+            <span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "clock")Đọc khoảng @minutes phút</span>
+            @if (level.Length > 0)
+            {
+                <span class="risk-level risk-level--@tone">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", tone == "d" ? "stop" : tone == "h" ? "clock" : "info")<span>Mức độ cần thận trọng: @RiskAlertContent.LevelName(level)</span></span>
+            }
+        </p>
+        @if (updated is not { } fresh || !AlertFreshness.IsFresh(fresh, DateTime.Today))
+        {
+            <p class="risk-stale">Nội dung đang chờ rà soát@(updated is { } last ? $", cập nhật lần cuối ngày {Day(last)}" : "").</p>
+        }
+        <div class="risk-pagetools" role="group" aria-label="Công cụ cho trang này">
+            <button type="button" class="tbtn" data-reading-speak hidden aria-pressed="false">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 5 6 9H3v6h3l5 4zM15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg><span>Nghe bài viết</span>
+            </button>
+            <button type="button" class="tbtn" data-font-toggle data-font-label="Chữ lớn" aria-pressed="false"><b aria-hidden="true">A+</b><span>Chữ lớn</span></button>
+            <button type="button" class="tbtn" data-reading-print>
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 8V3h10v5M7 17H4v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7h-3M7 14h10v7H7z"/></svg><span>In</span>
+            </button>
+            <button type="button" class="tbtn" data-reading-share>
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Gửi</span>
+            </button>
+        </div>
+        <p class="risk-okmsg" data-reading-status role="status" hidden></p>
+        @if (listPage?.Value<bool>("showSampleNote") == true)
+        {
+            <p class="risk-sample">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "info")<span><b>Mẫu trình bày.</b> @RiskAlertContent.SampleNote</span></p>
+        }
+        @if (image is not null)
+        {
+            <figure class="risk-figure"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure>
+        }
+
+        @* Phần "Nghe bài viết" đọc: từ Tóm tắt đến hết Dấu hiệu *@
+        <div class="risk-alert__read" data-reading-body>
+        @if (!string.IsNullOrWhiteSpace(summary))
+        {
+            <section class="risk-section" aria-labelledby="risk-summary"><h2 id="risk-summary">Tóm tắt</h2><p>@summary</p></section>
+        }
+
+        @if (!string.IsNullOrEmpty(agency) || !string.IsNullOrEmpty(documentNumber) || documentDate is not null || documentUrl is not null)
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrEmpty(agency)) { parts.Add($"Cơ quan ban hành: {agency}"); }
+            if (!string.IsNullOrEmpty(documentNumber)) { parts.Add($"Văn bản số {documentNumber}" + (documentDate is { } d1 ? $" ngày {Day(d1)}" : "")); }
+            else if (documentDate is { } d2) { parts.Add($"Văn bản ngày {Day(d2)}"); }
+            <section class="risk-section" aria-labelledby="risk-source">
+                <h2 id="risk-source">Nguồn cảnh báo</h2>
+                @if (parts.Count > 0) { <p class="risk-source">@string.Join(" · ", parts)</p> }
+                @if (documentUrl is not null)
+                {
+                    <p><a href="@documentUrl" rel="noopener" target="_blank">Xem văn bản gốc@(string.IsNullOrEmpty(agency) ? "" : $" trên website của {agency}")</a></p>
+                }
+            </section>
+        }
+
+        @if (audiences.Count > 0 || channels.Count > 0)
+        {
+            <section class="risk-section" aria-labelledby="risk-who">
+                <h2 id="risk-who">Ai dễ bị nhắm tới</h2>
+                @if (audiences.Count > 0)
+                {
+                    <ul class="risk-chips">@foreach (var a in audiences) { <li><a href="@Filter("doi-tuong", RiskAlertContent.AudienceCode(a))">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", RiskAlertContent.IconId(a.Value<string>("icon"), "users"))<span>@a.Name</span></a></li> }</ul>
+                }
+                @if (channels.Count > 0)
+                {
+                    <h3>Kênh</h3>
+                    <ul class="risk-chips">@foreach (var c in channels) { <li><a href="@Filter("kenh", RiskAlertContent.ChannelCode(c))">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", RiskAlertContent.IconId(c.Value<string>("icon"), "chat"))<span>@c.Name</span></a></li> }</ul>
+                }
+            </section>
+        }
+
+        @if (steps.Count > 0)
+        {
+            <section class="risk-section" aria-labelledby="risk-steps">
+                <h2 id="risk-steps">Kịch bản thường gặp</h2>
+                <ol class="risk-steps">@foreach (var step in steps) { <li><span>@step</span></li> }</ol>
+            </section>
+        }
+
+        @if (stopSigns.Length > 0 || otherSigns.Count > 0 || tone == "h")
+        {
+            <section class="risk-section" aria-labelledby="risk-signs">
+                <h2 id="risk-signs">Dấu hiệu</h2>
+                @if (stopSigns.Length > 0)
+                {
+                    <ul class="risk-signs">@foreach (var sign in stopSigns) { <li>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "stop")<span>@sign</span></li> }</ul>
+                    <p class="risk-small">Gặp một trong các yêu cầu trên thì dừng ngay. Đây chưa phải kết luận rằng đã có lừa đảo.</p>
+                }
+                @if (otherSigns.Count > 0)
+                {
+                    <ul class="risk-signs risk-signs--other">@foreach (var sign in otherSigns) { <li>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "alert")<span>@sign</span></li> }</ul>
+                }
+                @if (tone == "h")
+                {
+                    <div class="risk-note"><b>Chưa chuyển tiền cho tới khi đã kiểm chứng</b><p>@RiskAlertContent.HoldNote</p></div>
+                }
+            </section>
+        }
+
+        </div>
+
+        <section class="risk-section" aria-labelledby="risk-todo">
+            <h2 id="risk-todo">Việc cần làm</h2>
+            <ul class="risk-links">
+                @if (action is not null)
+                {
+                    <li><a href="@action.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "doc")<span>@RiskAlertContent.Title(action)<small>Nếu đã gặp chuyện</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+                }
+                <li><a href="/khan-cap/kiem-tra/">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")<span>Tôi đang gặp chuyện gì? Trả lời 3 câu<small>Nếu bạn đang bị liên hệ</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+            </ul>
+        </section>
+
+        @if (related.Count > 0)
+        {
+            <section class="risk-section" aria-labelledby="risk-related">
+                <h2 id="risk-related">Bài liên quan</h2>
+                <ul class="risk-links">
+                    @foreach (var link in related)
+                    {
+                        <li><a href="@link.Url">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", link.Icon)<span>@link.Title<small>@link.Kind</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+                    }
+                </ul>
+            </section>
+        }
+    </article>
+</div>

@@ -19,6 +19,8 @@ public static class RiskStructure
     public static string LogicalAlias(string alias) => GroupAliases.Contains(alias) ? "riskCategoryPage" : alias;
     /// <summary>Thu muc Quan ly noi dung › Bai viet.</summary>
     public static readonly Guid ArticleFolderKey = new("77e2e4a9-012b-5566-8542-d033c9c38827");
+    /// <summary>Thu muc Quan ly noi dung › Canh bao. Luu y: thu muc chua xuat ban thi Umbraco an moi canh bao ben trong khoi website.</summary>
+    public static readonly Guid AlertFolderKey = new("dbeceecd-9e82-5d65-a310-6f0d2b15b38c");
     /// <summary>Thu muc Thu vien › Chuyen de.</summary>
     public static readonly Guid TopicFolderKey = new("6983fbcd-c754-55d9-a26c-df81a26984cd");
 

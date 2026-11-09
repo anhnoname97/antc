@@ -116,6 +116,16 @@ public class RiskManagementTests
         Assert.Equal(required, errors.Any(x => x.Contains("dấu hiệu cảnh báo")));
         Assert.Equal(required, errors.Any(x => x.Contains("việc cần làm ngay")));
     }
+    [Theory]
+    [InlineData("Một, hai.\nBa, bốn.\nNăm, sáu, bảy.\nTám.", false)]
+    [InlineData("[\"Một, hai.\",\"Ba, bốn.\",\"Năm.\"]", false)]
+    [InlineData("Một.\nHai.", true)]
+    [InlineData("1\n2\n3\n4\n5\n6", true)]
+    public void AlertSteps_AreCountedByLine_NotByComma(string steps, bool rejected)
+    {
+        var alert = Node("alertPage", "Cảnh báo", ("scenarioSteps", steps));
+        Assert.Equal(rejected, RiskContentRules.Validate(alert).Any(x => x.Contains("3–5 bước")));
+    }
     [Fact]
     public void EmptyRichTextMarkup_DoesNotPassPublishValidation()
     {
