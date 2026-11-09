@@ -161,7 +161,17 @@ public sealed class AntcPublicContentFinder(
                 return Task.FromResult(true);
             }
         }
+        // Cac trang co dinh cua Cac rui ro tim theo khoa, khong phu thuoc vi tri tren cay.
+        IPublishedContent? RiskPage(string alias) =>
+            RiskStructure.Pages.FirstOrDefault(x => x.Alias == alias) is { } page ? cache.GetById(preview, page.Key) : null;
+        // V2-13h: /cac-rui-ro/ chuyen huong 301 ve Canh bao moi khi trang nay da co template.
+        if (!preview && fixedAlias == "ruiRoPage" && RiskPage("alertListPage")?.TemplateId is > 0)
+        {
+            request.SetRedirectPermanent(AntcPublicPaths.AlertListPath + request.Uri.Query);
+            return Task.FromResult(true);
+        }
         IPublishedContent? found = fixedAlias == "home" ? home
+            : fixedAlias is "ruiRoPage" or "alertListPage" ? RiskPage(fixedAlias)
             : fixedAlias == "wizardPage" ? Child(Child(home, "ungPhoPage"), "wizardPage")
             : fixedAlias == "cuocThiLamBaiPage" ? (Child(Child(home, "thiThangPage"), fixedAlias) ?? Child(Child(home, "thiPage"), fixedAlias) ?? Child(home, fixedAlias))
             : fixedAlias is "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" ? Child(Child(home, "congCuPage"), fixedAlias)
@@ -206,8 +216,18 @@ public sealed class AntcPublicContentFinder(
             }
             if (list is not null)
                 found = parts.Length == articleIndex ? list : BySegment(list, "article", parts[articleIndex]);
-            if (parts.Length == 3 && parts[0].Equals("cac-rui-ro", StringComparison.OrdinalIgnoreCase))
-                found = RiskArticle(parts[1], parts[2]);
+            if (parts[0].Equals("cac-rui-ro", StringComparison.OrdinalIgnoreCase))
+            {
+                bool alerts = parts.Length == 3 && parts[1].Equals("canh-bao-moi", StringComparison.OrdinalIgnoreCase);
+                if (parts.Length == 2 && RiskStructure.Pages.Skip(2)
+                        .FirstOrDefault(x => RiskStructure.Slug(x).Equals(parts[1], StringComparison.OrdinalIgnoreCase)) is { } group)
+                    found = cache.GetById(preview, group.Key);
+                else if (alerts && navigation.TryGetChildrenKeysOfType(RiskStructure.AlertFolderKey, "alertPage", out IEnumerable<Guid> alertKeys))
+                    found = alertKeys.Select(key => cache.GetById(preview, key)).OfType<IPublishedContent>()
+                        .FirstOrDefault(x => string.Equals(urls.GetUrlSegment(x.Key, request.Culture ?? string.Empty, preview), parts[2], StringComparison.OrdinalIgnoreCase));
+                else if (parts.Length == 3)
+                    found = RiskArticle(parts[1], parts[2]);
+            }
         }
         if (found is null && !preview && path.StartsWith("hay-tu-kiem-tra/huong-dan/", StringComparison.OrdinalIgnoreCase))
         {

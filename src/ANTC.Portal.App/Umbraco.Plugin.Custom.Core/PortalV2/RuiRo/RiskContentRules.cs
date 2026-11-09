@@ -66,7 +66,7 @@ public sealed class RiskContentRules(IContentService contents, IContentTypeServi
         }
         if (n.Type == "alertPage")
         {
-            if (n.Strings("scenarioSteps").Count is < 3 or > 5) errors.Add("Kịch bản thường gặp cần 3–5 bước.");
+            if (n.Lines("scenarioSteps").Count is < 3 or > 5) errors.Add("Kịch bản thường gặp cần 3–5 bước.");
             Need("tactics", "thủ đoạn"); Need("channels", "kênh"); Need("audiences", "đối tượng"); Need("actionPage", "trang việc cần làm");
         }
         if (n.Type == "tacticItem") Need("containingArticle", "bài viết chứa thủ đoạn");
