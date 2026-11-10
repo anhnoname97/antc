@@ -1,25 +1,10 @@
 // Script tương tác trang Hỏi – Đáp (antoantaichinh.vn/hoi-dap)
 document.addEventListener('DOMContentLoaded', function () {
-  initQaAccordion();
   initQaContactToggle();
   initQaForm();
 });
 
-// 1. Quản lý Accordion Hỏi – đáp nhanh
-function initQaAccordion() {
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.qaq[data-open]');
-    if (!btn) return;
-
-    var targetId = btn.getAttribute('data-open');
-    var panel = document.getElementById(targetId);
-    if (!panel) return;
-
-    var isExpanded = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', !isExpanded);
-    panel.hidden = isExpanded;
-  });
-}
+// 1. Accordion Hỏi – đáp nhanh: site.js da xu ly moi nut [data-open]; khong gan them o day (gan hai lan se mo roi dong ngay).
 
 // 2. Toggle ô nhập liên hệ khi muốn nhận trả lời riêng
 function initQaContactToggle() {
