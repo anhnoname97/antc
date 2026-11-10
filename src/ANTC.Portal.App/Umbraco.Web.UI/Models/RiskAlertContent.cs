@@ -4,6 +4,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Services.Navigation;
 using Umbraco.Cms.Core.Strings;
 using Umbraco.Extensions;
+using Umbraco.Plugin.Custom.Core.Articles;
 using Umbraco.Plugin.Custom.Core.Content;
 using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo;
 using Umbraco.Plugin.Custom.Core.PortalV2.Schema;
@@ -36,22 +37,42 @@ public sealed record RiskResultsView(AlertListResult Layout, IReadOnlySet<AlertL
 /// <summary>Mot tab cua thanh 6 nhom Cac rui ro.</summary>
 public sealed record RiskTab(string Url, string Name, string Icon, bool Current);
 
+/// <summary>The cua trang nhom va dong "dang bien soan", ca hai tu RuiRoDerivation.</summary>
+public sealed record RiskGroupData(IReadOnlyList<AlertListItem> Cards, bool InPreparation);
+
+/// <summary>Cau co dinh (WEB-02): doc tu Cai dat website › Cau co dinh (Phu luc A); o con trong hoac chua co nut
+/// Cai dat website (V2-02a) thi dung cau mac dinh trong code.</summary>
+public sealed record RiskFixedText(string NoAnswer, string NoAdvice, IReadOnlyList<string> MustRemember, string Sample, string Hold);
+
 /// <summary>Doc du lieu Canh bao moi va trang canh bao tu noi dung da xuat ban (V2-13h, V2-13i).</summary>
 public static class RiskAlertContent
 {
+    // Cau mac dinh khi Cai dat website chua co gia tri hoac chua co truong tuong ung (WEB-02).
     public const string SampleNote = "Các cảnh báo trên bản dựng thử chưa phải cảnh báo thật. Khi vận hành, mỗi mục do Ban biên tập viết từ một văn bản của cơ quan nhà nước.";
     public const string HoldNote = "Cam kết lợi nhuận cao, đều đặn, một tài khoản cá nhân thay cho tài khoản của bên giao dịch, hoặc giấy tờ không khớp lời giới thiệu là dấu hiệu phải hoãn lại để tự kiểm tra bằng kênh do chính bạn tìm ra.";
-    public const string NoAnswerNote = "Gửi câu hỏi riêng cho Ban biên tập. Câu hỏi không hiện lên trang; các câu giống nhau được gộp và trả lời công khai sau khi đã che thông tin cá nhân.";
+    public const string NoAnswerNote = "Xem các câu hỏi thường gặp, đã có trả lời ngắn và lối sang trang hướng dẫn.";
 
     public static readonly IReadOnlyList<(string Code, string Name)> DateOptions =
         [(AlertList.Last30Days, "30 ngày qua"), (AlertList.Last90Days, "90 ngày qua"), (AlertList.Archive, "Lưu trữ, quá 90 ngày")];
 
-    public static IReadOnlyList<(string Code, string Name)> ChannelOptions(IPublishedContent site) =>
-        site.Descendants().Where(x => x.ContentType.Alias == "channelItem" && x.Value<bool>("isActive"))
-            .Select(x => (ChannelCode(x), x.Name)).ToArray();
+    /// <summary>Muc dang dung: o "Dang dung" tat thi khong hien o bo loc; loai chua co o nay coi nhu dang dung.</summary>
+    private static bool Active(IPublishedContent x) => !x.HasProperty("isActive") || !x.HasValue("isActive") || x.Value<bool>("isActive");
 
-    public static IReadOnlyList<(string Code, string Name)> AudienceOptions(IPublishedContent site) =>
-        site.Descendants().Where(x => x.ContentType.Alias == "audienceItem").Select(x => (AudienceCode(x), x.Name)).ToArray();
+    public static IReadOnlyList<(string Code, string Name)> ChannelOptions(RiskSnapshot data) =>
+        data.Of("channelItem").Where(Active).Select(x => (ChannelCode(x), x.Name)).ToArray();
+
+    public static IReadOnlyList<(string Code, string Name)> AudienceOptions(RiskSnapshot data) =>
+        data.Of("audienceItem").Where(Active).Select(x => (AudienceCode(x), x.Name)).ToArray();
+
+    /// <summary>Cau co dinh tu nut Cai dat website (siteSettings) o goc cay; thieu thi dung cau mac dinh.</summary>
+    public static RiskFixedText FixedText(IEnumerable<IPublishedContent> roots)
+    {
+        var settings = roots.FirstOrDefault(x => x.ContentType.Alias == "siteSettings");
+        string Text(string alias, string fallback) => settings?.Value<string>(alias) is { } v && !string.IsNullOrWhiteSpace(v) ? v.Trim() : fallback;
+        var remember = settings is null ? [] : Lines(settings, "mustRemember");
+        return new RiskFixedText(Text("noAnswerNote", NoAnswerNote), Text("noAdviceNote", NoAdvice),
+            remember.Count > 0 ? remember : MustRemember, Text("sampleNote", SampleNote), Text("holdNote", HoldNote));
+    }
 
     /// <summary>Doc bo loc tu dia chi; chi nhan gia tri co trong danh muc, gia tri la coi nhu "Tat ca".</summary>
     public static AlertListQuery ReadQuery(Microsoft.AspNetCore.Http.IQueryCollection q, RiskFilterView options)
@@ -88,8 +109,9 @@ public static class RiskAlertContent
     public static string ChannelCode(IPublishedContent channel) =>
         channel.Value<string>("code") is { Length: > 0 } code ? code : AlertList.Slug(channel.Name);
 
-    /// <summary>Danh muc Doi tuong khong co truong code nen dung ten bo dau.</summary>
-    public static string AudienceCode(IPublishedContent audience) => AlertList.Slug(audience.Name);
+    /// <summary>Ma loc cua doi tuong (WEB-10): truong code; chi khi trong moi dung ten bo dau.</summary>
+    public static string AudienceCode(IPublishedContent audience) =>
+        audience.Value<string>("code") is { Length: > 0 } code ? code.Trim() : AlertList.Slug(audience.Name);
 
     /// <summary>Gia tri o Bieu tuong luu dang "Giấy tờ · id"; lay phan sau dau cham giua.</summary>
     public static string IconId(string? stored, string fallback)
@@ -99,10 +121,10 @@ public static class RiskAlertContent
         return id.Length > 0 ? id : fallback;
     }
 
-    /// <summary>Cau dau hieu (o soan thao) da qua bo loc HTML cua Umbraco; bo the p boc ngoai de nam gon trong mot dong danh sach.</summary>
-    public static IHtmlContent SignHtml(IPublishedContent sign)
+    /// <summary>Cau dau hieu (o soan thao) qua ArticleHtmlSanitizer (WEB-12) truoc khi xuat; bo the p boc ngoai de nam gon trong mot dong danh sach.</summary>
+    public static IHtmlContent SignHtml(IPublishedContent sign, ArticleHtmlSanitizer sanitizer)
     {
-        string html = sign.Value<IHtmlEncodedString>("signText")?.ToHtmlString() ?? "";
+        string html = sanitizer.Clean(sign.Value<IHtmlEncodedString>("signText")?.ToHtmlString() ?? "");
         html = Regex.Replace(html.Trim(), @"^<p>(.*)</p>$", "$1", RegexOptions.Singleline);
         return string.IsNullOrWhiteSpace(Regex.Replace(html, "<[^>]+>|&nbsp;", ""))
             ? new HtmlString(System.Net.WebUtility.HtmlEncode(sign.Name)) : new HtmlString(html);
@@ -111,20 +133,23 @@ public static class RiskAlertContent
     public static string ReadingText(IPublishedElement alert) =>
         string.Join(' ', Lines(alert, "scenarioSteps").Prepend(alert.Value<string>("description") ?? ""));
 
-    /// <summary>Canh bao da xuat ban trong thu muc Canh bao, doc theo khoa thu muc (thu muc phai xuat ban).</summary>
-    public static IEnumerable<IPublishedContent> Alerts(IDocumentNavigationQueryService navigation, Func<Guid, IPublishedContent?> byKey) =>
-        navigation.TryGetChildrenKeysOfType(RiskStructure.AlertFolderKey, "alertPage", out IEnumerable<Guid> keys)
-            ? keys.Select(byKey).OfType<IPublishedContent>().Where(x => x.TemplateId is > 0)
-            : [];
+    /// <summary>Canh bao da xuat ban trong thu muc Canh bao (thu muc phai xuat ban).</summary>
+    public static IEnumerable<IPublishedContent> Alerts(RiskSnapshot data) => data.Of("alertPage").Where(x => x.TemplateId is > 0);
 
-    public static AlertListItem Card(IPublishedContent alert) => new(
-        alert.Url(), Title(alert), alert.Value<string>("description") ?? "",
-        alert.Value<string>("issuingAgency") is { Length: > 0 } agency ? agency.Trim() : null,
-        Date(alert, "updatedDate"), Level(alert),
-        Picked(alert, "channels").Select(ChannelCode).ToArray(),
-        Picked(alert, "audiences").Select(AudienceCode).ToArray(),
-        string.Join(' ', alert.Value<IEnumerable<string>>("searchKeywords") ?? []),
-        AlertList.ReadingMinutes(ReadingText(alert)));
+    public static AlertListItem Card(IPublishedContent alert) => Card(alert, null);
+
+    public static AlertListItem Card(IPublishedContent alert, Func<IPublishedContent, string>? url)
+    {
+        string ResolveUrl(IPublishedContent x) => url is null ? x.Url() : url(x);
+        return new(
+            ResolveUrl(alert), Title(alert), alert.Value<string>("description") ?? "",
+            alert.Value<string>("issuingAgency") is { Length: > 0 } agency ? agency.Trim() : null,
+            Date(alert, "updatedDate"), Level(alert),
+            Picked(alert, "channels").Select(ChannelCode).ToArray(),
+            Picked(alert, "audiences").Select(AudienceCode).ToArray(),
+            string.Join(' ', alert.Value<IEnumerable<string>>("searchKeywords") ?? []),
+            AlertList.AlertReadingMinutes(ReadingText(alert)));
+    }
 
     public const string NoAdvice = "Website không tư vấn đầu tư, không tư vấn tài chính cá nhân và không giới thiệu sản phẩm tài chính. Nội dung của mục Rủi ro tài chính chỉ nhằm giúp bạn đặt đúng câu hỏi trước khi quyết định.";
     public static readonly string[] MustRemember =
@@ -145,89 +170,84 @@ public static class RiskAlertContent
     private static string Plain(string? html) =>
         System.Net.WebUtility.HtmlDecode(Regex.Replace(Regex.Replace(html ?? "", "<[^>]+>", " "), @"\s+", " ")).Trim();
 
-    private static IEnumerable<IPublishedContent> Children(IDocumentNavigationQueryService navigation, Func<Guid, IPublishedContent?> byKey, Guid folder, string alias) =>
-        navigation.TryGetChildrenKeysOfType(folder, alias, out IEnumerable<Guid> keys)
-            ? keys.Select(byKey).OfType<IPublishedContent>() : [];
+    /// <summary>Lien ket toi mot thu doan (WEB-04): ?thu-doan=ma de bai huong dan to sang dong (V2-13i),
+    /// neo #tactic-khoa de cuon toi dong (trinh hoi Khan cap dung cung neo, QD-056).</summary>
+    public static string TacticUrl(IPublishedContent article, IPublishedContent tactic) => TacticUrl(article, tactic, null);
 
-    /// <summary>The cua trang nhom theo luat "The trong trang nhom" (mockup bo-cac-rui-ro.html, QD-054):
-    /// bai viet dang/hien them o nhom; thu doan trong bai huong dan cua nhom; canh bao co thu doan do;
-    /// trang viec can lam ma cac muc tren dan toi. Ghim dau nhom truoc, roi theo loai, roi moi nhat truoc.</summary>
-    public static IReadOnlyList<AlertListItem> GroupCards(IPublishedContent group, IPublishedContent site,
-        IDocumentNavigationQueryService navigation, Func<Guid, IPublishedContent?> byKey)
+    public static string TacticUrl(IPublishedContent article, IPublishedContent tactic, Func<IPublishedContent, string>? url)
     {
-        bool InGroup(IPublishedContent x) => Picked(x, "primaryGroup").Concat(Picked(x, "alsoInCategories")).Any(g => g.Key == group.Key);
-        var articles = Children(navigation, byKey, RiskStructure.ArticleFolderKey, "riskArticlePage")
-            .Where(x => x.TemplateId is > 0 && InGroup(x)).ToArray();
-        var guides = articles.Where(x => IsKind(x, "Bài hướng dẫn")).ToArray();
-        var guideKeys = guides.Select(x => x.Key).ToHashSet();
-        var allTactics = site.Descendants().Where(x => x.ContentType.Alias == "tacticItem" && !(x.HasValue("isActive") && !x.Value<bool>("isActive"))).ToArray();
-        var tactics = allTactics.Where(t => Picked(t, "containingArticle").Any(a => guideKeys.Contains(a.Key))).ToArray();
-        var tacticKeys = tactics.Select(x => x.Key).ToHashSet();
-        var audiences = site.Descendants().Where(x => x.ContentType.Alias == "audienceItem").ToArray();
-        string[] AudienceCodes(IEnumerable<Guid> tacticSet) =>
-            audiences.Where(a => Picked(a, "tactics").Any(t => tacticSet.Contains(t.Key))).Select(AudienceCode).ToArray();
-        string TacticLevel(IPublishedContent t) => AlertList.LevelCode(t.Value("cautionLevel") switch
-        {
-            string s => s, IEnumerable<string> l => l.FirstOrDefault(), _ => null
-        });
-        string Highest(IEnumerable<string> codes) => AlertList.Levels.Select(x => x.Code).FirstOrDefault(codes.Contains) ?? "can-than-trong";
-        var alerts = Alerts(navigation, byKey).Where(a => Picked(a, "tactics").Any(t => tacticKeys.Contains(t.Key))).ToArray();
-        var actions = articles.Concat(alerts).SelectMany(x => Picked(x, "actionPage"))
-            .Where(x => x.TemplateId is > 0).DistinctBy(x => x.Key).ToArray();
-
-        var cards = new List<(AlertListItem Item, bool Featured, DateTime Date)>();
-        foreach (var a in alerts)
-            cards.Add((Card(a), false, Date(a, "updatedDate") ?? a.UpdateDate));
-        foreach (var a in articles)
-        {
-            string kind = IsKind(a, "Bài hướng dẫn") ? "lv" : IsKind(a, "Bài đọc chuyên đề") ? "doc" : "art";
-            var own = tactics.Where(t => Picked(t, "containingArticle").Any(x => x.Key == a.Key)).ToArray();
-            string text = $"{a.Value<string>("summary")} {a.Value("readingBody")} {string.Join(' ', Lines(a, "warningSigns"))} {string.Join(' ', Lines(a, "actionsNow"))}";
-            int words = Regex.Matches(Plain(text), @"\S+").Count;
-            string summary = a.Value<string>("description") is { Length: > 0 } d ? d : Plain(a.Value<string>("summary"));
-            cards.Add((new AlertListItem(a.Url(), Title(a), summary, null, a.UpdateDate,
-                kind == "lv" ? Highest(own.Select(TacticLevel)) : "can-than-trong",
-                own.SelectMany(t => Picked(t, "channels")).Select(ChannelCode).Distinct().ToArray(),
-                AudienceCodes(own.Select(t => t.Key)),
-                string.Join(' ', a.Value<IEnumerable<string>>("searchKeywords") ?? []),
-                Math.Max(1, (int)Math.Ceiling(words / 200d)), kind, kind == "lv" ? "shield" : kind == "doc" ? "icon-book" : "doc"),
-                a.Value<bool>("isFeatured"), a.UpdateDate));
-        }
-        foreach (var t in tactics)
-        {
-            var article = Picked(t, "containingArticle").First(x => guideKeys.Contains(x.Key));
-            string code = t.Value<string>("code") ?? "";
-            var channels = Picked(t, "channels");
-            // Neo #tactic-{khoa} cua trang Bai huong dan (trinh hoi Khan cap dung cung neo)
-            cards.Add((new AlertListItem($"{article.Url()}#tactic-{t.Key:N}",
-                t.Name, $"{Title(article)} · {string.Join(", ", channels.Select(c => c.Name))}", null, null, TacticLevel(t),
-                channels.Select(ChannelCode).ToArray(), AudienceCodes([t.Key]),
-                string.Join(' ', t.Value<IEnumerable<string>>("searchKeywords") ?? []), 0, "tac", "alert"), false, t.UpdateDate));
-        }
-        foreach (var p in actions)
-        {
-            cards.Add((new AlertListItem(p.Url(), Title(p), Plain(p.Value<string>("lead")), null, null, "rat-cao", [], [], "",
-                0, "pb", "clock"), false, p.UpdateDate));
-        }
-        return cards.OrderByDescending(x => x.Featured).ThenBy(x => AlertList.KindOrder(x.Item.Kind)).ThenByDescending(x => x.Date)
-            .Select(x => x.Item).ToArray();
+        string ResolveUrl(IPublishedContent x) => url is null ? x.Url() : url(x);
+        string code = tactic.Value<string>("code")?.Trim() ?? "";
+        return $"{ResolveUrl(article)}{(code.Length > 0 ? "?thu-doan=" + Uri.EscapeDataString(code) : "")}#tactic-{tactic.Key:N}";
     }
 
-    /// <summary>Dong "dang bien soan": nhom chua co bai nao Dang o nhom la nhom nay.</summary>
-    public static bool HasOwnArticles(IPublishedContent group, IDocumentNavigationQueryService navigation, Func<Guid, IPublishedContent?> byKey) =>
-        Children(navigation, byKey, RiskStructure.ArticleFolderKey, "riskArticlePage")
-            .Any(x => x.TemplateId is > 0 && Picked(x, "primaryGroup").Any(g => g.Key == group.Key));
+    private static string KindOf(RiskNode article) =>
+        article.IsKind("huongDan") ? "lv" : article.IsKind("docChuyenDe") ? "doc" : "art";
+
+    /// <summary>The cua trang nhom (WEB-01): danh sach bai, thu doan, canh bao, viec can lam, muc do, kenh, doi tuong
+    /// deu lay tu RuiRoDerivation; o day chi doi sang AlertListItem va sap theo ban dung: ghim, roi loai, roi moi nhat.</summary>
+    public static RiskGroupData Group(IPublishedContent group, RiskSnapshot data, RuiRoDerivation derivation) =>
+        Group(group, data, derivation, null);
+
+    public static RiskGroupData Group(IPublishedContent group, RiskSnapshot data, RuiRoDerivation derivation,
+        Func<IPublishedContent, string>? url)
+    {
+        if (data.Node(group.Key) is not { } groupNode) return new([], true);
+        string ResolveUrl(IPublishedContent x) => url is null ? x.Url() : url(x);
+        var derived = derivation.Derive(groupNode, data.Nodes);
+        string[] Channels(RiskDerived d) => d.Channels.Select(data.Content).OfType<IPublishedContent>().Select(ChannelCode).ToArray();
+        string[] Audiences(RiskDerived d) => d.Audiences.Select(data.Content).OfType<IPublishedContent>().Select(AudienceCode).ToArray();
+        string LevelOrDefault(string level) => AlertList.LevelCode(level) is { Length: > 0 } code ? code : "can-than-trong";
+        string Keywords(IPublishedContent x) => string.Join(' ', x.Value<IEnumerable<string>>("searchKeywords") ?? []);
+
+        var cards = new List<(AlertListItem Item, bool Featured, DateTime Date)>();
+        foreach (var a in derived.Alerts.Select(data.Content).OfType<IPublishedContent>().Where(x => x.TemplateId is > 0))
+            cards.Add((Card(a, url), false, Date(a, "updatedDate") ?? a.UpdateDate));
+        foreach (var node in derived.Articles)
+        {
+            if (data.Content(node) is not { TemplateId: > 0 } a) continue;
+            var own = derivation.Derive(node, data.Nodes);
+            string kind = KindOf(node);
+            string summary = a.Value<string>("description") is { Length: > 0 } d ? d : Plain(a.Value<string>("summary"));
+            cards.Add((new AlertListItem(ResolveUrl(a), Title(a), summary, null, a.UpdateDate, LevelOrDefault(own.Level),
+                Channels(own), Audiences(own), Keywords(a), own.ReadingMinutes, kind,
+                kind == "lv" ? "shield" : kind == "doc" ? "icon-book" : "doc"), node.Flag("isFeatured"), a.UpdateDate));
+        }
+        var guides = derived.Articles.Where(x => x.IsKind("huongDan")).Select(x => x.Key).ToHashSet();
+        foreach (var node in derived.Tactics)
+        {
+            var article = node.Refs("containingArticle").Where(guides.Contains).Select(data.Content).OfType<IPublishedContent>().FirstOrDefault();
+            if (data.Content(node) is not { } t || article is null) continue;
+            var own = derivation.Derive(node, data.Nodes);
+            var channels = own.Channels.Select(data.Content).OfType<IPublishedContent>().ToArray();
+            cards.Add((new AlertListItem(TacticUrl(article, t, url), t.Name, $"{Title(article)} · {string.Join(", ", channels.Select(c => c.Name))}",
+                null, null, LevelOrDefault(own.Level), channels.Select(ChannelCode).ToArray(), Audiences(own), Keywords(t), 0, "tac", "alert"),
+                false, t.UpdateDate));
+        }
+        foreach (var p in derived.Actions.Select(data.Content).OfType<IPublishedContent>().Where(x => x.TemplateId is > 0))
+            cards.Add((new AlertListItem(ResolveUrl(p), Title(p), Plain(p.Value<string>("lead")), null, null, "rat-cao", [], [], "", 0, "pb", "clock"),
+                false, p.UpdateDate));
+        var ordered = cards.OrderByDescending(x => x.Featured).ThenBy(x => AlertList.KindOrder(x.Item.Kind)).ThenByDescending(x => x.Date)
+            .Select(x => x.Item).ToArray();
+        return new RiskGroupData(ordered, derived.InPreparation);
+    }
 
     /// <summary>Doan dung chung "Bo khung nhan dien" (hien co dinh o nhom Lua dao).</summary>
-    public static IPublishedContent? Snippet(IPublishedContent site, string name) =>
-        site.Descendants().FirstOrDefault(x => x.ContentType.Alias == "sharedSnippet" && (x.Name == name || x.Value<string>("title") == name));
+    public static IPublishedContent? Snippet(RiskSnapshot data, string name) =>
+        data.Of("sharedSnippet").FirstOrDefault(x => x.Name == name || x.Value<string>("title") == name);
 
     /// <summary>Thanh 6 tab: Canh bao moi va 5 nhom, theo thu tu co dinh cua RiskStructure.</summary>
+    /// <summary>Thu tu tab theo ban dung 10/11/2026: Bao hiem va tiet kiem dung truoc Du lieu ca nhan.
+    /// Chi doi thu tu hien thi, khong doi RiskStructure (dung chung voi backoffice).</summary>
+    private static readonly string[] TabOrder =
+        ["alertListPage", "luaDaoPage", "vayVaNoPage", "dauTuPage", "baoHiemVaTietKiemPage", "duLieuCaNhanPage"];
+
     public static IReadOnlyList<RiskTab> Tabs(Func<Guid, IPublishedContent?> byKey, string currentAlias) =>
-        RiskStructure.Pages.Skip(1).OrderBy(x => x.Order).Select(page =>
+        RiskStructure.Pages.Skip(1).OrderBy(x => Array.IndexOf(TabOrder, x.Alias) is var i and >= 0 ? i : TabOrder.Length + x.Order).Select(page =>
         {
             var node = byKey(page.Key);
-            string name = node?.Value<string>("tabName") is { Length: > 0 } tab ? tab : page.Name;
+            string name = node?.Value<string>("tabName") is { Length: > 0 } tab ? tab
+                : node is not null && page.Alias == "alertListPage" ? Title(node) : page.Name;
             string url = page.Alias == "alertListPage" ? AntcPublicPaths.AlertListPath : AntcPublicPaths.RiskGroupPath(page.Alias) ?? "#";
             string fallback = page.Alias switch
             {
@@ -237,28 +257,34 @@ public static class RiskAlertContent
             return new RiskTab(url, name, page.Alias == "alertListPage" ? "mega" : IconId(node?.Value<string>("icon"), fallback), page.Alias == currentAlias);
         }).ToArray();
 
-    /// <summary>Bai lien quan: bai huong dan chua cac thu doan, chinh cac thu doan, danh sach kiem tra cung chuyen de; toi da 4.</summary>
-    public static IReadOnlyList<RiskRelatedLink> Related(IPublishedContent alert, IPublishedContent site)
+    /// <summary>Bai lien quan cua canh bao (WEB-01): danh sach tu RuiRoDerivation (bai huong dan chua thu doan, thu doan,
+    /// danh sach kiem tra cung chuyen de; toi da 4); o day chi doi sang lien ket.</summary>
+    public static IReadOnlyList<RiskRelatedLink> Related(IPublishedContent alert, RiskSnapshot data, RuiRoDerivation derivation) =>
+        Related(alert, data, derivation, null);
+
+    public static IReadOnlyList<RiskRelatedLink> Related(IPublishedContent alert, RiskSnapshot data, RuiRoDerivation derivation,
+        Func<IPublishedContent, string>? url)
     {
-        var tactics = Picked(alert, "tactics");
-        var guides = tactics.SelectMany(x => Picked(x, "containingArticle"))
-            .Where(x => (x.Value<string>("articleKind") ?? "").Contains("Bài hướng dẫn") && x.TemplateId is > 0)
-            .DistinctBy(x => x.Key).ToArray();
+        if (data.Node(alert.Key) is not { } node) return [];
+        string ResolveUrl(IPublishedContent x) => url is null ? x.Url() : url(x);
         var links = new List<RiskRelatedLink>();
-        links.AddRange(guides.Select(x => new RiskRelatedLink(x.Url(), Title(x), "Bài hướng dẫn", "book")));
-        foreach (var tactic in tactics)
+        foreach (var item in derivation.Derive(node, data.Nodes).Related)
         {
-            var article = Picked(tactic, "containingArticle").FirstOrDefault(x => x.TemplateId is > 0);
-            if (article is null) continue;
-            string code = tactic.Value<string>("code") ?? "";
-            string url = code.Length > 0 ? $"{article.Url()}?thu-doan={Uri.EscapeDataString(code)}" : article.Url();
-            links.Add(new RiskRelatedLink(url, tactic.Name, "Thủ đoạn", "alert"));
+            if (data.Content(item) is not { } content) continue;
+            switch (item.Type)
+            {
+                case "riskArticlePage" when content.TemplateId is > 0:
+                    links.Add(new RiskRelatedLink(ResolveUrl(content), Title(content), "Bài hướng dẫn", "book"));
+                    break;
+                case "tacticItem":
+                    var article = item.Refs("containingArticle").Select(data.Content).FirstOrDefault(x => x?.TemplateId is > 0);
+                    if (article is not null) links.Add(new RiskRelatedLink(TacticUrl(article, content, url), content.Name, "Thủ đoạn", "alert"));
+                    break;
+                case "checklistPage" when content.TemplateId is > 0:
+                    links.Add(new RiskRelatedLink(ResolveUrl(content), "Danh sách kiểm tra: " + Title(content), "Danh sách kiểm tra", "quiz"));
+                    break;
+            }
         }
-        var topics = guides.SelectMany(x => Picked(x, "topic")).Select(x => x.Key).ToHashSet();
-        if (topics.Count > 0)
-            links.AddRange(site.Descendants().Where(x => x.ContentType.Alias == "checklistPage" && x.TemplateId is > 0
-                    && Picked(x, "sourceArticle").SelectMany(a => Picked(a, "topic")).Any(t => topics.Contains(t.Key)))
-                .Select(x => new RiskRelatedLink(x.Url(), "Danh sách kiểm tra: " + Title(x), "Danh sách kiểm tra", "quiz")));
-        return links.DistinctBy(x => x.Url).Take(4).ToArray();
+        return links.DistinctBy(x => x.Url).ToArray();
     }
 }

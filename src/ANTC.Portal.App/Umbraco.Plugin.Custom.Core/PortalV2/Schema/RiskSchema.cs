@@ -55,9 +55,6 @@ public static class RiskSchema
         yield return new("riskArticlePage", "Bài viết", "icon-document", "Bài hướng dẫn, bài đọc chuyên đề hoặc bài đọc thêm.", "vietBai", "Viết bài",
             [P("title", "Tiêu đề", PortalV2Schema.Text(110), true), P("description", "Một câu mời đọc", PortalV2Schema.Area(160)),
                 P("summary", "Tóm tắt", PortalV2Schema.RteBold), P("warningSigns", "Dấu hiệu cảnh báo", PortalV2Schema.Lines(0, 8)),
-                // Bai huong dan (V2-13i): hai khoi dau phan Tom tat cua ban dung v2. "Ai thuong bi nham den" tu suy ra tu Doi tuong › Thu doan.
-                P("rememberLine", "Nhớ một câu", PortalV2Schema.Text(160), hint: "Một câu ngắn người đọc phải nhớ. Hiện đầu phần Tóm tắt của bài hướng dẫn."),
-                P("mustAsk", "Câu hỏi phải hỏi", PortalV2Schema.Area(300), hint: "Hiện trong khung xanh dưới “Nhớ một câu”."),
                 P("actionsNow", "Việc cần làm ngay", PortalV2Schema.Lines(0, 6)), P("scenarios", "Kịch bản thường gặp", "InlineList · Kịch bản rủi ro"),
                 P("avoidActions", "Việc không nên làm", PortalV2Schema.Lines(0, 6)), P("readingBody", "Nội dung", PortalV2Schema.RteReading),
                 P("references", "Nguồn tham khảo", "InlineList · Nguồn tham khảo"), P("series", "Loạt bài", "Thẻ · Loạt bài"),

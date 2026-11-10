@@ -6,26 +6,19 @@
 @inject IContestAdminService ContestPrizes
 @{
     string T(string alias) => Model.Content.Value<string>(alias) ?? string.Empty;
-    const string Blank = "[…]";
-    string Or(string? v) => string.IsNullOrWhiteSpace(v) ? Blank : v.Trim();
     var page = Umbraco.AssignedContentItem;
-    var home = page?.Root();
     var contestPage = page?.Parent<Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>();
-    var rulesText = Or(Model.Content.Value<string>("rulesText") ?? contestPage?.Value<string>("rulesText"));
+    var rawRulesText = Model.Content.Value<string>("rulesText") ?? contestPage?.Value<string>("rulesText");
+    var hasCustomRules = !string.IsNullOrWhiteSpace(rawRulesText);
     var rulesLink = Model.Content.Value<Link>("rulesLink") ?? contestPage?.Value<IEnumerable<Link>>("rulesLink")?.FirstOrDefault();
-    var retentionDays = Model.Content.Value<int?>("dataRetentionDays") ?? contestPage?.Value<int?>("dataRetentionDays");
-    var retentionText = retentionDays is > 0 ? retentionDays.Value.ToString() : Blank;
-    var operatorName = Or(home?.Value<string>("operatorName"));
-    if (operatorName == Blank) { operatorName = "[Pháp nhân chủ quản website]"; }
-    var dataContact = Or(home?.Value<string>("dataContact"));
-    if (dataContact == Blank) { dataContact = "[đầu mối bảo vệ dữ liệu]"; }
 
-    // Thông tin động theo cuộc thi đang diễn ra hoặc id chỉ định trên URL ?c=
+    // Thông tin động theo cuộc thi đang diễn ra hoặc id chỉ định trên URL ?c=.
+    // Tiêu đề theo cuộc thi đang diễn ra; không có cuộc thi thì dùng "Cuộc thi trực tuyến" của bản chính thức.
     var title = "Cuộc thi trực tuyến";
     var lead = "Tám chuyên đề, 200 câu. Đăng ký xong là vào thi ngay. Làm Chuyên đề 1 trước, sau đó làm chuyên đề nào trước cũng được.";
-    var timeText = "[…]";
+    var timeText = "Sẽ công bố tại trang này.";
     var attemptsText = "Mỗi số điện thoại thi tối đa 02 lượt";
-    var prizeAndRules = rulesText != Blank ? rulesText : "Theo Thể lệ đã ban hành của Ban Tổ chức.";
+    var prizeAndRules = hasCustomRules ? rawRulesText!.Trim() : "Theo Thể lệ đã ban hành của Ban Tổ chức.";
 
     long? reqContestId = null;
     if (long.TryParse(Context.Request.Query["c"], out var parsedCid) && parsedCid > 0)
@@ -64,7 +57,7 @@
             ? "Không giới hạn lượt thi cho mỗi số điện thoại"
             : $"Mỗi số điện thoại thi tối đa {currentContest.MaxAttempts} lượt";
 
-        if (rulesText == Blank)
+        if (!hasCustomRules)
         {
             try
             {
@@ -125,7 +118,7 @@
     <!-- Khối thông tin chung -->
     <div class="box facts">
         <p><b>Thời gian diễn ra:</b> <span class="fill" id="ctime">@timeText</span></p>
-        <p><b>Ai được dự thi:</b> <span id="celigibility">Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. <span data-attempts-label>@attemptsText</span>.</span></p>
+        <p><b>Ai được dự thi:</b> <span id="celigibility">Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. <span data-attempts-label>@attemptsText</span>. Người dưới 16 tuổi dự thi bằng số điện thoại của cha, mẹ hoặc người giám hộ và phải được người đó đồng ý.</span></p>
         <p>
             <b>Thể lệ và giải thưởng:</b>
             <span class="fill" id="crules">
@@ -151,19 +144,19 @@
     <section class="sec" id="regsec" hidden>
         <h2>Đăng ký dự thi</h2>
 
-        <div class="cinfo" style="display:none">
+        <div class="cinfo" hidden>
             <h3 id="cname"></h3>
             <p id="cdesc" hidden></p>
         </div>
 
         <!-- Các thẻ ẩn cho register.js tránh lỗi null -->
-        <fieldset id="modes" style="display:none"><input type="radio" name="rgmode" value="named" checked><input type="radio" name="rgmode" value="anon"></fieldset>
-        <div id="anonbox" style="display:none"></div>
-        <button type="button" id="anonstart" style="display:none"></button>
-        <p id="anonerr" style="display:none"></p>
+        <fieldset id="modes" hidden><input type="radio" name="rgmode" value="named" checked><input type="radio" name="rgmode" value="anon"></fieldset>
+        <div id="anonbox" hidden></div>
+        <button type="button" id="anonstart" hidden>Bắt đầu thi ẩn danh ›</button>
+        <p id="anonerr" hidden></p>
 
         <form class="box form" id="rgform" data-form="reg" novalidate>
-            <div class="hp" aria-hidden="true" style="display:none"><label>Để trống ô này<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+            <div class="hp" aria-hidden="true"><label>Để trống ô này<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
             <div class="f2">
                 <label for="rgname">Họ và tên<input type="text" id="rgname" placeholder="Dùng để xác minh khi trao giải" autocomplete="name" maxlength="100"></label>
                 <label for="rgphone">Số điện thoại<input type="tel" id="rgphone" inputmode="numeric" placeholder="Số bạn đang dùng" autocomplete="tel"></label>
@@ -182,19 +175,19 @@
             <div class="allin">
                 <b>Những điều bạn đang đồng ý, đọc một lượt</b>
                 <ul>
-                    <li><b>Ai giữ dữ liệu.</b> @operatorName là bên kiểm soát dữ liệu và là Ban Tổ chức. Công an xã Thiên Lộc chỉ thẩm định nội dung chuyên môn, không giữ dữ liệu thí sinh.</li>
+                    <li><b>Ai giữ thông tin.</b> Ban Tổ chức cuộc thi của antoantaichinh.vn.</li>
                     <li><b>Dùng vào việc gì.</b> Chỉ để ghi nhận thí sinh, đếm số lượt thi của mỗi số điện thoại, chấm bài, xếp hạng và liên hệ trao giải. Không quảng cáo, không phân tích hành vi, không chuyển cho bên thứ ba ngoài việc trao giải.</li>
                     <li><b>Lấy những gì.</b> Họ tên, số điện thoại, đơn vị nếu bạn muốn ghi, cùng bài làm và kết quả. Không hỏi ngày sinh, không lấy số căn cước, vị trí hay danh bạ.</li>
-                    <li><b>Giữ trong bao lâu.</b> Xóa hết trong @retentionText ngày sau khi trao giải xong, trừ chứng từ phải lưu theo luật kế toán.</li>
+                    <li><b>Giữ trong bao lâu.</b> Chỉ trong thời gian diễn ra cuộc thi và xét, trao giải. Xóa sau khi trao giải xong, trừ giấy tờ trao giải phải giữ theo quy định về kế toán, thuế.</li>
                     <li><b>Tên bạn có bị đăng lên không.</b> Mặc định là không. Nếu bạn đạt giải, Ban Tổ chức hỏi riêng; bạn từ chối vẫn nhận giải bình thường.</li>
                     <li><b>Thuế.</b> Giải thưởng thực hiện nghĩa vụ thuế thu nhập cá nhân theo quy định hiện hành; chi tiết ghi trong Thể lệ.</li>
-                    <li><b>Quyền của bạn.</b> Rút lại đồng ý, xem, sửa, xóa dữ liệu của mình bất kỳ lúc nào qua @dataContact. Rút lại đồng ý khi cuộc thi đang diễn ra thì bài làm bị hủy và dữ liệu bị xóa.</li>
+                    <li><b>Quyền của bạn.</b> Rút lại đồng ý, xem, sửa, xóa thông tin của mình bất kỳ lúc nào bằng cách gửi yêu cầu qua mục Góp ý. Rút lại đồng ý khi cuộc thi đang diễn ra thì bài làm bị hủy và dữ liệu bị xóa.</li>
                 </ul>
             </div>
 
             <label class="check one" for="rgok">
                 <input type="checkbox" id="rgok">
-                <span><b>Tôi đã đọc và đồng ý</b> với Thể lệ cuộc thi và với nội dung xử lý dữ liệu nêu trên.</span>
+                <span><b>Tôi đã đọc và đồng ý</b> với Thể lệ cuộc thi và với việc dùng thông tin nêu trên.</span>
             </label>
 
             <p class="err" id="rgerr" role="alert" hidden></p>
@@ -205,28 +198,12 @@
                     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg>
                 </button>
             </div>
-
-            <p class="small">Bản dựng thử: những gì bạn gõ chỉ nằm trong trình duyệt của máy bạn để xem thử luồng đăng ký, không gửi đi đâu.</p>
         </form>
     </section>
 
     <div id="closedbox" class="box notebox" hidden>
         <b>Chưa đăng ký được</b>
         <p>Cuộc thi chưa mở hoặc đã kết thúc. Bạn vẫn có thể luyện tập với ngân hàng câu hỏi.</p>
-    </div>
-
-    <!-- Khối ghi chú người dưới 16 tuổi -->
-    <div class="peek">
-        <button type="button" class="peekbtn" data-open="pk-age" aria-expanded="false" aria-controls="pk-age">
-            <span><b>Ghi chú cho chủ quản: người dự thi dưới 16 tuổi</b><small>Phải chọn một cách trước khi mở cổng đăng ký</small></span>
-            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg>
-        </button>
-        <div class="peekbody" id="pk-age" hidden>
-            <div class="note g">
-                <p>Theo Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15, xử lý dữ liệu của người dưới 16 tuổi phải có sự đồng ý của cha, mẹ hoặc người giám hộ, và bên kiểm soát phải xác minh tuổi trước khi xử lý.</p>
-                <p><b>Cách một:</b> Thể lệ ghi rõ người đứng tên số điện thoại phải từ đủ 16 tuổi; trẻ nhỏ hơn dự thi bằng số của cha mẹ. <b>Cách hai:</b> thêm ô tự khai “Tôi từ đủ 16 tuổi” và nhánh xin đồng ý của người giám hộ.</p>
-            </div>
-        </div>
     </div>
 
     <a href="/ngan-hang/" class="more">

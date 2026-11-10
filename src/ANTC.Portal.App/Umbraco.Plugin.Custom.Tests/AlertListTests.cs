@@ -78,7 +78,7 @@ public class AlertListTests
     [Theory]
     [InlineData("0912345678")]
     [InlineData("0912 345 678")]
-    [InlineData("STK 1234.5678")]
+    [InlineData("1234.5678")]
     public void Long_digit_strings_are_blocked(string text)
     {
         var result = AlertList.Apply([Item("A", 1)], Query(text: text), Today);
@@ -122,7 +122,11 @@ public class AlertListTests
 
     [Theory]
     [InlineData("12345", false)]
-    [InlineData("mã 123456", true)]
+    [InlineData("0912345678", true)]
+    [InlineData("0912 345 678", true)]
+    [InlineData("0912.345-678", true)]
+    [InlineData("lừa 100000 đồng", false)]
+    [InlineData("mã 123456", false)]
     [InlineData(null, false)]
     public void Digit_rule_starts_at_six(string? text, bool blocked) => Assert.Equal(blocked, AlertList.HasLongDigits(text));
 
@@ -149,6 +153,11 @@ public class AlertListTests
     public void Reading_time_is_at_least_one_minute(string? text, int minutes) => Assert.Equal(minutes, AlertList.ReadingMinutes(text));
 
     [Fact]
-    public void Reading_time_counts_text_twice_at_180_words_per_minute() =>
-        Assert.Equal(2, AlertList.ReadingMinutes(string.Join(' ', Enumerable.Repeat("chữ", 180))));
+    public void Reading_time_is_180_words_per_minute_like_the_v2_build()
+    {
+        Assert.Equal(1, AlertList.ReadingMinutes(string.Join(' ', Enumerable.Repeat("chữ", 180))));
+        Assert.Equal(2, AlertList.ReadingMinutes(string.Join(' ', Enumerable.Repeat("chữ", 360))));
+        // Canh bao: ban dung dem van ban hai lan.
+        Assert.Equal(2, AlertList.AlertReadingMinutes(string.Join(' ', Enumerable.Repeat("chữ", 180))));
+    }
 }

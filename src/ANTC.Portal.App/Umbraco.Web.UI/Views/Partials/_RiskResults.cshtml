@@ -20,13 +20,18 @@
         </div>
     </div>
     <div class="risk-empty" data-risk-empty hidden="@(Model.BlockedDigits || total > 0)">
+        <span class="risk-eimg">
+            <img src="/assets/img/v2/img-34-chua-tim-thay-240.webp"
+                 srcset="/assets/img/v2/img-34-chua-tim-thay-240.webp 240w, /assets/img/v2/img-34-chua-tim-thay-480.webp 480w"
+                 sizes="112px" width="480" height="480" alt="" loading="lazy" decoding="async">
+        </span>
         <b>Chưa tìm thấy nội dung phù hợp</b>
-        <p>Chưa tìm thấy nội dung phù hợp. Điều này không có nghĩa giao dịch an toàn. Hãy chọn tình huống của bạn hoặc kiểm chứng qua nguồn chính thức.</p>
+        <p>Chưa tìm thấy nội dung phù hợp. Điều này không có nghĩa giao dịch an toàn. Hãy chọn tình huống của bạn hoặc kiểm chứng qua nguồn chính thức bằng hai nút dưới đây.</p>
         <div class="risk-actions">
             <a class="risk-btn risk-btn--stop" href="/khan-cap/">Chọn tình huống của tôi</a>
             <a class="risk-btn" href="/lien-he/#nguon">Mở nguồn kiểm chứng</a>
             <a class="risk-btn" href="@Model.ClearUrl" data-risk-clear>Xóa bộ lọc</a>
-            <a class="risk-btn" href="/hoi-dap/">Hỏi Ban biên tập</a>
+            <a class="risk-btn" href="/hoi-dap/">Mở Hỏi – Đáp</a>
         </div>
     </div>
     <div class="risk-found" data-risk-found hidden="@(Model.BlockedDigits || total == 0)">

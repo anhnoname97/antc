@@ -69,7 +69,7 @@ if (root) {
         return `<p${isAns ? ' class="isans"' : ''}><b>${esc(k)}.</b> ${esc(q.exp?.[k] || '')}</p>`;
       }).join('');
 
-      const safeHtml = q.safe ? `<div class="qzsafe"><b>HÀNH ĐỘNG AN TOÀN</b>${esc(q.safe)}</div>` : '';
+      const safeHtml = q.safe ? `<div class="qzsafe"><b>Hành động an toàn</b>${esc(q.safe)}</div>` : '';
 
       resHtml = `<div class="qzres"><p class="qzhead">${headHtml}</p><div class="qzexp">${expHtml}</div>${safeHtml}</div>`;
     }
@@ -94,12 +94,12 @@ if (root) {
 
     let navHtml = '';
     if (!isFirst) {
-      navHtml += '<button type="button" class="btn ghost" data-action="prev">‹ Câu trước</button>';
+      navHtml += '<button type="button" class="btn ghost" data-action="prev"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5 8 12l7 7"/></svg> Câu trước</button>';
     }
     if (!isLast) {
-      navHtml += '<button type="button" class="btn pri" data-action="next">Câu tiếp ›</button>';
+      navHtml += '<button type="button" class="btn pri" data-action="next">Câu tiếp <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></button>';
     } else {
-      navHtml += '<a href="/ngan-hang/" class="btn pri">Tự luyện đầy đủ 200 câu ›</a>';
+      navHtml += '<a href="/ngan-hang/" class="btn pri">Tự luyện đầy đủ 200 câu <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></a>';
     }
     navWrap.innerHTML = navHtml;
   }
@@ -108,7 +108,7 @@ if (root) {
     if (!moreWrap || !questions[currentIndex]) return;
     const q = questions[currentIndex];
     const url = readingUrls[q.cd];
-    moreWrap.innerHTML = url ? `<a href="${esc(url)}" class="more">Đọc bài Chuyên đề ${esc(q.cd)} ›</a>` : '';
+    moreWrap.innerHTML = url ? `<a href="${esc(url)}" class="more">Đọc bài Chuyên đề ${esc(q.cd)} <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></a>` : '';
   }
 
   function renderAll() {
@@ -174,7 +174,10 @@ if (root) {
       content.hidden = false;
       currentIndex = getIndexFromHash();
       if (!/^#cau-[1-8]$/.test(location.hash)) {
-        history.replaceState(null, '', '#cau-1');
+        const cdParam = new URLSearchParams(location.search).get('cd');
+        const idx = cdParam ? questions.findIndex((q) => String(q.cd) === cdParam) : -1;
+        currentIndex = idx >= 0 ? idx : 0;
+        history.replaceState(null, '', '#cau-' + (currentIndex + 1));
       }
       renderAll();
     } catch (err) {

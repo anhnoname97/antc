@@ -19,13 +19,10 @@
         {
             <small class="risk-card__type">@AlertList.KindName(item.Kind)</small>
         }
-        else if (item.Agency is not null)
-        {
-            <small class="risk-label risk-label--source">Dựa trên cảnh báo của @item.Agency</small>
-        }
         else
         {
-            <small class="risk-label risk-label--check">Cần kiểm chứng · Chưa có kết luận</small>
+            @* Ban chinh thuc 10/11/2026: bo nhan nguon, chi ghi "Canh bao". Truong co quan van giu trong backoffice. *@
+            <small class="risk-label risk-label--source">Cảnh báo</small>
         }
         <b class="risk-card__title">@item.Title</b>
         @if (!string.IsNullOrWhiteSpace(item.Summary)) { <span class="risk-card__desc">@item.Summary</span> }

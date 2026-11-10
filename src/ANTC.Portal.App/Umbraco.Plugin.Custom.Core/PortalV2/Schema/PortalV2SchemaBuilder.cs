@@ -334,11 +334,56 @@ public sealed class PortalV2SchemaBuilder(
             new("bodyText", "Nội dung", PortalV2Schema.RteShort, Mandatory: true)]);
         await EnsureContentCollectionsAsync();
         await AddProperties("tacticItem", [new("containingArticle", "Bài viết chứa thủ đoạn", "Chọn · Bài viết", "Cần khi đăng. Chuyên đề lấy theo bài hướng dẫn.")]);
+        await EnsureTacticIllustrationAsync();
         if (contentTypes.Get("tacticItem") is { } tactic)
         {
             var legacyTopic = tactic.PropertyTypes.FirstOrDefault(x => x.Alias == "topic");
             if (legacyTopic?.Mandatory == true) { legacyTopic.Mandatory = false; await contentTypes.UpdateAsync(tactic, User); }
         }
+    }
+
+    /// <summary>Ban chinh thuc 10/11/2026 (TACIMG): anh thu doan hien thanh luoi anh duoi "Thu doan thuong gap" cua bai huong dan.
+    /// Dat vao cuoi tab "Noi dung" dang co cua Thu doan. Alias tab co the da bi doi (vi du "nộiDung") sau khi luu qua Management API,
+    /// nen tim theo loai Tab + ten, khong theo alias; neu lan chay truoc da tao nhom "noiDung" rieng thi chuyen truong ve tab chinh.</summary>
+    private async Task EnsureTacticIllustrationAsync()
+    {
+        if (contentTypes.Get("tacticItem") is not { } type) return;
+        PropertySpec[] specs = [
+            new("illustration", "Ảnh minh họa", PortalV2Schema.Image, "Hiện dưới mục “Thủ đoạn thường gặp” của bài hướng dẫn, kèm tên thủ đoạn."),
+            new("illustrationAlt", "Văn bản thay thế", PortalV2Schema.Text(160), "Tả nội dung ảnh cho người không xem được ảnh. Cần khi có ảnh.")];
+        var tab = type.PropertyGroups.FirstOrDefault(g => g.Type == PropertyGroupType.Tab && g.Name == "Nội dung");
+        string tabAlias = tab?.Alias ?? "noiDung";
+        int last = type.PropertyTypes.Where(p => specs.All(s => s.Alias != p.Alias)).Select(p => p.SortOrder).DefaultIfEmpty(0).Max();
+        bool changed = false;
+        foreach (var (spec, i) in specs.Select((s, i) => (s, i)))
+        {
+            if (!type.PropertyTypeExists(spec.Alias))
+            {
+                var property = await Property("tacticItem", spec);
+                type.AddPropertyType(property, tabAlias, "Nội dung");
+                changed = true;
+            }
+            else if (tab is not null && type.PropertyGroups.FirstOrDefault(g => g.PropertyTypes?.Contains(spec.Alias) == true) is { } group && group != tab)
+            {
+                type.MovePropertyType(spec.Alias, tab.Alias);
+                changed = true;
+            }
+            if (type.PropertyTypes.FirstOrDefault(p => p.Alias == spec.Alias) is { } placed && placed.SortOrder != last + 1 + i)
+            {
+                placed.SortOrder = last + 1 + i;
+                changed = true;
+            }
+        }
+        // Nhom "noiDung" thua do lan chay truoc tao ra: bo khi da rong.
+        if (tab is not null && type.PropertyGroups.FirstOrDefault(g => g.Type == PropertyGroupType.Group && g.Alias == "noiDung") is { } stray
+            && stray.PropertyTypes?.Count == 0)
+        {
+            type.RemovePropertyGroup(stray.Alias);
+            changed = true;
+        }
+        if (!changed) return;
+        var result = await contentTypes.UpdateAsync(type, User);
+        if (!result.Success) throw new InvalidOperationException($"Không bổ sung được ảnh cho tacticItem: {result.Result}.");
     }
 
     private async Task EnsureContentCollectionsAsync()

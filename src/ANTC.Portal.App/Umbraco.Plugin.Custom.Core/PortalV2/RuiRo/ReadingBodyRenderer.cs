@@ -1,6 +1,6 @@
-using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
+using Ganss.Xss;
 
 namespace Umbraco.Plugin.Custom.Core.PortalV2.RuiRo;
 
@@ -12,20 +12,24 @@ public sealed record ReadingBody(string Html, IReadOnlyList<ReadingHeading> Head
 /// Dung o "Soan thao · Bai doc" thanh HTML cua trang bai doc: muc luc, bang cuon ngang, bang kiem bam duoc.
 /// Bien tap vien chi nhap noi dung; nut va ma nhan dien do website them vao.
 /// </summary>
-public static partial class ReadingBodyRenderer
+public static class ReadingBodyRenderer
 {
     public const string AfterIncidentId = "neu-da-lo";
-    private const int WordsPerMinute = 200;
     private static readonly Dictionary<string, string> DecisionClasses = new(StringComparer.OrdinalIgnoreCase)
     {
         ["DỪNG"] = "d", ["HOÃN"] = "h", ["CÓ THỂ QUYẾT ĐỊNH"] = "q"
     };
+    private static readonly HashSet<string> AllowedDivClasses = new(StringComparer.Ordinal)
+    {
+        "k-urgent", "k-box", "k-now", "k-chips", "k-tags", "k-stop", "k-pocket", "k-steps", "k-case", "k-note"
+    };
 
     public static ReadingBody Render(string? markup, string urgentUrl, string tickPrefix)
     {
-        var document = new HtmlParser().ParseDocument("<body>" + markup + "</body>");
+        string cleanMarkup = string.IsNullOrWhiteSpace(markup) ? "" : Sanitize(markup);
+        var document = new HtmlParser().ParseDocument("<body>" + cleanMarkup + "</body>");
         var body = document.Body!;
-        int minutes = Math.Max(1, (int)Math.Ceiling(Words().Matches(body.TextContent).Count / (double)WordsPerMinute));
+        int minutes = AlertList.ReadingMinutes(body.TextContent);
 
         var headings = new List<ReadingHeading>();
         foreach (var old in body.QuerySelectorAll("h3").Where(x => x.ParentElement == body).ToArray())
@@ -93,6 +97,63 @@ public static partial class ReadingBodyRenderer
         return new(body.InnerHtml, headings, minutes);
     }
 
+    private static string Sanitize(string html)
+    {
+        // Loc ma doc truoc khi dung muc luc, bang va hop k-*; cac thuoc tinh tin cay (data-tick, tblwrap) duoc tao sau buoc nay.
+        var sanitizer = new HtmlSanitizer { KeepChildNodes = true };
+        sanitizer.AllowedTags.Clear();
+        sanitizer.AllowedTags.UnionWith([
+            "p", "br", "h2", "h3", "h4", "h5", "h6", "strong", "b", "em", "i", "u", "s", "sub", "sup",
+            "ul", "ol", "li", "dl", "dt", "dd", "aside", "div", "span", "small", "blockquote", "code", "pre", "hr",
+            "a", "table", "caption", "colgroup", "col", "thead", "tbody", "tfoot", "tr", "th", "td",
+            "figure", "figcaption", "img"
+        ]);
+        sanitizer.AllowedAttributes.Clear();
+        sanitizer.AllowedAttributes.UnionWith(["href", "title", "src", "alt", "width", "height", "colspan", "rowspan", "scope", "start"]);
+        sanitizer.AllowedSchemes.Clear();
+        sanitizer.AllowedSchemes.UnionWith(["http", "https", "mailto", "tel"]);
+        sanitizer.AllowedCssProperties.Clear();
+        sanitizer.AllowedAtRules.Clear();
+        sanitizer.AllowDataAttributes = false;
+        sanitizer.RemovingAttribute += (_, args) =>
+        {
+            if (args.Attribute.Name != "class") return;
+            if (args.Tag.LocalName == "aside" && args.Attribute.Value == "antc-article-notice")
+            {
+                args.Cancel = true;
+                return;
+            }
+            if (args.Tag.LocalName == "div")
+            {
+                var tokens = args.Attribute.Value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+                if (tokens.Length > 0 && tokens.All(AllowedDivClasses.Contains))
+                    args.Cancel = true;
+            }
+        };
+        sanitizer.RemovingTag += (_, args) =>
+        {
+            if (args.Tag.LocalName is "script" or "style" or "iframe" or "object" or "embed" or "template"
+                or "svg" or "math" or "noscript") args.Tag.TextContent = string.Empty;
+        };
+        sanitizer.PostProcessNode += (_, args) =>
+        {
+            if (args.Node is not IElement element) return;
+            if (element.LocalName == "img" && element.GetAttribute("src") is { } source && !IsWebUrl(source))
+                element.RemoveAttribute("src");
+            if (element.LocalName == "a" && element.GetAttribute("href") is { } href
+                && (href.StartsWith("//", StringComparison.Ordinal)
+                    || (Uri.TryCreate(href, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https")))
+            {
+                element.SetAttribute("target", "_blank");
+                element.SetAttribute("rel", "noopener noreferrer");
+            }
+        };
+        return sanitizer.Sanitize(html);
+    }
+
+    private static bool IsWebUrl(string value) => value.StartsWith('/')
+        || !Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme is "http" or "https";
+
     private static IElement Link(IDocument document, string className, string href, string text)
     {
         var link = document.CreateElement("a");
@@ -101,7 +162,4 @@ public static partial class ReadingBodyRenderer
         link.TextContent = text;
         return link;
     }
-
-    [GeneratedRegex(@"\S+")]
-    private static partial Regex Words();
 }

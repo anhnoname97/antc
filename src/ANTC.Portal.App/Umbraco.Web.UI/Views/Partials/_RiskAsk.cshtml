@@ -1,8 +1,10 @@
+@model string
+@* Cau "Khong thay cau tra loi?" lay tu Cai dat website (WEB-02), view truyen vao. *@
 <section class="risk-ask" aria-labelledby="risk-ask-title">
     <span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chat")</span>
     <div>
         <h2 id="risk-ask-title">Không thấy câu trả lời?</h2>
-        <p>@RiskAlertContent.NoAnswerNote</p>
+        <p>@Model</p>
     </div>
     <a class="risk-btn" href="/hoi-dap/">Hỏi – Đáp @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a>
 </section>

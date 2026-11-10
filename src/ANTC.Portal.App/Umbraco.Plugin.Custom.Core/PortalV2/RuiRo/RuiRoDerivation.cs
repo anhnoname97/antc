@@ -78,7 +78,8 @@ public sealed class RuiRoDerivation
         bool InGroup(RiskNode n, Guid group) => n.Refs("primaryGroup").Contains(group) || n.Refs("alsoInCategories").Contains(group);
         var group = current.Type == "riskCategoryPage" ? current.Key : current.Refs("primaryGroup").FirstOrDefault();
         var articles = Typed("riskArticlePage").Where(x => InGroup(x, group)).OrderByDescending(x => x.Flag("isFeatured")).ThenByDescending(x => x.Updated).ToArray();
-        var tactics = Typed("tacticItem").Where(x => current.Type switch
+        // Thu doan tat "Dang dung" khong len website (Phu luc A: tat thay cho xoa); ban xem truoc trong backoffice cung vay.
+        var tactics = Typed("tacticItem").Where(x => !(x.Has("isActive") && !x.Flag("isActive"))).Where(x => current.Type switch
         {
             "riskCategoryPage" => articles.Any(a => a.IsKind("huongDan") && x.Refs("containingArticle").Contains(a.Key)),
             "alertPage" => current.Refs("tactics").Contains(x.Key),
@@ -117,7 +118,7 @@ public sealed class RuiRoDerivation
         int position = Array.FindIndex(sameSeries, x => x.Key == current.Key);
         var next = series is not null ? sameSeries.ElementAtOrDefault(position + 1) : articles.Where(x => x.Key != current.Key && x.IsKind("docThem")).OrderByDescending(x => x.Updated).FirstOrDefault();
         string allText = current.Text("summary") + " " + current.Text("readingBody") + " " + current.Text("warningSigns") + " " + current.Text("actionsNow");
-        int minutes = Math.Max(1, (int)Math.Ceiling(Regex.Matches(Regex.Replace(allText, "<[^>]+>", " "), @"\S+").Count / 200d));
+        int minutes = AlertList.ReadingMinutes(allText);
         string invitation = current.Text("description");
         if (string.IsNullOrWhiteSpace(invitation) && current.IsKind("docChuyenDe"))
             invitation = $"Đọc khoảng {minutes} phút. Đọc xong rồi hãy làm {(topicQuestionCount is { } count ? count + " câu" : "bộ câu hỏi")} của Chuyên đề {topic?.Text("topicNumber")}.";

@@ -35,6 +35,9 @@
                         const titleEl = document.getElementById('act-title');
                         if (titleEl) titleEl.textContent = ongoing.name;
                     }
+                    const desc = (ongoing.description || '').trim();
+                    const leadEl = document.getElementById('act-lead');
+                    if (leadEl && desc && desc.toLowerCase() !== (ongoing.name || '').trim().toLowerCase()) leadEl.textContent = desc;
                     if (ongoing.startAt && ongoing.endAt) {
                         const fmt = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' });
                         const timeStr = fmt.format(new Date(ongoing.startAt)) + ' – ' + fmt.format(new Date(ongoing.endAt));
@@ -44,7 +47,7 @@
                     const maxA = Number(ongoing.maxAttempts) === 0 ? 'Không giới hạn lượt thi cho mỗi số điện thoại.' : `Mỗi số điện thoại thi tối đa ${ongoing.maxAttempts} lượt.`;
                     const eligEl = document.getElementById('act-eligibility');
                     if (eligEl) {
-                        eligEl.textContent = `Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. ${maxA}`;
+                        eligEl.textContent = `Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. ${maxA} Người dưới 16 tuổi dự thi bằng số điện thoại của cha, mẹ hoặc người giám hộ và phải được người đó đồng ý.`;
                     }
                     const formatEl = document.getElementById('act-format');
                     if (formatEl) {

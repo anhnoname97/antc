@@ -172,4 +172,50 @@ public partial class RiskManagementTests
         Assert.Contains("Tiền · money", result);
         Assert.Equal(result, RiskStructureAdoption.RewriteReferences(result, mapping));
     }
+
+    // ---------- Phan website (review 10/11/2026, WEB-01, WEB-05/06, WEB-12)
+    [Fact]
+    public void InactiveTactics_AreLeftOutOfGroupAndGuide()
+    {
+        var group = Node("riskCategoryPage", "Lừa đảo");
+        var guide = Node("riskArticlePage", "Hướng dẫn", ("primaryGroup", Udi(group)), ("articleKind", "[\"Bài hướng dẫn\"]"));
+        var active = Node("tacticItem", "Đang dùng", ("containingArticle", Udi(guide)), ("isActive", "1"));
+        var stopped = Node("tacticItem", "Ngừng dùng", ("containingArticle", Udi(guide)), ("isActive", "0"));
+        var legacy = Node("tacticItem", "Chưa có ô Đang dùng", ("containingArticle", Udi(guide)));
+        var nodes = new[] { group, guide, active, stopped, legacy };
+        Assert.Equal(new[] { active.Key, legacy.Key }.Order(), _derive.Derive(group, nodes).Tactics.Select(x => x.Key).Order());
+        Assert.DoesNotContain(_derive.Derive(guide, nodes).Tactics, x => x.Key == stopped.Key);
+    }
+
+    [Fact]
+    public void ReadingMinutes_UseTheSharedV2Formula()
+    {
+        // 250 tu: cong thuc cu (200 tu/phut, lam tron len) cho 2 phut; ban dung v2 (180 tu/phut, lam tron) cho 1 phut.
+        var article = Node("riskArticlePage", "Bài", ("summary", string.Join(' ', Enumerable.Repeat("chữ", 250))));
+        Assert.Equal(AlertList.ReadingMinutes(string.Join(' ', Enumerable.Repeat("chữ", 250))), _derive.Derive(article, [article]).ReadingMinutes);
+        Assert.Equal(1, _derive.Derive(article, [article]).ReadingMinutes);
+    }
+
+    private sealed class FixedClock(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    [Fact]
+    public void Today_IsVietnamDate_NotServerDate()
+    {
+        // 23:30 UTC ngay 4/11 da la 06:30 ngay 5/11 o Viet Nam.
+        Assert.Equal(new DateTime(2026, 11, 5), AlertFreshness.Today(new FixedClock(new DateTimeOffset(2026, 11, 4, 23, 30, 0, TimeSpan.Zero))));
+        Assert.Equal(new DateTime(2026, 11, 4), AlertFreshness.Today(new FixedClock(new DateTimeOffset(2026, 11, 4, 16, 59, 0, TimeSpan.Zero))));
+    }
+
+    [Fact]
+    public void EditorHtml_IsSanitizedBeforeOutput()
+    {
+        var clean = new Umbraco.Plugin.Custom.Core.Articles.ArticleHtmlSanitizer()
+            .Clean("<p>Tóm tắt <strong>đậm</strong><script>alert(1)</script><img src=\"x\" onerror=\"alert(2)\"></p>");
+        Assert.Contains("<strong>đậm</strong>", clean);
+        Assert.DoesNotContain("<script", clean);
+        Assert.DoesNotContain("onerror", clean);
+    }
 }

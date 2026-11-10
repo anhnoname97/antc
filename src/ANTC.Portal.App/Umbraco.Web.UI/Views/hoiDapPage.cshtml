@@ -2,7 +2,10 @@
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Strings
 @using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Plugin.Custom.Core.PortalV2
 @inject Umbraco.Cms.Web.Common.UmbracoHelper UmbracoHelper
+@inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
+@inject Umbraco.Plugin.Custom.Core.Articles.ArticleHtmlSanitizer Sanitizer
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var blocks = Model.Value<BlockGridModel>("layout");
@@ -20,13 +23,32 @@
     else
     {
         @* Fallback khi trang chưa có cấu hình BlockGrid *@
-        var allRoots = UmbracoHelper.ContentAtRoot();
-        var qaFolder = allRoots.SelectMany(r => r.DescendantsOrSelf())
-            .FirstOrDefault(x => x.ContentType.Alias is "quickQaFolderV2" or "quickQaFolder");
+        var qaFolder = UmbracoHelper.Content(PortalV2Keys.Node("f-qa")) is { ContentType.Alias: "quickQaFolderV2" or "quickQaFolder" } directFolder
+            ? directFolder
+            : null;
+        if (qaFolder is null && Navigation.TryGetRootKeysOfType("antc", out var rootKeys))
+        {
+            foreach (var rootKey in rootKeys)
+            {
+                if (!Navigation.TryGetChildrenKeysOfType(rootKey, "contentManagement", out var libraryKeys)) continue;
+                foreach (var libraryKey in libraryKeys)
+                {
+                    if (Navigation.TryGetChildrenKeysOfType(libraryKey, "quickQaFolderV2", out var v2Keys))
+                        qaFolder ??= v2Keys.Select(UmbracoHelper.Content).FirstOrDefault(x => x is not null);
+                    if (qaFolder is null && Navigation.TryGetChildrenKeysOfType(libraryKey, "quickQaFolder", out var v1Keys))
+                        qaFolder ??= v1Keys.Select(UmbracoHelper.Content).FirstOrDefault(x => x is not null);
+                    if (qaFolder is not null) break;
+                }
+                if (qaFolder is not null) break;
+            }
+        }
 
-        var cmsItems = qaFolder != null
-            ? qaFolder.Children().Where(x => x.IsVisible() && x.ContentType.Alias == "quickQaItem").OrderBy(x => x.SortOrder).ToList()
-            : allRoots.SelectMany(r => r.DescendantsOrSelfOfType("quickQaItem")).Where(x => x.IsVisible()).OrderBy(x => x.SortOrder).ToList();
+        var cmsItems = qaFolder is not null && Navigation.TryGetChildrenKeysOfType(qaFolder.Key, "quickQaItem", out var itemKeys)
+            ? itemKeys.Select(UmbracoHelper.Content).OfType<IPublishedContent>()
+                .Where(x => x.IsVisible())
+                .OrderBy(x => x.SortOrder)
+                .ToList()
+            : [];
 
         var hasCmsItems = cmsItems.Count > 0;
 
@@ -51,11 +73,6 @@
             <p class="lead">Câu hỏi thường gặp, trả lời ngắn. Không thấy câu của bạn thì gửi câu hỏi riêng ở cuối trang.</p>
         </header>
 
-        @* Ảnh minh họa Hero *@
-        <div class="pageh-hero-wrap">
-            <img src="/assets/img/qa-hero.jpg" alt="Hỏi – Đáp" class="pageh-hero-img" />
-        </div>
-
         @* Dải khẩn cấp *@
         <div class="quick">
             <div class="quick-main">
@@ -64,7 +81,7 @@
                 </svg>
                 <span><b>Đang gặp chuyện gấp?</b> Đừng chờ trả lời, xem việc cần làm ngay.</span>
             </div>
-            <a href="/khan-cap" class="btn red sm">Xem việc cần làm ngay</a>
+            <a href="/khan-cap/" class="btn red sm">Xem việc cần làm ngay</a>
         </div>
 
         @* Section 1: Hỏi – đáp nhanh *@
@@ -84,7 +101,6 @@
                         var actions = item.Value<IHtmlEncodedString>("actions");
                         // Chi hien trang co giao dien (co template); bo thu muc va muc khong co trang rieng.
                         var relatedPages = item.Value<IEnumerable<IPublishedContent>>("relatedPages")?.Where(x => x.TemplateId is > 0).ToList();
-                        var approvedBy = item.Value<string>("approvedBy");
 
                         <div class="qai">
                             <button type="button" class="qaq" data-open="@panelId" aria-expanded="false" aria-controls="@panelId">
@@ -104,12 +120,12 @@
                                 @if (reason is not null && !string.IsNullOrWhiteSpace(reason.ToHtmlString()))
                                 {
                                     <p class="qlab">Vì sao</p>
-                                    <div class="qbody">@reason</div>
+                                    <div class="qbody">@Html.Raw(Sanitizer.Clean(reason.ToHtmlString()))</div>
                                 }
                                 @if (actions is not null && !string.IsNullOrWhiteSpace(actions.ToHtmlString()))
                                 {
                                     <p class="qlab">Việc cần làm</p>
-                                    <div class="qbody">@actions</div>
+                                    <div class="qbody">@Html.Raw(Sanitizer.Clean(actions.ToHtmlString()))</div>
                                 }
                                 @if (relatedPages?.Any() == true)
                                 {
@@ -130,59 +146,63 @@
                                         }
                                     </ul>
                                 }
-                                @if (!string.IsNullOrWhiteSpace(approvedBy))
-                                {
-                                    <p class="qmeta">Duyệt bởi: @approvedBy</p>
-                                }
                             </div>
                         </div>
                     }
                 }
             </div>
-            <p class="small" style="margin-top: 14px;">Bản dựng thử: đây là ví dụ cách trình bày. Khi vận hành, mỗi câu trả lời đều do Ban biên tập duyệt và dẫn về một nội dung đã thẩm định.</p>
         </section>
 
         @* Section 2: Gửi câu hỏi, kiến nghị riêng *@
         <section class="sec" id="gui-cau-hoi" aria-labelledby="h-ask">
             <h2 id="h-ask">Gửi câu hỏi, kiến nghị riêng</h2>
-            <ol class="flow" aria-label="Cách mục Hỏi – Đáp làm việc">
-                <li>
-                    <span class="spot" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>
-                        </svg>
-                    </span>
-                    <span>
-                        <b>Bạn gửi kín</b>
-                        Câu hỏi, kiến nghị không hiện lên trang.
-                    </span>
-                </li>
-                <li>
-                    <span class="spot" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><path d="M15.5 4.9a3.2 3.2 0 0 1 0 6.2M17.5 14.7c2 .6 3.2 2.3 3.5 4.8"/>
-                        </svg>
-                    </span>
-                    <span>
-                        <b>Ban biên tập gộp</b>
-                        Các câu giống nhau được gộp làm một.
-                    </span>
-                </li>
-                <li>
-                    <span class="spot" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5V4.5L7 9H4.5a1 1 0 0 0-1 1z"/><path d="M17.5 9a4 4 0 0 1 0 6"/>
-                        </svg>
-                    </span>
-                    <span>
-                        <b>Trả lời công khai</b>
-                        Người biên tập duyệt từng câu trước khi đăng, đã che mọi thông tin cá nhân.
-                    </span>
-                </li>
-            </ol>
+            <div class="flowwrap">
+                <ol class="flow" aria-label="Cách mục Hỏi – Đáp làm việc">
+                    <li>
+                        <span class="spot" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>
+                            </svg>
+                        </span>
+                        <span>
+                            <b>Bạn gửi kín</b>
+                            Câu hỏi, kiến nghị không hiện lên trang.
+                        </span>
+                    </li>
+                    <li>
+                        <span class="spot" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><path d="M15.5 4.9a3.2 3.2 0 0 1 0 6.2M17.5 14.7c2 .6 3.2 2.3 3.5 4.8"/>
+                            </svg>
+                        </span>
+                        <span>
+                            <b>Ban biên tập gộp</b>
+                            Các câu giống nhau được gộp làm một.
+                        </span>
+                    </li>
+                    <li>
+                        <span class="spot" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5V4.5L7 9H4.5a1 1 0 0 0-1 1z"/><path d="M17.5 9a4 4 0 0 1 0 6"/>
+                            </svg>
+                        </span>
+                        <span>
+                            <b>Trả lời công khai</b>
+                            Người biên tập duyệt từng câu trước khi đăng, đã che mọi thông tin cá nhân.
+                        </span>
+                    </li>
+                </ol>
+                <div class="flow-img">
+                    <picture>
+                        <source media="(max-width:767px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                        <img src="/assets/img/v2/img-22-hoi-dap-750.webp" srcset="/assets/img/v2/img-22-hoi-dap-480.webp 480w, /assets/img/v2/img-22-hoi-dap-750.webp 750w" sizes="340px" width="750" height="500" alt="Những phong thư kín được gộp vào một hộp, rồi thành một lời trả lời chung cho mọi người." loading="lazy" decoding="async">
+                    </picture>
+                    <span class="ailab">Ảnh minh họa tạo bằng AI</span>
+                </div>
+            </div>
 
             <form class="box form" data-form="ask" novalidate>
-                <div class="hp" aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;">
+                <div class="hp" aria-hidden="true">
                     <label>Để trống ô này<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
                 </div>
 
@@ -191,7 +211,7 @@
                     <ul>
                         <li>Đừng viết mật khẩu, mã OTP, mã PIN, số thẻ hay số tài khoản.</li>
                         <li>Đừng gửi họ tên, số điện thoại, ảnh giấy tờ của người khác.</li>
-                        <li>Giai đoạn đầu chưa nhận tệp đính kèm và ảnh chụp màn hình.</li>
+                        <li>Website không nhận tệp đính kèm và ảnh chụp màn hình.</li>
                     </ul>
                 </div>
 
@@ -208,7 +228,7 @@
                 <div id="qcontactwrap" hidden>
                     <label class="lbl" for="qcontact">Thư điện tử hoặc số điện thoại để trả lời</label>
                     <input type="text" id="qcontact" name="contact" autocomplete="off">
-                    <p class="small" style="margin-top: 6px;">Chỉ dùng để trả lời đúng câu hỏi này, xóa ngay sau khi đã gửi câu trả lời. Chúng tôi không chủ động liên hệ vì việc khác.</p>
+                    <p class="small qa-hint">Chỉ dùng để trả lời đúng câu hỏi này, xóa ngay sau khi đã gửi câu trả lời. Chúng tôi không chủ động liên hệ vì việc khác.</p>
                 </div>
 
                 <label class="check one" for="qok">
@@ -237,7 +257,7 @@
         </section>
 
         @* Trạng thái đã nhận câu hỏi (vSent) *@
-        <section class="sec" id="qa-sent" hidden aria-labelledby="h-sent">
+        <section class="sec qa-sent" id="qa-sent" hidden aria-labelledby="h-sent">
             <header class="pageh">
                 <p class="eyebrow">Hỏi – Đáp</p>
                 <div class="pageh-title">
@@ -246,7 +266,7 @@
                             <path d="m5 12.5 4.5 4.5L19 7.5"/>
                         </svg>
                     </span>
-                    <h1 id="h-sent" tabindex="-1">Đã nhận câu hỏi, kiến nghị của bạn</h1>
+                    <h2 id="h-sent" tabindex="-1">Đã nhận câu hỏi, kiến nghị của bạn</h2>
                 </div>
                 <p class="lead">Nội dung bạn gửi không hiện lên trang. Ban biên tập cố gắng trả lời trong 72 giờ làm việc, có lúc lâu hơn.</p>
             </header>
@@ -254,12 +274,17 @@
             <div class="note r">
                 <b>Đang có chuyện gấp? Đừng chờ câu trả lời.</b>
                 <p>Nếu bạn đang bị giục chuyển tiền, vừa chuyển tiền, hoặc đang bị đe dọa, hãy làm ngay:</p>
-                <div class="btnrow" style="margin-top: 6px;">
-                    <a href="/khan-cap" class="btn red sm">Tôi đang bị đe dọa</a>
-                    <a href="/khan-cap" class="btn red sm">Tôi vừa chuyển tiền hoặc giao hàng</a>
-                    <a href="/khan-cap" class="btn red sm">Có người đang thúc tôi làm ngay</a>
+                <div class="btnrow">
+                    <a href="/hay-tu-kiem-tra/huong-dan/co-nguoi-dang-de-doa-ep-buoc-ban/" class="btn red sm">Tôi đang bị đe dọa</a>
+                    <a href="/hay-tu-kiem-tra/huong-dan/ban-vua-chuyen-tien-hoac-giao-hang/" class="btn red sm">Tôi vừa chuyển tiền hoặc giao hàng</a>
+                    <a href="/hay-tu-kiem-tra/huong-dan/co-nguoi-dang-thuc-ban-lam-ngay/" class="btn red sm">Có người đang thúc tôi làm ngay</a>
                 </div>
-                <a href="/khan-cap" class="more">Xem tất cả lựa chọn &rarr;</a>
+                <a href="/khan-cap/" class="more">
+                    Xem tất cả lựa chọn
+                    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m9 5 7 7-7 7"/>
+                    </svg>
+                </a>
             </div>
 
             <div class="note g">
@@ -267,7 +292,7 @@
                 <p>Website này không phải là nơi tiếp nhận tố giác, tin báo về tội phạm. Nếu bạn cần trình báo, hãy liên hệ trực tiếp cơ quan Công an nơi bạn cư trú. Mang theo tin nhắn, biên lai và mọi bằng chứng đang có.</p>
             </div>
 
-            <div class="btnrow" style="margin-top: 14px;">
+            <div class="btnrow">
                 <button type="button" class="btn ghost" id="btn-back-qa">
                     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M15 5 8 12l7 7"/>

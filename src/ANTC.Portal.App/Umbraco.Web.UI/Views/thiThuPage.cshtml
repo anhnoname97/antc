@@ -16,7 +16,7 @@
     <nav class="crumbs" aria-label="Bạn đang ở">
         <ol>
             <li><a href="/">Trang chủ</a></li>
-            <li><a href="/tham-gia/">Hãy tự kiểm tra</a></li>
+            <li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li>
             <li><span aria-current="page">Thử sức: 8 câu</span></li>
         </ol>
     </nav>
@@ -28,15 +28,15 @@
     </header>
 
     <div id="thu-suc-view" data-quiz-sample data-reading-urls="@readingUrls">
-        <div class="quiz-status" data-quiz-status role="status" aria-live="polite" style="padding: 24px 0; font-size: 16px; color: var(--act-ink2);">
+        <div class="quiz-status" data-quiz-status role="status" aria-live="polite">
             <p data-quiz-message>Đang tải câu hỏi…</p>
             <button type="button" class="btn ghost sm" data-quiz-retry hidden>Thử tải lại</button>
         </div>
         <div data-quiz-content hidden>
             <div class="dots" role="group" aria-label="Chọn câu" data-quiz-dots></div>
             <div data-quiz-card-wrap></div>
-            <div class="btnrow" style="margin-top: 20px;" data-quiz-nav></div>
-            <div data-quiz-more style="margin-top: 14px;"></div>
+            <div class="btnrow quiz-nav" data-quiz-nav></div>
+            <div class="quiz-more" data-quiz-more></div>
         </div>
     </div>
 </div>

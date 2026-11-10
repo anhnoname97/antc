@@ -170,6 +170,18 @@ public sealed class AntcPublicContentFinder(
             request.SetRedirectPermanent(AntcPublicPaths.AlertListPath + request.Uri.Query);
             return Task.FromResult(true);
         }
+        // Ban chinh thuc 10/11/2026 bo hai trang cu cua ban v1 ("Phan 4 · Tham gia", "Phan 4/5 · Cuoc thi"): chuyen huong 301
+        // de lien ket da phat van mo duoc. Chi dung dung hai duong dan nay; trang con (vi du /thi/) khong bi anh huong.
+        if (!preview && fixedAlias == "thamGiaPage" && Child(home, "congCuPage")?.TemplateId is > 0)
+        {
+            request.SetRedirectPermanent(AntcPublicPaths.GetPath("congCuPage", null) + request.Uri.Query);
+            return Task.FromResult(true);
+        }
+        if (!preview && fixedAlias == "thiPage" && Child(home, "thiThangPage")?.TemplateId is > 0)
+        {
+            request.SetRedirectPermanent(AntcPublicPaths.GetPath("thiThangPage", null) + request.Uri.Query);
+            return Task.FromResult(true);
+        }
         IPublishedContent? found = fixedAlias == "home" ? home
             : fixedAlias is "ruiRoPage" or "alertListPage" ? RiskPage(fixedAlias)
             : fixedAlias == "wizardPage" ? Child(Child(home, "ungPhoPage"), "wizardPage")

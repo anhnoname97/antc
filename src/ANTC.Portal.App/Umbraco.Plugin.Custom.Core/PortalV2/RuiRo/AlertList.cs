@@ -39,9 +39,10 @@ public static class AlertList
     /// <summary>Lop mau cua chip muc do: d = dung, h = hoan, n = than trong.</summary>
     public static string LevelTone(string? code) => code switch { "rat-cao" => "d", "cao" => "h", _ => "n" };
 
-    /// <summary>Khong tra cuu theo so dien thoai, so tai khoan: chan chuoi tu 6 chu so tro len.</summary>
+    /// <summary>Khong tra cuu theo so dien thoai, so tai khoan (V2-13h): chi chan khi ca chuoi, sau khi bo dau cach,
+    /// dau cham, gach ngang, toan chu so va dai tu 6 ky tu. "lừa 100000 đồng" van tim duoc.</summary>
     public static bool HasLongDigits(string? text) =>
-        !string.IsNullOrEmpty(text) && Regex.IsMatch(Regex.Replace(text, @"[\s.\-]", ""), @"\d{6,}");
+        !string.IsNullOrEmpty(text) && Regex.IsMatch(Regex.Replace(text, @"[\s.\-]", ""), @"^\d{6,}$");
 
     /// <summary>Bo dau, chu thuong, chi giu chu va so, cach nhau mot dau cach.</summary>
     public static string Normalize(string? text)
@@ -57,12 +58,17 @@ public static class AlertList
     /// <summary>Ma dung tren dia chi khi danh muc khong co truong code, vi du "Người cao tuổi" -> "nguoi-cao-tuoi".</summary>
     public static string Slug(string? text) => Normalize(text).Replace(' ', '-');
 
-    /// <summary>Thoi gian doc nhu ban dung: so tu cua noi dung tinh hai lan, 180 tu mot phut, it nhat 1 phut.</summary>
+    /// <summary>Thoi gian doc, ham chung cho moi trang Cac rui ro va RuiRoDerivation. Theo ham minutes() cua ban dung v2
+    /// (docs/ban-dung-v2/antoantaichinh-nguon/build/app.js): bo the HTML, dem tu, chia 180, lam tron, it nhat 1 phut.
+    /// Canh bao: ban dung truyen van ban hai lan (minutes(tx+' '+tx)), xem AlertReadingMinutes.</summary>
     public static int ReadingMinutes(string? text)
     {
         int words = string.IsNullOrWhiteSpace(text) ? 0 : Regex.Matches(Regex.Replace(text, "<[^>]+>", " "), @"\S+").Count;
-        return Math.Max(1, (int)Math.Round(words * 2 / 180d, MidpointRounding.AwayFromZero));
+        return Math.Max(1, (int)Math.Round(words / 180d, MidpointRounding.AwayFromZero));
     }
+
+    /// <summary>Thoi gian doc cua canh bao: ban dung v2 dem tom tat va cac buoc hai lan (itemOfAlert, trang cb).</summary>
+    public static int AlertReadingMinutes(string? text) => ReadingMinutes($"{text} {text}");
 
     /// <summary>Ten loai hien tren the (KINDNAME cua ban dung).</summary>
     public static string KindName(string kind) => kind switch
