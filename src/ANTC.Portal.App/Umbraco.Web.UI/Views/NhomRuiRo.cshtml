@@ -1,0 +1,87 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Strings
+@using Umbraco.Plugin.Custom.Core.Content
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
+@{
+    // V2-13h: trang nhóm rủi ro (luaDaoPage, vayVaNoPage, dauTuPage, duLieuCaNhanPage, baoHiemVaTietKiemPage).
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var site = Model.Root();
+    var today = DateTime.Today;
+    var alias = Model.ContentType.Alias;
+    var path = AntcPublicPaths.RiskGroupPath(alias) ?? Model.Url();
+    var title = Model.Value<string>("tabName") is { Length: > 0 } tab ? tab : RiskAlertContent.Title(Model);
+    var isFraud = alias == "luaDaoPage";
+    var image = Model.Value<IPublishedContent>("illustration");
+    var tabs = RiskAlertContent.Tabs(key => Umbraco.Content(key), alias);
+    var icon = tabs.FirstOrDefault(x => x.Current)?.Icon ?? "shield";
+    var filters = new RiskFilterView(path, new AlertListQuery(null, null, null, null, null),
+        RiskAlertContent.ChannelOptions(site), RiskAlertContent.AudienceOptions(site), []);
+    var query = RiskAlertContent.ReadQuery(Context.Request.Query, filters);
+    filters = filters with { Query = query };
+    var results = RiskResultsView.Build(RiskAlertContent.GroupCards(Model, site, Navigation, key => Umbraco.Content(key)),
+        query, today, true, "bài", path);
+    var preparing = !RiskAlertContent.HasOwnArticles(Model, Navigation, key => Umbraco.Content(key));
+    var framework = isFraud ? RiskAlertContent.Snippet(site, RiskAlertContent.FrameworkSnippetName) : null;
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/risk-alerts.css" asp-append-version="true">
+}
+@section Scripts {
+    <script src="~/assets/js/risk-alerts.js" asp-append-version="true" defer></script>
+}
+<article class="self-check-page risk-page site-chrome-wrap" data-risk-alerts>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở">
+        <ol>
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/cac-rui-ro/">Các rủi ro</a></li>
+            <li aria-current="page">@title</li>
+        </ol>
+    </nav>
+
+    <header class="self-check-heading">
+        <p class="risk-eyebrow">Các rủi ro</p>
+        <div class="self-check-heading__title">
+            <span class="self-check-spot@(isFraud ? " risk-spot--d" : "")">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", icon)</span>
+            <h1>@title</h1>
+        </div>
+        @if (Model.Value<string>("lead") is { Length: > 0 } lead) { <p>@lead</p> }
+    </header>
+
+    @if (image is not null)
+    {
+        <figure class="risk-figure"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure>
+    }
+
+    @await Html.PartialAsync("~/Views/Partials/_RiskTabs.cshtml", tabs)
+
+    @if (Model.Value<bool>("showAdviceBox"))
+    {
+        <details class="risk-peek">
+            <summary><span class="risk-peek__title">Website không tư vấn tài chính<small>Đọc hai điều phải nhớ trước khi bỏ tiền</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</summary>
+            <div class="risk-peek__body">
+                <p>@RiskAlertContent.NoAdvice</p>
+                <ul>@foreach (var line in RiskAlertContent.MustRemember) { <li>@line</li> }</ul>
+            </div>
+        </details>
+    }
+
+    @if (preparing)
+    {
+        <p class="risk-small">Bài riêng về @title.ToLowerInvariant() đang được biên soạn. Trong lúc chờ, các nội dung liên quan nằm ở những bài dưới đây.</p>
+    }
+
+    @await Html.PartialAsync("~/Views/Partials/_RiskFilters.cshtml", filters)
+    @await Html.PartialAsync("~/Views/Partials/_RiskResults.cshtml", results)
+
+    @if (framework is not null && framework.Value<IHtmlEncodedString>("bodyText") is { } body && !string.IsNullOrWhiteSpace(body.ToHtmlString()))
+    {
+        <details class="risk-peek">
+            <summary><span class="risk-peek__title">@RiskAlertContent.FrameworkSnippetName mọi thủ đoạn<small>Họ muốn lấy thứ gì, và đang dùng cách nào</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</summary>
+            <div class="risk-peek__body">@body</div>
+        </details>
+    }
+
+    @await Html.PartialAsync("~/Views/Partials/_RiskAsk.cshtml")
+</article>
