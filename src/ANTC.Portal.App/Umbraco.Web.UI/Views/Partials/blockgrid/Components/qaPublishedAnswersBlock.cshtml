@@ -37,7 +37,8 @@
                 var shortAnswer = item.Value<string>("shortAnswer");
                 var reason = item.Value<IHtmlEncodedString>("reason");
                 var actions = item.Value<IHtmlEncodedString>("actions");
-                var relatedPages = item.Value<IEnumerable<IPublishedContent>>("relatedPages");
+                // Chi hien trang co giao dien (co template); bo thu muc va muc khong co trang rieng.
+                var relatedPages = item.Value<IEnumerable<IPublishedContent>>("relatedPages")?.Where(x => x.TemplateId is > 0).ToList();
                 var approvedBy = item.Value<string>("approvedBy");
 
                 <div class="qai">
