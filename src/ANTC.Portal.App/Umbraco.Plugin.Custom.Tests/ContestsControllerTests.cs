@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using Umbraco.Plugin.Custom.Api.Controllers;
 using Umbraco.Plugin.Custom.Api.Models;
 using Umbraco.Plugin.Custom.Core.Contest;
@@ -22,6 +23,7 @@ public class ContestsControllerTests
         Assert.Empty(body.Ongoing);
         Assert.Empty(body.Upcoming);
         Assert.Empty(body.Ended);
+        Assert.False(body.HasOngoingContest);
         Assert.Equal("public, max-age=60", controller.Response.Headers.CacheControl);
     }
 
@@ -33,7 +35,9 @@ public class ContestsControllerTests
         ContestsController controller = Create(new ContestSchedule(Now, [info], [], []));
 
         OkObjectResult result = Assert.IsType<OkObjectResult>(await controller.Schedule());
-        ContestScheduleItemDto item = Assert.Single(Assert.IsType<ContestScheduleResponse>(result.Value).Ongoing);
+        ContestScheduleResponse body = Assert.IsType<ContestScheduleResponse>(result.Value);
+        Assert.True(body.HasOngoingContest);
+        ContestScheduleItemDto item = Assert.Single(body.Ongoing);
 
         Assert.Equal("2026-10-17T03:00:00Z", item.StartAt);
         Assert.Equal("2026-10-23T03:00:00Z", item.EndAt);
@@ -41,6 +45,27 @@ public class ContestsControllerTests
         Assert.Equal(4, item.QuestionCount);
         Assert.Equal("vieclam", item.FocusArea);
         Assert.Equal(4, Assert.Single(item.Topics).Count);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Schedule_SerializesOngoingIndicator_IndependentlyOfOtherContests(bool hasOngoing)
+    {
+        var upcoming = new ContestInfo(1, "Sắp diễn ra", null, Now.AddDays(1), Now.AddDays(2), 2, 24, 1m, null,
+            [], [], Now);
+        var ended = upcoming with { Id = 2, StartAt = Now.AddDays(-2), EndAt = Now.AddDays(-1) };
+        var ongoing = upcoming with { Id = 3, StartAt = Now.AddDays(-1), EndAt = Now.AddDays(1) };
+        ContestsController controller = Create(new ContestSchedule(Now, hasOngoing ? [ongoing] : [], [upcoming], [ended]));
+
+        OkObjectResult result = Assert.IsType<OkObjectResult>(await controller.Schedule());
+        using JsonDocument json = JsonDocument.Parse(JsonSerializer.Serialize(Assert.IsType<ContestScheduleResponse>(result.Value)));
+        JsonElement body = json.RootElement;
+
+        Assert.Equal(hasOngoing, body.GetProperty("hasOngoingContest").GetBoolean());
+        Assert.Equal(hasOngoing ? 1 : 0, body.GetProperty("ongoing").GetArrayLength());
+        Assert.Equal(1, body.GetProperty("upcoming").GetArrayLength());
+        Assert.Equal(1, body.GetProperty("ended").GetArrayLength());
     }
 
     private static ContestsController Create(ContestSchedule schedule) =>

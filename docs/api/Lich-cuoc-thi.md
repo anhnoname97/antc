@@ -1,5 +1,28 @@
 # Quy tắc lịch cuộc thi
 
+## API lịch công khai trên portal
+
+`GET /api/v1/contests` trả HTTP 200 với `serverTime`, `ongoing`, `upcoming`, `ended` và trường boolean `hasOngoingContest`.
+
+- `hasOngoingContest: true`: có ít nhất một cuộc thi đang diễn ra trong `ongoing`.
+- `hasOngoingContest: false`: hiện không có cuộc thi đang diễn ra, kể cả khi vẫn có cuộc thi sắp tới hoặc đã kết thúc. Portal có thể hiển thị “Hiện chưa có cuộc thi nào đang diễn ra”.
+
+Trường này được tính từ `ongoing`; các danh sách và quy tắc thời gian giữ nguyên. Cuộc thi đang diễn ra phải được bật sử dụng và thỏa `StartAt <= serverTime < EndAt`; thời gian gia hạn nộp bài không được tính là đang diễn ra. Response được cache công khai tối đa 60 giây.
+
+Ví dụ khi chưa có cuộc thi nào:
+
+```json
+{
+  "serverTime": "2026-11-10T03:00:00Z",
+  "ongoing": [],
+  "upcoming": [],
+  "ended": [],
+  "hasOngoingContest": false
+}
+```
+
+## Tạo và chỉnh sửa lịch
+
 Áp dụng khi tạo và chỉnh sửa qua `POST /api/v1/admin/contest/campaigns` và `PUT /api/v1/admin/contest/campaigns/{id}`.
 
 - Admin có thể tạo nhiều cuộc thi nhưng các khoảng diễn ra không được giao nhau.
