@@ -1,7 +1,7 @@
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, css, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UmbChangeEvent } from '@umbraco-cms/backoffice/event';
-import { list } from './risk-api.js?v=1.1.0';
+import { list } from './risk-api.js?v=1.2.0';
 
 class AntcLineList extends UmbLitElement {
     static properties = { value: {}, config: {}, readonly: { type: Boolean }, disabled: { type: Boolean } };

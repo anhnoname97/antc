@@ -23,11 +23,13 @@ export class RiskApi {
         if (!response.ok) throw new Error(response.status === 403 ? 'Bạn chưa có quyền xem dữ liệu này.' : `Không tải được dữ liệu (${response.status}).`);
         return response.json();
     }
-    catalog(refresh = false) {
-        const cached = catalogs.get(this.auth);
+    catalog(refresh = false, query = '') {
+        let entries = catalogs.get(this.auth);
+        if (!entries) { entries = new Map(); catalogs.set(this.auth, entries); }
+        const cached = entries.get(query);
         if (!refresh && cached && cached.until > Date.now()) return cached.request;
-        const request = this.request('catalog').catch(error => { catalogs.delete(this.auth); throw error; });
-        catalogs.set(this.auth, { request, until: Date.now() + 5000 });
+        const request = this.request('catalog' + (query ? '?' + query : '')).catch(error => { entries.delete(query); throw error; });
+        entries.set(query, { request, until: Date.now() + 5000 });
         return request;
     }
     derive(id, values) { return this.request(id + '/derive', values); }

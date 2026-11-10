@@ -96,3 +96,21 @@ Build thành công, 52 kiểm thử .NET đạt. Sau khởi động lại, Playw
 Thêm nút **Đóng** ở góc phải thanh tab của màn soạn Bài viết, hiển thị cả khi tạo mới và chỉnh sửa, trên tab Viết bài và SEO. Nút mở danh sách Bài viết theo thư mục cha trong catalog có quyền đọc. Dùng điều hướng gốc để giữ hộp thoại xác nhận của Umbraco nếu có thay đổi chưa lưu; không tự lưu bài. Manifest `1.1.1` đổi phiên bản URL của trình biên tập để tải bản mới.
 
 Playwright đã xác nhận: bài có sẵn và bài mới đều quay về danh sách; đóng từ tab SEO; chọn Ở lại giữ nội dung đang sửa, chọn Hủy thay đổi trở về danh sách; nút hiển thị và hoạt động ở 1440/390px. Không có yêu cầu lưu/xóa document hoặc lỗi JavaScript trong phiên kiểm thử. Bằng chứng: `temp/risk-template-review/article-close-result.json`, `article-close-1440.png`, `article-close-390.png`, `article-close-unsaved.png`.
+
+## Cập nhật 10/11/2026 — sửa review BO-01 đến BO-13 và hiệu chỉnh kiểm chứng
+
+Các số 48/52 test ở những mục cũ không đại diện kết quả toàn bộ bộ kiểm thử của dự án. Không dùng các số đó để kết luận toàn suite đã qua. Review ngày 10/11 ghi nhận bản được review có 514 qua và 2 lỗi trên 516 test; hai lỗi khởi động/fixed-list đã được khắc phục trong lần sửa này.
+
+Lệnh đã chạy từ `src`:
+
+```powershell
+dotnet test ANTC.Portal.App/Umbraco.Plugin.Custom.Tests/Umbraco.Plugin.Custom.Tests.csproj --no-restore -v quiet --logger 'trx;LogFileName=risk-review-final.trx' --results-directory ../temp/risk-review-results
+```
+
+Kết quả cuối: **561 qua, 0 lỗi, 0 bỏ qua**, thời gian chạy test 42 giây. Có các test mới cho kiểm tra trước xuất bản, ngày Việt Nam, phiên bản cảnh báo đã xuất bản, trang cố định, quyền catalog và invalidation/cache đối tượng. `ContestAdministrationFullHostTests` và `PortalV2FoundationTests.FixedLists_MatchSeedCodesAndLabels` đều qua.
+
+Host sạch được dựng trong thư mục riêng bằng `run-isolated.ps1 -Fresh -BuildSchema`, không reset CSDL làm việc. Đạt `uSync: Startup Complete`; 9 ảnh mẫu có trong Media và 9 URL `/media/` trả HTTP 200. Khởi động lại không có log lặp thao tác chuyển nội dung của RiskSchemaMigration. Import dữ liệu mẫu của các gói khác vẫn có một số lỗi xuất bản thiếu trường/tham chiếu, không được coi là đã đóng các lỗi website.
+
+Ba script `risk-management.smoke.cjs`, `risk-review.smoke.cjs`, `risk-editor-appearance.smoke.cjs` đều qua trên localhost:11123, không lỗi JavaScript. Đã xác nhận xóa hai mục chỉ đưa mục không tham chiếu vào thùng rác; mục được dùng ở nơi khác được giữ lại và báo tên. Appearance kiểm tra 37 trang, 111 lượt SEO ở ba bề rộng 1440/744/390px và 34 biểu tượng. Đã kiểm tra ảnh danh sách Bài viết/Cảnh báo ở 1440/390px.
+
+Chi tiết từng BO-xx, cách chạy lại và phần website còn ngoài phạm vi: [2-ban-giao.md](2-ban-giao.md). Log, ảnh và TRX trong `temp/risk-review-*` được gitignore; không ghi tài khoản/mật khẩu vào hồ sơ.

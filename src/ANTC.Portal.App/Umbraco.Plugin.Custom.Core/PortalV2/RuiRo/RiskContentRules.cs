@@ -6,7 +6,7 @@ using Umbraco.Cms.Core.Services;
 
 namespace Umbraco.Plugin.Custom.Core.PortalV2.RuiRo;
 
-public sealed class RiskContentRules(IContentService contents, IContentTypeService types) : INotificationHandler<ContentSavingNotification>, INotificationHandler<ContentPublishingNotification>
+public sealed class RiskContentRules(IContentService contents, RiskContentCache cache, TimeProvider clock) : INotificationHandler<ContentSavingNotification>, INotificationHandler<ContentPublishingNotification>
 {
     private static RiskNode Node(IContent c) => new(c.Key, null, Umbraco.Plugin.Custom.Core.PortalV2.Schema.RiskStructure.LogicalAlias(c.ContentType.Alias), c.Name ?? "", c.SortOrder, c.UpdateDate, c.Published,
         c.Properties.ToDictionary(p => p.Alias, p => p.GetValue()));
@@ -18,18 +18,17 @@ public sealed class RiskContentRules(IContentService contents, IContentTypeServi
         {
             var node = Node(c);
             if (!node.Has("autoUnpublishDays")) c.SetValue("autoUnpublishDays", 180);
-            if (!node.Has("updatedDate")) c.SetValue("updatedDate", DateTime.Today);
+            if (!node.Has("updatedDate")) c.SetValue("updatedDate", AlertFreshness.Today(clock));
             // Fill empty channels from tactics. Existing editorial values are retained.
             if (!node.Has("channels"))
             {
                 var channelIds = node.Refs("tactics").Select(contents.GetById).OfType<IContent>().SelectMany(t => Node(t).Refs("channels")).Distinct();
                 c.SetValue("channels", string.Join(",", channelIds.Select(k => "umb://document/" + k.ToString("N"))));
             }
-            if (!node.Has("audiences") && types.Get("audienceItem") is { } audienceType)
+            if (!node.Has("audiences"))
             {
                 var tactics = node.Refs("tactics").ToHashSet();
-                var audiences = contents.GetPagedOfType(audienceType.Id, 0, int.MaxValue, out _, null)
-                    .Where(x => !x.Trashed && Node(x).Refs("tactics").Any(tactics.Contains));
+                var audiences = cache.GetAudiences().Where(x => x.Refs("tactics").Any(tactics.Contains));
                 c.SetValue("audiences", string.Join(",", audiences.Select(a => "umb://document/" + a.Key.ToString("N"))));
             }
         }
@@ -63,6 +62,21 @@ public sealed class RiskContentRules(IContentService contents, IContentTypeServi
             if (!n.IsKind("docChuyenDe")) Need("description", "một câu mời đọc");
             if (n.IsKind("huongDan")) { Need("warningSigns", "dấu hiệu cảnh báo"); Need("actionsNow", "việc cần làm ngay"); }
             if (n.Strings("series").Count > 1) errors.Add("Loạt bài chỉ nhận một giá trị.");
+            if (n.Has("series") && !n.IsKind("docThem")) errors.Add("Loạt bài chỉ dùng cho Bài đọc thêm.");
+            ValidateRows("references", row =>
+            {
+                if (!row.TryGetProperty("title", out var title) || title.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(title.GetString()))
+                    errors.Add("Vui lòng nhập tên tài liệu cho mỗi nguồn tham khảo.");
+                if (row.TryGetProperty("url", out var url) && url.ValueKind != JsonValueKind.Null
+                    && (url.ValueKind != JsonValueKind.String || (!string.IsNullOrWhiteSpace(url.GetString()) && !url.GetString()!.StartsWith("https://", StringComparison.Ordinal))))
+                    errors.Add("Liên kết nguồn tham khảo phải bắt đầu bằng https://.");
+            });
+            ValidateRows("scenarios", row =>
+            {
+                if (!row.TryGetProperty("steps", out var steps) || steps.ValueKind != JsonValueKind.Array
+                    || !steps.EnumerateArray().Any(s => s.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(s.GetString())))
+                    errors.Add("Mỗi kịch bản thường gặp cần ít nhất một bước.");
+            });
         }
         if (n.Type == "alertPage")
         {
@@ -71,5 +85,21 @@ public sealed class RiskContentRules(IContentService contents, IContentTypeServi
         }
         if (n.Type == "tacticItem") Need("containingArticle", "bài viết chứa thủ đoạn");
         return errors;
+
+        void ValidateRows(string alias, Action<JsonElement> validate)
+        {
+            if (!n.Has(alias)) return;
+            try
+            {
+                using var json = JsonDocument.Parse(n.Text(alias));
+                if (json.RootElement.ValueKind != JsonValueKind.Array) throw new JsonException();
+                foreach (var row in json.RootElement.EnumerateArray())
+                {
+                    if (row.ValueKind != JsonValueKind.Object) throw new JsonException();
+                    validate(row);
+                }
+            }
+            catch (JsonException) { errors.Add(alias == "references" ? "Danh sách nguồn tham khảo không hợp lệ." : "Danh sách kịch bản thường gặp không hợp lệ."); }
+        }
     }
 }

@@ -61,7 +61,11 @@ public sealed record RiskDerived(IReadOnlyList<RiskNode> Articles, IReadOnlyList
     IReadOnlyList<RiskNode> Alerts, IReadOnlyList<RiskNode> Actions, IReadOnlyList<RiskNode> Related,
     IReadOnlyList<RiskNode> Channels, IReadOnlyList<RiskNode> Audiences, string Level, bool InPreparation,
     RiskNode? Topic, RiskNode? Checklist, RiskNode? Next, int SeriesPosition, int SeriesCount,
-    int ReadingMinutes, string Invitation);
+    int ReadingMinutes, string Invitation)
+{
+    public int? FreshDaysLeft { get; init; }
+    public int? AutoUnpublishDaysLeft { get; init; }
+}
 
 /// <summary>Luật QĐ-054/055 dùng chung cho backoffice và Razor. Đầu vào quyết định bản nháp/xuất bản và quyền truy cập.</summary>
 public sealed class RuiRoDerivation
@@ -120,11 +124,4 @@ public sealed class RuiRoDerivation
         return new(articles, tactics, alerts, actions, related.DistinctBy(x => x.Key).ToArray(), channels, audiences, level,
             !articles.Any(x => x.Refs("primaryGroup").Contains(group)), topic, checklist, next, position + 1, sameSeries.Length, minutes, invitation);
     }
-}
-
-public static class AlertFreshness
-{
-    public static int Age(DateTime updated, DateTime today) => (today.Date - updated.Date).Days;
-    public static bool IsFresh(DateTime updated, DateTime today) => Age(updated, today) <= 90;
-    public static bool ShouldUnpublish(DateTime updated, int days, DateTime today) => Age(updated, today) > days;
 }

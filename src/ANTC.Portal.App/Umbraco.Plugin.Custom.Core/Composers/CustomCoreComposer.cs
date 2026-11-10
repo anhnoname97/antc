@@ -72,6 +72,15 @@ public class CustomCoreComposer : IComposer
         builder.AddNotificationHandler<ContentMovingToRecycleBinNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
         builder.AddNotificationHandler<ContentMovingNotification, Umbraco.Plugin.Custom.Core.Content.ActionGuideNotifications>();
         builder.Services.AddSingleton<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RuiRoDerivation>();
+        builder.Services.AddScoped<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.IRiskContentSource, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentSource>();
+        builder.Services.AddSingleton<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentCache>();
+        builder.AddNotificationHandler<ContentSavedNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentCacheInvalidator>();
+        builder.AddNotificationHandler<ContentPublishedNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentCacheInvalidator>();
+        builder.AddNotificationHandler<ContentUnpublishedNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentCacheInvalidator>();
+        builder.AddNotificationHandler<ContentMovedToRecycleBinNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentCacheInvalidator>();
+        builder.AddNotificationHandler<ContentSortedNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentCacheInvalidator>();
+        builder.AddNotificationHandler<ContentMovedNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentCacheInvalidator>();
+        builder.AddNotificationHandler<ContentDeletedNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentCacheInvalidator>();
         builder.Services.AddTransient<Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.ReadingArticleDirectory>();
         builder.AddNotificationHandler<ContentSavingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentRules>();
         builder.AddNotificationHandler<ContentPublishingNotification, Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.RiskContentRules>();

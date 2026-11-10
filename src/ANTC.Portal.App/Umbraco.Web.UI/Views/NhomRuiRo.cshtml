@@ -2,12 +2,13 @@
 @using Umbraco.Cms.Core.Strings
 @using Umbraco.Plugin.Custom.Core.Content
 @using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@inject TimeProvider RiskClock
 @inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
 @{
     // V2-13h: trang nhóm rủi ro (luaDaoPage, vayVaNoPage, dauTuPage, duLieuCaNhanPage, baoHiemVaTietKiemPage).
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var site = Model.Root();
-    var today = DateTime.Today;
+    var today = AlertFreshness.Today(RiskClock);
     var alias = Model.ContentType.Alias;
     var path = AntcPublicPaths.RiskGroupPath(alias) ?? Model.Url();
     var title = Model.Value<string>("tabName") is { Length: > 0 } tab ? tab : RiskAlertContent.Title(Model);
