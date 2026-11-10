@@ -173,11 +173,14 @@ public sealed class AntcPublicContentFinder(
         IPublishedContent? found = fixedAlias == "home" ? home
             : fixedAlias is "ruiRoPage" or "alertListPage" ? RiskPage(fixedAlias)
             : fixedAlias == "wizardPage" ? Child(Child(home, "ungPhoPage"), "wizardPage")
+            : fixedAlias == "situationChooserPage" ? Child(Child(home, "ungPhoPage"), "situationChooserPage")
             : fixedAlias == "cuocThiLamBaiPage" ? (Child(Child(home, "thiThangPage"), fixedAlias) ?? Child(Child(home, "thiPage"), fixedAlias) ?? Child(home, fixedAlias))
             : fixedAlias is "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" ? Child(Child(home, "congCuPage"), fixedAlias)
             : fixedAlias is not null ? (Child(home, fixedAlias) ?? (fixedAlias == "thiThangPage" ? Child(home, "thiPage") : null)) : null;
         if (fixedAlias is null && parts.Length > 0)
         {
+            if (parts.Length == 2 && parts[0].Equals("thu-vien", StringComparison.OrdinalIgnoreCase))
+                found = BySegment(Child(home, "foundationLibraryPage"), "foundationArticlePage", parts[1]);
             if (parts.Length == 2 && parts[0].Equals("hoi-dap", StringComparison.OrdinalIgnoreCase))
                 found = BySegment(Child(home, "hoiDapPage"), "qaItem", parts[1]);
             IPublishedContent? library = Child(site, "contentManagement");

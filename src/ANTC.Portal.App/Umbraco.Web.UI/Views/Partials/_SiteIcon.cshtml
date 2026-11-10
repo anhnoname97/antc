@@ -1,9 +1,11 @@
 @model string
+@inject Microsoft.AspNetCore.Mvc.ViewFeatures.IFileVersionProvider IconVersions
 @{
     // CMS values select constant paths, never executable SVG markup.
     var value = Model ?? "";
     if (value.TrimStart().StartsWith('[')) { try { value = System.Text.Json.JsonSerializer.Deserialize<string[]>(value)?.FirstOrDefault() ?? ""; } catch (System.Text.Json.JsonException) { value = ""; } }
     var icon = value.Split(" \u00b7 ").LastOrDefault()?.Trim() ?? "";
+    var nativeIcon = icon.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
     var path = IconPaths.TryGetValue(icon, out var mapped) ? mapped : icon switch
     {
         "icon-alert" or "alert" => "M12 3 2 21h20L12 3ZM12 9v5m0 3v.2",
@@ -43,7 +45,15 @@
         _ => "M12 3 20 6v6c0 4-3 7.5-8 9-5-1.5-8-5-8-9V6l8-3Zm-4 9 3 3 5-6"
     };
 }
-<svg class="site-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="@path" /></svg>
+@if (UmbracoIconCatalog.Names.Contains(nativeIcon))
+{
+    var sprite = IconVersions.AddFileVersionToPath(Context.Request.PathBase, "/assets/icons/umbraco.svg");
+    <svg class="site-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="@(sprite + "#" + nativeIcon)"></use></svg>
+}
+else
+{
+    <svg class="site-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="@path" /></svg>
+}
 
 @functions {
     private static readonly IReadOnlyDictionary<string, string> IconPaths = new Dictionary<string, string>

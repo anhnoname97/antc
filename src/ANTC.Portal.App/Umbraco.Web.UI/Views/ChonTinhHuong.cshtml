@@ -1,0 +1,22 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Text.Json
+@using Umbraco.Cms.Core.PublishedCache
+@inject IPublishedContentCache PublishedCache
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var data = SituationChooserData.Build(Model, key => PublishedCache.GetById(false, key));
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/situation-chooser.css" asp-append-version="true">
+}
+<article class="self-check-page site-chrome-wrap situation-page" data-situation-chooser>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/khan-cap/">KHẨN CẤP</a></li><li aria-current="page">@Model.Value("title")</li></ol></nav>
+    <header class="self-check-heading"><h1>@Model.Value("title")</h1><p>@Model.Value("lead")</p></header>
+    <p class="situation-privacy">@Model.Value("privacyNote")</p>
+    <p class="situation-urgent"><span>@Model.Value("urgentNote")</span><a href="tel:113">Gọi 113</a></p>
+    <div data-situation-body></div>
+    <noscript><p>Bật JavaScript để chọn tình huống. Bạn cũng có thể <a href="/khan-cap/#viec-can-lam">xem việc cần làm ngay</a>.</p></noscript>
+    <script type="application/json" data-situation-data>@Html.Raw(JsonSerializer.Serialize(data, new JsonSerializerOptions(JsonSerializerDefaults.Web)))</script>
+</article>
+@section Scripts { <script type="module" src="~/assets/js/situation-chooser.js" asp-append-version="true"></script> }

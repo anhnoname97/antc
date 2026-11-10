@@ -2,6 +2,9 @@ import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, css, nothing, repeat } from '@umbraco-cms/backoffice/external/lit';
 import { UmbChangeEvent } from '@umbraco-cms/backoffice/event';
 import { UmbSorterController } from '@umbraco-cms/backoffice/sorter';
+import { umbOpenModal } from '@umbraco-cms/backoffice/modal';
+import { UMB_ICON_PICKER_MODAL } from '@umbraco-cms/backoffice/icon';
+import { iconName } from './icon-name.js?v=1.0.0';
 import '@umbraco-cms/backoffice/document';
 import './wizard-answer-picker.js?v=1.0.0';
 
@@ -23,6 +26,7 @@ const guid = value => {
 class AntcEmergencyList extends UmbLitElement {
   #lists = new Map();
   #sorters = new Map();
+  #openRows = new Set();
   updated() {
     for (const [id, sorter] of this.#sorters) {
       if (!this.#lists.has(id)) { sorter.destroy(); this.#sorters.delete(id); }
@@ -51,6 +55,14 @@ class AntcEmergencyList extends UmbLitElement {
   setting(alias) { return this.config?.getValueByAlias(alias); }
   change(rows) { if (this.locked) return; this.value = JSON.stringify(rows); this.dispatchEvent(new UmbChangeEvent()); }
   edit(rows, index, field, value, save) { const next = structuredClone(rows); next[index][field] = value; save(next); }
+  async chooseIcon(field, value, set) {
+    if (this.locked) return;
+    const result = await umbOpenModal(this, UMB_ICON_PICKER_MODAL, {
+      value: { icon: iconName(value), color: undefined },
+      data: { hideColors: true, showEmptyOption: !field.required }
+    }).catch(() => undefined);
+    if (result) set(result.icon || '');
+  }
   tools(rows, index, save, min) {
     return html`<span class="tools" @click=${e => { e.preventDefault(); e.stopPropagation(); }}>
       ${min === rows.length ? nothing : html`<button type="button" aria-label="Xóa dòng" title="Xóa dòng" ?disabled=${this.locked} @click=${() => save(rows.filter((_, i) => i !== index))}><umb-icon name="icon-trash"></umb-icon></button>`}
@@ -58,16 +70,24 @@ class AntcEmergencyList extends UmbLitElement {
   }
   input(field, row, set) {
     const value = row[field.alias];
+    if (field.alias === 'icon' && field.type === 'text') return html`<div class="icon-picker">
+      <button type="button" class="icon-select" aria-label=${`Chọn ${field.label.toLowerCase()}`} ?disabled=${this.locked} @click=${() => this.chooseIcon(field, value, set)}>
+        <span class="icon-preview">${iconName(value) ? html`<umb-icon name=${iconName(value)}></umb-icon>` : nothing}</span>
+        <span>${iconName(value) ? 'Đổi biểu tượng' : 'Chọn biểu tượng'}</span>
+      </button>
+      ${value && !field.required ? html`<button type="button" ?disabled=${this.locked} @click=${() => set('')}>Bỏ chọn</button>` : nothing}
+    </div>`;
     if (field.type === 'toggle') return html`<input class="toggle" aria-label=${field.label} type="checkbox" .checked=${value === true} ?disabled=${this.locked} @change=${e => set(e.target.checked)}>`;
     if (field.type === 'lines' && field.list === 'wizardAnswers') return html`<antc-wizard-answer-picker .value=${value || []} .target=${field.startNode} .disabled=${this.locked}
       @change=${e => { e.stopPropagation(); set(e.target.value); }}></antc-wizard-answer-picker>`;
+    if (field.type === 'lines' && field.options?.length) return html`<fieldset class="choices" aria-label=${field.label}>${field.options.map(([code, label]) => html`<label><input type="checkbox" .checked=${(value || []).includes(code)} ?disabled=${this.locked} @change=${e => set(e.target.checked ? [...(value || []), code] : (value || []).filter(v => v !== code))}><span>${label}</span></label>`)}</fieldset>`;
     if (field.type === 'number') return html`<input aria-label=${field.label} type="number" min=${field.min ?? nothing} max=${field.max ?? nothing} .value=${value == null ? '' : String(value)} ?disabled=${this.locked} @input=${e => set(e.target.value === '' ? null : Number(e.target.value))}>`;
     if (field.type === 'table') return this.list(rowsOf(value), field.fields || [], next => set(next), field.minRows || 0, field.maxRows || 20, false, row.key + '-' + field.alias);
     if (field.type === 'content') return html`<umb-input-document .selection=${value ? [guid(value)].filter(Boolean) : []} .min=${0} .max=${1}
       .allowedContentTypeIds=${field.allowedContentTypes} .readonly=${this.locked}
       @change=${e => { e.stopPropagation(); const id = e.target.selection[0]; set(id ? 'umb://document/' + id.replaceAll('-', '') : ''); }}></umb-input-document>`;
     if (field.type === 'fixed') return html`<select aria-label=${field.label} ?disabled=${this.locked} @change=${e => set(e.target.value)}>
-      <option value="" ?selected=${!value}>Chọn…</option>${(choices[field.list] || []).map(([code, label]) => html`<option value=${code} ?selected=${code === value}>${label}</option>`)}
+      <option value="" ?selected=${!value}>Chọn…</option>${(field.options || choices[field.list] || []).map(([code, label]) => html`<option value=${code} ?selected=${code === value}>${label}</option>`)}
     </select>`;
     if (field.type === 'area') return html`<textarea aria-label=${field.label} rows="3" maxlength=${field.maxChars || nothing} .value=${value || ''} ?disabled=${this.locked} @input=${e => set(e.target.value)}></textarea>`;
     if (field.type === 'lines') return html`<textarea aria-label=${field.label} rows="4" .value=${(value || []).join('\n')} ?disabled=${this.locked} @input=${e => set(e.target.value.split('\n').filter(x => x.trim()))}></textarea>`;
@@ -75,7 +95,7 @@ class AntcEmergencyList extends UmbLitElement {
   }
   list(rows, fields, save, min, max, cards, listId = 'root') {
     this.#lists.set(listId, { rows, save });
-    return html`<div class="rows" data-sort-list=${listId}>${repeat(rows, row => row.key, (row, index) => html`<details data-sort-owner=${listId} data-row-key=${row.key}>
+    return html`<div class="rows" data-sort-list=${listId}>${repeat(rows, row => row.key, (row, index) => html`<details data-sort-owner=${listId} data-row-key=${row.key} @toggle=${e => { if (e.target !== e.currentTarget) return; if (e.currentTarget.open) this.#openRows.add(row.key); else this.#openRows.delete(row.key); if (rows.length > 20) this.requestUpdate(); }}>
       <summary class="drag-handle" title="Bấm để đóng/mở. Kéo tiêu đề để đổi thứ tự; bàn phím: Alt + mũi tên lên/xuống."
           @keydown=${e => {
             if (!e.altKey || !['ArrowUp', 'ArrowDown'].includes(e.key) || this.locked || this.setting('sortable') === false) return;
@@ -85,7 +105,7 @@ class AntcEmergencyList extends UmbLitElement {
             const next = [...rows]; next.splice(target, 0, next.splice(index, 1)[0]); save(next);
           }}>
         <b>${index + 1}. ${row.title || row.mainText || row.noticeTitle || row.question || row.label || row.groupName || row.organization || row.number || row.text || 'Mục nội dung'}</b>${this.tools(rows, index, save, min)}</summary>
-      <div class="fields">${fields.filter(f => !f.showWhen || String(row[f.showWhen.field] ?? false) === String(f.showWhen.equals)).map(field => html`<div class="field">
+      <div class="fields">${(rows.length > 20 && !this.#openRows.has(row.key) ? [] : fields).filter(f => !f.showWhen || String(row[f.showWhen.field] ?? false) === String(f.showWhen.equals)).map(field => html`<div class="field">
         <label>${field.label}${field.required ? html`<span class="required"> *</span>` : nothing}</label>
         ${this.input(field, row, value => this.edit(rows, index, field.alias, value, save))}
         ${field.description ? html`<small>${field.description}</small>` : nothing}
@@ -103,6 +123,8 @@ class AntcEmergencyList extends UmbLitElement {
     .fields{padding:14px;display:grid;gap:16px}.field{display:grid;gap:6px}label{font-weight:600}.required{color:var(--uui-color-danger)}
     input,textarea,select{box-sizing:border-box;width:100%;font:inherit;border:1px solid var(--uui-color-border,#bbb);border-radius:5px;padding:9px;background:var(--uui-color-surface,#fff);color:inherit}
     input.toggle{width:22px;height:22px;accent-color:var(--uui-color-interactive)}
+    .icon-picker{display:flex;align-items:center;gap:10px}.icon-select{display:inline-flex;align-items:center;gap:10px}.icon-preview{display:grid;place-items:center;width:36px;height:36px}.icon-picker umb-icon{width:24px;height:24px}
+    .choices{border:0;padding:0;margin:0;display:grid;gap:8px}.choices label{display:flex;align-items:start;gap:8px;font-weight:400}.choices input{width:20px;height:20px;flex:none;accent-color:var(--uui-color-interactive)}
     button{font:inherit;cursor:pointer;border:1px solid var(--uui-color-border,#ddd);padding:6px 10px;border-radius:5px;background:var(--uui-color-surface,#fff);color:inherit}
     button:disabled{opacity:.45;cursor:default}.tools{display:flex;gap:4px}.add{width:100%;border-style:dashed}small{display:block;color:var(--uui-color-text-alt,#666);margin-top:4px}
     .drag-handle{cursor:grab;touch-action:none}.drag-handle:active{cursor:grabbing}details[drag-placeholder]{opacity:.35}

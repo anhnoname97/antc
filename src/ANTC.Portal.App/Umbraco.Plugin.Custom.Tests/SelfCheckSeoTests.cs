@@ -5,6 +5,27 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public class SelfCheckSeoTests
 {
+    [Fact]
+    public void Homepage_uses_root_canonical_and_website_metadata_with_the_editorial_review_date()
+    {
+        var seo = SelfCheckSeoRules.Resolve(Input() with
+        {
+            PublicPath = "/", Canonical = "/?utm_source=campaign#noi-dung", Name = "Trang chủ",
+            Title = "Bạn vừa nhận lời mời đáng ngờ?", Description = "Nội dung đầu trang",
+            SeoTitle = "Nhận diện lừa đảo và rủi ro tài chính", SeoDescription = "Mô tả chia sẻ Trang chủ",
+            DefaultImage = new("/media/home.jpg", "Cùng xác minh thông tin", 640, 335),
+            Updated = new DateTime(2026, 11, 10)
+        });
+        Assert.Equal("https://antoantaichinh.vn/", seo.CanonicalUrl);
+        Assert.Equal("website", seo.Type);
+        Assert.Equal("Nhận diện lừa đảo và rủi ro tài chính — antoantaichinh.vn", seo.DocumentTitle);
+        Assert.Equal("Mô tả chia sẻ Trang chủ", seo.Description);
+        Assert.Equal("https://antoantaichinh.vn/media/home.jpg", seo.Image!.Url);
+        Assert.Equal(new DateTime(2026, 11, 10), seo.Updated);
+        // The dedicated Self-check sitemap must remain limited to that URL subtree.
+        Assert.False(SelfCheckSeoRules.IncludeInSitemap(seo, Input().Origin));
+    }
+
     private static SelfCheckSeoInput Input() => new()
     {
         Origin = new Uri("https://antoantaichinh.vn"), PublicPath = "/hay-tu-kiem-tra/", Name = "Tên node",

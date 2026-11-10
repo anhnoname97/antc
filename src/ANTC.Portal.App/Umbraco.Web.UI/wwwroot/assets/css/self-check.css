@@ -30,6 +30,21 @@ a.self-check-card:hover { color: var(--sc-ink); border-color: var(--sc-blue); bo
 .self-check-tools .self-check-card { border-top: 4px solid var(--sc-blue); }
 .self-check-tools .self-check-card--urgent { --sc-blue: #b8431a; border-top-color: #d9531e; }
 .self-check-tools .self-check-card--urgent:focus-visible { outline-color: #b8431a; }
+.self-check-tools .self-check-card__action .site-icon { transition: transform .3s cubic-bezier(.2, .7, .2, 1); }
+.self-check-tools a.self-check-card:focus-visible .self-check-spot .site-icon { animation: self-check-tool-icon-shake .55s ease-in-out 1 both; transform-box: fill-box; transform-origin: center; }
+.self-check-tools a.self-check-card:focus-visible .self-check-card__action .site-icon { transform: translateX(6px); }
+@media (hover: hover) {
+  .self-check-tools a.self-check-card:hover .self-check-spot .site-icon { animation: self-check-tool-icon-shake .55s ease-in-out 1 both; transform-box: fill-box; transform-origin: center; }
+  .self-check-tools a.self-check-card:hover .self-check-card__action .site-icon { transform: translateX(6px); }
+}
+@keyframes self-check-tool-icon-shake {
+  0%, 100% { transform: none; }
+  18% { transform: rotate(-14deg); }
+  36% { transform: rotate(11deg); }
+  54% { transform: rotate(-7deg); }
+  72% { transform: rotate(4deg); }
+  88% { transform: rotate(-2deg); }
+}
 .self-check-card--urgent .self-check-spot { color: #b8431a; background: #fcebe3; }
 .self-check-lists .self-check-card { align-items: center; border-radius: 14px; }
 .self-check-lists .self-check-card__body b { font-size: 1.03125rem; }
@@ -48,4 +63,10 @@ a.self-check-card:hover { color: var(--sc-ink); border-color: var(--sc-blue); bo
   .self-check-lists, .self-check-knowledge { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 1025px) { .self-check-heading h1 { font-size: 2.25rem; } .self-check-section h2 { font-size: 1.5625rem; } }
-@media (prefers-reduced-motion: reduce) { .self-check-card { transition: none; } a.self-check-card:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .self-check-card { transition: none; }
+  a.self-check-card:hover { transform: none; }
+  .self-check-tools a.self-check-card:is(:hover, :focus-visible) .self-check-spot .site-icon { animation: none; }
+  .self-check-tools .self-check-card__action .site-icon { transition: none; }
+  .self-check-tools a.self-check-card:is(:hover, :focus-visible) .self-check-card__action .site-icon { transform: none; }
+}

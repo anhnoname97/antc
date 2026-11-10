@@ -14,6 +14,8 @@ public static class AntcPublicPaths
         ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/",
         ["congCuPage"] = "/hay-tu-kiem-tra/",
         ["wizardPage"] = "/khan-cap/kiem-tra/",
+        ["situationChooserPage"] = "/khan-cap/chon-tinh-huong/",
+        ["foundationLibraryPage"] = "/thu-vien/",
         ["lienHePage"] = "/lien-he/",
         ["truocKhiChuyenTienPage"] = "/hay-tu-kiem-tra/truoc-khi-chuyen-tien/",
         ["truocKhiDauTuVayPage"] = "/hay-tu-kiem-tra/truoc-khi-dau-tu-vay/",
@@ -87,6 +89,7 @@ public static class AntcPublicPaths
         if (string.IsNullOrWhiteSpace(segment)) return null;
         return alias switch
         {
+            "foundationArticlePage" => $"/thu-vien/{segment}/",
             "articleList" => $"/thu-doan/{segment}/",
             "article" or "riskArticlePage" when parentPath is not null => $"{parentPath.TrimEnd('/')}/{segment}/",
             "qaItem" => $"/hoi-dap/{segment}/",

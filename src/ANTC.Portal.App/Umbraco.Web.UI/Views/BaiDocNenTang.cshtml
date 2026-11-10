@@ -1,0 +1,15 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/foundation-library.css" asp-append-version="true">
+}
+<article class="self-check-page site-chrome-wrap foundation-article">
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/thu-vien/#co-chi-kim">Kiến thức nền tảng</a></li><li aria-current="page">@Model.Value("title")</li></ol></nav>
+    <header class="self-check-heading"><h1>@Model.Value("title")</h1><p>@Model.Value("lead")</p></header>
+    <p><a class="foundation-emergency" href="/khan-cap/chon-tinh-huong/">Chuyện này đang xảy ra với bạn? Xem việc nên làm</a></p>
+    <div class="foundation-article__body">@Model.Value("body")</div>
+    <p><a href="/thu-vien/#co-chi-kim">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "book") Các bài trong chuỗi Lừa đảo: Từ cổ chí kim</a></p>
+</article>
