@@ -1,0 +1,82 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.PublishedCache
+@using Umbraco.Cms.Core.Services.Navigation
+@using Umbraco.Cms.Core.Web
+@inject IDocumentNavigationQueryService Navigation
+@inject IPublishedContentCache PublishedCache
+@inject IUmbracoContextAccessor ContextAccessor
+@{
+    var site = Model.Root();
+    var preview = ContextAccessor.TryGetUmbracoContext(out var context) && context.InPreviewMode;
+    Navigation.TryGetChildrenKeysOfType(Model.Key, "ungPhoPage", out var emergencyKeys);
+    var emergency = emergencyKeys.Select(key => PublishedCache.GetById(preview, key)).OfType<IPublishedContent>()
+        .FirstOrDefault(page => EmergencyContent.PublicUrl(page) is not null);
+    var emergencyUrl = EmergencyContent.PublicUrl(emergency);
+    string? wizardUrl = null;
+    if (emergency is not null)
+    {
+        Navigation.TryGetChildrenKeysOfType(emergency.Key, "situationChooserPage", out var wizardKeys);
+        wizardUrl = wizardKeys.Select(key => PublishedCache.GetById(preview, key)).OfType<IPublishedContent>()
+            .Select(EmergencyContent.PublicUrl).FirstOrDefault(url => url is not null);
+    }
+    var principles = EmergencyContent.Rows(site, "stopPrinciples").Take(4).ToArray();
+    var image = Model.Value<IPublishedContent>("illustration");
+    var imageAlt = Model.Value<string>("illustrationAlt") ?? image?.Value<string>("altText") ?? "";
+    var eyebrow = Model.Value<string>("eyebrow");
+    var lead = Model.Value<string>("principlesLead");
+    var primaryText = Model.Value<string>("primaryButtonText");
+    var secondaryText = Model.Value<string>("secondaryButtonText");
+}
+<div class="home-v2" data-home-v2>
+    <div class="site-chrome-wrap home-v2__intro">
+        <section class="home-emergency" aria-labelledby="home-title" data-home-emergency>
+            <header class="home-emergency__copy">
+                @if (!string.IsNullOrWhiteSpace(eyebrow))
+                {
+                    <p class="home-emergency__eyebrow">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "alert")<span>@eyebrow</span></p>
+                }
+                <h1 id="home-title">@Model.Value("title")</h1>
+                <p class="home-emergency__description">@Model.Value("description")</p>
+                <div class="home-emergency__actions">
+                    @if (wizardUrl is not null && !string.IsNullOrWhiteSpace(primaryText))
+                    {
+                        <a class="home-emergency__button home-emergency__button--primary" href="@wizardUrl" data-home-wizard>
+                            @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")<span>@primaryText</span>
+                        </a>
+                    }
+                    @if (emergencyUrl is not null && !string.IsNullOrWhiteSpace(secondaryText))
+                    {
+                        <a class="home-emergency__button home-emergency__button--secondary" href="@(emergencyUrl + "#viec-can-lam")" data-home-actions>
+                            <span>@secondaryText</span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")
+                        </a>
+                    }
+                </div>
+            </header>
+            @if (image is not null)
+            {
+                <figure class="home-emergency__image">
+                    <picture><source media="(max-width:1024px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><img src="@image.Url()" alt="@imageAlt" width="880" height="660" fetchpriority="high" decoding="async"></picture>
+                    @if (Model.Value<string>("imageNote") is { Length: > 0 } imageNote) { <figcaption>@imageNote</figcaption> }
+                </figure>
+            }
+            @if (principles.Length > 0)
+            {
+                <section class="home-emergency__principles" aria-labelledby="home-principles-title">
+                    <h2 id="home-principles-title" class="@(string.IsNullOrWhiteSpace(lead) ? "sr-only" : null)">
+                        @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "shield")
+                        <span>@(string.IsNullOrWhiteSpace(lead) ? "Bốn nguyên tắc khi chưa rõ" : lead)</span>
+                    </h2>
+                    <ul class="home-principles">
+                        @foreach (var principle in principles)
+                        {
+                            <li class="home-principles__item">
+                                <span class="home-principles__icon">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", EmergencyContent.Text(principle, "icon"))</span>
+                                <div><h3>@EmergencyContent.Text(principle, "title")</h3><p>@EmergencyContent.Text(principle, "description")</p></div>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        </section>
+    </div>
+</div>

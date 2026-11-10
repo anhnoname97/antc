@@ -102,6 +102,12 @@ public static class InlineListRules
                 return;
             case "fixed":
             {
+                if (field.Options is { Count: > 0 } options)
+                {
+                    if (!options.Any(option => option.Length == 2 && option[0] == Str(v)))
+                        errors.Add(new(p, "Giá trị không có trong danh sách."));
+                    return;
+                }
                 var list = DanhMucCoDinh.Get(field.List);
                 if (list is null) { errors.Add(new(p, $"Cấu hình sai: không có danh sách \"{field.List}\".")); return; }
                 if (!list.HasCode(Str(v))) errors.Add(new(p, "Giá trị không có trong danh sách."));
@@ -121,6 +127,8 @@ public static class InlineListRules
                 int count = lines.Count(x => !string.IsNullOrWhiteSpace(Str(x)));
                 CheckCount(count, field, p, errors);
                 if (field.MaxChars is > 0 && lines.Any(x => Str(x)!.Length > field.MaxChars)) errors.Add(new(p, $"Mỗi dòng tối đa {field.MaxChars} ký tự."));
+                if (field.Options is { Count: > 0 } options && lines.Any(line => !options.Any(option => option.Length == 2 && option[0] == Str(line))))
+                    errors.Add(new(p, "Giá trị không có trong danh sách."));
                 return;
             }
             case "table":
