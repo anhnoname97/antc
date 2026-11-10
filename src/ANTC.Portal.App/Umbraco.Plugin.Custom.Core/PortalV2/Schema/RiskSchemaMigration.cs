@@ -1,4 +1,6 @@
-using System.Text.Json;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Models;
@@ -10,9 +12,35 @@ namespace Umbraco.Plugin.Custom.Core.PortalV2.Schema;
 
 /// <summary>Khởi tạo một lần; lần sau giữ nội dung, thứ tự và trạng thái do biên tập viên đã lưu.</summary>
 public sealed class RiskSchemaMigration(PortalV2SchemaBuilder schema, IContentService contents, IContentTypeService types,
-    IDataTypeService dataTypes, RiskStructureAdoption adoption) : INotificationAsyncHandler<UmbracoApplicationStartedNotification>
+    IDataTypeService dataTypes, RiskStructureAdoption adoption, IHostEnvironment environment,
+    IOptions<PortalV2SchemaOptions> options, IRuntimeState runtime, IKeyValueService markers,
+    ILogger<RiskSchemaMigration> logger) : INotificationAsyncHandler<UmbracoApplicationStartedNotification>
 {
     public async Task HandleAsync(UmbracoApplicationStartedNotification notification, CancellationToken cancellationToken)
+    {
+        if (!environment.IsDevelopment() || !options.Value.Enabled) return;
+        try
+        {
+            if (runtime.Level != RuntimeLevel.Run || contents.GetById(RiskStructure.HomeKey) is not { Trashed: false })
+            {
+                logger.LogWarning("Bỏ qua RiskSchemaMigration: ứng dụng chưa sẵn sàng hoặc chưa có Trang chủ gốc.");
+                return;
+            }
+            const string marker = "antc.portal-v2.risks.schema-v2";
+            if (markers.GetValue(marker) != "done")
+            {
+                await ApplySchemaAsync();
+                markers.SetValue(marker, "done");
+            }
+            await adoption.ApplyAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Không hoàn tất chuyển dữ liệu Các rủi ro; giữ marker để có thể thử lại. Các bước khởi động khác vẫn tiếp tục.");
+        }
+    }
+
+    private async Task ApplySchemaAsync()
     {
         await schema.EnsureRiskSchemaAsync();
         foreach (var name in PortalV2Schema.LineRanges.Select(x => PortalV2Schema.Lines(x.Min, x.Max)))
@@ -36,7 +64,6 @@ public sealed class RiskSchemaMigration(PortalV2SchemaBuilder schema, IContentSe
             dt.ConfigurationData = new Dictionary<string, object>(dt.ConfigurationData) { ["filter"] = type.Key.ToString() };
             await dataTypes.UpdateAsync(dt, Constants.Security.SuperUserKey);
         }
-        await adoption.ApplyAsync();
     }
     private async Task EditorUi(string name, string alias)
     {

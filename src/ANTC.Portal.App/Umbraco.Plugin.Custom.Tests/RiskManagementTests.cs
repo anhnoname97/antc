@@ -3,7 +3,7 @@ using Umbraco.Plugin.Custom.Core.PortalV2.Schema;
 
 namespace Umbraco.Plugin.Custom.Tests;
 
-public class RiskManagementTests
+public partial class RiskManagementTests
 {
     private static RiskNode Node(string type, string name, params (string, object?)[] values) => new(Guid.NewGuid(), null,
         type, name, 0, new DateTime(2026, 11, 4), true, values.ToDictionary(x => x.Item1, x => x.Item2));

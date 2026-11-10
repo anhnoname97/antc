@@ -3,6 +3,7 @@
 @using Umbraco.Plugin.Custom.Core.Content
 @using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
 @using Umbraco.Plugin.Custom.Core.PortalV2.Schema
+@inject TimeProvider RiskClock
 @{
     // V2-13i (phần cảnh báo): trang một cảnh báo (alertPage), theo màn #cb của mockup bo-cac-rui-ro.html.
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
@@ -66,7 +67,7 @@
                 <span class="risk-level risk-level--@tone">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", tone == "d" ? "stop" : tone == "h" ? "clock" : "info")<span>Mức độ cần thận trọng: @RiskAlertContent.LevelName(level)</span></span>
             }
         </p>
-        @if (updated is not { } fresh || !AlertFreshness.IsFresh(fresh, DateTime.Today))
+        @if (updated is not { } fresh || !AlertFreshness.IsFresh(fresh, AlertFreshness.Today(RiskClock)))
         {
             <p class="risk-stale">Nội dung đang chờ rà soát@(updated is { } last ? $", cập nhật lần cuối ngày {Day(last)}" : "").</p>
         }

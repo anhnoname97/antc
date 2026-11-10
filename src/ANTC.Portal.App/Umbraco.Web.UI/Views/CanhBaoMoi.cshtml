@@ -1,12 +1,13 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Plugin.Custom.Core.Content
 @using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@inject TimeProvider RiskClock
 @inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
 @{
     // V2-13h: trang Cảnh báo mới (alertListPage). Lọc qua địa chỉ, dựng ở máy chủ.
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var site = Model.Root();
-    var today = DateTime.Today;
+    var today = AlertFreshness.Today(RiskClock);
     var title = RiskAlertContent.Title(Model);
     var image = Model.Value<IPublishedContent>("illustration");
     var tabs = RiskAlertContent.Tabs(key => Umbraco.Content(key), "alertListPage");
