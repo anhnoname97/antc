@@ -1,0 +1,56 @@
+@model RiskResultsView
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@{
+    // Dựng đủ mọi thẻ; thẻ không khớp bộ lọc trên địa chỉ ẩn sẵn. risk-alerts.js lọc lại tại chỗ, không tải lại trang.
+    var query = Model.Query;
+    var fresh = Model.Layout.Fresh;
+    var archived = Model.Layout.Archived;
+    var freshShown = Model.BlockedDigits ? 0 : fresh.Count(Model.Matched.Contains);
+    var archivedShown = Model.BlockedDigits ? 0 : archived.Count(Model.Matched.Contains);
+    var total = freshShown + archivedShown;
+    var hasText = !string.IsNullOrEmpty(query.Text);
+}
+<section class="risk-results" aria-label="Danh sách nội dung" data-risk-results data-unit="@Model.Unit">
+    <div class="risk-empty" data-risk-blocked hidden="@(!Model.BlockedDigits)">
+        <b>Website không tra cứu theo dãy số</b>
+        <p>Website không tra cứu theo số điện thoại hay số tài khoản. Không tìm thấy một dãy số <b>không có nghĩa là an toàn</b>. Hãy mô tả bằng lời, ví dụ “người lạ đến nhà”.</p>
+        <div class="risk-actions">
+            <a class="risk-btn risk-btn--stop" href="/khan-cap/">Chọn tình huống của tôi</a>
+            <a class="risk-btn" href="@Model.ClearUrl" data-risk-clear>Xóa bộ lọc</a>
+        </div>
+    </div>
+    <div class="risk-empty" data-risk-empty hidden="@(Model.BlockedDigits || total > 0)">
+        <b>Chưa tìm thấy nội dung phù hợp</b>
+        <p>Chưa tìm thấy nội dung phù hợp. Điều này không có nghĩa giao dịch an toàn. Hãy chọn tình huống của bạn hoặc kiểm chứng qua nguồn chính thức.</p>
+        <div class="risk-actions">
+            <a class="risk-btn risk-btn--stop" href="/khan-cap/">Chọn tình huống của tôi</a>
+            <a class="risk-btn" href="/lien-he/#nguon">Mở nguồn kiểm chứng</a>
+            <a class="risk-btn" href="@Model.ClearUrl" data-risk-clear>Xóa bộ lọc</a>
+            <a class="risk-btn" href="/hoi-dap/">Hỏi Ban biên tập</a>
+        </div>
+    </div>
+    <div class="risk-found" data-risk-found hidden="@(Model.BlockedDigits || total == 0)">
+        <p class="risk-count" role="status" data-risk-count><b>@total @Model.Unit</b>@if (hasText) { <text> khớp với “@query.Text”</text> }</p>
+        <p class="risk-small" data-risk-textnote hidden="@(!hasText)">Kết quả chỉ gợi ý nội dung nên đọc, không xác nhận một số điện thoại, tài khoản hay nền tảng có lừa đảo hay không.</p>
+        <div class="risk-list" data-risk-more-list>
+            @foreach (var item in fresh)
+            {
+                @await Html.PartialAsync("~/Views/Partials/_RiskAlertCard.cshtml", new RiskAlertCardView(item, false, Model.BlockedDigits || !Model.Matched.Contains(item), Model.Today))
+            }
+        </div>
+        <p class="risk-small" data-risk-nofresh hidden="@(freshShown > 0 || Model.Group)">Chưa có cảnh báo nào trong 90 ngày qua khớp bộ lọc.</p>
+        <button type="button" class="risk-btn risk-more" data-risk-more hidden>Xem thêm</button>
+        @if (archived.Count > 0)
+        {
+            <div class="risk-archive" data-risk-archive hidden="@(archivedShown == 0)">
+                <h2 class="risk-h2">Lưu trữ · quá 90 ngày</h2>
+                <div class="risk-list">
+                    @foreach (var item in archived)
+                    {
+                        @await Html.PartialAsync("~/Views/Partials/_RiskAlertCard.cshtml", new RiskAlertCardView(item, true, Model.BlockedDigits || !Model.Matched.Contains(item), Model.Today))
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>

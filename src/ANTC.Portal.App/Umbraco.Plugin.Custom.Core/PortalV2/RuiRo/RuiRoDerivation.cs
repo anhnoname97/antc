@@ -36,6 +36,13 @@ public sealed record RiskNode(Guid Key, Guid? ParentKey, string Type, string Nam
         catch (JsonException) { }
         return s.Split(['\n', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
+    /// <summary>Danh sach dong (MultipleTextstring): luu moi dong mot muc, khong tach theo dau phay nhu Strings.</summary>
+    public IReadOnlyList<string> Lines(string alias)
+    {
+        string s = Text(alias);
+        if (s.TrimStart().StartsWith('[')) return Strings(alias);
+        return s.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
     public IReadOnlyList<Guid> Refs(string alias) => Strings(alias).Select(x =>
     {
         if (x.TrimStart().StartsWith('{'))

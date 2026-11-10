@@ -1,0 +1,9 @@
+@model string
+<svg class="emergency-door-art" viewBox="0 0 72 72" fill="none" aria-hidden="true" focusable="false">
+    <circle cx="36" cy="36" r="34" fill="@(Model == "check" ? "#fff2cc" : "#fcebe3")" />
+    <g stroke="#123b63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    @if (Model == "threat") { <rect x="22" y="12" width="27" height="49" rx="5" fill="white"/><path d="M30 17h10M32 56h6M54 23l6-8-2 11h6l-8 11 1-12"/><path d="M29 26h13v14H29z" fill="#d9531e" stroke="#d9531e"/><path d="M35 29v5m0 3v1" stroke="white"/> }
+    else if (Model == "harm") { <rect x="10" y="27" width="31" height="23" rx="2" fill="white"/><circle cx="25" cy="38" r="6"/><rect x="39" y="17" width="21" height="39" rx="4" fill="white"/><path d="M46 51h6"/><circle cx="57" cy="19" r="8" fill="#d9531e" stroke="#d9531e"/><path d="M57 15v5m0 3v.2" stroke="white"/> }
+    else { <path d="M21 11h24l10 10v38H21z" fill="white"/><path d="M44 11v12h11M28 29h18M28 35h12M28 41h10"/><circle cx="47" cy="47" r="10" fill="#fff2cc"/><path d="m54 54 9 9M42 47l3 3 6-7"/> }
+    </g>
+</svg>

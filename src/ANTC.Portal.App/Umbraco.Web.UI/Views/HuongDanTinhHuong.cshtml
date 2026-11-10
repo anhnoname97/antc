@@ -1,0 +1,28 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Strings
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var topic = Model.Value<IPublishedContent>("topic");
+    var checklist = topic?.Value<IPublishedContent>("checklist");
+    var reading = topic?.Value<IPublishedContent>("readingArticle");
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/self-check-tool.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency-v2.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/emergency-wizard.css" asp-append-version="true">
+}
+<article class="self-check-page site-chrome-wrap">
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/khan-cap/">Khẩn cấp</a></li><li aria-current="page">@Model.Value("title")</li></ol></nav>
+    <header class="self-check-heading"><h1>@Model.Value("title")</h1><p>@Model.Value("description")</p></header>
+    <section class="self-check-section">@(Model.Value<IHtmlEncodedString>("summary"))</section>
+    @await Html.PartialAsync("~/Views/Partials/_WizardTactics.cshtml", Model)
+    @foreach (var group in new[] { (Alias: "warningSigns", Heading: "Dấu hiệu cần chú ý"), (Alias: "actionsNow", Heading: "Việc cần làm ngay"), (Alias: "avoidActions", Heading: "Việc không nên làm") })
+    {
+        var lines = Model.Value<IEnumerable<string>>(group.Alias)?.ToArray() ?? [];
+        if (lines.Length == 0) { continue; }
+        <section class="self-check-section"><h2>@group.Heading</h2><ul>@foreach (var line in lines) { <li>@line</li> }</ul></section>
+    }
+    <div class="wizard-controls"><a class="emergency-button" href="/khan-cap/">Chọn việc cần làm ngay</a>@if (EmergencyContent.PublicUrl(reading) is { } readingUrl) { <a class="emergency-button" href="@readingUrl">Đọc bài Chuyên đề nguồn</a> }@if (EmergencyContent.PublicUrl(checklist) is { } checklistUrl) { <a class="emergency-button" href="@checklistUrl">Mở danh sách kiểm tra</a> }</div>
+    <p class="emergency-note">@Model.Root().Value("resultNote")</p>
+</article>

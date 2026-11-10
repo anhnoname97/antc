@@ -21,11 +21,8 @@ public static class SelfCheckBranchDataBuilder
     }
     private static SelfCheckBranchAction? Action(IPublishedContent? source, int number)
     {
-        var steps = source?.Value<BlockListModel>("steps");
-        if (number < 1 || number > (steps?.Count ?? 0)) return null;
-        var content = steps![number - 1].Content;
-        var text = content.Value<string>("summary");
-        return string.IsNullOrWhiteSpace(text) ? null : new(text, content.Value<bool>("showBankHint") ? BankHint : null);
+        var step = ActionGuideData.Step(source, number);
+        return string.IsNullOrWhiteSpace(step?.MainText) ? null : new(step.MainText, step.ShowBankLookup ? BankHint : null);
     }
     public static SelfCheckBranchData Build(IPublishedContent page)
     {

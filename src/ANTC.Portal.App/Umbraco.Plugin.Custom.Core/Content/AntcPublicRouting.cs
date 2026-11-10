@@ -44,11 +44,12 @@ public sealed class AntcPublicUrlProvider(IDocumentNavigationQueryService naviga
             parentPath = $"/cac-rui-ro/{RiskStructure.Slug(group)}/";
         string? path = AntcPublicPaths.GetPath(content.ContentType.Alias, Segment(content), parentPath, content.Value<string>("listRole", culture));
         if (content.ContentType.Alias == "viecCanLamPage")
-            path = AntcPublicPaths.SelfCheckGuidancePath(content.Value<string>("slug", culture));
+            path = AntcPublicPaths.SelfCheckGuidancePath(content.Value<string>("umbracoUrlName", culture) ?? content.Value<string>("slug", culture));
         if (content.ContentType.Alias == "checklistPage")
             path = AntcPublicPaths.SelfCheckChecklistPath(Segment(content));
-        if (content.ContentType.Alias == "riskArticlePage")
-            path = AntcPublicPaths.SelfCheckReadingPath(content.Value<string>("selfCheckSourceNumber", culture));
+        if (content.ContentType.Alias == "riskArticlePage"
+            && AntcPublicPaths.SelfCheckReadingPath(content.Value<string>("selfCheckSourceNumber", culture)) is { } readingPath)
+            path = readingPath;
         if (path is null) return null;
         return UrlInfo.AsUrl(mode == UrlMode.Absolute ? new Uri(current, path).AbsoluteUri : path, Alias, culture);
     }
@@ -64,7 +65,8 @@ public sealed class AntcPublicContentFinder(
     IDocumentNavigationQueryService navigation,
     IPublishedContentCache cache,
     IDocumentUrlService urls,
-    IUmbracoContextAccessor contextAccessor) : IContentFinder
+    IUmbracoContextAccessor contextAccessor,
+    IRedirectUrlService redirects) : IContentFinder
 {
     public Task<bool> TryFindContent(IPublishedRequestBuilder request)
     {
@@ -96,6 +98,26 @@ public sealed class AntcPublicContentFinder(
 
         IPublishedContent? home = Child(Child(site, "pageManagement"), "home");
         string path = request.AbsolutePathDecoded.Trim('/');
+        if (!preview && AntcPublicPaths.LegacyEmergencyPath(path) is { } emergencyRedirect)
+        {
+            var emergency = Child(home, "ungPhoPage");
+            var destination = AntcPublicPaths.FixedAlias(emergencyRedirect) == "wizardPage" ? Child(emergency, "wizardPage") : emergency;
+            if (destination?.TemplateId is > 0)
+            {
+                request.SetRedirectPermanent(emergencyRedirect + request.Uri.Query);
+                return Task.FromResult(true);
+            }
+        }
+        if (!preview && (path.Equals("quan-ly-trang/trang-chu/lien-he-dung-noi", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("quan-ly-trang/trang-chu/lien-he", StringComparison.OrdinalIgnoreCase)))
+        {
+            var contact = Child(home, "lienHePage");
+            if (contact?.TemplateId is > 0)
+            {
+                request.SetRedirectPermanent("/lien-he/" + request.Uri.Query);
+                return Task.FromResult(true);
+            }
+        }
         if (!preview && (path.Equals("quan-ly-trang/trang-chu/hay-tu-kiem-tra", StringComparison.OrdinalIgnoreCase)
             || path.Equals("cong-cu-checklist", StringComparison.OrdinalIgnoreCase)))
         {
@@ -139,7 +161,18 @@ public sealed class AntcPublicContentFinder(
                 return Task.FromResult(true);
             }
         }
+        // Cac trang co dinh cua Cac rui ro tim theo khoa, khong phu thuoc vi tri tren cay.
+        IPublishedContent? RiskPage(string alias) =>
+            RiskStructure.Pages.FirstOrDefault(x => x.Alias == alias) is { } page ? cache.GetById(preview, page.Key) : null;
+        // V2-13h: /cac-rui-ro/ chuyen huong 301 ve Canh bao moi khi trang nay da co template.
+        if (!preview && fixedAlias == "ruiRoPage" && RiskPage("alertListPage")?.TemplateId is > 0)
+        {
+            request.SetRedirectPermanent(AntcPublicPaths.AlertListPath + request.Uri.Query);
+            return Task.FromResult(true);
+        }
         IPublishedContent? found = fixedAlias == "home" ? home
+            : fixedAlias is "ruiRoPage" or "alertListPage" ? RiskPage(fixedAlias)
+            : fixedAlias == "wizardPage" ? Child(Child(home, "ungPhoPage"), "wizardPage")
             : fixedAlias == "cuocThiLamBaiPage" ? (Child(Child(home, "thiThangPage"), fixedAlias) ?? Child(Child(home, "thiPage"), fixedAlias) ?? Child(home, fixedAlias))
             : fixedAlias is "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" ? Child(Child(home, "congCuPage"), fixedAlias)
             : fixedAlias is not null ? (Child(home, fixedAlias) ?? (fixedAlias == "thiThangPage" ? Child(home, "thiPage") : null)) : null;
@@ -167,8 +200,8 @@ public sealed class AntcPublicContentFinder(
             }
             if (parts.Length == 3 && parts[0].Equals("hay-tu-kiem-tra", StringComparison.OrdinalIgnoreCase)
                 && parts[1].Equals("huong-dan", StringComparison.OrdinalIgnoreCase))
-                found = Children(Child(library, "viecCanLamPage"), "viecCanLamPage")
-                    .FirstOrDefault(p => string.Equals(p.Value<string>("slug"), parts[2], StringComparison.OrdinalIgnoreCase));
+                found = Children(Child(library, "actionFolder") ?? Child(library, "viecCanLamPage"), "viecCanLamPage")
+                    .FirstOrDefault(p => string.Equals(p.Value<string>("umbracoUrlName") ?? p.Value<string>("slug"), parts[2], StringComparison.OrdinalIgnoreCase));
             IPublishedContent? list = null;
             int articleIndex = 0;
             if (parts[0].Equals("chinh-sach", StringComparison.OrdinalIgnoreCase) && parts.Length <= 2)
@@ -183,8 +216,29 @@ public sealed class AntcPublicContentFinder(
             }
             if (list is not null)
                 found = parts.Length == articleIndex ? list : BySegment(list, "article", parts[articleIndex]);
-            if (parts.Length == 3 && parts[0].Equals("cac-rui-ro", StringComparison.OrdinalIgnoreCase))
-                found = RiskArticle(parts[1], parts[2]);
+            if (parts[0].Equals("cac-rui-ro", StringComparison.OrdinalIgnoreCase))
+            {
+                bool alerts = parts.Length == 3 && parts[1].Equals("canh-bao-moi", StringComparison.OrdinalIgnoreCase);
+                if (parts.Length == 2 && RiskStructure.Pages.Skip(2)
+                        .FirstOrDefault(x => RiskStructure.Slug(x).Equals(parts[1], StringComparison.OrdinalIgnoreCase)) is { } group)
+                    found = cache.GetById(preview, group.Key);
+                else if (alerts && navigation.TryGetChildrenKeysOfType(RiskStructure.AlertFolderKey, "alertPage", out IEnumerable<Guid> alertKeys))
+                    found = alertKeys.Select(key => cache.GetById(preview, key)).OfType<IPublishedContent>()
+                        .FirstOrDefault(x => string.Equals(urls.GetUrlSegment(x.Key, request.Culture ?? string.Empty, preview), parts[2], StringComparison.OrdinalIgnoreCase));
+                else if (parts.Length == 3)
+                    found = RiskArticle(parts[1], parts[2]);
+            }
+        }
+        if (found is null && !preview && path.StartsWith("hay-tu-kiem-tra/huong-dan/", StringComparison.OrdinalIgnoreCase))
+        {
+            var redirect = redirects.GetMostRecentRedirectUrl("/" + path + "/");
+            var destination = redirect is null ? null : cache.GetById(false, redirect.ContentKey);
+            var location = destination?.Url();
+            if (destination?.TemplateId is > 0 && location?.StartsWith('/') == true && location.Trim('/') != path)
+            {
+                request.SetRedirectPermanent(location + request.Uri.Query);
+                return Task.FromResult(true);
+            }
         }
         if (found is null) return Task.FromResult(false);
         request.SetPublishedContent(found);

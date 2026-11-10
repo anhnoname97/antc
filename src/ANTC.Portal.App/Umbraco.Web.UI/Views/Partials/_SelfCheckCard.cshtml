@@ -1,14 +1,16 @@
 @model SelfCheckCard
 @{
     var ready = !string.IsNullOrWhiteSpace(Model.Url);
-    var cardClass = "self-check-card" + (Model.Urgent ? " self-check-card--urgent" : "") + (!ready ? " self-check-card--pending" : "");
+    var compact = ViewData["CompactCard"] is true;
+    var cardClass = "self-check-card" + (Model.Urgent ? " self-check-card--urgent" : "") + (!ready ? " self-check-card--pending" : "") + (compact ? " self-check-card--compact" : "");
 }
 @if (ready)
 {
     <a class="@cardClass" href="@Model.Url">
         <span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Icon)</span>
         <span class="self-check-card__body"><b>@Model.Title</b>@if (!string.IsNullOrWhiteSpace(Model.Description)) { <span>@Model.Description</span> }</span>
-        <span class="self-check-card__action">Mở @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-arrow-right")</span>
+        @if (compact) { <span class="self-check-card__action" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</span> }
+        else { <span class="self-check-card__action">@(ViewData["ActionLabel"] as string ?? "Mở") @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-arrow-right")</span> }
     </a>
 }
 else

@@ -1,0 +1,11 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    var tactics = Model.Root().Descendants().Where(node => node.ContentType.Alias == "tacticItem" && node.Value<bool>("isActive")
+        && node.Value<IPublishedContent>("containingArticle")?.Key == Model.Key).OrderBy(node => node.SortOrder).ToArray();
+}
+@if (tactics.Length > 0)
+{
+    <section class="self-check-section" aria-labelledby="article-tactics-title"><h2 id="article-tactics-title">Thủ đoạn thường gặp</h2>
+        @foreach (var tactic in tactics) { <section id="tactic-@tactic.Key.ToString("N")" class="emergency-tactic"><h3>@tactic.Name</h3></section> }
+    </section>
+}

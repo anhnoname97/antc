@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Umbraco.Plugin.Custom.Core.PortalV2.Schema;
 
 namespace Umbraco.Plugin.Custom.Core.Content;
 
@@ -7,19 +8,37 @@ public static class AntcPublicPaths
 {
     private static readonly IReadOnlyDictionary<string, string> FixedPaths = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-        ["home"] = "/", ["ungPhoPage"] = "/ung-pho/", ["thuDoanPage"] = "/thu-doan/",
+        ["home"] = "/", ["ungPhoPage"] = "/khan-cap/", ["thuDoanPage"] = "/thu-doan/",
         ["thamGiaPage"] = "/tham-gia/", ["thiThuPage"] = "/thu-suc/", ["thiPage"] = "/cuoc-thi-truc-tuyen/",
         ["thiThangPage"] = "/cuoc-thi/", ["cuocThiLamBaiPage"] = "/thi/",
         ["hoiDapPage"] = "/hoi-dap/", ["chinhSachPage"] = "/chinh-sach/", ["searchPage"] = "/tim-kiem/",
         ["congCuPage"] = "/hay-tu-kiem-tra/",
+        ["wizardPage"] = "/khan-cap/kiem-tra/",
+        ["lienHePage"] = "/lien-he/",
         ["truocKhiChuyenTienPage"] = "/hay-tu-kiem-tra/truoc-khi-chuyen-tien/",
         ["truocKhiDauTuVayPage"] = "/hay-tu-kiem-tra/truoc-khi-dau-tu-vay/",
-        ["khiNghiBiLuaPage"] = "/hay-tu-kiem-tra/khi-nghi-bi-lua/"
+        ["khiNghiBiLuaPage"] = "/hay-tu-kiem-tra/khi-nghi-bi-lua/",
+        ["ruiRoPage"] = "/cac-rui-ro/",
+        ["alertListPage"] = AlertListPath
     };
+
+    /// <summary>Trang Canh bao moi; /cac-rui-ro/ chuyen huong 301 ve day (V2-13h).</summary>
+    public const string AlertListPath = "/cac-rui-ro/canh-bao-moi/";
+
+    /// <summary>Duong dan trang nhom rui ro theo QD-053, vi du /cac-rui-ro/lua-dao/.</summary>
+    public static string? RiskGroupPath(string alias) =>
+        RiskStructure.Pages.Skip(2).FirstOrDefault(x => x.Alias == alias) is { } group ? $"/cac-rui-ro/{RiskStructure.Slug(group)}/" : null;
 
     public static bool IsManagement(string alias) =>
         alias is "antc" or "pageManagement" or "contentManagement" or "articleManagement"
-            or "fraudContent" or "policyContent" or "checklistFolderV2";
+            or "fraudContent" or "policyContent" or "checklistFolderV2" or "actionFolder";
+
+    public static string? LegacyEmergencyPath(string path) => path.Trim('/').ToLowerInvariant() switch
+    {
+        "ung-pho" => "/khan-cap/",
+        "ung-pho/kiem-tra" => "/khan-cap/kiem-tra/",
+        _ => null
+    };
 
     public static string? FixedAlias(string path)
     {
@@ -63,6 +82,7 @@ public static class AntcPublicPaths
     public static string? GetPath(string alias, string? segment, string? parentPath = null, string? listRole = null)
     {
         if (FixedPaths.TryGetValue(alias, out string? path)) return path;
+        if (RiskGroupPath(alias) is { } groupPath) return groupPath;
         if (IsPolicyLibrary(alias, listRole)) return "/chinh-sach/";
         if (string.IsNullOrWhiteSpace(segment)) return null;
         return alias switch
@@ -70,6 +90,7 @@ public static class AntcPublicPaths
             "articleList" => $"/thu-doan/{segment}/",
             "article" or "riskArticlePage" when parentPath is not null => $"{parentPath.TrimEnd('/')}/{segment}/",
             "qaItem" => $"/hoi-dap/{segment}/",
+            "alertPage" => $"{AlertListPath}{segment}/",
             _ => null
         };
     }

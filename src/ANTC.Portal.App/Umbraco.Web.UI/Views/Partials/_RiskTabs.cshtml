@@ -1,0 +1,9 @@
+@model IReadOnlyList<RiskTab>
+<nav class="risk-tabs" aria-label="Các nhóm rủi ro">
+    <ul class="risk-tabs__list">
+        @foreach (var tab in Model)
+        {
+            <li><a href="@tab.Url" aria-current="@(tab.Current ? "page" : null)">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", tab.Icon)<span>@tab.Name</span></a></li>
+        }
+    </ul>
+</nav>

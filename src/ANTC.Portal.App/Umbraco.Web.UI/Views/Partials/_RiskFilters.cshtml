@@ -1,0 +1,28 @@
+@model RiskFilterView
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@* Ô tìm và bộ lọc của Các rủi ro (V2-13h); lọc qua địa chỉ ?q=, ?kenh=, ?doi-tuong=, ?muc-do=, ?ngay=. *@
+<form class="risk-tools" method="get" action="@Model.Action" role="search" data-risk-filters>
+    <label class="risk-tools__label" for="risk-q">Bạn muốn tìm tình huống nào?</label>
+    <div class="risk-search">
+        <input type="search" id="risk-q" name="q" value="@Model.Query.Text" maxlength="120" placeholder="Ví dụ: việc làm online, đặt cọc, người lạ đến nhà." autocomplete="off" enterkeyhint="search">
+        <button type="submit" class="risk-btn risk-btn--primary">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "search")<span>Tìm</span></button>
+    </div>
+    <p class="risk-small">Không nhập số điện thoại, số tài khoản hoặc tên riêng.</p>
+    <div class="risk-filters@(Model.Dates.Count > 0 ? " risk-filters--four" : "")" role="group" aria-label="Bộ lọc">
+        <label class="risk-select"><span>Kênh</span>
+            <select name="kenh"><option value="">Tất cả</option>@foreach (var o in Model.Channels) { <option value="@o.Code" selected="@(o.Code == Model.Query.Channel)">@o.Name</option> }</select>
+        </label>
+        <label class="risk-select"><span>Đối tượng</span>
+            <select name="doi-tuong"><option value="">Tất cả</option>@foreach (var o in Model.Audiences) { <option value="@o.Code" selected="@(o.Code == Model.Query.Audience)">@o.Name</option> }</select>
+        </label>
+        <label class="risk-select"><span>Mức độ</span>
+            <select name="muc-do"><option value="">Tất cả</option>@foreach (var o in AlertList.Levels) { <option value="@o.Code" selected="@(o.Code == Model.Query.Level)">@o.Name</option> }</select>
+        </label>
+        @if (Model.Dates.Count > 0)
+        {
+            <label class="risk-select"><span>Ngày</span>
+                <select name="ngay"><option value="">Tất cả</option>@foreach (var o in Model.Dates) { <option value="@o.Code" selected="@(o.Code == Model.Query.Date)">@o.Name</option> }</select>
+            </label>
+        }
+    </div>
+</form>

@@ -1,0 +1,42 @@
+@model RiskAlertCardView
+@using System.Globalization
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@{
+    var item = Model.Item;
+    var tone = AlertList.LevelTone(item.Level);
+    var levelIcon = tone switch { "d" => "stop", "h" => "clock", _ => "info" };
+    var isAlert = item.Kind == "cb";
+    // Du lieu cho risk-alerts.js loc tai cho; chu da bo dau giong AlertList.Normalize.
+    var age = item.Updated is { } u ? AlertFreshness.Age(u, Model.Today) : 99999;
+}
+<a class="risk-card" href="@item.Url" hidden="@Model.Hidden" data-risk-card
+   data-kenh="@string.Join(' ', item.Channels)" data-doi-tuong="@string.Join(' ', item.Audiences)" data-muc-do="@item.Level"
+   data-age="@(isAlert ? age : -1)" data-archived="@(Model.Archived ? "1" : "0")"
+   data-title="@AlertList.Normalize(item.Title)" data-text="@AlertList.Normalize($"{item.Title} {item.Summary} {item.Agency} {item.Keywords}")">
+    <span class="risk-spot risk-spot--@tone">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", item.Icon)</span>
+    <span class="risk-card__body">
+        @if (!isAlert)
+        {
+            <small class="risk-card__type">@AlertList.KindName(item.Kind)</small>
+        }
+        else if (item.Agency is not null)
+        {
+            <small class="risk-label risk-label--source">Dựa trên cảnh báo của @item.Agency</small>
+        }
+        else
+        {
+            <small class="risk-label risk-label--check">Cần kiểm chứng · Chưa có kết luận</small>
+        }
+        <b class="risk-card__title">@item.Title</b>
+        @if (!string.IsNullOrWhiteSpace(item.Summary)) { <span class="risk-card__desc">@item.Summary</span> }
+        <span class="risk-card__meta">
+            @if (item.Level.Length > 0)
+            {
+                <span class="risk-level risk-level--@tone">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", levelIcon)<span>@RiskAlertContent.LevelName(item.Level)</span></span>
+            }
+            @if (item.Minutes > 0) { <span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "clock")@item.Minutes phút đọc</span> }
+            @if (isAlert && item.Updated is { } updated) { <time datetime="@updated.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">@updated.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)</time> }
+            @if (Model.Archived) { <span class="risk-stale">Lưu trữ</span> }
+        </span>
+    </span>
+</a>

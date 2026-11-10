@@ -6,8 +6,21 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class AntcPublicPathsTests
 {
     [Theory]
+    [InlineData("/ung-pho/", "/khan-cap/")]
+    [InlineData("/UNG-PHO", "/khan-cap/")]
+    [InlineData("/ung-pho/kiem-tra/", "/khan-cap/kiem-tra/")]
+    [InlineData("/ung-pho/khong-ton-tai/", null)]
+    [InlineData("/khan-cap/", null)]
+    public void Legacy_emergency_urls_redirect_only_known_pages(string path, string? expected)
+    {
+        Assert.Equal(expected, AntcPublicPaths.LegacyEmergencyPath(path));
+    }
+
+    [Theory]
     [InlineData("home", "/")]
-    [InlineData("ungPhoPage", "/ung-pho/")]
+    [InlineData("ungPhoPage", "/khan-cap/")]
+    [InlineData("wizardPage", "/khan-cap/kiem-tra/")]
+    [InlineData("lienHePage", "/lien-he/")]
     [InlineData("thiThuPage", "/thu-suc/")]
     [InlineData("thiThangPage", "/cuoc-thi/")]
     [InlineData("cuocThiLamBaiPage", "/thi/")]
@@ -17,6 +30,8 @@ public class AntcPublicPathsTests
     [InlineData("truocKhiChuyenTienPage", "/hay-tu-kiem-tra/truoc-khi-chuyen-tien/")]
     [InlineData("truocKhiDauTuVayPage", "/hay-tu-kiem-tra/truoc-khi-dau-tu-vay/")]
     [InlineData("khiNghiBiLuaPage", "/hay-tu-kiem-tra/khi-nghi-bi-lua/")]
+    [InlineData("ruiRoPage", "/cac-rui-ro/")]
+    [InlineData("alertListPage", "/cac-rui-ro/canh-bao-moi/")]
     public void Page_paths_do_not_expose_management_nodes(string alias, string path)
     {
         Assert.Equal(path, AntcPublicPaths.GetPath(alias, "ten-trang"));
@@ -117,4 +132,17 @@ public class AntcPublicPathsTests
     [InlineData("1", "/hay-tu-kiem-tra/bai-doc/chuyen-de-1/")]
     [InlineData("8", "/hay-tu-kiem-tra/bai-doc/chuyen-de-8/")]
     public void Source_readings_have_canonical_public_paths(string number, string path) => Assert.Equal(path, AntcPublicPaths.SelfCheckReadingPath(number));
+
+    [Fact]
+    public void Alerts_live_under_the_alert_list() =>
+        Assert.Equal("/cac-rui-ro/canh-bao-moi/ung-dung-gia-mao/", AntcPublicPaths.GetPath("alertPage", "ung-dung-gia-mao"));
+
+    [Fact]
+    public void Alerts_without_segment_have_no_url() => Assert.Null(AntcPublicPaths.GetPath("alertPage", null));
+
+    [Theory]
+    [InlineData("luaDaoPage", "/cac-rui-ro/lua-dao/")]
+    [InlineData("vayVaNoPage", "/cac-rui-ro/vay-va-no/")]
+    [InlineData("baoHiemVaTietKiemPage", "/cac-rui-ro/bao-hiem-va-tiet-kiem/")]
+    public void Risk_groups_use_fixed_slugs(string alias, string path) => Assert.Equal(path, AntcPublicPaths.GetPath(alias, "ten-tren-cay"));
 }

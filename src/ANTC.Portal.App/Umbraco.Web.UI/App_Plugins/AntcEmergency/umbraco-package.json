@@ -1,0 +1,34 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "ANTC Khẩn cấp",
+  "version": "1.3.0",
+  "allowPublicAccess": false,
+  "extensions": [
+    {
+      "type": "propertyEditorUi", "alias": "Antc.PropertyEditorUi.WizardUsage", "name": "Thủ đoạn theo lựa chọn trình hỏi",
+      "element": "/App_Plugins/AntcEmergency/wizard-usage.js?v=1.0.0",
+      "meta": { "label": "Thủ đoạn theo lựa chọn", "icon": "icon-info", "group": "common", "propertyEditorSchemaAlias": "Umbraco.Label" }
+    },
+    {
+      "type": "propertyEditorUi",
+      "alias": "Antc.PropertyEditorUi.EmergencyList",
+      "name": "Bảng và cửa vào Khẩn cấp",
+      "element": "/App_Plugins/AntcEmergency/emergency-list.js?v=1.3.0",
+      "meta": { "label": "Bảng Khẩn cấp", "icon": "icon-alert", "group": "common", "propertyEditorSchemaAlias": "Antc.InlineList" }
+    },
+    {
+      "type": "propertyEditorUi",
+      "alias": "Antc.PropertyEditorUi.WizardAnswers",
+      "name": "Lựa chọn trình hỏi của thủ đoạn",
+      "element": "/App_Plugins/AntcEmergency/wizard-answer-picker.js?v=1.0.0",
+      "meta": { "label": "Lựa chọn trình hỏi", "icon": "icon-checkbox", "group": "common", "propertyEditorSchemaAlias": "Umbraco.MultipleTextstring" }
+    },
+    {
+      "type": "propertyEditorUi",
+      "alias": "Antc.PropertyEditorUi.EmergencyInfo",
+      "name": "Thông tin nội dung Khẩn cấp dùng chung",
+      "element": "/App_Plugins/AntcEmergency/emergency-info.js?v=1.0.0",
+      "meta": { "label": "Thông tin Khẩn cấp", "icon": "icon-info", "group": "common", "propertyEditorSchemaAlias": "Umbraco.Label" }
+    }
+  ]
+}

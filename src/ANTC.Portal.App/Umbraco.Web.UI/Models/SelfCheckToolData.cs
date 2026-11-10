@@ -32,9 +32,8 @@ public static class SelfCheckToolDataBuilder
             foreach (var block in entries?.AsEnumerable() ?? Enumerable.Empty<BlockListItem>())
             {
                 var source = block.Content.Value<IPublishedContent>("page");
-                var steps = source?.Value<BlockListModel>("steps");
                 var index = block.Content.Value<int>("step") - 1;
-                var summary = index >= 0 && index < (steps?.Count ?? 0) ? steps![index].Content.Value<string>("summary") : null;
+                var summary = ActionGuideData.Step(source, index + 1)?.MainText;
                 if (string.IsNullOrWhiteSpace(summary)) { complete = false; continue; }
                 actions.Add(summary);
             }

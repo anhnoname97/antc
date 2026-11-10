@@ -68,7 +68,7 @@
             {
                 var toolTitle = tool.Value<string>("title");
                 if (string.IsNullOrWhiteSpace(toolTitle)) { toolTitle = tool.Name; }
-                @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(toolTitle, tool.Value<string>("card"), ToolIcon(tool), PublicLink(tool), tool.ContentType.Alias == "khiNghiBiLuaPage"))
+                @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(toolTitle, tool.Value<string>("card"), ToolIcon(tool), PublicLink(tool), tool.ContentType.Alias == "khiNghiBiLuaPage"), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["ActionLabel"] = "Bắt đầu" })
             }
         </div>
     </section>
@@ -82,7 +82,9 @@
                 {
                     var checklistTitle = checklist.Value<string>("title");
                     if (string.IsNullOrWhiteSpace(checklistTitle)) { checklistTitle = checklist.Name; }
-                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(checklistTitle, null, checklist.Value<string>("icon") ?? "icon-check", PublicLink(checklist)))
+                    var source = checklist.Value<IPublishedContent>("src");
+                    var sourceTitle = source?.Name;
+                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(checklistTitle, sourceTitle, checklist.Value<string>("icon") ?? "icon-check", PublicLink(checklist)), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["CompactCard"] = true })
                 }
             </div>
         }
@@ -101,7 +103,12 @@
                     var content = block.Content;
                     var label = content.Value<string>("nhan");
                     if (string.IsNullOrWhiteSpace(label)) { continue; }
-                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(label, content.Value<string>("desc"), content.Value<string>("ic") ?? "icon-help-alt", PublicLink(content.Value<IPublishedContent>("trang"))))
+                    var cardUrl = content.Value<string>("destinationUrl")?.Trim();
+                    if (string.IsNullOrEmpty(cardUrl) || !cardUrl.StartsWith('/') || !Url.IsLocalUrl(cardUrl))
+                    {
+                        cardUrl = PublicLink(content.Value<IPublishedContent>("trang"));
+                    }
+                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(label, content.Value<string>("desc"), content.Value<string>("ic") ?? "icon-help-alt", cardUrl), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["CompactCard"] = true })
                 }
             </div>
         </section>
