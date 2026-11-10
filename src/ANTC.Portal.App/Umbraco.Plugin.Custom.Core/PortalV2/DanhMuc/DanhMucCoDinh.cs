@@ -61,8 +61,11 @@ public static class DanhMucCoDinh
         ("gift", "Quà"), ("home", "Nhà"), ("mega", "Loa"), ("trophy", "Cúp"),
     }.Select(x => new MucDanhMuc(x.Code, x.Name + " · " + x.Code)).ToArray());
 
+    public static readonly DanhSachCoDinh LoaiLuaChonTrinhHoi = List("loaiLuaChonTrinhHoi", "Danh mục · Loại lựa chọn trình hỏi",
+        ("phaiDung", "Phải dừng"), ("tamHoan", "Tạm hoãn"));
+
     public static IReadOnlyList<DanhSachCoDinh> All { get; } =
-        [MucDo, LoaiBai, HinhThucLienHe, KieuCuaVao, HinhMinhHoaCuaVao, DaiTrenCung, BieuTuong, LoaiCauKiemTra, NghiaCauTraLoi];
+        [MucDo, LoaiBai, HinhThucLienHe, KieuCuaVao, HinhMinhHoaCuaVao, DaiTrenCung, BieuTuong, LoaiCauKiemTra, NghiaCauTraLoi, LoaiLuaChonTrinhHoi];
 
     public static DanhSachCoDinh? Get(string? id) => All.FirstOrDefault(x => x.Id == id);
 

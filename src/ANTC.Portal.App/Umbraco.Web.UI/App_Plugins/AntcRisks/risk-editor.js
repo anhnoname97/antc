@@ -3,10 +3,10 @@ import { html, css, nothing, repeat } from '@umbraco-cms/backoffice/external/lit
 import { UMB_DOCUMENT_PROPERTY_DATASET_CONTEXT, UMB_DOCUMENT_WORKSPACE_CONTEXT } from '@umbraco-cms/backoffice/document';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import '@umbraco-cms/backoffice/content';
-import { RiskApi, list, refs, keyOf, value, label, editorRefs } from './risk-api.js?v=1.1.0';
-import { responsiveShell } from './responsive-shell.js?v=1.1.0';
+import { RiskApi, list, refs, keyOf, value, label, editorRefs } from './risk-api.js?v=1.2.0';
+import { responsiveShell } from './responsive-shell.js?v=1.2.0';
 
-const dateOnly = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const dateOnly = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const plain = s => typeof s === 'object' ? s?.markup?.replace(/<[^>]*>/g, ' ') || '' : String(s || '').replace(/<[^>]*>/g, ' ');
 
 class AntcRiskEditor extends UmbLitElement {
@@ -38,18 +38,21 @@ class AntcRiskEditor extends UmbLitElement {
     }
     _scheduleTextareaLayout() {
         cancelAnimationFrame(this._textareaFrame);
-        this._textareaFrame = requestAnimationFrame(() => {
+        this._textareaFrame = requestAnimationFrame(async () => {
             if (!this.isConnected) return;
             // UUI auto-height can measure a hidden tab as zero width. Re-measure visible controls through its public API.
-            const visit = root => {
+            const visit = async root => {
                 for (const element of root?.children ?? []) {
+                    // Property editors render their controls asynchronously after the workspace tab.
+                    if (element.updateComplete) await element.updateComplete;
+                    if (!this.isConnected) return;
                     if (element.localName === 'uui-textarea' && element.autoHeight && element.getBoundingClientRect().width > 0)
                         element.autoUpdateHeight();
-                    if (element.shadowRoot) visit(element.shadowRoot);
-                    visit(element);
+                    if (element.shadowRoot) await visit(element.shadowRoot);
+                    await visit(element);
                 }
             };
-            visit(this.renderRoot.querySelector('[role=tabpanel]:not([hidden])'));
+            await visit(this.renderRoot.querySelector('[role=tabpanel]:not([hidden])'));
         });
     }
     async _refresh() {
@@ -65,7 +68,7 @@ class AntcRiskEditor extends UmbLitElement {
         }, 250);
     }
     updated(changed) {
-        if (changed.has('_tab') || changed.has('_aliases')) this._scheduleTextareaLayout();
+        if (['_tab', '_aliases', '_values', '_derived', '_type'].some(key => changed.has(key))) this._scheduleTextareaLayout();
         if (this._isNew && this._dataset && this._aliases.length) {
             if (this._type === 'riskArticlePage' && !this._values.articleKind) this._dataset.setPropertyValue('articleKind', ['Bài hướng dẫn']);
             if (this._type === 'alertPage') {
@@ -159,9 +162,8 @@ class AntcRiskEditor extends UmbLitElement {
     }
     _image() { return this._box('Ảnh minh họa', ['illustration', 'illustrationAlt'], 'Ảnh lớn dưới tiêu đề trang · dùng chung (illustrationBase)'); }
     _freshness() {
-        const date = this._values.updatedDate;
-        const days = date ? Math.floor((new Date(dateOnly()) - new Date(String(date).slice(0, 10))) / 86400000) : null;
-        return html`<p class="hint">${days == null ? 'Chưa có ngày cập nhật' : days <= 90 ? `Còn ở mục “mới” thêm ${90 - days} ngày. Tự gỡ sau ${Math.max(0, (this._values.autoUnpublishDays || 180) - days)} ngày.` : 'Đã quá 90 ngày: xuống mục Lưu trữ.'}</p><p class="hint">Hẹn giờ: dùng lịch xuất bản có sẵn của Umbraco ở thanh dưới.</p>`;
+        const left = this._derived?.freshDaysLeft;
+        return html`<p class="hint">${left == null ? 'Chưa có ngày cập nhật' : left >= 0 ? `Còn ở mục “mới” thêm ${left} ngày. Tự gỡ sau ${this._derived.autoUnpublishDaysLeft} ngày.` : 'Đã quá 90 ngày: xuống mục Lưu trữ.'}</p><p class="hint">Hẹn giờ: dùng lịch xuất bản có sẵn của Umbraco ở thanh dưới.</p>`;
     }
     _document() {
         const article = this._type === 'riskArticlePage', guide = this._kind === 'Bài hướng dẫn';

@@ -15,15 +15,25 @@ public sealed class RiskStructureAdoption(IContentService contents, IContentType
     {
         using var context = contextFactory.EnsureUmbracoContext();
         var home = contents.GetById(RiskStructure.HomeKey);
-        if (home is null || home.Trashed) throw new InvalidOperationException("Không tìm thấy Trang chủ gốc để gắn Các rủi ro của AnVu29.");
+        if (home is null || home.Trashed)
+        {
+            logger.LogWarning("Bỏ qua nhận cấu trúc Các rủi ro: chưa có Trang chủ gốc.");
+            return;
+        }
+        const string pagesMarker = "antc.portal-v2.risks.fixed-pages-v1";
+        const string duplicatesMarker = "antc.portal-v2.risks.duplicates-v1";
+        const string referencesMarker = "antc.portal-v2.risks.references-v1";
+        const string retiredMarker = "antc.portal-v2.risks.retired-type-v1";
         var old = RiskStructure.Pages.ToDictionary(p => PortalV2Keys.Node(p.MockupId), p => p.Key);
-        bool haveDuplicates = old.Keys.Any(k => contents.GetById(k) is not null);
+        bool haveDuplicates = markers.GetValue(duplicatesMarker) != "done" && old.Keys.Any(k => contents.GetById(k) is not null);
         const string marker = "antc.portal-v2.risks.anvu29-adopted";
         bool initializeOrder = markers.GetValue(marker) != "done";
         RiskStructure.Reconciling.Value = true;
         try
         {
-            int rootId = home.Id;
+            int rootId = contents.GetById(RiskStructure.Pages[0].Key)?.Id ?? home.Id;
+            if (markers.GetValue(pagesMarker) != "done")
+            {
             foreach (var page in RiskStructure.Pages)
             {
                 var target = contents.GetById(page.Key);
@@ -45,6 +55,8 @@ public sealed class RiskStructureAdoption(IContentService contents, IContentType
                 if (created && !contents.Save(target).Success) throw new InvalidOperationException("Không lưu được trang gốc " + page.Name);
                 if (page.Alias == "ruiRoPage") rootId = target.Id;
             }
+            markers.SetValue(pagesMarker, "done");
+            }
             if (haveDuplicates)
             {
                 // Preserve user-created descendants before deleting the duplicate container.
@@ -53,14 +65,16 @@ public sealed class RiskStructureAdoption(IContentService contents, IContentType
                     var source = contents.GetById(PortalV2Keys.Node(page.MockupId));
                     if (source is null) continue;
                     var target = contents.GetById(page.Key)!;
-                    foreach (var child in contents.GetPagedChildren(source.Id, 0, int.MaxValue, out _).ToArray())
+                    foreach (var child in contents.GetPagedChildren(source.Id, 0, int.MaxValue, out _, null, null, null).ToArray())
                     {
                         if (old.ContainsKey(child.Key)) continue;
                         if (!contents.Move(child, target.Id).Success) throw new InvalidOperationException("Không bảo toàn được nội dung con " + child.Name);
                     }
                 }
+                if (markers.GetValue(referencesMarker) != "done")
+                {
                 foreach (var type in types.GetAll())
-                    foreach (var item in contents.GetPagedOfType(type.Id, 0, int.MaxValue, out _, null))
+                    foreach (var item in contents.GetPagedOfTypes([type.Id], 0, int.MaxValue, out _, null))
                     {
                         if (old.ContainsKey(item.Key)) continue;
                         bool changed = false, published = item.Published && !item.Edited;
@@ -76,31 +90,35 @@ public sealed class RiskStructureAdoption(IContentService contents, IContentType
                         if (published && !contents.Publish(item, ["*"]).Success)
                             throw new InvalidOperationException("Đã lưu nhưng chưa xuất bản lại được tham chiếu của " + item.Name);
                     }
+                markers.SetValue(referencesMarker, "done");
+                }
                 foreach (var page in RiskStructure.Pages.Reverse())
                 {
                     var source = contents.GetById(PortalV2Keys.Node(page.MockupId));
                     if (source is null) continue;
-                    if (contents.GetPagedChildren(source.Id, 0, 1, out long children).Any() || children > 0)
+                    if (contents.GetPagedChildren(source.Id, 0, 1, out long children, null, null, null).Any() || children > 0)
                         throw new InvalidOperationException("Nhánh trùng vẫn còn nội dung con; dừng trước khi xóa.");
                     contents.Delete(source);
                     if (contents.GetById(source.Key) is not null) throw new InvalidOperationException("Chưa xóa được nhánh trùng " + source.Name);
                     logger.LogInformation("Đã gỡ trang trùng {OldKey}; dùng trang gốc của AnVu29 {Key} ({Name}).", source.Key, page.Key, page.Name);
                 }
             }
+            markers.SetValue(duplicatesMarker, "done");
             // Remove the replacement document type only after its content and picker references have been migrated.
-            if (types.Get("riskCategoryPage") is { } retired)
+            if (markers.GetValue(retiredMarker) != "done" && types.Get("riskCategoryPage") is { } retired)
             {
-                if (contents.GetPagedOfType(retired.Id, 0, 1, out long remaining, null).Any() || remaining > 0)
+                if (contents.GetPagedOfTypes([retired.Id], 0, 1, out long remaining, null).Any() || remaining > 0)
                     throw new InvalidOperationException("riskCategoryPage còn nội dung ngoài bộ trùng đã biết; không xóa loại này.");
                 var result = await types.DeleteAsync(retired.Key, Constants.Security.SuperUserKey);
                 if (result != Umbraco.Cms.Core.Services.OperationStatus.ContentTypeOperationStatus.Success)
                     throw new InvalidOperationException("Không gỡ được loại nhóm thay thế: " + result);
                 logger.LogInformation("Gỡ loại nhóm thay thế riskCategoryPage: {Result}.", result);
             }
+            markers.SetValue(retiredMarker, "done");
             if (initializeOrder || haveDuplicates)
             {
                 var order = RiskStructure.Pages.Skip(1).ToDictionary(p => p.Key, p => p.Order);
-                var children = contents.GetPagedChildren(rootId, 0, int.MaxValue, out _)
+                var children = contents.GetPagedChildren(rootId, 0, int.MaxValue, out _, null, null, null)
                     .OrderBy(c => order.GetValueOrDefault(c.Key, int.MaxValue)).ThenBy(c => c.SortOrder).ToArray();
                 if (!contents.Sort(children).Success) throw new InvalidOperationException("Không khôi phục được thứ tự nhóm của AnVu29.");
                 markers.SetValue(marker, "done");

@@ -9,9 +9,10 @@ namespace Umbraco.Plugin.Custom.Core.Backoffice;
 /// <summary>
 /// Dam bao nhom Administrators duoc phep truy cap section quan ly cuoc thi.
 /// Umbraco chi hien thi section neu alias cua no nam trong AllowedSections cua nguoi dung.
+/// Chay o buoc Starting, truoc hang doi nen (xem AdministrationGroupInitializer).
 /// </summary>
 public sealed class ContestManagementSectionAccessHandler
-    : INotificationAsyncHandler<UmbracoApplicationStartedNotification>
+    : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {
     public const string SectionAlias = "Antc.Section.ContestManagement";
 
@@ -21,9 +22,14 @@ public sealed class ContestManagementSectionAccessHandler
         => _userGroupService = userGroupService;
 
     public async Task HandleAsync(
-        UmbracoApplicationStartedNotification notification,
+        UmbracoApplicationStartingNotification notification,
         CancellationToken cancellationToken)
     {
+        if (notification.RuntimeLevel != RuntimeLevel.Run)
+        {
+            return;
+        }
+
         IUserGroup? adminGroup = await _userGroupService.GetAsync(Constants.Security.AdminGroupKey);
         if (adminGroup is null || adminGroup.AllowedSections.Contains(SectionAlias, StringComparer.Ordinal))
         {

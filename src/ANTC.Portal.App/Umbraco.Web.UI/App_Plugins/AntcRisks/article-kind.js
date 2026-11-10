@@ -1,7 +1,7 @@
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, css } from '@umbraco-cms/backoffice/external/lit';
 import { UmbChangeEvent } from '@umbraco-cms/backoffice/event';
-import { label } from './risk-api.js?v=1.1.0';
+import { label } from './risk-api.js?v=1.2.0';
 
 const kinds = [ ['Bài hướng dẫn', 'Giúp người đọc nhận ra và xử lý một thủ đoạn. Cần dấu hiệu và việc cần làm.', 'icon-shield'],
     ['Bài đọc chuyên đề', 'Bài dài theo một trong 8 chuyên đề, dẫn tới bộ câu hỏi luyện tập.', 'icon-book-alt'],

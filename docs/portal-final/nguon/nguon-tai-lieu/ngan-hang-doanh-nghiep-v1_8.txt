@@ -1,0 +1,841 @@
+Chuyên đề: Phòng ngừa lừa đảo và rủi ro trong giao dịch, hợp đồng kinh tế của doanh nghiệp
+
+Phạm vi: tình huống đào tạo về phòng ngừa lừa đảo và rủi ro trong giao dịch, hợp đồng kinh tế của doanh nghiệp. Trọng tâm là nhận diện tín hiệu, thảo luận lựa chọn và thực hành quyết định TIẾP TỤC / TIẾP TỤC CÓ ĐIỀU KIỆN / DỪNG-XÁC MINH; không dùng để xếp loại hay so sánh người học.
+
+Kiến trúc triển khai: Phần B-C là tình huống đào tạo tuần tự. Người hướng dẫn chỉ hiển thị dữ kiện bổ sung sau khi nhóm đã thảo luận quyết định trước đó, rồi dùng phần giải thích để debrief. Bản DOCX này là tài liệu ngân hàng và hướng dẫn thảo luận, không phải bài kiểm tra chấm điểm.
+
+Bảng đối chiếu thuật ngữ
+
+Tài liệu dùng tiếng Việt làm chính. Bảng dưới đây ghi lại thuật ngữ tiếng Anh tương ứng, để người học đối chiếu khi đọc hợp đồng hoặc chứng từ bản gốc.
+
+Nhà cung cấp: vendor / supplier — bên bán hàng hóa, dịch vụ cho doanh nghiệp.
+
+Bên mua: buyer — bên mua trong giao dịch. Khi chỉ nhân sự mua hàng trong nội bộ, tài liệu dùng “nhân viên mua hàng”.
+
+Bên thụ hưởng: beneficiary — chủ tài khoản nhận tiền của một lệnh chuyển.
+
+Đơn đặt hàng: PO (purchase order) — chứng từ đặt mua đã được duyệt.
+
+Hóa đơn: invoice — chứng từ yêu cầu thanh toán.
+
+Nghiệm thu: acceptance — xác nhận đã nhận đủ hàng hoặc dịch vụ đúng thỏa thuận.
+
+Mức trần bồi thường: liability cap — mức tối đa bên vi phạm phải bồi thường theo hợp đồng.
+
+Mức rủi ro đang gánh: exposure — giá trị có thể bị mất nếu rủi ro xảy ra.
+
+Tài khoản phong tỏa: escrow — tiền do một bên trung gian giữ, chỉ giải phóng khi đủ điều kiện đã thỏa thuận.
+
+Giờ chốt lệnh trong ngày: cut-off — thời hạn chót ngân hàng nhận xử lý lệnh trong ngày làm việc.
+
+Điểm không khớp: discrepancy — chỗ dữ liệu mâu thuẫn giữa các chứng từ.
+
+Sự kiện thay đổi: change event — một thay đổi so với dữ liệu gốc đã lưu, ví dụ đổi tài khoản nhận tiền.
+
+Thứ tự ưu tiên: priority — thứ tự quyền của các bên đối với cùng một tài sản hoặc khoản phải thu.
+
+Văn bản giải phóng quyền: release — văn bản xóa bỏ quyền hoặc ràng buộc trước đó trên tài sản.
+
+Quyền bảo đảm: security interest — quyền của bên nhận bảo đảm đối với tài sản.
+
+Xác thực đa yếu tố: MFA — đăng nhập cần thêm một lớp kiểm tra ngoài mật khẩu.
+
+Bộ phận ngân quỹ: treasury — bộ phận quản lý dòng tiền và thanh toán.
+
+PHẦN A. 18 CÂU ĐỘC LẬP
+
+Ghi chú: các dòng “Mã:” dùng để đối chiếu mục tiêu đào tạo, không phải nội dung dành cho người học khi thảo luận.
+
+A01. Mức giới hạn trách nhiệm
+
+Doanh nghiệp chọn một trong bốn gói lưu trữ hồ sơ có cùng chất lượng. Thiệt hại trực tiếp tối đa thuộc phạm vi hợp đồng được xác định là 180 triệu đồng. Gói A: phí 480 triệu/năm, mức trần bồi thường 200 triệu; B: 500/400; C: 570/800; D: 650/không giới hạn. Nếu chỉ xét phí và thiệt hại trực tiếp nêu trên, chọn gói nào?
+
+A. Gói A. B. Gói B. C. Gói C. D. Gói D.
+
+Đáp án: A. Mức trần bồi thường đã vượt mức thiệt hại tối đa 180 triệu; mua mức trần bồi thường cao hơn không tạo thêm lợi ích trong giả định đề bài.
+
+Mã: KT14 | LO06-07 | MR24 | Cổng 5.
+
+A02. Khoản thanh toán bình thường
+
+Khoản phải trả 3 tỷ đến hạn hôm nay. Đơn đặt hàng, nghiệm thu, hóa đơn, tên bên thụ hưởng và tài khoản thụ hưởng đều khớp; bên thụ hưởng đã dùng 14 lần/20 tháng; không thay đổi nhà cung cấp; hai cấp phê duyệt xong. Giờ chốt lệnh trong ngày còn 20 phút; gọi xác nhận thêm sẽ làm lỡ giờ chốt lệnh trong ngày và phát sinh 18 triệu phí.
+
+A. Gọi nhà cung cấp qua số đã lưu rồi thanh toán ngày mai. B. Thực hiện lệnh đã phê duyệt trước giờ chốt lệnh trong ngày theo bên thụ hưởng hiện tại. C. Chuyển 50 triệu trước và xử lý phần còn lại sau cuộc gọi xác nhận. D. Hoãn đến ngày mai để rà soát lại.
+
+Đáp án: B. Không có sự kiện thay đổi/điểm không khớp mới; kiểm soát bổ sung có chi phí nhưng chưa xử lý rủi ro cụ thể.
+
+Mã: KT06-08 | LO04,09 | MR08 | Cổng 6-7.
+
+A03. Đơn hàng tăng đột biến
+
+Khách hàng nước ngoài hoạt động 8 năm, kiểm toán đầy đủ, từng mua ba đơn nhỏ đúng hạn. Đơn mới lớn gấp 9 lần lịch sử, giao toàn bộ 30 ngày; đề nghị trả 20% khi ký, 80% sau 60 ngày giao hàng; biên lợi nhuận cao hơn khách thay thế 4%. Mục tiêu là giới hạn rủi ro ở phần quy mô chưa được kiểm chứng nhưng vẫn giữ cơ hội thương mại.
+
+A. Nhận đơn với điều kiện hiện tại và giữ toàn bộ mức rủi ro đang gánh đến hết kỳ thanh toán. B. Giảm quy mô lô đầu, sau đó tăng theo dữ liệu thực hiện. C. Yêu cầu khách thanh toán toàn bộ trước khi giao hàng và chứng từ. D. Từ chối đơn mới chỉ vì quy mô vượt lịch sử giao dịch trước đây.
+
+Đáp án: B. Hiệu chỉnh mức rủi ro đang gánh theo quy mô mới mà vẫn giữ cơ hội.
+
+Mã: KT01,02-04,09 | LO01,02,05,07,09 | MR02-03 | Cổng 1-2,6,8.
+
+A04. Tên miền gần giống
+
+Hóa đơn đến từ accounts@titanmetlas.com; địa chỉ cũ accounts@titanmetals.com. Đơn đặt hàng/số tiền khớp; còn 2 giờ; bốn việc đều làm trong 20 phút.
+
+A. Gọi số nhà cung cấp đã lưu trong dữ liệu gốc để kiểm tra. B. Gọi số liên hệ xuất hiện trong email mới để kiểm tra. C. Yêu cầu chính địa chỉ email mới gửi lại bản PDF hóa đơn có hình chữ ký và con dấu. D. Chuyển thử 5% vào tài khoản nêu trong email rồi đánh giá.
+
+Đáp án: A. Tên miền sai khác là sự kiện cần xác minh. Phải dùng số liên hệ của nhà cung cấp đã được lưu trước sự kiện; số trong email mới, bản PDF có hình ký/đóng dấu hoặc chuyển thử tiền đều không tạo xác minh độc lập đáng tin cậy.
+
+Mã: KT05-07 | LO02-04 | MR05 | Cổng 6-7.
+
+A05. Email thật bị chiếm quyền
+
+Nhà cung cấp lâu năm gửi từ đúng email quen thuộc yêu cầu đổi bên thụ hưởng. Công ty có số bộ phận ngân quỹ lưu từ trước và cổng thông tin nhà cung cấp có xác thực đa yếu tố.
+
+A. Cập nhật tài khoản thụ hưởng theo yêu cầu trong email và lưu email làm căn cứ. B. Yêu cầu người phụ trách tài khoản trả lời trên cùng chuỗi email rồi lưu xác nhận. C. Chuyển một khoản nhỏ vào tài khoản thụ hưởng mới trước khi chuyển đủ phần còn lại. D. Gọi bộ phận ngân quỹ của nhà cung cấp qua số đã lưu từ trước để xác minh độc lập; nếu được xác nhận, thực hiện thay đổi trên cổng thông tin có xác thực đa yếu tố theo đúng quy trình phê duyệt.
+
+Đáp án: D. Email đúng địa chỉ vẫn có thể bị chiếm quyền. Yêu cầu đổi tài khoản thụ hưởng phải được xác minh ngoài chuỗi email trước khi cập nhật; cổng thông tin có xác thực đa yếu tố là kênh thực hiện được kiểm soát, không thay thế bước xác minh độc lập.
+
+Mã: KT05-08 | LO03-04 | MR04,08 | Cổng 3,6,7.
+
+A06. Giả lãnh đạo yêu cầu chuyển tiền
+
+giám đốc tài chính đang công tác nước ngoài. Kế toán nhận cuộc gọi video ngắn từ tài khoản nhắn tin thường dùng của CFO, yêu cầu chuyển 2,5 tỷ đồng vào một bên thụ hưởng chưa từng dùng cho “phí thương vụ” trước 16h và yêu cầu giữ kín. Hồ sơ 12 giao dịch ngoại lệ gần nhất cho thấy các khoản loại này đều có một dấu vết phê duyệt thứ hai trên hệ thống nội bộ; yêu cầu hiện tại không có dấu vết đó. Quy trình công ty quy định giao dịch ngoại lệ có bên thụ hưởng mới chỉ được giải ngân sau khi mục đích và chỉ dẫn thanh toán được xác minh độc lập, hồ sơ đầy đủ và có phê duyệt thứ hai trên hệ thống.
+
+A. Chuyển đủ 2,5 tỷ sau khi lưu cuộc gọi video và tin nhắn làm căn cứ. B. Gửi email công vụ cho CFO, nhận phản hồi rồi thực hiện chuyển tiền theo yêu cầu. C. Tạm dừng giải ngân; xác minh yêu cầu với CFO qua kênh công vụ hoặc đầu mối được thiết lập độc lập, bổ sung hồ sơ mục đích và đưa giao dịch qua phê duyệt thứ hai trên hệ thống. D. Chuyển trước 10% để giữ tiến độ, phần còn lại chờ phê duyệt và hồ sơ.
+
+Đáp án: C. Cuộc gọi video, tài khoản nhắn tin quen thuộc hoặc một phản hồi email riêng lẻ đều có thể bị giả mạo hay chiếm quyền. Người thụ hưởng mới, yêu cầu bí mật, tính khẩn cấp và kiểm soát bắt buộc còn thiếu tạo điểm dừng; phê duyệt thứ hai là cần nhưng không tự thay thế xác minh độc lập và hồ sơ giao dịch.
+
+Mã: KT05-07,16 | LO02-04,09 | MR06.
+
+A07. Hàng có thật, quyền chưa rõ
+
+Kho độc lập xác nhận 600 tấn kim loại đúng mã/chất lượng. Chứng từ kho từng dùng trong giao dịch tài trợ; hồ sơ chưa thể hiện quyền bên tài trợ đã giải phóng.
+
+A. Làm rõ tình trạng quyền trên lô hàng trước khi hoàn tất giao dịch. B. Thanh toán theo hợp đồng vì kho đã xác nhận hàng tồn tại thực tế. C. Giảm giá mua để bù rủi ro quyền chưa được giải phóng. D. Chia khoản thanh toán thành hai đợt nhưng giữ nguyên hồ sơ quyền.
+
+Đáp án: A. Hàng tồn tại thực tế không chứng minh tài sản không còn quyền bảo đảm hoặc quyền của bên tài trợ. Phải làm rõ tình trạng quyền trước khi hoàn tất giao dịch.
+
+Mã: KT10-12 | LO03,05,09 | MR14-15 | Cổng 4,8,9.
+
+A08. Máy là tài sản bảo đảm
+
+Máy cũ giá 4 tỷ; số sê-ri trùng danh mục tài sản bảo đảm còn dư nợ 3,1 tỷ. Ngân hàng nhận bảo đảm xác nhận có thể phối hợp bước hoàn tất giao dịch và giải chấp theo hướng dẫn chính thức.
+
+A. Trả bên bán để họ tất toán khoản vay, sau đó nhận xác nhận và bàn giao máy. B. Đặt tiền vào tài khoản phong tỏa, giải phóng khi nhận máy và biên bản bàn giao tại nhà xưởng. C. Hoàn tất ba bên, trong đó giải chấp hoặc xóa đăng ký bảo đảm, thanh toán và chuyển giao được thực hiện đồng thời theo văn bản chính thức. D. Nhận máy với giá giảm, tiếp nhận quyền bảo đảm hiện hữu và tự xử lý sau.
+
+Đáp án: C. Đồng bộ giải phóng quyền, thanh toán và chuyển giao xử lý trực tiếp rủi ro quyền; kho hoặc biên bản bàn giao đơn thuần không xóa quyền của bên nhận bảo đảm.
+
+Mã: KT10,12,15 | LO05,07,09 | MR15,25 | Cổng 4,8,9.
+
+A09. Hàng đúng mẫu, sai lô giao
+
+Hợp đồng mua 5.000 linh kiện có mẫu duyệt trước. Mẫu mẫu trước sản xuất đạt chuẩn. Khi lô hàng đến, kiểm tra ngẫu nhiên 30 sản phẩm phát hiện 9 sản phẩm dùng vật liệu khác với mẫu; quyền từ chối lô hết hiệu lực sau khi ký nghiệm thu.
+
+A. Ký nghiệm thu dựa trên mẫu mẫu trước sản xuất và kết quả kiểm tra mẫu ban đầu. B. Nhận lô hàng nhưng kéo dài bảo hành và yêu cầu bên bán thay sản phẩm lỗi. C. Nhận lô hàng với mức giảm giá để bù sai lệch vật liệu đã phát hiện. D. Mở rộng kiểm tra theo tiêu chí kỹ thuật trước nghiệm thu.
+
+Đáp án: D. Kết quả mẫu pre-production không chứng minh toàn bộ lô giao phù hợp; cần xác định phạm vi sai lệch trước khi mất quyền từ chối.
+
+Mã: KT13 | LO05-07,09 | MR17-18 | Cổng 4-5.
+
+A10. Giới hạn trách nhiệm và rủi ro bảo mật dữ liệu
+
+Dịch vụ dữ liệu phí 1 tỷ/năm; thiệt hại vận hành thường tối đa 600 triệu, nhưng vi phạm bảo mật có thể lớn hơn nhiều. Mức trần bồi thường chung 1 tỷ. Chọn cách xử lý bảo mật.
+
+A. Giữ mức trần 1 tỷ và bổ sung SLA cùng khoản giảm trừ dịch vụ cho sự cố bảo mật. B. Định lượng riêng rủi ro bảo mật do nhà cung cấp gây ra và thiết kế mức trần riêng hoặc ngoại lệ khỏi mức trần chung phù hợp. C. Nâng mức trần chung lên 2 tỷ và áp dụng đồng đều cho mọi vi phạm. D. Nâng mức trần chung lên ba năm phí và giữ cùng cơ chế cho mọi rủi ro.
+
+Đáp án: B. Rủi ro bảo mật có mức độ và cơ chế thiệt hại khác rủi ro vận hành thông thường; cần định lượng riêng rồi thiết kế mức trần hoặc ngoại lệ phù hợp, thay vì chọn một hệ số tùy ý.
+
+Mã: KT14 | LO06-07 | MR24 | Cổng 5,9.
+
+A11. Dấu hiệu nhà cung cấp liên quan nội bộ
+
+Nhà cung cấp mới có mã số thuế thật nhưng địa chỉ nhận thư trùng địa chỉ nhân viên mua hàng từng dùng; số liên hệ trả trước; ba hóa đơn ngay dưới ngưỡng đấu thầu.
+
+A. Tăng mẫu kiểm tra giao nhận của nhà cung cấp và đối chiếu thêm hóa đơn trước thanh toán. B. Yêu cầu nhà cung cấp giảm giá, cung cấp tham chiếu thương mại và hồ sơ năng lực bổ sung. C. Nâng ngưỡng đấu thầu để giảm số đơn đặt hàng cần phê duyệt riêng trong kỳ. D. Tạm chuyển quyền phê duyệt khỏi nhân viên liên quan và kiểm tra quan hệ lợi ích.
+
+Đáp án: D. Các dấu hiệu tập trung vào khả năng xung đột lợi ích hoặc nhà cung cấp liên quan nội bộ; cần tạm tách quyền và xác minh trước khi kết luận.
+
+Mã: KT16-17 | LO08-09 | MR20.
+
+A12. Dấu hiệu thông đồng nhưng hàng vẫn giao thật
+
+Nhà cung cấp giao đủ, giá cao hơn thị trường 2-4%; thắng 82% đơn do cùng nhân viên mua hàng; tiêu chí kỹ thuật thường sửa sát hạn; 14/16 đơn đặt hàng gần nhất nằm ngay dưới ngưỡng duyệt. Nhân viên mua hàng chưa kê khai quan hệ lợi ích với nhà cung cấp.
+
+A. Tạm dừng mọi mua sắm của bộ phận và rà toàn bộ giao dịch ba năm gần nhất. B. Tách bên mua khỏi nhà cung cấp này, rà nhóm đơn đặt hàng sát ngưỡng, tiêu chí đổi và quan hệ lợi ích. C. Giữ bên mua, tăng kiểm tra giao nhận và so sánh giá ở các đơn đặt hàng sắp phát sinh. D. Yêu cầu bên mua giải trình trước, giữ nguyên quyền phê duyệt cho đến khi có chứng cứ khác.
+
+Đáp án: B. Các dấu hiệu hiện tại tập trung vào quan hệ bên mua-nhà cung cấp và nhóm đơn đặt hàng sát ngưỡng; phương án này vừa chặn phơi nhiễm tiếp diễn vừa kiểm định đúng giả thuyết trước khi mở rộng phạm vi.
+
+Mã: KT16-17 | LO08 | MR21.
+
+A13. Dấu hiệu dịch vụ chưa được thực hiện - khi nào phải rà toàn bộ hợp đồng
+
+Dịch vụ bảo trì được nghiệm thu đủ 12 tháng. Nhật ký hệ thống hệ thống cho thấy 4 tháng không có phiên truy cập nhà cung cấp; cùng một quản lý ký toàn bộ 12 biên bản và hồ sơ sản phẩm bàn giao của cả năm chỉ do người này lưu giữ.
+
+A. Chỉ đối chiếu bốn tháng không có log với phiếu yêu cầu hỗ trợ và sản phẩm bàn giao của đúng bốn kỳ đó. B. Khấu trừ ngay bốn tháng phí, giữ nguyên tám tháng còn lại theo biên bản đã ký. C. Đổi người ký nghiệm thu cho kỳ sau, không rà lại các kỳ đã thanh toán trước đây. D. Rà toàn bộ 12 tháng của hợp đồng bằng log, ticket, sản phẩm bàn giao và chứng cứ độc lập.
+
+Đáp án: D. Dấu hiệu không chỉ nằm ở bốn tháng thiếu log mà còn ở cùng một người kiểm soát chứng cứ/nghiệm thu của cả năm; phạm vi toàn hợp đồng lúc này được bằng chứng biện minh.
+
+Mã: KT16-18 | LO08-10 | MR22.
+
+A14. Chia nhỏ mức rủi ro đang gánh đúng lúc
+
+10 lô hàng tiêu chuẩn, mỗi lô 1 tỷ, giao hàng tuần; có nguồn thay thế đắt hơn 1%; không biện pháp bảo đảm, không sản xuất riêng.
+
+A. Trả 10 tỷ khi ký để giữ giá và lịch giao cho cả mười lô. B. Thanh toán sau khi từng lô được giao và nghiệm thu theo hợp đồng. C. Trả 5 tỷ khi ký, 5 tỷ sau lô thứ năm và giữ lịch giao. D. Đặt 10 tỷ vào tài khoản phong tỏa, giải phóng toàn bộ sau khi nhận lô đầu.
+
+Đáp án: B. Thanh toán khớp với từng đơn vị giá trị đã giao và nghiệm thu, tránh khoản trả trước không có bảo đảm.
+
+Mã: KT09,12 | LO05,07,09 | MR09,23 | Cổng 6,8.
+
+A15. Chia nhỏ mức rủi ro đang gánh không chữa rủi ro về quyền sở hữu
+
+Một bên thứ ba xuất trình đăng ký bảo đảm còn hiệu lực đối với đúng số sê-ri tài sản doanh nghiệp định mua. Bên bán yêu cầu đặt cọc để giữ giao dịch.
+
+A. Đặt cọc qua tài khoản phong tỏa được xác minh độc lập; chỉ giải phóng khi có chứng cứ hợp lệ về giải chấp hoặc xóa đăng ký bảo đảm và chuyển quyền. B. Đặt cọc 20% và giữ quyền yêu cầu hoàn trả nếu giao dịch không hoàn tất. C. Đặt cọc 10% và giữ phần còn lại đến khi bàn giao tài sản. D. Trả 20% nhưng tăng phạt vi phạm nếu bên bán không chuyển được quyền sở hữu.
+
+Đáp án: A. Giảm tỷ lệ không xử lý rủi ro quyền. Escrow chỉ hữu ích khi bên giữ tiền và điều kiện giải phóng được xác minh, gắn trực tiếp với việc xóa quyền trước và chuyển quyền hợp lệ.
+
+Mã: KT10,12,15 | LO05,07,09 | MR15,23 | Cổng 4,8,9.
+
+A16. Hợp đồng và khả năng thu hồi
+
+Hai nhà cung cấp cùng giá 5 tỷ, chất lượng tương đương. Nhà cung cấp X: trả theo nghiệm thu, có tài sản tại nơi thi hành. Nhà cung cấp Y: trả trước 90%, tài sản chưa xác định, tranh chấp tại nơi chi phí cao. Y giảm giá 1%.
+
+A. Chọn Y để nhận giảm 50 triệu và giữ cấu trúc trả trước hiện tại. B. Chọn Y nếu bổ sung mức phạt cao hơn và quyền chấm dứt khi vi phạm. C. Chọn X với thanh toán theo nghiệm thu, giữ cơ chế hiện có. D. Coi hai phương án tương đương vì đều có bồi thường và cơ chế giải quyết tranh chấp.
+
+Đáp án: C. Trong dữ kiện đề bài, chênh lệch 1% chưa bù được mức phơi nhiễm và khả năng thu hồi bất lợi của Y.
+
+Mã: KT14-15 | LO05-07,09 | MR23-25 | Cổng 5,8,9.
+
+A17. Chứng từ vận tải chưa được xác minh
+
+Doanh nghiệp đang xem xét tài trợ 1,2 triệu USD cho một lô hàng được khai là đang vận chuyển. Bản scan vận đơn thể hiện do hãng vận tải X phát hành. Tra cứu trên kênh chính thức không thấy số vận đơn hoặc booking tương ứng; doanh nghiệp liên hệ đầu mối do hãng X công bố nhưng hãng chưa xác nhận được lô hàng. Nếu hoãn 24 giờ, doanh nghiệp mất chắc chắn 180.000 USD lợi ích thương mại. Chính sách tài trợ yêu cầu xác minh độc lập sự tồn tại của lô hàng trước giải ngân.
+
+A. Chưa giải ngân; tiếp tục xác minh trực tiếp với hãng X qua đầu mối chính thức và chấp nhận chi phí chậm đã biết. B. Giải ngân đủ 1,2 triệu USD theo bộ chứng từ hiện có để giữ lợi ích. C. Giải ngân 600.000 USD hôm nay, phần còn lại sau khi lô hàng được xác nhận. D. Yêu cầu bên bán bổ sung xác nhận của đơn vị giao nhận do họ chỉ định rồi giải ngân đủ.
+
+Đáp án: A. Giao dịch chưa vượt qua cổng xác minh độc lập bắt buộc. Giải ngân toàn phần hay một phần đều đặt tiền vào cùng rủi ro về sự tồn tại của lô hàng; xác nhận từ đơn vị do bên bán tự chọn không thay thế xác minh với đơn vị phát hành chứng từ qua kênh chính thức.
+
+Mã: KT11-12 | LO02-03,05,09 | MR12-13.
+
+A18. Nghi giao dịch gian lận sau khi đã chuyển tiền
+
+Sau 35 phút kể từ chuyển 1,2 triệu USD, bộ phận ngân quỹ phát hiện bên thụ hưởng có thể bị thay. Ngân hàng vẫn đang trong giờ làm việc; email, nhật ký hệ thống và lệnh chuyển còn nguyên.
+
+A. Họp nhóm liên quan để xác định trách nhiệm rồi mới liên hệ ngân hàng. B. Gửi yêu cầu hoàn tiền cho người nhận và chờ phản hồi trước. C. Liên hệ ngay đầu mối khẩn cấp/tra soát của ngân hàng để yêu cầu tra soát và thu hồi lệnh; đề nghị ngân hàng áp dụng biện pháp ngăn chặn trong phạm vi thẩm quyền, đồng thời khóa quyền thanh toán nghi bị lộ và bảo toàn email, log cùng lệnh chuyển. D. Chờ ý kiến pháp lý xác định bản chất vụ việc rồi kích hoạt thu hồi.
+
+Đáp án: C. Thông báo sớm cho ngân hàng giúp tối đa hóa khả năng ngăn chặn hoặc thu hồi nhưng không bảo đảm kết quả. Song song, doanh nghiệp phải khóa kênh thanh toán nghi bị xâm nhập, bảo toàn chứng cứ và kích hoạt ứng phó sự cố; không chờ họp quy trách nhiệm hay phân loại pháp lý hoàn chỉnh.
+
+Mã: KT18 | LO10 | MR04,08 | Cổng hậu sự cố.
+
+PHẦN B. 12 TÌNH HUỐNG ỨNG DỤNG
+
+*Mỗi tình huống gồm 3 điểm quyết định. Ở từng bước, hiển thị câu hỏi và 4 lựa chọn A-D; sau khi người học khóa đáp án, mới hiển thị đáp án và giải thích. Chỉ sau đó mới mở dữ kiện bổ sung cho bước tiếp theo; trả lời sai bước trước không khóa bước sau.*
+
+TH01. Nhà cung cấp lâu năm đổi bên thụ hưởng
+
+Bối cảnh: Công ty phải trả 850.000 USD cho nhà cung cấp đã giao dịch 5 năm. Hóa đơn/đơn đặt hàng đúng. 90 phút trước giờ chốt lệnh trong ngày, email từ đúng người phụ trách tài khoản báo đổi tài khoản sang ngân hàng tại quốc gia khác.
+
+B1.1: Việc nào nên làm trước?
+
+A. Gọi bộ phận ngân quỹ của nhà cung cấp qua số đã lưu từ trước trong hồ sơ nhà cung cấp/dữ liệu gốc để kiểm tra. B. Gọi người phụ trách tài khoản theo số mới trong email để kiểm tra. C. Chuyển 10% vào tài khoản thụ hưởng mới rồi gọi xác nhận. D. Yêu cầu người phụ trách tài khoản trả lời trên chuỗi email và chờ phản hồi.
+
+Đáp án: A. Giải thích: Yêu cầu đổi tài khoản phải được kiểm tra qua kênh độc lập đã tồn tại trước email; số trong dữ liệu gốc không phụ thuộc thông tin vừa nhận.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bộ phận ngân quỹ nội bộ chỉ xác nhận dữ liệu gốc hiện chưa thay đổi; chưa liên hệ được đầu mối ngân quỹ của nhà cung cấp; cổng thông tin nhà cung cấp chưa có cập nhật.
+
+B1.2: Quyết định?
+
+A. Chuyển theo bên thụ hưởng mới sau khi lưu email làm căn cứ B. Chuyển về tài khoản cũ vì nhà cung cấp từng dùng tài khoản đó C. Chia khoản tiền giữa tài khoản cũ và mới để giảm rủi ro D. Giữ khoản thanh toán đến khi nhà cung cấp xử lý xong điểm không khớp về bên thụ hưởng.
+
+Đáp án: D. Giải thích: Treasury không biết việc đổi tài khoản và cổng thông tin chưa cập nhật, nên chênh lệch về bên thụ hưởng chưa được giải quyết; chưa tài khoản nào đủ căn cứ để thanh toán.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Nhà cung cấp xác nhận hộp thư điện tử bị chiếm quyền; rà soát hệ thống cho thấy chưa có lệnh nào được gửi tới tài khoản giả.
+
+B1.3: Ưu tiên?
+
+A. Họp nhóm tài chính để xác định nguyên nhân trước khi hành động tiếp. B. Chỉ khóa luồng thanh toán liên quan rồi chờ báo cáo IT. C. Tiếp tục chặn mọi thay đổi và thanh toán liên quan; bảo toàn email, full header và log; phối hợp nhà cung cấp/IT rà các yêu cầu, giao dịch trong thời gian bị xâm nhập; báo ngân hàng ngay nếu phát hiện lệnh đã gửi. D. Yêu cầu nhà cung cấp gửi thư xác nhận có chữ ký rồi kết thúc rà soát.
+
+Đáp án: C. Giải thích: B1.2 đã giữ thanh toán nên chưa có lệnh để thu hồi. Ưu tiên là ngăn phát sinh, giữ chứng cứ và xác định đầy đủ phạm vi ảnh hưởng.
+
+Mã: KT05-08,18 | LO02-04,09-10 | MR04,08.
+
+TH02. Đơn hàng xuất khẩu tăng 8 lần
+
+Bối cảnh: Khách hàng có thật, mua đúng hạn 2 năm; đơn mới tăng 8 lần, yêu cầu giao toàn bộ trước khi trả 70% còn lại.
+
+B2.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Nhận nguyên cấu trúc 30/70 và giao toàn bộ đơn trong 30 ngày. B. Chia nhỏ lô đầu và điều chỉnh thanh toán theo dữ liệu thực hiện. C. Từ chối toàn bộ đơn mới vì quy mô tăng tám lần. D. Yêu cầu 100% trả trước rồi mới bắt đầu sản xuất và giao hàng.
+
+Đáp án: B. Giải thích: Chia nhỏ lô và điều chỉnh điều kiện thanh toán giúp giới hạn rủi ro của quy mô mới mà vẫn giữ cơ hội kinh doanh.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Khách chấp nhận chia 4 lô; thanh toán đủ giá trị từng lô trước khi doanh nghiệp giao bộ chứng từ kiểm soát quyền nhận chính lô đó.
+
+B2.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Thực hiện lô đầu theo cấu trúc mới B. Giữ nguyên quyết định từ chối mặc dù điều kiện đã đổi C. Yêu cầu bảo lãnh cho toàn bộ giá trị đơn D. Giao đủ đơn rồi cho khách trả sau.
+
+Đáp án: A. Giải thích: Cấu trúc trả tiền theo từng lô trước khi nhận chứng từ đã làm giảm rủi ro; có thể tiếp tục với lô đầu để tạo thêm dữ liệu thực hiện.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Sau lô 1, khách trả đúng hạn nhưng yêu cầu đổi bên nhận hàng cho lô 2 sang công ty khác không nêu trong hợp đồng.
+
+B2.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giao lô 2 theo người nhận hàng mới dựa trên kết quả tốt của lô 1. B. Giao lô 2 theo người nhận hàng cũ trong hợp đồng mà không làm rõ yêu cầu thay đổi. C. Tăng giá lô 2 để bù rủi ro thay đổi người nhận hàng. D. Giữ lô 2; xác minh độc lập pháp nhân và quyền nhận của người nhận mới, thẩm quyền yêu cầu của bên mua và yêu cầu tuân thủ; chỉ giao sau khi hợp đồng/chứng từ được sửa hợp lệ.
+
+Đáp án: D. Giải thích: Đổi người nhận hàng là thay đổi trọng yếu mới. Kết quả tốt của lô trước không thay thế việc xác minh tư cách, quyền nhận, thẩm quyền yêu cầu và cập nhật hợp đồng/chứng từ hợp lệ.
+
+Mã: KT02-04,09,12 | LO02-05,07,09 | MR02-03,16.
+
+TH03. Ứng trước thiết bị đặt riêng
+
+Bối cảnh: Thiết bị 12 tỷ; linh kiện đặt riêng 3 tỷ; nhà sản xuất có năng lực, có thể tự bố trí 1 tỷ vốn lưu động; ngân hàng có thể bảo lãnh hoàn trả tối đa 2 tỷ.
+
+B3.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Ứng 3 tỷ khi ký, không yêu cầu bảo lãnh cho khoản ứng B. Ứng 1,5 tỷ hôm nay và 1,5 tỷ sau 30 ngày theo lịch C. Ứng 2 tỷ khi bảo lãnh có hiệu lực, bên bán tự bố trí 1 tỷ còn lại D. Không ứng khoản nào và chấp nhận lùi lịch sản xuất sáu tuần.
+
+Đáp án: C. Giải thích: Khoản ứng 2 tỷ được bảo lãnh hoàn trả, còn bên bán có thể tự bố trí 1 tỷ; cấu trúc này đáp ứng nhu cầu sản xuất mà không tạo phần ứng không được bảo vệ.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Linh kiện sau mua có số sê-ri, có thể chuyển quyền cho bên mua.
+
+B3.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ nguyên mức ứng 2 tỷ, bên bán tự xử lý phần linh kiện còn thiếu. B. Ứng đủ 12 tỷ để bên bán chủ động toàn bộ quá trình sản xuất. C. Ứng thêm tối đa 1 tỷ theo giá trị linh kiện đã được kiểm chứng, sau khi linh kiện được định danh và tách riêng, không có quyền của bên thứ ba, được bảo hiểm và quyền sở hữu/quyền tiếp cận của bên mua được bảo đảm. D. Ứng thêm 1 tỷ theo lịch, giữ nguyên quyền của linh kiện tại bên bán.
+
+Đáp án: C. Giải thích: Khoản ứng thêm chỉ hợp lý khi gắn với linh kiện xác định được và một cấu trúc quyền, bảo hiểm, tách biệt cùng khả năng tiếp cận có thể kiểm chứng.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bên bán đề nghị giảm giá 400 triệu nếu bên mua ứng thêm 4 tỷ không biện pháp bảo đảm để “ổn định dòng tiền”.
+
+B3.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Ứng thêm 4 tỷ để nhận giảm giá 400 triệu. B. Ứng thêm 2 tỷ và chia phần còn lại theo tiến độ thời gian. C. Chưa ứng thêm 4 tỷ; chỉ xem xét khoản bổ sung nếu gắn với giá trị/tài sản hoặc bảo đảm đã kiểm chứng và nằm trong hạn mức rủi ro được phê duyệt. D. Ứng thêm 4 tỷ nhưng tăng mức phạt nếu bên bán chậm giao hàng.
+
+Đáp án: C. Giải thích: 400 triệu là lợi ích thương mại, nhưng dữ kiện hiện có không đủ chứng minh lợi ích đó bù được mức phơi nhiễm 4 tỷ không có bảo đảm.
+
+Mã: KT04,09,10,14-15 | LO05-07,09 | MR09,19,23.
+
+TH04. Hàng đã lên tàu
+
+Bối cảnh: 20 công-ten-nơ hàng xuất khẩu; bên mua trả 20%, 80% sau chứng từ. Đơn vị giao nhận vận tải báo bộ chứng từ gốc đang được chuyển qua trung gian môi giới.
+
+B4.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Xác định bên đang giữ chứng từ gốc, quyền nhận hàng và điều kiện chuyển quyền B. Tiếp tục cơ chế hiện tại vì bên mua đã trả 20% giá trị hợp đồng C. Chỉ xác nhận lịch tàu và thời gian cập cảng rồi tiếp tục giao dịch D. Yêu cầu bên mua cam kết không nhận hàng trước khi thanh toán phần còn lại.
+
+Đáp án: A. Giải thích: Bên giữ chứng từ gốc và điều kiện chuyển quyền quyết định ai có thể nhận hàng; đây là điểm phải làm rõ trước khi tiếp tục.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Đây là bộ vận đơn đường biển gốc theo lệnh (negotiable order B/L); hãng tàu xác nhận phải xuất trình và ký hậu hợp lệ để nhận hàng. Môi giới yêu cầu gửi bộ vận đơn này trực tiếp cho bên mua trước khi bên mua trả 80%.
+
+B4.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Gửi toàn bộ vận đơn gốc cho bên mua để giữ quan hệ thương mại B. Gửi một nửa chứng từ gốc, giữ một nửa cho đến khi thanh toán C. Giữ chứng từ kiểm soát quyền nhận hàng đến khi đạt điều kiện thanh toán D. Gửi bản bản chụp điện tử đầy đủ và hẹn gửi bản gốc sau khi bên mua nhận hàng.
+
+Đáp án: C. Giải thích: Với bộ vận đơn theo lệnh nêu trong dữ kiện, giao bản gốc trước khi nhận đủ tiền có thể làm mất quyền kiểm soát hàng; cần giữ chứng từ đến khi điều kiện thanh toán được đáp ứng.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bên mua đề nghị chuyển sang nhờ thu kèm chứng từ D/P qua ngân hàng và chịu thêm phí.
+
+B4.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ nguyên cơ chế cũ và từ chối thay đổi. B. Gửi chứng từ trực tiếp cho bên mua theo đề nghị. C. Chuyển sang D/P nếu chỉ thị nhờ thu quy định ngân hàng xuất trình chỉ giao bộ chứng từ kiểm soát hàng sau khi nhận đủ 80%. D. Chấp nhận thư cam kết của bên mua thay cho kiểm soát chứng từ.
+
+Đáp án: C. Giải thích: D/P giữ chứng từ tới khi nhận tiền; việc đi qua ngân hàng không tự tạo bảo đảm thanh toán nếu chỉ thị nhờ thu không quy định như vậy.
+
+Mã: KT11-12,15 | LO03,05,07,09 | MR12,16.
+
+TH05. Hợp đồng nghiệm thu mơ hồ
+
+Bối cảnh: Hệ thống xử lý nước 15 tỷ; dự thảo ghi “đạt chất lượng theo tiêu chuẩn nhà sản xuất”.
+
+B5.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Bổ sung thông số kỹ thuật, phương pháp kiểm tra kỹ thuật và thời gian test vào hợp đồng B. Giữ mô tả “tiêu chuẩn nhà sản xuất” và tăng thời hạn bảo hành C. Giữ mô tả hiện tại nhưng tăng mức phạt khi hệ thống không đạt D. Yêu cầu nhà sản xuất cấp thư xác nhận chất lượng cho từng lần nghiệm thu.
+
+Đáp án: A. Giải thích: Nghiệm thu chỉ có ý nghĩa khi tiêu chuẩn, phương pháp thử và thời gian thử được xác định; mô tả chung không tạo căn cứ khách quan để chấp nhận hoặc từ chối.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Hai bên thống nhất 6 chỉ tiêu; một chỉ tiêu dao động tự nhiên theo nguồn nước.
+
+B5.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Quy định điều kiện đầu vào/đặc tính nguồn nước, dải chấp nhận, cách lấy mẫu và số lần đo cho chỉ tiêu dao động. B. Dùng một ngưỡng tuyệt đối cho mọi mẫu, không điều chỉnh theo nguồn nước. C. Dùng giá trị trung bình của một lần đo tại thời điểm nghiệm thu cuối. D. Giao kỹ sư hai bên tự quyết khi nghiệm thu nếu số đo nằm sát ngưỡng.
+
+Đáp án: A. Giải thích: Chỉ tiêu dao động tự nhiên cần điều kiện đầu vào, dải chấp nhận và phương pháp lấy mẫu lặp lại; một ngưỡng tuyệt đối hoặc một lần đo dễ cho kết quả sai lệch.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bên bán muốn nghiệm thu mặc nhiên sau 3 ngày nếu bên mua không phản hồi; kiểm tra kỹ thuật cần 7 ngày.
+
+B5.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ nghiệm thu mặc nhiên sau ba ngày như dự thảo của bên bán. B. Giữ ba ngày nhưng tăng mức phạt nếu thử nghiệm bảy ngày phát hiện lỗi. C. Ký nghiệm thu tạm thời sau ba ngày và xử lý phần còn lại bằng bảo hành. D. Tính thời hạn nghiệm thu từ khi hệ thống, hồ sơ và điều kiện thử đã sẵn sàng; dành đủ 7 ngày thử cùng thời gian hợp lý để lập và gửi kết quả.
+
+Đáp án: D. Giải thích: Thời hạn nghiệm thu phải bắt đầu khi có đủ điều kiện thử và bao trùm toàn bộ chu kỳ thử cùng thời gian lập, gửi kết quả; nghiệm thu mặc nhiên sau ba ngày sẽ khóa quyền phản hồi quá sớm.
+
+Mã: KT13-14 | LO06-07 | MR18,23.
+
+TH06. Nhà thầu thiếu dòng tiền
+
+Bối cảnh: Nhà thầu đã hoàn thành 35% công việc, yêu cầu tăng tạm ứng thêm 20% vì ngân hàng siết tín dụng.
+
+B6.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Ứng thêm 20% ngay để nhà thầu duy trì tiến độ hiện tại B. Từ chối mọi thay đổi và kích hoạt chấm dứt hợp đồng ngay lập tức C. Xác định giá trị đã hình thành, nhu cầu vốn và biện pháp bảo đảm trước khi đổi lịch tiền D. Giảm giá hợp đồng tương đương 20% rồi giữ nguyên tiến độ thanh toán cũ.
+
+Đáp án: C. Giải thích: Trước khi đổi lịch tiền, cần xác định phần giá trị đã hình thành, nhu cầu vốn thật và biện pháp bảo đảm; khó khăn dòng tiền tự nó chưa đủ căn cứ để ứng thêm.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Có 15% vật tư đã mua, xác định được và có thể chuyển quyền sở hữu; bảo lãnh thực hiện hợp đồng còn hiệu lực.
+
+B6.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giải ngân đủ 20% theo đề nghị vì bảo lãnh thực hiện hợp đồng còn hiệu lực. B. Giải ngân tối đa theo giá trị 15% vật tư đã kiểm chứng sau khi vật tư được định danh, tách riêng, không có quyền của bên thứ ba và quyền sở hữu/quyền tiếp cận được bảo đảm; xác minh riêng phạm vi bảo lãnh thực hiện, không coi đó mặc nhiên là bảo lãnh hoàn ứng. C. Giữ nguyên lịch thanh toán cũ, không tính đến vật tư đã mua mới. D. Chia 20% thành bốn đợt bằng nhau theo thời gian mà không gắn mốc giá trị.
+
+Đáp án: B. Giải thích: Bảo lãnh thực hiện chỉ bảo vệ trong phạm vi điều khoản của chính công cụ đó. Nếu khoản tiền mới là tạm ứng, cần đánh giá riêng bảo lãnh hoàn ứng hoặc cơ chế kiểm soát tương đương.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Nhà thầu xin thêm 10% để trả nợ dự án khác.
+
+B6.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Ứng thêm 10% vì nhà thầu đã hoàn thành 35% công việc B. Chia 10% thành hai đợt và giữ mục đích trả nợ dự án khác C. Tăng mức phạt chậm tiến độ rồi cho dùng tiền sang dự án khác D. Không giải ngân cho nghĩa vụ ngoài hợp đồng, giữ vốn gắn với giá trị dự án này.
+
+Đáp án: D. Giải thích: Tiền của dự án không nên dùng trả nghĩa vụ của dự án khác; mục đích đó không tạo thêm giá trị hay bảo đảm cho hợp đồng hiện tại.
+
+Mã: KT04,09,10,14 | LO05-07,09 | MR03,19,23.
+
+TH07. Nhà cung cấp mới do trưởng phòng giới thiệu
+
+Bối cảnh: nhà cung cấp mới giá tốt, hồ sơ pháp nhân thật; trưởng phòng mua hàng thúc đẩy ký nhanh.
+
+B7.1: Dữ liệu cho thấy địa chỉ liên hệ nhà cung cấp trùng địa chỉ từng dùng của trưởng phòng. Phản ứng phù hợp nhất là gì?
+
+A. Tiếp tục quy trình tiếp nhận nhà cung cấp mới nhưng chuyển bước phê duyệt cuối cho người khác B. Yêu cầu trưởng phòng kê khai quan hệ và giữ nguyên vai trò đến khi có bằng chứng khác C. Tạm tách trưởng phòng khỏi quyết định và kiểm tra hồ sơ sở hữu/quan hệ của nhà cung cấp D. Tạm dừng toàn bộ onboarding nhà cung cấp mới của phòng để rà lại danh mục.
+
+Đáp án: C. Giải thích: Địa chỉ trùng là tín hiệu xung đột lợi ích; tách người có liên quan khỏi quyết định và kiểm tra sở hữu giúp bảo toàn tính độc lập của quy trình.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Nhà cung cấp đã giao hàng thật nhưng 11/12 đơn đặt hàng nằm dưới ngưỡng duyệt.
+
+B7.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Kiểm tra 11 đơn đặt hàng sát ngưỡng cùng hồ sơ yêu cầu mua trước, rồi mở rộng nếu thấy dấu hiệu lặp lại B. Kết luận không có gian lận vì hàng đã được giao thật C. Rà toàn bộ đơn đặt hàng của phòng trong ba năm ngay ở bước này D. Tăng ngưỡng duyệt để giảm hiện tượng chia nhỏ đơn đặt hàng.
+
+Đáp án: A. Giải thích: Mười một đơn đặt hàng sát ngưỡng là mẫu hình cụ thể cần kiểm tra có mục tiêu trước; kết quả sẽ quyết định có cần mở rộng phạm vi hay không.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Trưởng phòng có quan hệ gia đình với chủ nhà cung cấp nhưng đã không khai báo.
+
+B7.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Chỉ rà các đơn đặt hàng của nhà cung cấp hiện tại và giữ nguyên các nhà cung cấp khác do trưởng phòng phê duyệt. B. Bảo toàn dữ liệu nhưng giới hạn kiểm tra ở quan hệ gia đình đã biết với nhà cung cấp hiện tại. C. Bảo toàn dữ liệu; tiếp tục tách người liên quan; rà các giao dịch trong toàn thời kỳ trưởng phòng có quyền đề xuất, phê duyệt hoặc ảnh hưởng đến nhà cung cấp, ưu tiên nhà cung cấp/đơn đặt hàng có dấu hiệu liên quan; điều chỉnh phạm vi theo kết quả và chính sách lưu trữ. D. Chuyển quyền phê duyệt sang người khác nhưng không rà lại các giao dịch đã phát sinh.
+
+Đáp án: C. Giải thích: Quan hệ gia đình không khai báo làm bằng chứng vượt ngưỡng; cần rà toàn thời kỳ quyền lực có liên quan, ưu tiên điểm có dấu hiệu và điều chỉnh phạm vi theo kết quả.
+
+Mã: KT16-18 | LO08-10 | MR20-21.
+
+TH08. Dấu hiệu dịch vụ chưa được thực hiện
+
+Bối cảnh: nhà cung cấp tư vấn gửi hóa đơn hàng tháng; đơn đặt hàng và biên bản đầy đủ.
+
+B8.1: Log truy cập cho thấy 3 tháng không có hoạt động của nhà cung cấp. Phản ứng phù hợp nhất là gì?
+
+A. Thanh toán vì đơn đặt hàng và biên bản đã đủ hình thức B. Khấu trừ ngay ba tháng phí theo số tháng không có log C. Đối chiếu ba tháng bất thường với phiếu yêu cầu hỗ trợ, sản phẩm bàn giao và lịch nhân sự D. Mở ngay kiểm tra toàn bộ nhà cung cấp tư vấn của doanh nghiệp.
+
+Đáp án: C. Giải thích: Thiếu log là tín hiệu bất thường nhưng chưa tự chứng minh hóa đơn khống; cần đối chiếu với ticket, sản phẩm bàn giao và lịch nhân sự để xác định sự kiện kinh tế thực.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Hai trong ba tháng không có sản phẩm bàn giao; biên bản đều do cùng một quản lý ký. Ba hóa đơn này đang chờ duyệt, chưa thanh toán.
+
+B8.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Tạm dừng duyệt/thanh toán hai tháng không có sản phẩm bàn giao; kiểm tra người ký và chứng cứ đúng các kỳ đó. B. Yêu cầu nhà cung cấp giảm giá cho toàn kỳ để xử lý nhanh sai lệch. C. Chấm dứt hợp đồng ngay vì đã có hai tháng không có sản phẩm bàn giao. D. Rà toàn bộ lịch sử hợp đồng và mọi nhà cung cấp do quản lý này phụ trách ngay.
+
+Đáp án: A. Giải thích: Hai tháng không có sản phẩm bàn giao đã được khoanh vùng và chưa thanh toán; tạm dừng đúng phần đó rồi kiểm tra người ký, chứng cứ là phản ứng tương xứng.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Nhà cung cấp có cùng số điện thoại khẩn cấp với một doanh nghiệp khác cũng do quản lý này phụ trách.
+
+B8.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ phạm vi ở nhà cung cấp hiện tại và ghi nhận số điện thoại trùng như dữ kiện phụ B. Mở rộng có mục tiêu sang nhà cung cấp dùng cùng số liên hệ và giao dịch do cùng quản lý phê duyệt C. Gọi số khẩn cấp để hỏi trực tiếp quan hệ giữa hai nhà cung cấp trước khi bảo toàn dữ liệu D. Mở toàn bộ danh mục nhà cung cấp cần rà soát của doanh nghiệp không phụ thuộc người quản lý hay liên hệ.
+
+Đáp án: B. Giải thích: Số liên hệ trùng và cùng người quản lý tạo liên kết cụ thể; mở rộng có mục tiêu theo liên kết này hiệu quả hơn việc dừng quá hẹp hoặc rà toàn bộ không phân biệt.
+
+Mã: KT16-18 | LO08-10 | MR20-22.
+
+TH09. Bảo lãnh ngân hàng đáng ngờ
+
+Bối cảnh: Bên bán mới xuất trình bảo lãnh hoàn trả 2 triệu USD của ngân hàng lớn.
+
+B9.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Chấp nhận nếu tên ngân hàng và mã mã SWIFT trên tệp PDF khớp dữ liệu công khai B. Xác nhận công cụ qua kênh ngân hàng có thẩm quyền C. Đối chiếu mã tham chiếu với chứng từ bảo lãnh cũ do bên bán cung cấp D. Yêu cầu bên bán chuyển tiếp email xác nhận được cho là của ngân hàng.
+
+Đáp án: B. Giải thích: Tính xác thực của bảo lãnh phải do ngân hàng có thẩm quyền xác nhận qua kênh độc lập; PDF, mã công khai hay email do bên bán chuyển tiếp đều có thể bị làm giả.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Ngân hàng xác nhận mã tham chiếu không tồn tại.
+
+B9.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giải ngân 10% để kiểm tra khả năng thực hiện. B. Chỉ yêu cầu bên bán gửi lại PDF hoặc mã tham chiếu mới mà không xác minh thêm qua ngân hàng. C. Giữ cấu trúc cũ nhưng tăng phạt nếu bảo lãnh không hợp lệ. D. Dừng giải ngân; báo compliance/legal; yêu cầu bên bán giải trình; chỉ xem xét lại sau khi công cụ hợp lệ hoặc cấu trúc thay thế được xác minh độc lập và rà soát tăng cường đã xử lý dấu hiệu giả mạo.
+
+Đáp án: D. Giải thích: Ngân hàng đã xác nhận mã không tồn tại. Đây là dấu hiệu giả mạo cần dừng giải ngân, báo đầu mối kiểm soát và xử lý trước khi xem xét bất kỳ cấu trúc thay thế nào.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bên bán đề nghị tài khoản phong tỏa qua bên trung gian tại một đơn vị do bên bán chỉ định, chưa được kiểm chứng.
+
+B9.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Dùng tài khoản phong tỏa do bên bán chỉ định vì tiền không chuyển trực tiếp cho họ. B. Không nộp tiền; xử lý trước dấu hiệu bảo lãnh không tồn tại. Nếu còn xem xét giao dịch, phải tự chọn hoặc xác minh độc lập đơn vị tài khoản phong tỏa, tư cách pháp lý, tính độc lập, tài khoản tách biệt và điều kiện giải phóng, tranh chấp, mất khả năng thanh toán qua kênh không do bên bán kiểm soát. C. Chia 50% qua tài khoản phong tỏa và 50% chuyển cho bên bán. D. Yêu cầu tài khoản phong tỏa xác nhận bằng email do bên bán cung cấp rồi sử dụng.
+
+Đáp án: B. Giải thích: Escrow chỉ giảm rủi ro khi bên giữ tiền, tính độc lập, tài khoản tách biệt và mọi điều kiện vận hành được xác minh; dấu hiệu giả mạo trước đó phải được xử lý trước.
+
+Mã: KT09,11 | LO02-03,07,09 | MR10-12.
+
+TH10. Một tài sản bị đem tài trợ cho nhiều bên
+
+Bối cảnh: Quỹ tài trợ dựa trên khoản phải thu của nhà phân phối.
+
+B10.1: Hóa đơn, hợp đồng, xác nhận giao hàng, khả năng trả nợ của bên có nghĩa vụ và kỳ hạn khoản phải thu đã được kiểm tra. Kiểm tra bổ sung nào trực tiếp nhất xử lý nguy cơ cùng một khoản phải thu bị tài trợ nhiều lần?
+
+A. Tập trung đánh giá khả năng trả nợ của bên có nghĩa vụ thanh toán và kỳ hạn khoản phải thu B. Kiểm quyền đối với khoản phải thu và việc đã tài trợ/cầm cố trước đó C. Đối chiếu hóa đơn với lịch sử giá bán của nhà phân phối D. Xác nhận giao hàng trực tiếp với debtor nhưng không kiểm tra khoản tài trợ trước đó.
+
+Đáp án: B. Giải thích: Bộ chứng từ giao dịch đúng không loại trừ việc cùng khoản phải thu đã được tài trợ trước; quyền và thứ tự ưu tiên mới quyết định giá trị bảo đảm thực tế.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Cùng khoản phải thu xuất hiện trong hồ sơ một bên cho vay khác.
+
+B10.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ giải ngân đến khi làm rõ thứ tự ưu tiên và quyền của bên cho vay đã xuất hiện B. Giải ngân 50% để giảm mức rủi ro đang gánh trong lúc chờ làm rõ quyền C. Tăng lãi suất khoản tài trợ để bù rủi ro quyền bị trùng D. Yêu cầu thêm hóa đơn khác nhưng vẫn dùng khoản phải thu đang có tranh chấp.
+
+Đáp án: A. Giải thích: Khoản phải thu đang có quyền chồng lấn nên chưa thể xác định quyền ưu tiên; giải ngân một phần hoặc tăng lãi suất không xử lý được vấn đề quyền.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bên cho vay kia xác nhận đã được thanh toán; văn bản giải phóng quyền đã có hiệu lực theo luật điều chỉnh và việc đăng ký/thông báo cho bên có nghĩa vụ đã được cập nhật hoặc chấm dứt nếu áp dụng.
+
+B10.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Từ chối khoản tài trợ mặc dù quyền trước đã được văn bản giải phóng quyền B. Tiếp tục thẩm định và giải ngân nếu các điều kiện còn lại đạt C. Giảm hạn mức 20% mặc dù văn bản giải phóng quyền đã được xác minh D. Yêu cầu thêm tài sản bảo đảm khác thay cho khoản phải thu đã được giải chấp.
+
+Đáp án: B. Giải thích: Khi thanh toán và việc giải phóng quyền trước đã có hiệu lực và được xác minh, chướng ngại về ưu tiên được gỡ; có thể tiếp tục nếu các điều kiện còn lại đạt.
+
+Mã: KT10-12 | LO03,05,09 | MR12-15.
+
+TH11. Hợp đồng dịch vụ công nghệ
+
+Bối cảnh: Hệ thống quan trọng; phí 2 tỷ/năm; thời gian hệ thống ngừng hoạt động ước tính 300 triệu/ngày; nhà cung cấp mức trần bồi thường 2 tỷ.
+
+B11.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Chấp nhận mức trần bồi thường hiện tại dựa trên mức phí dịch vụ B. Yêu cầu trách nhiệm không giới hạn cho mọi vi phạm C. Tăng mức trần bồi thường lên gấp đôi nhưng không đánh giá thời gian khôi phục D. Định lượng thời gian hệ thống ngừng hoạt động cùng khả năng phục hồi trước khi chốt mức trần bồi thường.
+
+Đáp án: D. Giải thích: Mức trần trách nhiệm phải dựa trên tổn thất có thể xảy ra và khả năng khôi phục, không chỉ dựa trên phí dịch vụ hay một hệ số tùy ý.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Hệ thống dự phòng khởi động trong 2 giờ; phân tích kịch bản xác định tổng thiệt hại thời gian hệ thống ngừng hoạt động tối đa trong một năm hợp đồng là 500 triệu; mức trần 2 tỷ áp dụng gộp cho các khiếu nại thời gian hệ thống ngừng hoạt động và không có ngoại lệ làm giảm phạm vi này.
+
+B11.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ mức trần bồi thường 2 tỷ cho rủi ro thời gian hệ thống ngừng hoạt động theo dữ kiện mới B. Yêu cầu trách nhiệm không giới hạn mặc dù hệ thống dự phòng đã giảm thiệt hại C. Tăng mức trần bồi thường lên 10 tỷ để tạo biên an toàn D. Mua thêm bảo hiểm thời gian hệ thống ngừng hoạt động nhưng vẫn yêu cầu mức trần bồi thường 10 tỷ.
+
+Đáp án: A. Giải thích: Theo dữ kiện mới, tổng thiệt hại thời gian hệ thống ngừng hoạt động tối đa trong năm thấp hơn mức trần gộp 2 tỷ; tăng mức trần riêng cho rủi ro này không tạo thêm lợi ích đáng kể.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Vi phạm dữ liệu cá nhân không nằm trong ước tính 500 triệu.
+
+B11.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ mức trần chung 2 tỷ cho cả thời gian hệ thống ngừng hoạt động và dữ liệu. B. Tăng SLA uptime nhưng giữ nguyên xử lý vi phạm dữ liệu. C. Định lượng riêng rủi ro dữ liệu và thiết kế mức trần tăng cường hoặc ngoại lệ phù hợp, cùng nghĩa vụ thông báo, phối hợp, khắc phục, bảo mật và bồi hoàn theo luật áp dụng. D. Mua bảo hiểm nội bộ và không thay đổi phân bổ trách nhiệm hợp đồng.
+
+Đáp án: C. Giải thích: Vi phạm dữ liệu có bản chất và mức thiệt hại khác thời gian hệ thống ngừng hoạt động; cần định lượng riêng và thiết kế trách nhiệm, nghĩa vụ ứng phó phù hợp với pháp luật áp dụng.
+
+Mã: KT14-15 | LO06-07,09 | MR24-25.
+
+TH12. Đã chuyển tiền vào tài khoản gian lận
+
+Bối cảnh: 1,8 triệu USD vừa chuyển 40 phút trước theo bên thụ hưởng giả.
+
+B12.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Họp nhóm tài chính để xác định nguyên nhân trước khi gửi yêu cầu thu hồi. B. Gọi ngay ngân hàng chuyển tiền, báo giao dịch gian lận; yêu cầu phát tra soát/thu hồi, đề nghị ngân hàng nhận giữ hoặc phong tỏa tiền theo quy trình áp dụng và gửi ngay hồ sơ giao dịch cần thiết. C. Liên hệ tài khoản nhận theo thông tin trên lệnh chuyển để yêu cầu hoàn trả. D. Chờ nhà cung cấp thật xác nhận bằng văn bản rồi mới yêu cầu ngân hàng xử lý.
+
+Đáp án: B. Giải thích: Bốn mươi phút là giai đoạn cần hành động khẩn. Doanh nghiệp phải yêu cầu ngân hàng phát tra soát/thu hồi và đề nghị ngân hàng nhận áp dụng biện pháp trong phạm vi thẩm quyền; kết quả không được bảo đảm.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Ngân hàng người nhận đã nhận tiền nhưng chưa rút hết.
+
+B12.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Chuyển trọng tâm sang chuẩn bị khởi kiện dân sự trước khi hoàn tất yêu cầu thu hồi. B. Chờ ngân hàng người nhận tự xử lý rồi mới cung cấp hồ sơ. C. Yêu cầu nhà cung cấp hoàn tiền ngay và tạm dừng phối hợp ngân hàng. D. Tiếp tục phối hợp yêu cầu giữ/thu hồi tiền và cung cấp chứng cứ.
+
+Đáp án: D. Giải thích: Tiền vẫn còn tại ngân hàng người nhận nên tiếp tục phối hợp giữ, thu hồi và cung cấp chứng cứ là việc trực tiếp bảo vệ tài sản; doanh nghiệp không tự ra lệnh phong tỏa.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Đội ứng cứu của nhà cung cấp xác nhận qua kênh chính thức hộp thư điện tử bị chiếm quyền từ 3 tuần trước; IT của doanh nghiệp tìm thấy các thư liên quan trong log của chính mình.
+
+B12.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Đổi thông tin xác thực nội bộ rồi kết thúc rà soát. B. Khôi phục hệ thống trước khi lưu full header và log hiện tại. C. Giới hạn điều tra ở khoản đã chuyển, không rà các hóa đơn khác. D. Tiếp tục phối hợp ngân hàng và cơ quan chức năng; bảo toàn full header và log trước khi khắc phục; rà mọi thay đổi tài khoản thụ hưởng/hóa đơn trong thời gian liên quan; thông báo IR, legal, compliance, bảo hiểm và bên bị ảnh hưởng theo quy định.
+
+Đáp án: D. Giải thích: Mailbox bị chiếm quyền trong ba tuần có thể ảnh hưởng nhiều giao dịch; cần bảo toàn chứng cứ, xác định phạm vi, tiếp tục phục hồi tài sản và thực hiện nghĩa vụ thông báo phù hợp.
+
+Mã: KT05-08,18 | LO04,10 | MR04,08.
+
+PHẦN C. 6 TÌNH HUỐNG KHÓ/TỔNG HỢP
+
+*Mỗi tình huống gồm 4 điểm quyết định, có dữ kiện nhiễu và ít nhất một bước mà quyết định hợp lý là tiếp tục. Ở từng bước, hiển thị câu hỏi và 4 lựa chọn A-D; sau khi người học khóa đáp án, mới hiển thị đáp án và giải thích, rồi mới mở dữ kiện bổ sung tiếp theo.*
+
+THK01. Đối tác 7 năm - một dữ kiện giả
+
+Nhà cung cấp Đức 7 năm, hóa đơn 1,1 triệu EUR đúng số tiền, đơn đặt hàng, hàng, hạn thanh toán. Email đúng hộp thư điện tử thật báo đổi bên thụ hưởng sang ngân hàng khác cùng quốc gia.
+
+K1.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Chuyển theo tài khoản thụ hưởng mới vì hóa đơn, đơn đặt hàng và hạn thanh toán đều đúng. B. Tạm giữ thay đổi; xác minh ngoài chuỗi email với đầu mối ngân quỹ của nhà cung cấp qua số đã lưu trước yêu cầu, rồi chỉ cập nhật dữ liệu gốc theo quy trình hai người phê duyệt. C. Chuyển 10% vào tài khoản thụ hưởng mới để kiểm tra khả năng nhận tiền. D. Yêu cầu người phụ trách tài khoản trả lời trên chuỗi email đang dùng rồi chuyển.
+
+Đáp án: B. Giải thích: Email thật vẫn có thể bị chiếm quyền. Thay đổi tài khoản thụ hưởng phải được xác minh ngoài chuỗi email qua đầu mối đã có từ trước, sau đó mới cập nhật dữ liệu theo quy trình phê duyệt.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bộ phận ngân quỹ nội bộ chỉ xác nhận dữ liệu gốc hiện chưa thay đổi; chưa liên hệ được đầu mối ngân quỹ của nhà cung cấp; người phụ trách tài khoản đang nghỉ phép.
+
+K1.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Thanh toán vào tài khoản cũ ngay khi bộ phận ngân quỹ nói không có thay đổi B. Chia khoản thanh toán giữa tài khoản cũ và bên thụ hưởng mới để giảm rủi ro C. Thanh toán bên thụ hưởng mới vì email xuất phát từ hộp thư điện tử thật của nhà cung cấp D. Giữ lệnh đến khi nhà cung cấp xử lý chênh lệch giữa email và bộ phận ngân quỹ.
+
+Đáp án: D. Giải thích: Thông tin từ email mâu thuẫn với bộ phận ngân quỹ và người phụ trách không sẵn sàng; giữ lệnh là cần thiết cho đến khi nhà cung cấp xử lý được chênh lệch.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Đầu mối ngân quỹ của nhà cung cấp, được liên hệ qua số lưu từ trước, xác nhận hộp thư điện tử bị chiếm quyền và tài khoản cũ vẫn hợp lệ; hạn thanh toán được gia hạn 24 giờ.
+
+K1.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Dừng tất cả giao dịch với nhà cung cấp trong 30 ngày sau sự cố hộp thư điện tử B. Giảm khoản thanh toán xuống 50% nhưng vẫn dùng tài khoản cũ đã xác nhận C. Yêu cầu nhà cung cấp phát hành bảo lãnh mới trước mọi khoản thanh toán tiếp theo D. Thanh toán tài khoản cũ sau khi nhà cung cấp xác nhận và gia hạn hạn trả 24 giờ.
+
+Đáp án: D. Giải thích: Nhà cung cấp đã xác nhận tài khoản cũ còn hợp lệ và gia hạn thời hạn; có thể thanh toán theo thông tin đã xác minh thay vì áp biện pháp cực đoan không còn cần thiết.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: công nghệ thông tin thấy kẻ gian đã đọc 6 chuỗi hóa đơn khác.
+
+K1.4: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giới hạn xử lý ở hóa đơn hiện tại vì chưa phát hiện khoản mất tiền khác B. Khóa người phụ trách tài khoản khỏi luồng thanh toán rồi chờ nhà cung cấp điều tra C. Rà các thay đổi/giao dịch liên quan và bảo toàn nhật ký hệ thống D. Thay nhà cung cấp cho các giao dịch mới nhưng không rà giao dịch cũ.
+
+Đáp án: C. Giải thích: Kẻ gian đã đọc thêm sáu chuỗi hóa đơn nên phạm vi có thể rộng hơn giao dịch hiện tại; cần rà các thay đổi liên quan và bảo toàn log.
+
+Mã: MR04,08 | KT05-08,18 | LO02-04,09-10.
+
+THK02. Đơn hàng trong mơ
+
+Khách hàng mới có pháp nhân thật, vốn 5 triệu USD, đặt hàng 12 triệu USD; giá tốt hơn khách khác 5%; đề nghị 10% đặt cọc, 90% sau 75 ngày; hàng có thể bán lại nhưng mất 8% giá nếu bên mua bỏ. Hạn mức không bảo đảm được phê duyệt cho khách mới là 1 triệu USD; nếu khách bỏ, tổng chi phí giảm giá, lưu kho, logistics và chuyển đổi ước tính 20% giá trị đơn; khoản đặt cọc 10% không hoàn lại.
+
+K2.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giảm quy mô hoặc đổi thanh toán để rủi ro còn lại sau kiểm soát nằm trong hạn mức chấp nhận B. Nhận nguyên cấu trúc 10/90 và giao đủ đơn 12 triệu USD C. Từ chối toàn bộ giao dịch do giá trị đơn lớn hơn vốn của bên mua D. Yêu cầu bên mua trả 100% trước khi bắt đầu sản xuất và giao hàng.
+
+Đáp án: A. Giải thích: Đơn hàng vượt xa vốn của bên mua và để lại 90% trả chậm; giảm quy mô hoặc đổi điều kiện thanh toán giúp đưa rủi ro còn lại về hạn mức chấp nhận.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Khách chấp nhận 4 lô, mỗi lô trả 50% trước, 50% trước khi nhận chứng từ.
+
+K2.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Từ chối đơn mặc dù bên mua đã chấp nhận chia lô B. Yêu cầu thư tín dụng cho toàn bộ 12 triệu USD C. Thực hiện từng lô theo cấu trúc 50/50 vừa thống nhất D. Giao đủ bốn lô rồi thu phần còn lại sau.
+
+Đáp án: C. Giải thích: Chia bốn lô và thu 50% còn lại trước khi giao chứng từ giới hạn rủi ro theo từng lô; cấu trúc mới cho phép tiếp tục có kiểm soát.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Sau 2 lô đúng hạn, khách xin tăng lô 3 gấp đôi và trả sau 30 ngày vì “đã có lịch sử tốt”.
+
+K2.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Tăng gấp đôi lô 3 và cho trả sau 30 ngày theo đề nghị của bên mua. B. Giữ cấu trúc 50/50 cho lô 3; chỉ xem xét tăng dần quy mô hoặc phần trả chậm sau khi có thêm dữ liệu thực hiện và trong hạn mức được phê duyệt. C. Hủy phần còn lại của hợp đồng sau khi bên mua đề nghị thay đổi điều kiện. D. Giảm giá lô 3 để đổi lấy việc bên mua giữ lịch trả hiện tại.
+
+Đáp án: B. Giải thích: Hai lô tốt là dữ liệu tích cực nhưng chưa đủ cho việc đồng thời tăng quy mô và nới trả chậm; nên điều chỉnh từng biến trong hạn mức được phê duyệt.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Khách cung cấp bảo lãnh cho phần trả chậm do ngân hàng được doanh nghiệp chấp nhận phát hành; công cụ đã được xác thực độc lập, không hủy ngang, trả theo yêu cầu, có giá trị, điều kiện và thời hạn hiệu lực phù hợp.
+
+K2.4: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Chuyển toàn bộ đơn sang trả sau vì bên mua đã có lịch sử tốt B. Tăng phần trả chậm trong phạm vi công cụ bảo đảm đã xác minh C. Giữ nguyên cấm trả chậm mặc dù có công cụ bảo đảm D. Tăng phần trả chậm chỉ dựa trên hai lô đã hoàn thành.
+
+Đáp án: B. Giải thích: Công cụ đã xác minh có thể hỗ trợ phần trả chậm, nhưng chỉ trong phạm vi giá trị, điều kiện, hiệu lực và khả năng thi hành của chính công cụ.
+
+Mã: MR02-03,09,23 | KT02-04,09,15 | LO02,05,07,09.
+
+THK03. Hợp đồng hoàn toàn hợp pháp
+
+Nhà thầu uy tín cung cấp dây chuyền 30 tỷ: 70% khoản ứng trước, nghiệm thu mặc nhiên 5 ngày, mức trần bồi thường 10%, tranh chấp tại nước bên bán; không có dấu hiệu gian dối.
+
+K3.1: Rủi ro trung tâm?
+
+A. Danh tính bên bán bị giả trong quá trình giao kết hợp đồng B. Phân bổ mức rủi ro đang gánh và khả năng thu hồi khi hợp đồng thực hiện không tốt C. Chỉ dẫn thanh toán bị thay đổi bởi lừa đảo chiếm quyền email doanh nghiệp D. Nhà cung cấp được lập ra để phục vụ gian lận mua sắm nội bộ.
+
+Đáp án: B. Giải thích: Bên bán có thật và không có dấu hiệu gian dối; vấn đề chính là 70% ứng trước, nghiệm thu sớm, mức trần bồi thường thấp và khả năng thu hồi nếu thực hiện kém.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bên bán giảm giá 1 tỷ nếu giữ 70% khoản ứng trước; bên mua có thể yêu cầu bảo lãnh hoàn trả 70% với phí 180 triệu.
+
+K3.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ cấu trúc ứng trước 70% nếu bảo lãnh hoàn trả đã được xác thực độc lập, có phạm vi, điều kiện yêu cầu thanh toán, giá trị và thời hạn hiệu lực bảo vệ đầy đủ khoản ứng. B. Nhận giảm giá 1 tỷ nhưng giữ 70% ứng trước không có bảo lãnh. C. Rút khỏi giao dịch và thuê dây chuyền khác với điều kiện thị trường. D. Giữ ứng trước 70% nhưng tăng mức phạt chậm giao trong hợp đồng.
+
+Đáp án: A. Giải thích: Khoản ứng là 21 tỷ đồng; phí bảo lãnh 180 triệu đồng sau khi trừ mức giảm giá 1 tỷ đồng còn lợi ích chênh lệch 820 triệu đồng trước các chi phí khác. Bảo lãnh chỉ làm giảm đáng kể rủi ro không hoàn trả khi phạm vi, điều kiện gọi, giá trị, hiệu lực và khả năng thi hành đã được xác minh; không mặc nhiên bảo vệ mọi rủi ro thực hiện.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Kiểm tra kỹ thuật vận hành cần 14 ngày nhưng nghiệm thu mặc nhiên 5 ngày.
+
+K3.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Đặt nghiệm thu sau khi chu kỳ thử 14 ngày hoàn tất theo tiêu chí chấp nhận, quy trình khắc phục lỗi và thử lại đã thống nhất. B. Giữ nghiệm thu mặc nhiên 5 ngày và dựa vào bảo hành sau đó. C. Giữ 5 ngày nhưng tăng mức trần trách nhiệm để bù rủi ro nghiệm thu sớm. D. Ký nghiệm thu ngày thứ 5 và kéo dài bảo hành cho chín ngày thử còn lại.
+
+Đáp án: A. Giải thích: Chu kỳ thử cần 14 ngày nên nghiệm thu phải diễn ra sau khi hoàn tất thử theo tiêu chí; đồng thời phải có cách xử lý lỗi và thử lại. Bảo hành hoặc mức trần cao hơn không sửa được việc nghiệm thu quá sớm.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bên bán có tài sản đáng kể tại nơi phán quyết trọng tài có thể thi hành; chấp nhận nâng mức trần bồi thường lên 50% cho lỗi vận hành và ngoại lệ tách riêng một số vi phạm trọng yếu.
+
+K3.4: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Yêu cầu trách nhiệm không giới hạn trước khi ký B. Rút khỏi giao dịch do địa điểm trọng tài ở nước ngoài C. Ký với cấu trúc đã sửa nếu tổng mức rủi ro đang gánh nằm trong hạn mức doanh nghiệp phê duyệt D. Yêu cầu chuyển toàn bộ thanh toán thành trả sau.
+
+Đáp án: C. Giải thích: Tài sản có thể thi hành, mức trần bồi thường và ngoại lệ đã được cải thiện; nếu rủi ro tổng thể nằm trong hạn mức đã phê duyệt, tiếp tục là quyết định cân bằng.
+
+Mã: MR23-25,18 | KT01,13-15 | LO01,06-07,09.
+
+THK04. Nhà cung cấp tốt nhất
+
+Nhà cung cấp giao hàng thật, giá cạnh tranh, tỷ lệ thắng 85%; nhân viên mua hàng nội bộ sửa tiêu chí sát hạn; đơn đặt hàng thường dưới ngưỡng; bên mua và chủ nhà cung cấp cùng góp vốn một công ty khác nhưng chưa khai báo.
+
+K4.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giữ nhân viên mua hàng trong quy trình nhưng thêm một người đồng phê duyệt các đơn đặt hàng mới B. Hỏi bên mua về quan hệ góp vốn và chờ giải trình trước khi đổi quyền C. Tạm dừng riêng đơn đặt hàng mới với nhà cung cấp nhưng giữ bên mua xử lý các hồ sơ khác D. Tách bên mua khỏi quyết định liên quan nhà cung cấp và bảo toàn dữ liệu giao dịch.
+
+Đáp án: D. Giải thích: Quan hệ góp vốn không khai báo tạo xung đột lợi ích trực tiếp; cần tách bên mua khỏi quyết định liên quan và bảo toàn dữ liệu trước khi làm rõ.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Phân tích cho thấy các bên dự thầu khác thường bị loại bởi tiêu chí thêm vào 24 giờ cuối.
+
+K4.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Rà trước các gói của nhà cung cấp hiện tại có tiêu chí bị đổi sát hạn, rồi mở rộng theo kết quả B. Rà các gói nhân viên mua hàng tham gia từ khi quan hệ góp vốn bắt đầu, ưu tiên nhà cung cấp và đơn đặt hàng có dấu hiệu liên quan C. Đối chiếu giá trúng thầu với giá thị trường trong nhóm gói có tiêu chí bất thường D. Thay bên mua cho các gói tương lai và kiểm tra lại một mẫu giao dịch đã phát sinh.
+
+Đáp án: B. Giải thích: Dấu hiệu liên quan đến toàn bộ giai đoạn có quan hệ góp vốn và các gói bên mua tham gia; rà phạm vi đó, ưu tiên giao dịch có dấu hiệu, phù hợp với bằng chứng hiện có.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Hàng đã giao đúng và giá không cao hơn thị trường.
+
+K4.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Kiểm tra lợi ích ngoài hợp đồng và tính công bằng trong nhóm gói có tiêu chí bất thường B. Đóng rà soát vì hàng đúng và giá không cao hơn thị trường C. Mở rộng sang các nhà cung cấp không có liên hệ với nhân viên mua hàng ngay ở bước này D. Áp dụng phạt 10% đơn đặt hàng trước khi xác định vi phạm và lợi ích liên quan.
+
+Đáp án: A. Giải thích: Hàng đúng và giá thị trường không loại trừ lợi ích ngầm hoặc cạnh tranh bị bóp méo; cần kiểm tra fairness và lợi ích ngoài hợp đồng trong nhóm gói bất thường.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Kiểm tra độc lập không phát hiện bằng chứng lại quả; nhà cung cấp không tham gia che giấu quan hệ, chính sách cho phép tham gia lại. Trong quy trình cạnh tranh mới có giám sát độc lập, nhà cung cấp xếp hạng nhất.
+
+K4.4: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Loại nhà cung cấp khỏi các giao dịch tiếp theo dù kiểm tra không phát hiện họ tham gia sai phạm. B. Cho phép trao hợp đồng theo kết quả quy trình mới, sau phê duyệt độc lập và duy trì kiểm soát xung đột lợi ích. C. Chỉ chọn nhà cung cấp có giá thấp nhất để loại ảnh hưởng của quan hệ cá nhân. D. Chuyển các gói tương tự sang chỉ định thầu để giảm số người tham gia quyết định.
+
+Đáp án: B. Giải thích: Khi kiểm tra không phát hiện nhà cung cấp tham gia sai phạm, xung đột đã được xử lý và quy trình mới có giám sát độc lập, có thể trao hợp đồng theo kết quả đã phê duyệt; loại vĩnh viễn là không tương xứng.
+
+Mã: MR20,21,22 | KT16-18 | LO08-10.
+
+THK05. Ba bộ chứng từ đều đúng
+
+Quỹ tài trợ 8 triệu USD cho lô hàng tồn kho. Kho xác nhận hàng; hóa đơn/hợp đồng đúng; chứng từ kho điện tử hợp lệ.
+
+K5.1: Cấu trúc tài trợ yêu cầu quỹ có quyền bảo đảm ưu tiên thứ nhất trên hàng. Câu hỏi ưu tiên nhất còn thiếu trước giải ngân là gì?
+
+A. Giá thị trường và mức biến động của hàng trong kỳ tài trợ B. Quyền/thứ tự ưu tiên và việc tài sản đã được dùng cho khoản tài trợ khác C. Tính nhất quán giữa chứng từ kho điện tử và dữ liệu vận hành của kho D. Năng lực tài chính và lịch sử giao dịch của bên bán với các bên cho vay.
+
+Đáp án: B. Giải thích: Ba bộ chứng từ xác nhận hàng tồn tại nhưng chưa chứng minh quỹ có quyền ưu tiên; cần kiểm tra tài sản đã được dùng để bảo đảm hoặc tài trợ ở nơi khác hay chưa.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Một bên cho vay khác xuất trình quyền bảo đảm trên cùng chứng từ kho.
+
+K5.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Giải ngân 50% rồi làm rõ thứ tự ưu tiên của hai bên cho vay trong quá trình theo dõi B. Tăng lãi suất khoản tài trợ để bù rủi ro quyền bảo đảm chồng lấn C. Yêu cầu bên bán xuất trình thêm hóa đơn khác liên quan cùng lô hàng D. Giữ giải ngân đến khi thứ tự ưu tiên hoặc văn bản giải phóng quyền của quyền trước được làm rõ.
+
+Đáp án: D. Giải thích: Quyền của bên cho vay khác trên cùng tài sản làm thứ tự ưu tiên chưa rõ; phải giữ giải ngân cho đến khi quyền trước được giải phóng hoặc thứ tự ưu tiên được xác định.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Bên cho vay kia cung cấp văn bản giải phóng quyền có thể xác minh; cơ quan đăng ký cập nhật không còn ràng buộc của bên thứ ba.
+
+K5.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Tiếp tục thẩm định; chỉ giải ngân sau khi văn bản giải phóng quyền được xác minh, registry đã cập nhật, quyền bảo đảm của quỹ được tạo lập/đăng ký hoặc kiểm soát theo pháp luật áp dụng và các điều kiện giải ngân khác đều đạt. B. Từ chối tài trợ sau khi văn bản giải phóng quyền đã được xác minh đầy đủ. C. Giảm giá trị tài trợ 20% sau khi quyền trước đã được xóa. D. Chia khoản vay thành hai đợt nhưng giữ nguyên các điều kiện còn lại.
+
+Đáp án: A. Giải thích: Xóa quyền trước mới xử lý một chướng ngại. Quỹ vẫn phải tạo lập và hoàn thiện quyền bảo đảm của mình theo pháp luật áp dụng, đồng thời đạt các điều kiện giải ngân khác.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Sau giải ngân đợt 1, bên vay/bên được tài trợ đề nghị dùng cùng hàng để bảo đảm thêm khoản khác, nhưng hợp đồng tài trợ cấm.
+
+K5.4: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Đồng ý khoản bảo đảm mới nếu giá trị khoản vay bổ sung tương đối nhỏ. B. Tăng lãi suất hiện tại để bù việc dùng lại cùng tài sản bảo đảm. C. Không chấp thuận đề nghị; áp dụng quyền và biện pháp bảo vệ theo hợp đồng và pháp luật áp dụng, đồng thời giám sát để bảo vệ thứ tự ưu tiên. D. Cho phép quyền bảo đảm mới nếu tổng giá trị hàng cao hơn tổng hai khoản vay.
+
+Đáp án: C. Giải thích: Hợp đồng cấm dùng lại tài sản; cần thực thi quyền hợp đồng và biện pháp pháp lý phù hợp để ngăn quyền chồng lấn, không mặc nhiên coi doanh nghiệp có thể tự ngăn mọi đăng ký.
+
+Mã: MR12-15 | KT10-12,14 | LO03,05-07,09.
+
+THK06. Sự cố 45 phút
+
+Doanh nghiệp vừa chuyển 2 triệu USD. 45 phút sau nhà cung cấp thật gọi nói chưa từng đổi bên thụ hưởng.
+
+K6.1: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Gửi ngay yêu cầu thu hồi cho ngân hàng chuyển tiền, đề nghị phối hợp giữ hoặc phong tỏa tại ngân hàng nhận, đồng thời kích hoạt đầu mối ứng phó gian lận theo SOP. B. Chờ nhà cung cấp xác nhận lại bằng văn bản trước khi gửi yêu cầu thu hồi. C. Họp nội bộ để xác định trách nhiệm rồi mới liên hệ ngân hàng nhận tiền. D. Email người nhận yêu cầu hoàn trả và chờ phản hồi trong một giờ.
+
+Đáp án: A. Giải thích: Sau 45 phút, tốc độ quyết định khả năng thu hồi. Doanh nghiệp phải yêu cầu ngân hàng và đầu mối chức năng kích hoạt biện pháp trong phạm vi thẩm quyền; không được trình bày như tự mình ra lệnh phong tỏa.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Ngân hàng báo 1,4 triệu còn trong tài khoản, 600.000 đã chuyển tiếp.
+
+K6.2: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Chỉ tập trung yêu cầu giữ 1,4 triệu còn tại ngân hàng người nhận, chưa truy vết 600.000 USD. B. Chờ yêu cầu chính thức của cơ quan điều tra rồi mới truy vết. C. Khóa toàn bộ hệ thống thanh toán dù các luồng khác không liên quan. D. Phối hợp ngân hàng và cơ quan có thẩm quyền yêu cầu giữ phần còn lại và truy vết khoản đã chuyển tiếp song song.
+
+Đáp án: D. Giải thích: Một phần tiền còn giữ được và một phần đã đi tiếp; phối hợp giữ và truy vết song song tối đa hóa cơ hội thu hồi, nhưng kết quả không được bảo đảm.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: công nghệ thông tin phát hiện hộp thư điện tử của chính doanh nghiệp không bị xâm nhập; hộp thư điện tử nhà cung cấp bị bị chiếm quyền.
+
+K6.3: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Không rà quy trình nội bộ vì hộp thư điện tử bị bị chiếm quyền nằm phía nhà cung cấp B. Yêu cầu nhà cung cấp bồi thường và giữ nguyên quy trình thanh toán C. Rà kiểm soát thay đổi bên thụ hưởng vì bị chiếm quyền bên đối tác vẫn vượt qua quy trình mình D. Chuyển mọi xác nhận sang điện thoại nhưng không sửa kiểm soát dữ liệu gốc của nhà cung cấp.
+
+Đáp án: C. Giải thích: Dù nguồn xâm nhập ở phía nhà cung cấp, chỉ dẫn giả vẫn vượt qua kiểm soát của doanh nghiệp; quy trình thay đổi bên thụ hưởng cần được rà và sửa.
+
+Dữ kiện bổ sung — chỉ mở sau khi nhóm đã chốt đáp án bước trước: Sau sự cố, nhà cung cấp triển khai cổng thông tin có xác thực đa yếu tố; bộ phận ngân quỹ hai bên xác nhận dữ liệu gốc; thay đổi tài khoản thụ hưởng phải có maker-checker và xác minh độc lập ngoài yêu cầu; log ngoại lệ cùng kiểm thử kiểm soát đều đạt. Giao dịch tiếp theo không có sự kiện thay đổi, hóa đơn/đơn đặt hàng/phê duyệt đều khớp.
+
+K6.4: Ở bước này, nhóm nên quyết định thế nào cho an toàn nhất?
+
+A. Yêu cầu tổng giám đốc hai bên xác nhận từng hóa đơn trước mỗi lần thanh toán B. Chuyển thử một khoản nhỏ trước mỗi hóa đơn rồi mới trả phần còn lại C. Áp thời gian chờ 48 giờ cho mọi khoản thanh toán trong sáu tháng D. Thanh toán theo quy trình mới dù vừa có sự cố trước đó, khi không có sự kiện thay đổi.
+
+Đáp án: D. Giải thích: Quy trình mới đã xử lý thay đổi tài khoản bằng xác minh độc lập, maker-checker, log ngoại lệ và kiểm thử; giao dịch mới không có sự kiện thay đổi và hồ sơ khớp, nên có thể vận hành bình thường.
+
+Mã: MR04,08 | KT05-08,18 | LO03-04,09-10.
+
+PHẦN D. HƯỚNG DẪN TỔ CHỨC THẢO LUẬN
+
+-   D01 - Chia nhóm theo vai trò đơn vị kinh doanh/nghiệp vụ, bộ phận ngân quỹ, mua hàng, pháp chế hoặc quản trị rủi ro; yêu cầu mỗi nhóm nêu tín hiệu rủi ro trước khi chọn hành động.
+
+-   D02 - Với Phần A, cho nhóm thảo luận tình huống độc lập rồi chốt bài học chính và một hành động kiểm soát có thể thực hiện.
+
+-   D03 - Với Phần B-C, khóa phần thảo luận trước khi hiển thị dữ kiện bổ sung; cho phép nhóm giải thích điều gì đã thay đổi trong quyết định.
+
+-   D04 - Người hướng dẫn không cộng điểm theo chữ cái; đánh giá chất lượng thảo luận qua việc nhận diện dữ kiện, hành động, điều kiện tiếp tục và nhu cầu xác minh.
+
+-   D05 - Không coi “xác minh”, “bảo lãnh”, “tài khoản phong tỏa” (cơ chế giữ tiền/tài sản bởi bên trung gian đến khi đạt điều kiện) hoặc “chia nhỏ” là đáp án tự động đúng; yêu cầu người học liên hệ biện pháp với nguồn rủi ro cụ thể.
+
+-   D06 - Kết thúc mỗi tình huống bằng bốn câu hỏi: rủi ro chính là gì; hành động nào cần làm ngay; điều kiện nào cho phép tiếp tục; dữ kiện nào còn phải xác minh?
+
+-   D07 - Nếu nền tảng không hỗ trợ hiển thị tuần tự, tách mỗi bước của Phần B-C thành một màn hình/case nối tiếp; bước sau mang toàn bộ dữ kiện đã mở ở bước trước nhưng tuyệt đối không tiết lộ dữ kiện tương lai. Giữ hướng dẫn trao đổi tương ứng.
+
+-   D08 - Tài liệu này không dùng để chấm điểm, xếp loại hoặc so sánh người học.
+
+PHẦN E. CURRICULUM TRACEABILITY - BẢN v1.8
+
+Quy tắc: Bản đồ dưới đây được tự sinh từ 36 dòng ‘Mã:’ của A01-A18, TH01-TH12 và THK01-THK06. Dấu gạch nối biểu thị khoảng bao hàm hai đầu; dấu phẩy biểu thị các mã rời. Nếu mapping chuyên môn dự kiến khác, phải sửa mã tại khối nguồn rồi tự sinh lại phần này. MR01 chưa có khối được gắn mã và không được tính là đã bao phủ trong phiên bản này.
+
+MR - đối soát tự động từ đúng dòng ‘Mã:’ cuối từng khối; khoảng mã được khai triển bao hàm hai đầu. MR01: chưa có khối được gắn mã. MR02: A03/TH02/THK02. MR03: A03/TH02/TH06/THK02. MR04: A05/A18/TH01/TH12/THK01/THK06. MR05: A04. MR06: A06. MR07: chưa có khối được gắn mã. MR08: A02/A05/A18/TH01/TH12/THK01/THK06. MR09: A14/TH03/THK02. MR10: TH09. MR11: TH09. MR12: A17/TH04/TH09/TH10/THK05. MR13: A17/TH10/THK05. MR14: A07/TH10/THK05. MR15: A07/A08/A15/TH10/THK05. MR16: TH02/TH04. MR17: A09. MR18: A09/TH05/THK03. MR19: TH03/TH06. MR20: A11/TH07/TH08/THK04. MR21: A12/TH07/TH08/THK04. MR22: A13/TH08/THK04. MR23: A14/A15/A16/TH03/TH05/TH06/THK02/THK03. MR24: A01/A10/A16/TH11/THK03. MR25: A08/A16/TH11/THK03.
+
+KT - đủ 18/18 mã có ít nhất một cơ hội quan sát. KT01: A03/THK03. KT02: A03/TH02/THK02. KT03: A03/TH02/THK02. KT04: A03/TH02/TH03/TH06/THK02. KT05: A04/A05/A06/TH01/TH12/THK01/THK06. KT06: A02/A04/A05/A06/TH01/TH12/THK01/THK06. KT07: A02/A04/A05/A06/TH01/TH12/THK01/THK06. KT08: A02/A05/TH01/TH12/THK01/THK06. KT09: A03/A14/TH02/TH03/TH06/TH09/THK02. KT10: A07/A08/A15/TH03/TH06/TH10/THK05. KT11: A07/A17/TH04/TH09/TH10/THK05. KT12: A07/A08/A14/A15/A17/TH02/TH04/TH10/THK05. KT13: A09/TH05/THK03. KT14: A01/A10/A16/TH03/TH05/TH06/TH11/THK03/THK05. KT15: A08/A15/A16/TH03/TH04/TH11/THK02/THK03. KT16: A06/A11/A12/A13/TH07/TH08/THK04. KT17: A11/A12/A13/TH07/TH08/THK04. KT18: A13/A18/TH01/TH07/TH08/TH12/THK01/THK04/THK06.
+
+LO - đủ 10/10 mã có ít nhất một cơ hội quan sát. LO01: A03/THK03. LO02: A03/A04/A06/A17/TH01/TH02/TH09/THK01/THK02. LO03: A04/A05/A06/A07/A17/TH01/TH02/TH04/TH09/TH10/THK01/THK05/THK06. LO04: A02/A04/A05/A06/TH01/TH02/TH12/THK01/THK06. LO05: A03/A07/A08/A09/A14/A15/A16/A17/TH02/TH03/TH04/TH06/TH10/THK02/THK05. LO06: A01/A09/A10/A16/TH03/TH05/TH06/TH11/THK03/THK05. LO07: A01/A03/A08/A09/A10/A14/A15/A16/TH02/TH03/TH04/TH05/TH06/TH09/TH11/THK02/THK03/THK05. LO08: A11/A12/A13/TH07/TH08/THK04. LO09: A02/A03/A06/A07/A08/A09/A11/A13/A14/A15/A16/A17/TH01/TH02/TH03/TH04/TH06/TH07/TH08/TH09/TH10/TH11/THK01/THK02/THK03/THK04/THK05/THK06. LO10: A13/A18/TH01/TH07/TH08/TH12/THK01/THK04/THK06.
+
+Đa dạng tình huống gian lận nội bộ: đưa nhà cung cấp vào hệ thống/xung đột lợi ích (A11, TH07); lấy mẫu có mục tiêu trước khi mở rộng (A12, TH08); rà toàn bộ phạm vi khi bằng chứng vượt ngưỡng (A13, TH07 B7.3, THK04 K4.2); chia nhỏ mua sắm/lợi ích ngầm (TH07, THK04); nghiệm thu/sự kiện kinh tế (A13, TH08); bảo toàn dữ liệu và tách quyền (TH07, THK04).
+
+PHẦN F. TRAINING QA VÀ DANH SÁCH KIỂM TRA PHÁT HÀNH
+
+☑ F01 - An toàn nội dung/vận hành: không có hướng dẫn thanh toán, thu hồi tiền, bảo lãnh, tài sản bảo đảm, hợp đồng hoặc xử lý gian lận gây hiểu sai hoặc không an toàn.
+
+☑ F02 - Nhất quán đáp án/giải thích: lựa chọn khuyến nghị suy ra được từ dữ kiện; phần giải thích làm rõ bài học, không biến thành mẹo chọn đáp án.
+
+☑ F03 - Hiển thị tuần tự: dữ kiện bổ sung chỉ mở sau phần thảo luận trước; người hướng dẫn dừng, hỏi lý do và cho nhóm cập nhật quyết định.
+
+☑ F04 - Khả năng trao đổi: mỗi tình huống chốt được tín hiệu rủi ro, hành động ngay, điều kiện tiếp tục và dữ kiện cần xác minh thêm.
+
+☑ F05 - Truy vết: 36/36 khối có dòng mã; KT01-KT18 và LO01-LO10 đều có cơ hội quan sát; MR01 chưa có khối và được công bố rõ, không tính là đã bao phủ.
+
+☑ F06 - Dễ đọc/tiếp cận: thuật ngữ, số liệu, đơn vị tiền, vai trò và trình tự hành động đã được chuẩn hóa theo ngữ cảnh.
+
+Phạm vi sử dụng: đây là ngân hàng tình huống thảo luận, không dùng để chấm điểm/xếp hạng người học; vì vậy không áp dụng cân bằng vị trí đáp án, chỉ số phân biệt câu hỏi hoặc hiệu quả phương án nhiễu như điều kiện phát hành.
+
+☑ F07 - Phụ thuộc pháp luật/hợp đồng: tài khoản phong tỏa, bảo lãnh, chuyển quyền, thứ tự ưu tiên, giới hạn trách nhiệm, ngoại lệ và thi hành chỉ có hiệu lực theo pháp luật áp dụng cùng hồ sơ đã kiểm tra; không trình bày như cơ chế bảo đảm phổ quát.
+
+☑ F08 - Không bảo đảm kết quả: tra soát/thu hồi, đề nghị giữ hoặc phong tỏa, truy vết và bảo toàn chứng cứ phải được kích hoạt sớm nhưng không bảo đảm thu hồi tiền hay ngăn tổn thất.
+
+Kết luận: v1.8 là bản ứng viên phát hành đào tạo đã được rà soát nội dung, đáp án, chuỗi dữ kiện, truy vết và trình bày; phù hợp cho pilot/workshop nội bộ có người hướng dẫn. Trước khi dùng làm SOP, quyết định thanh toán hoặc hướng dẫn pháp lý chính thức, tổ chức phải xác nhận lại theo quy trình, thẩm quyền và pháp luật áp dụng.
+
+Phê duyệt phát hành của tổ chức (nếu áp dụng): Chủ nội dung ______ Pháp chế/Compliance ______ An ninh thông tin ______ Ngày ______

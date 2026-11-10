@@ -23,4 +23,9 @@ public sealed record ContestScheduleResponse(
     [property: JsonPropertyName("serverTime")] string ServerTime,
     [property: JsonPropertyName("ongoing")] IReadOnlyList<ContestScheduleItemDto> Ongoing,
     [property: JsonPropertyName("upcoming")] IReadOnlyList<ContestScheduleItemDto> Upcoming,
-    [property: JsonPropertyName("ended")] IReadOnlyList<ContestScheduleItemDto> Ended);
+    [property: JsonPropertyName("ended")] IReadOnlyList<ContestScheduleItemDto> Ended)
+{
+    /// <summary>Portal dùng để nhận biết có cuộc thi đang diễn ra hay không.</summary>
+    [JsonPropertyName("hasOngoingContest")]
+    public bool HasOngoingContest => Ongoing.Count > 0;
+}

@@ -32,7 +32,10 @@ const path = require('node:path');
                 await editor.getByRole('tab', { name: 'SEO và chia sẻ', exact: true }).click();
                 const textarea = editor.locator('[alias=seoDescription] textarea');
                 await textarea.waitFor();
-                await page.waitForTimeout(100);
+                await page.waitForFunction(element => {
+                    const bounds = element.getBoundingClientRect();
+                    return bounds.height >= 40 && element.scrollHeight <= element.clientHeight + 2;
+                }, await textarea.elementHandle(), { timeout: 5000 });
                 const measured = await textarea.evaluate(e => {
                     const bounds = e.getBoundingClientRect();
                     return { height: bounds.height, width: bounds.width, scrollHeight: e.scrollHeight, clientHeight: e.clientHeight };
@@ -85,7 +88,7 @@ const path = require('node:path');
         }
         // The same component also serves caution levels; plain choices must remain unchanged.
         const plain = await page.evaluate(async () => {
-            await import('/App_Plugins/AntcRisks/fixed-choice.js?v=1.1.0');
+            await import('/App_Plugins/AntcRisks/fixed-choice.js?v=1.2.0');
             const e = document.createElement('antc-fixed-choice');
             e.config = { getValueByAlias: () => ['Cần thận trọng', 'Cao', 'Rất cao'] }; e.value = ['Cao'];
             document.body.append(e); await e.updateComplete;

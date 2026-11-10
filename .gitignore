@@ -9,6 +9,7 @@ node_modules/
 TestResults/
 artifacts/
 /temp/risk-template-review/
+/temp/risk-review*
 ops/*.environment.json
 
 # Cau hinh va du lieu rieng tung may (tu tao khi chay run-local)

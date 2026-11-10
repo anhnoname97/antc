@@ -27,7 +27,7 @@ public sealed class AdministrationComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
     {
-        builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, AdministrationGroupInitializer>();
+        builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, AdministrationGroupInitializer>();
         builder.Services.Configure<AuthorizationOptions>(options => options.AddPolicy(AdministrationAccess.QuestionsPolicy,
             policy => policy.RequireAuthenticatedUser().AddRequirements(new QuestionsSectionRequirement())));
         builder.Services.AddSingleton<IAuthorizationHandler, QuestionsSectionAuthorizationHandler>();
@@ -66,11 +66,16 @@ public sealed class QuestionsSectionAuthorizationHandler(IAuthorizationHelper au
     }
 }
 
+/// <summary>
+/// Tao nhom va cap section o buoc Starting, truoc khi hang doi nen (Examine) chay: ghi bang nhom nguoi dung
+/// song song voi Examine doc nguoi dung lam ket hai ben voi SQLite Cache=Shared (SQLITE_LOCKED, treo ~10 phut).
+/// </summary>
 public sealed class AdministrationGroupInitializer(IUserGroupService groups, IShortStringHelper strings,
-    ILogger<AdministrationGroupInitializer> logger) : INotificationAsyncHandler<UmbracoApplicationStartedNotification>
+    ILogger<AdministrationGroupInitializer> logger) : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {
-    public async Task HandleAsync(UmbracoApplicationStartedNotification notification, CancellationToken cancellationToken)
+    public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
     {
+        if (notification.RuntimeLevel != RuntimeLevel.Run) return;
         if (await groups.GetAsync(AdministrationAccess.GroupAlias) is null)
         {
             var contestGroup = new UserGroup(strings)

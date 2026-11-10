@@ -43,10 +43,17 @@ const ref = id => [{ type: 'document', unique: id }];
             h.assert.equal(result.status, 200, JSON.stringify(result));
         };
         const tag = randomUUID().slice(0, 8);
+        const defaultTemplates = new Map();
         async function create(type, parent, values) {
+            if (!defaultTemplates.has(type)) {
+                const schema = await h.api(page, 'DocumentTypeService', 'getDocumentTypeById', { path: { id: types[type] } });
+                h.assert.equal(schema.status, 200);
+                if (type === 'riskArticlePage' || type === 'alertPage') h.assert(schema.data.defaultTemplate?.id, `Missing default template for ${type}`);
+                defaultTemplates.set(type, schema.data.defaultTemplate || null);
+            }
             const id = randomUUID();
             const result = await h.api(page, 'DocumentService', 'postDocument', { body: {
-                id, parent: { id: parent }, documentType: { id: types[type] }, template: null,
+                id, parent: { id: parent }, documentType: { id: types[type] }, template: defaultTemplates.get(type),
                 variants: [{ culture: null, segment: null, name: `Kiểm thử Rủi ro ${type} ${tag}` }],
                 values: Object.entries(values).map(([alias, value]) => ({ alias, value, culture: null, segment: null }))
             } });
@@ -164,9 +171,9 @@ const ref = id => [{ type: 'document', unique: id }];
         await collection.getByRole('combobox', { name: 'Loại bài', exact: true }).selectOption('Bài hướng dẫn');
         await collection.getByRole('link', { name: 'Bài kiểm thử ' + tag, exact: true }).waitFor();
         await collection.getByRole('checkbox', { name: 'Chọn tất cả trong trang', exact: true }).check();
-        await collection.getByRole('button', { name: 'Gỡ xuất bản', exact: true }).click();
+        await collection.getByRole('button', { name: 'Gỡ khỏi website', exact: true }).click();
         await collection.getByRole('button', { name: 'Thực hiện', exact: true }).click();
-        await collection.getByText('Đã gỡ xuất bản 1 mục.', { exact: true }).waitFor();
+        await collection.getByText('Đã gỡ 1 mục khỏi website. Các mục vẫn còn ở dạng nháp.', { exact: true }).waitFor();
         await collection.getByRole('checkbox', { name: 'Chọn tất cả trong trang', exact: true }).check();
         await collection.getByRole('button', { name: 'Xuất bản', exact: true }).click();
         await collection.getByRole('button', { name: 'Thực hiện', exact: true }).click();
