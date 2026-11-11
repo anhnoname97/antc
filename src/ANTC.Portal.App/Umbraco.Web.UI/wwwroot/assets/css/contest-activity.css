@@ -1741,6 +1741,12 @@
   gap: 0.625rem !important;
 }
 
+/* Cau hai dap an (Dung/Sai): contest-quiz.css dat flex 1 1 14rem de xep ngang; o day xep doc nen
+   14rem thanh chieu cao. Ban chinh thuc xep moi cau nhu nhau, moi dap an mot dong. */
+.contest-flow-page .activity-portal .qopts--duo .qopt {
+  flex: none !important;
+}
+
 .contest-flow-page .activity-portal .qopt {
   display: flex !important;
   flex-wrap: nowrap !important;

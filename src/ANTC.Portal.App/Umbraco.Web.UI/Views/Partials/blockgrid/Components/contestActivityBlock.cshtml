@@ -2,8 +2,10 @@
 @using Umbraco.Cms.Core.Models
 @using Umbraco.Cms.Core.Models.PublishedContent
 @using Umbraco.Plugin.Custom.Core.Contest
+@using Umbraco.Plugin.Custom.Core.Data
 @inject IContestCatalog Contests
 @inject IContestAdminService ContestPrizes
+@inject Umbraco.Plugin.Custom.Core.Quiz.IQuestionBank QuestionBank
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
     var c = Model?.Content;
@@ -202,9 +204,17 @@
 
     @if (currentContest is null)
     {
+        // Ban chinh thuc (vHoatdong, chua mo dang ky): nut tu luyen ghi so cau cua 8 chuyen de, them nut phan doanh nghiep.
+        var bankTopics = QuestionBank.Current.Topics;
+        var generalTopics = bankTopics.Where(t => t.Type != QuizAudience.Organization).ToList();
+        var hasBusiness = bankTopics.Any(t => t.Type == QuizAudience.Organization);
         <div class="note b"><b>Cuộc thi chưa mở đăng ký</b><p>Thời gian, thể lệ và giải thưởng sẽ được công bố tại trang này. Trong lúc chờ, bạn có thể tự luyện toàn bộ câu hỏi, không cần đăng ký và không tính điểm.</p></div>
         <div class="btnrow">
-            <a href="@secondaryUrl" class="btn pri">Tự luyện toàn bộ câu hỏi<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></a>
+            <a href="@secondaryUrl" class="btn pri">@(generalTopics.Count > 0 ? $"Tự luyện {generalTopics.Sum(t => t.Count)} câu của {generalTopics.Count} chuyên đề" : "Tự luyện toàn bộ câu hỏi")<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></a>
+            @if (hasBusiness)
+            {
+                <a href="/ngan-hang/#thidn" class="btn ghost">Câu hỏi dành cho nhân viên doanh nghiệp</a>
+            }
         </div>
     }
     else
