@@ -1,30 +1,33 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @inject Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.ReadingArticleDirectory ReadingArticles
+@inject Umbraco.Plugin.Custom.Core.Quiz.IQuestionBank QuestionBank
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var readingUrls = System.Text.Json.JsonSerializer.Serialize(ReadingArticles.All().ToDictionary(x => x.Number.ToString(), x => x.Url));
     ViewData["Title"] = Model.Value<string>("seoTitle") ?? Model.Name ?? "Thử sức: 8 câu";
+    var title = Model.Value<string>("title") ?? "Thử sức: 8 câu";
+    var lead = Model.Value<string>("lead") ?? "Mỗi chuyên đề một câu. Chọn xong là hiện giải thích. Chọn sai cũng không sao, phần giải thích mới là chỗ để học.";
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/contest-activity.css" asp-append-version="true">
 }
 
-<div class="activity-portal">
+<div class="activity-portal self-check-sample">
     <nav class="crumbs" aria-label="Bạn đang ở">
         <ol>
             <li><a href="/">Trang chủ</a></li>
-            <li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li>
-            <li><span aria-current="page">Thử sức: 8 câu</span></li>
+            <li><a href="/hay-tu-kiem-tra/">CÔNG CỤ KIỂM TRA</a></li>
+            <li><span aria-current="page">@title</span></li>
         </ol>
     </nav>
 
     <header class="pageh">
         <p class="eyebrow">KIỂM TRA KIẾN THỨC</p>
-        <h1>Thử sức: 8 câu</h1>
-        <p class="lead">Mỗi chuyên đề một câu. Chọn xong là hiện giải thích. Chọn sai cũng không sao, phần giải thích mới là chỗ để học.</p>
+        <h1>@title</h1>
+        <p class="lead">@lead</p>
     </header>
 
-    <div id="thu-suc-view" data-quiz-sample data-reading-urls="@readingUrls">
+    <div id="thu-suc-view" data-quiz-sample data-reading-urls="@readingUrls" data-question-count="@QuestionBank.Current.GeneralQuestionCount">
         <div class="quiz-status" data-quiz-status role="status" aria-live="polite">
             <p data-quiz-message>Đang tải câu hỏi…</p>
             <button type="button" class="btn ghost sm" data-quiz-retry hidden>Thử tải lại</button>

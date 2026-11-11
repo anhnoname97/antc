@@ -47,17 +47,26 @@ const artifacts = process.env.ANTC_HOME_ARTIFACTS;
     assert.equal(await page.locator('.situation-groups details').count(), 12);
     const data = await page.locator('[data-situation-data]').evaluate(x => JSON.parse(x.textContent));
     assert.equal(data.situations.length, 82);
+    assert.equal(await page.locator('.self-check-heading__title .site-icon').count(), 1);
+    assert.equal(await page.locator('.situation-groups summary>.self-check-spot .site-icon').count(), data.groups.length);
+    assert.equal(await page.locator('.situation-principles .self-check-spot .site-icon').count(), data.principles.length);
+    for (let i = 0; i < data.groups.length; i++) {
+      const expectedIcon = await page.locator('template[data-situation-icon]').evaluateAll((nodes, key) => nodes.find(n => n.dataset.situationIcon === key).innerHTML, data.groups[i].icon);
+      assert.equal(await page.locator('.situation-groups summary>.self-check-spot').nth(i).innerHTML(), expectedIcon, 'Uses the group icon selected in CMS');
+    }
     await page.evaluate(() => document.fonts.ready);
     const before = await storage();
     answering = true;
     await page.locator('#situation-query').fill('cong an goi');
     await page.locator('[data-search-results] [data-value="cong-an-goi"]').waitFor();
     await page.locator('[data-search-results] [data-value="cong-an-goi"]').click();
+    assert.equal(await page.locator('.situation-choices label>.site-icon').count(), data.consequences.length + 2);
     await page.locator('[data-action="result"]').click();
     assert.equal(await page.locator('[data-choice-error]').isVisible(), true);
     for (const code of ['threat', 'app', 'money']) await page.locator(`[data-choice="${code}"]`).check();
     await page.locator('[data-action="result"]').click();
     assert.match(await page.locator('.situation-first').innerText(), /113/);
+    assert.equal(await page.locator('.situation-controls button>.site-icon').count(), 4);
     assert.match(await page.locator('.situation-level h2').innerText(), /DỪNG/);
     assert.match(await page.locator('.situation-steps>li').first().innerText(), /tắt|ngắt/i);
     assert.equal(await page.locator('.situation-result').evaluate(el => /<\/?(?:b|small)>/.test(el.innerText)), false, 'No literal HTML tags in content');

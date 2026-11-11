@@ -165,6 +165,50 @@ public sealed class QuizWorkbookTests
         Assert.Equal(1, await test.Db.QuizImports.CountAsync());
         Assert.Single(Directory.GetFiles(Path.Combine(test.Root, "App_Data", "imports"), "*.xlsx"));
     }
+    [Fact] public async Task AudienceMetadata_Roundtrips_AndLegacyWorkbookPreservesIt()
+    {
+        await using var test = await Fixture.Create();
+        var topic = await test.Db.QuizTopics.SingleAsync();
+        topic.Audience = "enterprise"; topic.ShortTitle = "Phần A"; topic.Caption = "{count} câu độc lập";
+        await test.Db.SaveChangesAsync();
+        Assert.Equal((0, 0, 0), await test.RoundtripCounts());
+        var bytes = await test.Edit(w => w.Worksheet("ChuyenDe").Columns(5, 7).Delete());
+        var preview = await test.Service.PreviewAsync(bytes, "legacy.xlsx", "admin", default);
+        Assert.Empty(preview.Errors); Assert.Empty(preview.Topics);
+        await test.Service.ConfirmAsync(new(preview.PreviewId!, null), "admin", default);
+        await test.Db.Entry(topic).ReloadAsync();
+        Assert.Equal("enterprise", topic.Audience); Assert.Equal("Phần A", topic.ShortTitle);
+        Assert.Equal("{count} câu độc lập", topic.Caption);
+    }
+
+    [Fact] public async Task InvalidAudience_IsRejectedWithoutWriting()
+    {
+        await using var test = await Fixture.Create();
+        var bytes = await test.Edit(w => w.Worksheet("ChuyenDe").Cell(2, 5).Value = "unknown");
+        var preview = await test.Service.PreviewAsync(bytes, "bad.xlsx", "admin", default);
+        Assert.Null(preview.PreviewId); Assert.Contains(preview.Errors, e => e.Column == "Nhóm người đọc");
+        Assert.Equal("general", (await test.Db.QuizTopics.SingleAsync()).Audience);
+    }
+
+    [Fact] public async Task EnterpriseExplanationFormat_RequiresCorrectAnswerExplanation_AndPreservesLongContext()
+    {
+        await using var test = await Fixture.Create();
+        void Edit(XLWorkbook w)
+        {
+            w.Worksheet("CauHoi").Cell(2, 3).Value = "Tình huống 1 · Bước 1/3 · Nhà cung cấp lâu năm đổi bên thụ hưởng";
+            w.Worksheet("CauHoi").Cell(2, 11).Value = "";
+        }
+        var common = await test.Service.PreviewAsync(await test.Edit(Edit), "common.xlsx", "admin", default);
+        Assert.Contains(common.Errors, e => e.Column == "Giải thích A");
+        var enterprise = await test.Service.PreviewAsync(await test.Edit(w => { Edit(w); w.Worksheet("ChuyenDe").Cell(2, 5).Value = "enterprise"; }), "enterprise.xlsx", "admin", default);
+        Assert.Empty(enterprise.Errors);
+        await test.Service.ConfirmAsync(new(enterprise.PreviewId!, null), "admin", default);
+        var question = await test.Db.QuizQuestions.SingleAsync(q => q.Code == "Q1");
+        Assert.True(question.Kind.Length > 40); Assert.DoesNotContain("\"A\"", question.Explanations);
+        var missing = await test.Service.PreviewAsync(await test.Edit(w => w.Worksheet("CauHoi").Cell(2, 12).Value = ""), "missing.xlsx", "admin", default);
+        Assert.Contains(missing.Errors, e => e.Column == "Giải thích B");
+    }
+
     private sealed class FakeBank : IQuestionBank { public int Reloads; public QuestionBankSnapshot Current => new(); public void Reload() => Reloads++; }
     private sealed class Host(string root) : IHostEnvironment
     {

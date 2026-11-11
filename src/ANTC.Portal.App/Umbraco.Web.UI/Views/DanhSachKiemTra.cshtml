@@ -11,7 +11,6 @@
     var image = Model.Value<IPublishedContent>("illustration");
     var pdfUrl = Model.Value<IPublishedContent>("pdf")?.Url();
     var validPdf = pdfUrl?.StartsWith('/') == true && !pdfUrl.StartsWith("//") && pdfUrl.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
-    var version = Model.Value<string>("ver");
     var reviewed = Model.Value<DateTime?>("rev");
 }
 @section Head {
@@ -20,17 +19,19 @@
     <link rel="stylesheet" href="~/assets/css/self-check-checklist.css" asp-append-version="true">
 }
 <article class="self-check-page self-check-tool self-check-checklist site-chrome-wrap" data-self-check-checklist>
-    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">Hãy tự kiểm tra</a></li><li aria-current="page">@title</li></ol></nav>
-    <header class="self-check-heading"><p class="self-check-eyebrow">Danh sách kiểm tra</p><div class="self-check-heading__title"><span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Value<string>("icon") ?? "icon-check")</span><h1>@title</h1></div><p>@lead</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
-    <p class="self-check-privacy">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-lock")<span>Không cần đăng nhập. Câu trả lời không được lưu và không gửi đi đâu. Không cần nhập tên, số điện thoại hay số tài khoản.</span></p>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">CÔNG CỤ KIỂM TRA</a></li><li aria-current="page">@title</li></ol></nav>
+    <header class="self-check-heading"><p class="self-check-eyebrow">Kiểm tra</p><div class="self-check-heading__title"><span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Value<string>("icon") ?? "icon-check")</span><h1>@title</h1></div><p>@await Html.PartialAsync("~/Views/Partials/_ContentSourceLinks.cshtml", (Model, lead))</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
     @if (image is not null) { <figure class="self-check-illustration"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" loading="lazy" decoding="async"></figure> }
     @if (data.Ready)
     {
         <div class="self-check-controls self-check-document-tools">
-            <button type="button" class="self-check-button" data-checklist-print>In danh sách kiểm tra</button>
+            <button type="button" class="self-check-button" data-checklist-speak aria-pressed="false" hidden>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-megaphone") <span>Nghe bài viết</span></button>
+            <button type="button" class="self-check-button" data-font-toggle aria-pressed="false">A+ Chữ lớn</button>
+            <button type="button" class="self-check-button" data-checklist-print>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-print") In</button>
+            <button type="button" class="self-check-button" data-checklist-share>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-share") Gửi</button>
             @if (validPdf) { <a class="self-check-button" href="@pdfUrl" download>Tải bản PDF</a> }
-            else { <p>Chưa có tệp PDF riêng. Chọn In để in hoặc lưu thành PDF.</p> }
         </div>
+        <p class="self-check-tool-status" data-checklist-tools-status role="status" hidden></p>
         <div data-checklist-form>
             <section class="self-check-checklist-part" aria-labelledby="self-check-part-one"><h2 id="self-check-part-one"><span>1</span> Có việc nào dưới đây không?</h2><p>@Model.Value("p1Intro")</p>
                 @for (var i = 0; i < data.Questions.Length; i++)
@@ -44,27 +45,28 @@
                 }
                 @if (!string.IsNullOrWhiteSpace(Model.Value<string>("p1Note"))) { <p class="self-check-checklist-note">@Model.Value("p1Note")</p> }
             </section>
-            <section class="self-check-checklist-part" aria-labelledby="self-check-part-two"><h2 id="self-check-part-two"><span>2</span> Bảng kiểm bỏ túi</h2><p>@Model.Value("p2Intro")</p>
+            <section class="self-check-checklist-part" aria-labelledby="self-check-part-two"><h2 id="self-check-part-two"><span>2</span> Kiểm tra bỏ túi</h2><p>@Model.Value("p2Intro")</p>
                 <div class="self-check-pocket">
                 @for (var i = 0; i < data.Items.Length; i++)
                 {
                     <label><input type="checkbox" data-checklist-item="@i"><span>@data.Items[i]</span></label>
                 }
-                </div>
                 <button type="button" class="self-check-button" data-checklist-clear>Xóa đánh dấu</button>
+                </div>
             </section>
             <p class="self-check-checklist-error" role="alert" data-checklist-error hidden></p>
             <div class="self-check-controls"><button type="button" class="self-check-button self-check-button--primary" data-checklist-result>Xem kết quả</button><button type="button" class="self-check-button" data-checklist-reset>Làm lại từ đầu</button></div>
         </div>
         <div data-checklist-output></div>
-        <a class="self-check-button self-check-source-link" href="@(source!.Url())">Đọc @source.Value("title")</a>
+        <div class="self-check-controls self-check-source-links"><a class="self-check-button self-check-source-link" href="@(source!.Url())">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-book") Đọc @source.Name</a>
+        @if (Model.Value<IPublishedContent>("guidePage") is { } guide && EmergencyContent.PublicUrl(guide) is { } guideUrl) { <a class="self-check-button" href="@guideUrl">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-document") @(guide.Value<IPublishedContent>("topic")?.Value<string>("shortName") ?? guide.Value<string>("title") ?? guide.Name)</a> }</div>
         <script type="application/json" data-checklist-data>@Html.Raw(json)</script>
         <noscript><p class="self-check-empty">Bạn có thể đọc và in danh sách bằng chức năng In của trình duyệt. Bật JavaScript để xem kết quả tự kiểm tra; lựa chọn trên trang không được gửi đi.</p></noscript>
     }
     else
     {
-        <p class="self-check-empty">Danh sách kiểm tra đang được cập nhật. Bạn có thể <a href="/hay-tu-kiem-tra/">quay lại Hãy tự kiểm tra</a>.</p>
+        <p class="self-check-empty">Danh sách kiểm tra đang được cập nhật. Bạn có thể <a href="/hay-tu-kiem-tra/">quay lại Công cụ kiểm tra</a>.</p>
     }
-    <footer class="self-check-checklist-meta"><p>@if (!string.IsNullOrWhiteSpace(version)) { <span>Phiên bản @version</span> } @if (reviewed is { Year: > 1900 } date) { <span>Ngày rà soát: @date.ToString("dd/MM/yyyy")</span> }</p><p>Website này không phải là nơi tiếp nhận tố giác, tin báo về tội phạm. Nếu bạn cần trình báo, hãy liên hệ trực tiếp cơ quan Công an nơi bạn cư trú.</p></footer>
+    <footer class="self-check-checklist-meta">@if (reviewed is { Year: > 1900 } date) { <p>Ngày rà soát: @date.ToString("dd/MM/yyyy")</p> }<p>Website này không phải là nơi tiếp nhận tố giác, tin báo về tội phạm. Nếu bạn cần trình báo, hãy liên hệ trực tiếp cơ quan Công an nơi bạn cư trú.</p></footer>
 </article>
 @section Scripts { <script type="module" src="~/assets/js/self-check-checklist.js" asp-append-version="true"></script> }

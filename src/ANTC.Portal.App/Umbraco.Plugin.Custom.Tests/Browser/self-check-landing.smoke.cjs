@@ -11,18 +11,20 @@ const base = process.env.ANTC_TEST_URL || 'http://localhost:11000';
     const response = await page.goto(`${base}/hay-tu-kiem-tra/`, { waitUntil: 'domcontentloaded' });
     assert.equal(response.status(), 200);
     const root = page.locator('[data-self-check-landing]');
-    assert.equal(await root.locator('h1').innerText(), 'Hãy tự kiểm tra');
+    assert.equal(await root.locator('h1').innerText(), 'CÔNG CỤ KIỂM TRA');
     assert.deepEqual(await root.locator('.self-check-tools .self-check-card__body > b').allTextContents(),
       ['Trước khi chuyển tiền', 'Trước khi đầu tư, vay', 'Khi nghi ngờ bị lừa']);
     const knowledge = root.locator('.self-check-knowledge');
     assert.deepEqual(await knowledge.getByRole('link').evaluateAll(links => links.map(link => link.getAttribute('href'))),
-      ['/thu-suc/', '/ngan-hang/']);
+      ['/thu-suc/', '/ngan-hang/', '/ngan-hang/#doanh-nghiep', '/cuoc-thi-truc-tuyen/']);
     assert.equal(await knowledge.locator('.self-check-card--pending').count(), 0);
     assert.equal(await root.locator('.self-check-lists a').count(), 8);
+    assert.equal(await root.locator('.self-check-tools .self-check-card__cover').count(), 3);
+    assert.deepEqual(await root.locator('.self-check-lists .self-check-card__body > span').allTextContents(), Array.from({length:8},(_,i)=>'Chuyên đề '+(i+1)+(i===7?' · sau sự cố':'')));
     assert.deepEqual(await root.locator('.self-check-lists .self-check-card__body > b').allTextContents(), [
       'Trước mọi quyết định có dính đến tiền', 'Trước khi ký hợp đồng, bấm đồng ý', 'Trước khi đầu tư, góp vốn',
       'Trước khi vay, bảo lãnh, đứng tên', 'Trước khi nhận việc, nộp hồ sơ', 'Trước khi mua, chuyển khoản, đặt cọc',
-      'Khi người lạ liên hệ, gửi đường link', 'Khi đã lỡ đưa tiền, mã hoặc giấy tờ']);
+      'Khi người lạ liên hệ, gửi đường dẫn', 'Khi đã lỡ đưa tiền, mã hoặc giấy tờ']);
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `Overflow at ${width}px`);
@@ -54,7 +56,7 @@ const base = process.env.ANTC_TEST_URL || 'http://localhost:11000';
     assert.equal(await page.evaluate(async () =>
       (await import('/assets/js/contest/contest-store.js')).state.practice), true);
     assert.deepEqual(errors, []);
-    console.log('PASS: landing, 8 published checklist links in order, both knowledge links, mobile/large text, active menu, redirects, public link destinations and practice mode after click/reload.');
+    console.log('PASS: landing, 8 published checklist links in order, knowledge/practice/activity links, mobile/large text, active menu, redirects, public link destinations and practice mode after click/reload.');
   } finally {
     await browser.close();
   }

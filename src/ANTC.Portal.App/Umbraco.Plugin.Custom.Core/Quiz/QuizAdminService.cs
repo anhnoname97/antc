@@ -164,7 +164,7 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         string code = NormalizeCode(request.Code);
         if (code.Length is < 1 or > 16 || !CodePattern().IsMatch(code)) errors["code"] = "Mã gồm 1–16 chữ, số, dấu chấm, gạch ngang hoặc gạch dưới.";
         if (!await db.QuizTopics.AnyAsync(x => x.Id == request.TopicId && x.IsActive, ct)) errors["topicId"] = "Chuyên đề không tồn tại hoặc đang ngừng dùng.";
-        if (string.IsNullOrWhiteSpace(request.Kind) || request.Kind.Trim().Length > 40) errors["kind"] = "Loại câu hỏi bắt buộc, tối đa 40 ký tự.";
+        if (string.IsNullOrWhiteSpace(request.Kind) || request.Kind.Trim().Length > 200) errors["kind"] = "Loại câu hỏi bắt buộc, tối đa 200 ký tự.";
         if (string.IsNullOrWhiteSpace(request.Question) || request.Question.Trim().Length is < 5 or > 2000) errors["question"] = "Nội dung câu hỏi phải có 5–2000 ký tự.";
         if (request.Situation?.Trim().Length > 2000) errors["situation"] = "Tình huống tối đa 2000 ký tự.";
         if (request.SafeAction?.Trim().Length > 3000) errors["safeAction"] = "Khuyến nghị tối đa 3000 ký tự.";
@@ -196,6 +196,9 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     {
         var errors = new Dictionary<string, string>();
         if (request.Id <= 0) errors["id"] = "Mã chuyên đề phải lớn hơn 0.";
+        if (request.Audience is not ("general" or "enterprise")) errors["audience"] = "Chọn nhóm người đọc hợp lệ.";
+        if (request.ShortTitle?.Trim().Length > 200) errors["shortTitle"] = "Tên trên danh sách tối đa 200 ký tự.";
+        if (request.Caption?.Trim().Length > 300) errors["caption"] = "Dòng mô tả tối đa 300 ký tự.";
         if (string.IsNullOrWhiteSpace(request.Title) || request.Title.Trim().Length is < 2 or > 200) errors["title"] = "Tên chuyên đề phải có 2–200 ký tự.";
         if ((request.Intro ?? []).Any(x => string.IsNullOrWhiteSpace(x) || x.Trim().Length > 2000)) errors["intro"] = "Mỗi đoạn giới thiệu phải có nội dung và tối đa 2000 ký tự.";
         if ((request.Terms ?? []).Any(x => string.IsNullOrWhiteSpace(x.Term) || x.Term.Trim().Length > 200 || x.Definition.Trim().Length > 1000)) errors["terms"] = "Thuật ngữ bắt buộc, tối đa 200 ký tự; giải nghĩa tối đa 1000 ký tự.";
@@ -205,6 +208,9 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     private QuizTopic Apply(QuizTopic topic, SaveQuizTopicRequest request)
     {
         topic.Title = request.Title!.Trim();
+        topic.Audience = request.Audience;
+        topic.ShortTitle = NullIfEmpty(request.ShortTitle);
+        topic.Caption = NullIfEmpty(request.Caption);
         topic.Intro = JsonSerializer.Serialize((request.Intro ?? []).Select(x => x.Trim()), JsonOptions);
         topic.Terms = JsonSerializer.Serialize((request.Terms ?? []).Select(x => new[] { x.Term.Trim(), x.Definition.Trim() }), JsonOptions);
         topic.IsActive = request.IsActive;
@@ -241,7 +247,8 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     }
 
     private static QuizTopicAdminDto MapTopic(QuizTopic x, int total, int active) => new(
-        x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt, x.Revision);
+        x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt, x.Revision,
+        x.Audience, x.ShortTitle, x.Caption);
 
     private static QuizQuestionAdminDto MapQuestion(QuizQuestion x)
     {

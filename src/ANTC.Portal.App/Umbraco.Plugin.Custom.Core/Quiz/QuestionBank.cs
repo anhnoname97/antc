@@ -14,7 +14,10 @@ public record TopicDto(
     [property: JsonPropertyName("title")] string Title,
     [property: JsonPropertyName("count")] int Count,
     [property: JsonPropertyName("intro")] JsonElement Intro,
-    [property: JsonPropertyName("terms")] JsonElement Terms);
+    [property: JsonPropertyName("terms")] JsonElement Terms,
+    [property: JsonPropertyName("audience")] string Audience = "general",
+    [property: JsonPropertyName("shortTitle")] string? ShortTitle = null,
+    [property: JsonPropertyName("caption")] string? Caption = null);
 
 public record QuestionDto(
     [property: JsonPropertyName("code")] string Code,
@@ -51,6 +54,8 @@ public class QuestionBankSnapshot
     public IReadOnlyList<SampleQuestionDto> Sample { get; init; } = Array.Empty<SampleQuestionDto>();
     public IReadOnlyDictionary<string, AnswerKey> Keys { get; init; } = new Dictionary<string, AnswerKey>();
     public int TotalQuestions => Keys.Count;
+    public int GeneralQuestionCount => Topics.Where(t => t.Audience != "enterprise").Sum(t => t.Count);
+    public int EnterpriseQuestionCount => Topics.Where(t => t.Audience == "enterprise").Sum(t => t.Count);
     /// <summary>Chuỗi phiên bản dùng trực tiếp cho ETag.</summary>
     public string CacheKey { get; init; } = "";
     public IReadOnlyList<ContestQuestionBankSnapshot> Contests { get; init; } = Array.Empty<ContestQuestionBankSnapshot>();
@@ -172,7 +177,7 @@ public class QuestionBank : IQuestionBank
             CacheKey = $"quiz-v{version}",
             Topics = topics.Select(t => new TopicDto(
                 t.Id.ToString(), t.Title, byTopic.TryGetValue(t.Id, out var list) ? list.Count : 0,
-                Parse(t.Intro), Parse(t.Terms ?? "[]"))).ToList(),
+                Parse(t.Intro), Parse(t.Terms ?? "[]"), t.Audience, t.ShortTitle, t.Caption)).ToList(),
             QuestionsByTopic = byTopic,
             Sample = questions.Where(q => q.SampleOrder is not null).OrderBy(q => q.SampleOrder)
                 .Select(q => new SampleQuestionDto(

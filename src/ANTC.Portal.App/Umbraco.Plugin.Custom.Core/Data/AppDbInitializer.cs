@@ -11,7 +11,7 @@ namespace Umbraco.Plugin.Custom.Core.Data;
 
 /// <summary>
 /// Chay khi ung dung khoi dong: tao thu muc CSDL, ap dung migration, bat WAL,
-/// va nap ngan hang cau hoi ban dau (8 chuyen de, 200 cau, 8 cau Thu suc) neu CSDL con trong.
+/// va nap ngan hang ban dau (200 cau chung, 78 cau doanh nghiep, 8 cau Thu suc) neu CSDL con trong.
 /// Du lieu ban dau nam trong Data/Seed/*.json, lay tu ban dung.
 /// </summary>
 public class AppDbInitializer : IHostedService
@@ -55,7 +55,7 @@ public class AppDbInitializer : IHostedService
         }
     }
 
-    /// <summary>Mot cuoc gom moi chuyen de va cau dang dung, 2026-10-01 den 2026-12-31 gio Viet Nam.</summary>
+    /// <summary>Cuoc thi mau giu 8 chuyen de chung; tai lieu luyen doanh nghiep khong tu dong them vao de thi.</summary>
     private async Task SeedSampleContestAsync(AppDbContext db, CancellationToken ct)
     {
         var vn = TimeSpan.FromHours(7);
@@ -71,7 +71,8 @@ public class AppDbInitializer : IHostedService
             UpdatedAt = now,
         };
 
-        List<QuizTopic> topics = await db.QuizTopics.Where(t => t.IsActive)
+        // Adding practice material must not expand the default demo contest automatically.
+        List<QuizTopic> topics = await db.QuizTopics.Where(t => t.IsActive && t.Audience == "general")
             .Include(t => t.Questions)
             .OrderBy(t => t.Id).ToListAsync(ct);
         contest.BankVersion = await db.QuizImports.Select(x => (long?)x.Id).MaxAsync(ct) ?? 0;
@@ -186,15 +187,19 @@ public class AppDbInitializer : IHostedService
     {
         DateTime now = DateTime.UtcNow;
         using JsonDocument bank = JsonDocument.Parse(ReadResource("quiz-bank.json"));
+        using JsonDocument enterprise = JsonDocument.Parse(ReadResource("quiz-enterprise.json"));
         using JsonDocument sample = JsonDocument.Parse(ReadResource("quiz-sample.json"));
 
-        foreach (JsonProperty topic in bank.RootElement.EnumerateObject().OrderBy(p => int.Parse(p.Name)))
+        foreach (JsonProperty topic in bank.RootElement.EnumerateObject().Concat(enterprise.RootElement.EnumerateObject()).OrderBy(p => int.Parse(p.Name)))
         {
             int topicId = int.Parse(topic.Name);
             db.QuizTopics.Add(new QuizTopic
             {
                 Id = topicId,
                 Title = topic.Value.GetProperty("t").GetString() ?? "",
+                Audience = topic.Value.TryGetProperty("audience", out var audience) ? audience.GetString() ?? "general" : "general",
+                ShortTitle = topic.Value.TryGetProperty("sh", out var shortTitle) ? shortTitle.GetString() : null,
+                Caption = topic.Value.TryGetProperty("sub", out var caption) ? caption.GetString() : null,
                 Intro = topic.Value.GetProperty("intro").GetRawText(),
                 Terms = topic.Value.TryGetProperty("terms", out JsonElement terms) ? terms.GetRawText() : "[]",
                 UpdatedAt = now,

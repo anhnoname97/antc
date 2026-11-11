@@ -58,3 +58,4 @@ for (const root of document.querySelectorAll('[data-self-check-checklist]')) {
     title.tabIndex = -1; title.focus({ preventScroll: true }); out.scrollIntoView({ block: 'start', behavior: 'instant' });
   });
 }
+import './self-check-document-tools.js';

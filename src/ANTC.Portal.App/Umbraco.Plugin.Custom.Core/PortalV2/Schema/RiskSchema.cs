@@ -62,8 +62,7 @@ public static class RiskSchema
                 P("topic", "Chuyên đề", "Chọn · Chuyên đề"), P("actionPage", "Dẫn tới trang việc cần làm", "Chọn · Việc cần làm"),
                 P("isFeatured", "Ghim đầu nhóm", PortalV2Schema.Toggle), P("alsoInCategories", "Hiện thêm ở nhóm", "Chọn · Nhóm rủi ro · nhiều"),
                 P("searchKeywords", "Từ người dân hay gõ khi tìm", PortalV2Schema.Keywords), P("synonyms", "Từ cùng nghĩa", PortalV2Schema.Synonyms),
-                P("reviewDate", "Ngày rà soát", PortalV2Schema.Date), P("reviewer", "Người thẩm định", PortalV2Schema.Text(120)),
-                P("version", "Phiên bản", PortalV2Schema.Text(20))], Compositions: compositions);
+                P("reviewDate", "Ngày rà soát", PortalV2Schema.Date), P("reviewer", "Người thẩm định", PortalV2Schema.Text(120))], Compositions: compositions);
         yield return new("alertPage", "Cảnh báo", "icon-megaphone", "Cảnh báo mới trong 90 ngày; tự gỡ mặc định sau 180 ngày.", "vietCanhBao", "Viết cảnh báo",
             [P("title", "Tiêu đề", PortalV2Schema.Text(110), true), P("description", "Tóm tắt", PortalV2Schema.Area(160), true),
                 P("scenarioSteps", "Kịch bản thường gặp", PortalV2Schema.Lines(0, 5), hint: "3–5 bước, theo thứ tự xảy ra. Cần khi đăng."),

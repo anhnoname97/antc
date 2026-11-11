@@ -770,11 +770,6 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("id");
 
-                    b.Property<string>("AssignedTo")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("assigned_to");
-
                     b.Property<string>("AdminNote")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT")
@@ -802,6 +797,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT")
                         .HasColumnName("approved_by");
+
+                    b.Property<string>("AssignedTo")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("assigned_to");
 
                     b.Property<DateTime?>("ConsentAt")
                         .HasColumnType("TEXT")
@@ -992,7 +992,7 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.Property<string>("Kind")
                         .IsRequired()
-                        .HasMaxLength(40)
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT")
                         .HasColumnName("kind");
 
@@ -1057,6 +1057,19 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("id");
 
+                    b.Property<string>("Audience")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("general")
+                        .HasColumnName("audience");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("caption");
+
                     b.Property<string>("Intro")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -1070,6 +1083,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("INTEGER")
                         .HasColumnName("revision");
+
+                    b.Property<string>("ShortTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("short_title");
 
                     b.Property<string>("Terms")
                         .HasColumnType("TEXT")
@@ -1168,7 +1186,6 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
 
                     b.Navigation("Topic");
                 });
-
 
             modelBuilder.Entity("Umbraco.Plugin.Custom.Core.Data.Draw", b =>
                 {

@@ -5,6 +5,12 @@
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var data = SituationChooserData.Build(Model, key => PublishedCache.GetById(false, key));
+    var urgentNote = Model.Value<string>("urgentNote") ?? "";
+    var urgentQuestionEnd = urgentNote.IndexOf('?');
+    var icons = EmergencyContent.Rows(Model, "groups").Concat(EmergencyContent.Rows(Model, "consequences"))
+        .Concat(EmergencyContent.Rows(Model.Root(), "stopPrinciples")).Select(row => EmergencyContent.Text(row, "icon"))
+        .Concat(new[] { "icon-help-alt", "icon-check", "icon-document", "icon-arrow-left", "chevron-right", "icon-search", "icon-chat", "icon-print", "icon-share", "icon-edit", "icon-refresh" })
+        .Where(icon => !string.IsNullOrWhiteSpace(icon)).Distinct().ToArray();
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
@@ -12,11 +18,32 @@
 }
 <article class="self-check-page site-chrome-wrap situation-page" data-situation-chooser>
     <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/khan-cap/">KHẨN CẤP</a></li><li aria-current="page">@Model.Value("title")</li></ol></nav>
-    <header class="self-check-heading"><h1>@Model.Value("title")</h1><p>@Model.Value("lead")</p></header>
-    <p class="situation-privacy">@Model.Value("privacyNote")</p>
-    <p class="situation-urgent"><span>@Model.Value("urgentNote")</span><a href="tel:113">Gọi 113</a></p>
+    <header class="self-check-heading"><div class="self-check-heading__title"><span class="self-check-spot situation-spot--urgent">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-help-alt")</span><h1>@Model.Value("title")</h1></div><p>@Model.Value("lead")</p></header>
+    <p class="situation-privacy">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-lock")<span>@Model.Value("privacyNote")</span></p>
+    <div class="situation-urgent">
+        @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-alert")
+        <span>@if (urgentQuestionEnd >= 0) { <b>@urgentNote[..(urgentQuestionEnd + 1)]</b>@urgentNote[(urgentQuestionEnd + 1)..] } else { @urgentNote }</span>
+        <a href="tel:113">Gọi 113</a>
+    </div>
     <div data-situation-body></div>
     <noscript><p>Bật JavaScript để chọn tình huống. Bạn cũng có thể <a href="/khan-cap/#viec-can-lam">xem việc cần làm ngay</a>.</p></noscript>
     <script type="application/json" data-situation-data>@Html.Raw(JsonSerializer.Serialize(data, new JsonSerializerOptions(JsonSerializerDefaults.Web)))</script>
+    @foreach (var icon in icons)
+    {
+        <template data-situation-icon="@icon">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", icon)</template>
+    }
+    @foreach (var alternative in EmergencyContent.Rows(Model, "alternatives"))
+    {
+        var targetKey = EmergencyContent.DocumentKey(EmergencyContent.Text(alternative, "page"));
+        var target = targetKey is { } key ? PublishedCache.GetById(false, key) : null;
+        var url = EmergencyContent.PublicUrl(target);
+        if (url is null) { continue; }
+        var targetIcon = target?.Value<string>("icon");
+        if (string.IsNullOrWhiteSpace(targetIcon))
+        {
+            targetIcon = target?.ContentType.Alias switch { "wizardPage" => "icon-help-alt", "hoiDapPage" => "icon-chat", _ => "icon-search" };
+        }
+        <template data-situation-icon="@("link:" + url)">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", targetIcon)</template>
+    }
 </article>
 @section Scripts { <script type="module" src="~/assets/js/situation-chooser.js" asp-append-version="true"></script> }

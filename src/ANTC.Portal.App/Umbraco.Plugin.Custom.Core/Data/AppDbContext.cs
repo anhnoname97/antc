@@ -186,6 +186,9 @@ public class AppDbContext : DbContext
             e.ToTable("quiz_topic");
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Title).HasMaxLength(200);
+            e.Property(x => x.Audience).HasMaxLength(20).HasDefaultValue("general");
+            e.Property(x => x.ShortTitle).HasMaxLength(200);
+            e.Property(x => x.Caption).HasMaxLength(300);
             e.Property(x => x.Revision).IsConcurrencyToken();
         });
 
@@ -194,7 +197,7 @@ public class AppDbContext : DbContext
             e.ToTable("quiz_question");
             e.HasKey(x => x.Code);
             e.Property(x => x.Code).HasMaxLength(16);
-            e.Property(x => x.Kind).HasMaxLength(40);
+            e.Property(x => x.Kind).HasMaxLength(200);
             e.Property(x => x.Answer).HasMaxLength(1);
             e.Property(x => x.SampleLabel).HasMaxLength(60);
             e.Property(x => x.Revision).IsConcurrencyToken();

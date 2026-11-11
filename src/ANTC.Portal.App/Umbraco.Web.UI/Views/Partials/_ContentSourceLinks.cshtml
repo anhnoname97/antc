@@ -1,0 +1,46 @@
+@using System.Text.RegularExpressions
+@model (IPublishedContent Content, string? Text)
+@{
+    var text = Model.Text ?? "";
+    var references = new Dictionary<string, (string Url, string Title, bool Guide)>(StringComparer.OrdinalIgnoreCase);
+    foreach (var page in Model.Content.Root().DescendantsOrSelf())
+    {
+        var reading = page.ContentType.Alias == "riskArticlePage";
+        var guide = page.ContentType.Alias == "viecCanLamPage";
+        if ((!reading && !guide) || EmergencyContent.PublicUrl(page) is not { } url) { continue; }
+        var title = page.Value<string>("title") is { Length: > 0 } heading ? heading : page.Name;
+        if (reading && int.TryParse(page.Value<string>("selfCheckSourceNumber"), out var number) && number is >= 1 and <= 8)
+        {
+            references.TryAdd($"Bài đọc Chuyên đề {number}", (url, title, false));
+            references.TryAdd($"Chuyên đề {number}", (url, title, false));
+        }
+        if (guide)
+        {
+            references.TryAdd(title, (url, title, true));
+            // Source notes may omit the explanatory suffix of a guide title.
+            var shortTitle = title.Split(" — ", 2, StringSplitOptions.None)[0].Trim();
+            if (shortTitle.Length >= 12) { references.TryAdd(shortTitle, (url, title, true)); }
+        }
+    }
+}
+@if (references.Count == 0)
+{
+    @text
+}
+else
+{
+    var pattern = @"(?<![\p{L}\p{N}])(?:" + string.Join("|", references.Keys.OrderByDescending(key => key.Length).Select(Regex.Escape)) + @")(?![\p{L}\p{N}])";
+    var cursor = 0;
+    foreach (Match match in Regex.Matches(text, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+    {
+        var reference = references[match.Value];
+        var href = reference.Url;
+        if (reference.Guide && Regex.Match(text[..match.Index], @"bước\s+([1-9][0-9]*)\s+của\s+trang\s*[“""']?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) is { Success: true } step)
+        {
+            href += "#buoc-" + step.Groups[1].Value;
+        }
+        @text.Substring(cursor, match.Index - cursor)<a class="content-source-link" href="@href" title="@reference.Title">@match.Value</a>
+        cursor = match.Index + match.Length;
+    }
+    @text[cursor..]
+}

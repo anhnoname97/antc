@@ -99,7 +99,8 @@ if (root) {
     if (!isLast) {
       navHtml += '<button type="button" class="btn pri" data-action="next">Câu tiếp <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></button>';
     } else {
-      navHtml += '<a href="/ngan-hang/" class="btn pri">Tự luyện đầy đủ 200 câu <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></a>';
+      const count = Number(root.dataset.questionCount);
+      navHtml += `<a href="/ngan-hang/" class="btn pri">Tự luyện đầy đủ${Number.isSafeInteger(count) && count > 0 ? ` ${count} câu` : ''} <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></a>`;
     }
     navWrap.innerHTML = navHtml;
   }
