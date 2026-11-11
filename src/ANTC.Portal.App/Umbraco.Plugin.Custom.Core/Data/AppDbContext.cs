@@ -184,6 +184,10 @@ public class AppDbContext : DbContext
         b.Entity<QuizTopic>(e =>
         {
             e.ToTable("quiz_topic");
+            e.Property(x => x.PublicCode).HasMaxLength(16);
+            e.Property(x => x.Type).HasMaxLength(16).HasDefaultValue(QuizAudience.Personal);
+            e.HasIndex(x => x.Type);
+            e.HasIndex(x => x.PublicCode).IsUnique();
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Title).HasMaxLength(200);
             e.Property(x => x.Revision).IsConcurrencyToken();
@@ -194,7 +198,7 @@ public class AppDbContext : DbContext
             e.ToTable("quiz_question");
             e.HasKey(x => x.Code);
             e.Property(x => x.Code).HasMaxLength(16);
-            e.Property(x => x.Kind).HasMaxLength(40);
+            e.Property(x => x.Kind).HasMaxLength(200);
             e.Property(x => x.Answer).HasMaxLength(1);
             e.Property(x => x.SampleLabel).HasMaxLength(60);
             e.Property(x => x.Revision).IsConcurrencyToken();
@@ -228,7 +232,7 @@ public class AppDbContext : DbContext
             e.ToTable("contest_question");
             e.HasKey(x => new { x.ContestId, x.QuestionCode });
             e.Property(x => x.QuestionCode).HasMaxLength(16);
-            e.Property(x => x.Kind).HasMaxLength(40);
+            e.Property(x => x.Kind).HasMaxLength(200);
             e.Property(x => x.Answer).HasMaxLength(1);
             e.Property(x => x.SampleLabel).HasMaxLength(60);
             e.HasOne(x => x.Contest).WithMany(x => x.Questions).HasForeignKey(x => x.ContestId).OnDelete(DeleteBehavior.Cascade);

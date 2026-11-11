@@ -1,4 +1,4 @@
-import { escapeHtml, campaignState } from './contest-layout.js?v=1.15.8';
+import { escapeHtml, campaignState } from './contest-layout.js?v=1.15.12';
 
 // Arrange the existing form controls without replacing their save/validation bindings.
 export function arrangeCampaignEditor(dialog, item) {

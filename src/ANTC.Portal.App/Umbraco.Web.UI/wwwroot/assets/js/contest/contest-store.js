@@ -528,5 +528,5 @@ export function getAnswer(q) {
 
 // Ngan hang cau hoi tai theo nhu cau (QUIZ-01 khi vao trang, QUIZ-02 khi mo chuyen de)
 // Mac dinh theo cuoc cua man hinh (state.contestId); truyen contestId de doc cuoc khac
-export const loadTopics = (contestId) => fetchTopics(contestId === undefined ? state.contestId : contestId);
+export const loadTopics = (contestId) => fetchTopics(contestId === undefined ? state.contestId : contestId, state.practice ? 'all' : 'general');
 export const loadQuestions = (cd, contestId) => fetchQuestions(cd, contestId === undefined ? state.contestId : contestId);

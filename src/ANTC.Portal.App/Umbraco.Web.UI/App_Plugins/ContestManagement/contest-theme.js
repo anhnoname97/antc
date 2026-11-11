@@ -5,7 +5,7 @@ import { unsafeCSS } from '@umbraco-cms/backoffice/external/lit';
 if (!document.querySelector('link[data-contest-admin-font]')) {
   const fonts = document.createElement('link');
   fonts.rel = 'stylesheet';
-  fonts.href = '/assets/css/fonts.css?v=1.15.8';
+  fonts.href = '/assets/css/fonts.css?v=1.15.12';
   fonts.dataset.contestAdminFont = '';
   document.head.append(fonts);
 }
@@ -93,22 +93,22 @@ select{
    Browsers without customizable selects retain the existing native picker. */
 @supports (appearance:base-select){
   select:not([multiple]):not([size]),select:not([multiple]):not([size])::picker(select){appearance:base-select}
-  select:not([multiple]):not([size]){background-image:none;padding-inline-end:12px;gap:8px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  select:not([multiple]):not([size]){display:inline-flex;background-image:none;box-sizing:border-box;block-size:40px;min-block-size:40px;padding:0 12px;gap:8px;align-items:center;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
   select:not([multiple]):not([size]):disabled{cursor:not-allowed}
   select:not([multiple]):not([size])::picker-icon{content:'';width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);flex-shrink:0;margin-inline-start:auto;color:var(--cm-muted)}
   select:not([multiple]):not([size]):open::picker-icon{transform:translateY(2px) rotate(225deg);color:var(--cm-accent)}
   select:not([multiple]):not([size]):open{border-color:var(--cm-accent);box-shadow:0 0 0 3px #0e7c721a}
   select:not([multiple]):not([size])::picker(select){
-    box-sizing:border-box;min-inline-size:anchor-size(self-inline);inline-size:max-content;
-    max-inline-size:min(560px,calc(100vw - 24px));max-block-size:min(320px,50dvh);
-    margin-block:5px;padding:6px;border:1px solid var(--cm-border);border-radius:12px;
+    box-sizing:border-box;inline-size:anchor-size(self-inline);min-inline-size:0;
+    max-inline-size:calc(100vw - 24px);max-block-size:min(360px,50dvh);
+    margin-block:5px;padding:4px;border:1px solid var(--cm-border);border-radius:8px;
     background:var(--cm-surface);color:var(--cm-text);font:inherit;
     box-shadow:0 12px 32px #14233b24,0 2px 8px #14233b0d;
     overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c5d4d1 transparent;
   }
   select:not([multiple]):not([size]) option{
-    display:flex;align-items:center;gap:12px;min-block-size:36px;padding:8px 12px;
-    border:0;border-radius:7px;background:var(--cm-surface);color:var(--cm-text);
+    display:flex;align-items:center;gap:10px;min-block-size:36px;padding:8px 10px;
+    border:0;border-radius:5px;background:var(--cm-surface);color:var(--cm-text);
     font:inherit;line-height:1.5;white-space:normal;overflow-wrap:anywhere;cursor:pointer;
   }
   select:not([multiple]):not([size]) option+option{margin-block-start:2px}
@@ -320,6 +320,31 @@ th,td{padding:12px 14px}
 .campaign-dates time{display:block;line-height:1.5}
 .campaign-date-arrow{color:var(--cm-muted);font-family:inherit;font-size:14px;line-height:12px}
 @media(max-width:760px){.page-heading{padding:14px 0 10px}.toolbar{gap:10px}}
+/* Quiz filters reserve more space for long topic titles than short audience labels. */
+.quiz-toolbar{width:100%;align-items:start}
+.quiz-toolbar .filters.quiz-filters{display:grid;flex:1 1 100%;min-width:0;gap:16px 12px;align-items:end}
+.quiz-toolbar .quiz-filters--questions{grid-template-columns:160px minmax(240px,1fr) 180px 144px;grid-template-areas:"search search search create" "type topic status submit"}
+.quiz-toolbar .quiz-filters--topics{grid-template-columns:minmax(140px,1fr) minmax(160px,1fr) 112px}
+.quiz-filter{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:12px;font-weight:500;color:var(--cm-muted)}
+.quiz-filter--search{grid-column:1/-2}
+.quiz-filters--topics .quiz-filter--search{grid-column:1/-1}
+.quiz-filters--questions .quiz-filter--search{grid-area:search}
+.quiz-filters--questions .quiz-filter--type{grid-area:type}
+.quiz-filters--questions .quiz-filter--topic{grid-area:topic}
+.quiz-filters--questions .quiz-filter--status{grid-area:status}
+.quiz-filters--questions .quiz-filter-create{grid-area:create}
+.quiz-filters--questions .quiz-filter-submit{grid-area:submit}
+.quiz-toolbar .quiz-filters .quiz-filter>input,.quiz-toolbar .quiz-filters .quiz-filter>select{box-sizing:border-box;width:100%;max-width:none;min-width:0;height:40px;min-height:40px;margin:0;font-size:13px;font-weight:400}
+.quiz-toolbar .quiz-filters>button{height:40px;min-height:40px;white-space:nowrap}
+.form-grid select,.form-grid input:not([type=checkbox]):not([type=radio]){height:40px;min-height:40px}
+.page-size select:not([multiple]):not([size]),.local-pager select:not([multiple]):not([size]){height:32px;min-height:32px;block-size:32px;min-block-size:32px;padding-block:0}
+@media(max-width:1279px){
+  .quiz-toolbar .quiz-filters--questions{grid-template-columns:minmax(140px,1fr) minmax(200px,2fr) 144px;grid-template-areas:"search search create" "type topic topic" "status status submit"}
+}
+@media(max-width:760px){
+  .quiz-toolbar .quiz-filters--questions,.quiz-toolbar .quiz-filters--topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .quiz-toolbar .quiz-filters--questions{grid-template-areas:"search search" "type status" "topic topic" "submit create"}
+}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(forced-colors:active){button,input,select,textarea,.badge,.answer{border:1px solid ButtonText}button:focus-visible{outline:2px solid Highlight}}
 `;

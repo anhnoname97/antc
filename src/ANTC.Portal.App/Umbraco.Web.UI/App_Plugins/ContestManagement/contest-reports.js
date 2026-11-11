@@ -1,9 +1,9 @@
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { css, html, nothing } from '@umbraco-cms/backoffice/external/lit';
-import { contestStyles } from './contest-theme.js?v=1.15.8';
-import { pageSizeSelect } from './contest-page-size.js?v=1.15.8';
-import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.8';
-import { campaignState, loadCampaigns } from './contest-layout.js?v=1.15.8';
+import { contestStyles } from './contest-theme.js?v=1.15.12';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.12';
+import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.12';
+import { campaignState, loadCampaigns } from './contest-layout.js?v=1.15.12';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';

@@ -65,7 +65,7 @@ export function resultBodyHtml(q, chosen) {
   if (!answered) return '';
   const ok = chosen === q.ans;
   const opts = Array.isArray(q.opt) ? q.opt : [];
-  const exp = opts.map(([k]) => {
+  const exp = opts.filter(([k]) => q.exp?.[k]).map(([k]) => {
     const t = q.exp ? q.exp[k] : '';
     return `<p${k === q.ans ? ' class="isans"' : ''}><b>${esc(k)}.</b> ${esc(t)}</p>`;
   }).join('');
