@@ -85,20 +85,18 @@ function progress() {
   return topicProgress(topics || []);
 }
 
-// Lam lan luot theo thu tu cua de (QD-025): chuyen de thu n chi mo khi chuyen de n-1 da xong. Thu tu = thu tu `topics`
+// Ban chinh thuc 10/11/2026 (thay QD-025, nguoi dung da chot): lam Chuyen de 1 truoc; xong Chuyen de 1 thi mo het,
+// lam chuyen de nao truoc cung duoc. De khong co Chuyen de 1 thi mo het. Phan doanh nghiep khong khoa.
 function isLocked(cd, prog) {
-  if (state.practice) {
-    if (isOrganization(topicOf(cd)) || String(cd) === '1') return false;
-    return !prog.find(p => String(p.cd) === '1')?.done;
-  }
-  const i = prog.findIndex((p) => p.cd === String(cd));
-  return i > 0 && !prog[i - 1].done;
+  const t = topicOf(cd);
+  if (isOrganization(t) || String(t?.cd ?? cd) === '1') return false;
+  const first = prog.find((p) => String(p.cd) === '1');
+  return !!first && !first.done;
 }
 
-// Chuyen de ke truoc trong de (de noi ly do khoa)
+// Chuyen de phai lam xong truoc (de noi ly do khoa)
 function prevTopic(cd) {
-  const i = (topics || []).findIndex((t) => String(t.cd) === String(cd));
-  return i > 0 ? topics[i - 1] : null;
+  return String(cd) === '1' ? null : topicOf('1');
 }
 
 function totalQuestions() {
@@ -106,9 +104,19 @@ function totalQuestions() {
 }
 
 const isOrganization = t => t?.type ? t.type === 'organization' : !!t?.code;
+// Ten ngan va dong mo ta cua ba phan doanh nghiep, cung chu voi ban chinh thuc va API /quiz/banks/business.
+const DN_META = {
+  dn1: { ab: 'A', sh: 'Phần A · Câu độc lập', sub: '18 câu · mỗi câu một tình huống ngắn' },
+  dn2: { ab: 'B', sh: 'Phần B · Tình huống ứng dụng', sub: '36 câu · mỗi tình huống 3 bước quyết định' },
+  dn3: { ab: 'C', sh: 'Phần C · Tình huống tổng hợp', sub: '24 câu · mỗi tình huống 4 bước, có dữ kiện gây nhiễu' }
+};
+const dnMeta = t => DN_META[t?.code] || { ab: t?.cd || '', sh: t?.title || '', sub: `${t?.count || 0} câu` };
+// Ten hien thi cua mot chuyen de / mot phan doanh nghiep (bankName cua ban chinh thuc)
 function topicLabel(t) {
-  return isOrganization(t) && !t.code ? t.title : isOrganization(t) ? `Phần ${{dn1:'A', dn2:'B', dn3:'C'}[t.code]} · Doanh nghiệp` : `Chuyên đề ${t?.cd || ''}`;
+  return isOrganization(t) ? dnMeta(t).sh : `Chuyên đề ${t?.cd || ''}`;
 }
+const generalOf = list => (list || []).filter((t) => !isOrganization(t));
+const businessOf = list => (list || []).filter(isOrganization);
 
 function topicOf(cd) {
   return (topics || []).find((t) => (String(t.cd) === String(cd) || t.code === String(cd))) || null;
@@ -209,7 +217,7 @@ function entryBoxHtml() {
 }
 
 function headHtml(eyebrow, title, sub) {
-  return `${eyebrowHtml(eyebrow)}<h2 id="eh" tabindex="-1" class="contest__h2">${esc(title)}</h2>${sub ? `<p class="exam__sub">${sub}</p>` : ''}`;
+  return `${eyebrowHtml(eyebrow)}<h1 id="eh" tabindex="-1" class="contest__h2">${esc(title)}</h1>${sub ? `<p class="exam__sub">${sub}</p>` : ''}`;
 }
 
 // Cuoc thi khong nhan dap an nua (API-02 phase): bao ro truoc khi vao lam
@@ -224,24 +232,53 @@ function phaseHtml() {
   return '';
 }
 
+// Mui ten quay lai (SVG, dung chung)
+const ICO_BACK = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5 8 12l7 7"/></svg>';
+
+// Ban chinh thuc (vBank): da dang ky thi thi co nut ve Cuoc thi; chi tu luyen thi hien duong dan Trang chu › CONG CU KIEM TRA › Tu luyen.
+function backOrCrumbsHtml() {
+  return state.entry
+    ? `<div class="backrow"><a href="/cuoc-thi/" class="btn ghost sm">${ICO_BACK} Cuộc thi</a></div>`
+    : '<nav class="crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/hay-tu-kiem-tra/">CÔNG CỤ KIỂM TRA</a></li><li><span aria-current="page">Tự luyện</span></li></ol></nav>';
+}
+
+// Mot dong trong danh sach chuyen de / phan doanh nghiep
+function topicRowHtml(t, prog, gate) {
+  const p = prog.find((x) => String(x.cd) === String(t.cd)) || {};
+  const lock = isLocked(String(t.cd), prog);
+  const done = !!p.done;
+  const org = isOrganization(t);
+  const title = esc(org ? dnMeta(t).sh : t.title.replace(/^CHUYÊN ĐỀ\s*\d+\s*[-–—:]\s*/i, ''));
+  let meta = org ? dnMeta(t).sub : `${t.count} câu`;
+  if (lock) meta += ` · mở sau khi xong Chuyên đề ${prevTopic(t.cd)?.cd || '1'}`;
+  else if (done) meta += ' · đã làm xong';
+  else if (!org && String(t.cd) === '1' && gate) meta += ' · làm chuyên đề này trước';
+  else if (p.answered) meta += ` · đã trả lời ${p.answered}`;
+  const badge = org ? dnMeta(t).ab : t.cd;
+  if (lock) {
+    return `<li><div class="lock qrow qrow--lock" aria-disabled="true"><span class="cn s qrow__n">${esc(badge)}</span><span class="ct qrow__body"><span class="qrow__t">${title}</span><small class="qrow__meta">${esc(meta)}</small></span><span class="lock-ic" aria-hidden="true">${ICO_LOCK}</span></div></li>`;
+  }
+  return `<li><a class="cdbtn qrow${done ? ' ok qrow--done' : ''}" href="${topicHash(esc(t.cd))}"><span class="cn${done ? ' ok' : ''} qrow__n">${done ? '✓' : esc(badge)}</span><span class="ct qrow__body"><span class="qrow__t">${title}</span><small class="qrow__meta">${esc(meta)}</small></span><span class="cdbtn__go qrow__go" aria-hidden="true">›</span></a></li>`;
+}
+
 function menuHtml() {
   const prog = progress();
-  const generalTopics = topics.filter(t => !isOrganization(t));
-  const n = generalTopics.length;
-  const rawSub = blockCopy('topics', 'description', 'Tám chuyên đề, tổng cộng {total} câu. <b>Làm Chuyên đề 1 trước</b>, vì cách quyết định học ở đó được dùng lại ở cả bảy chuyên đề sau. Mỗi câu hiện phần giải thích sau khi bạn chọn.', { topicCount: n, total: generalTopics.reduce((sum, t) => sum + t.count, 0) });
-  const sub = esc(state.practice ? `${n} chuyên đề phổ thông, tổng cộng ${generalTopics.reduce((sum, t) => sum + t.count, 0)} câu. Làm Chuyên đề 1 trước, sau đó chọn tự do các chuyên đề còn lại. Bộ câu hỏi doanh nghiệp bên dưới có thể làm ngay.` : rawSub).replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>');
+  const general = generalOf(topics);
+  const business = state.practice ? businessOf(topics) : [];
+  const total = general.reduce((sum, t) => sum + t.count, 0);
+  const rawSub = blockCopy('topics', 'description', 'Tám chuyên đề, tổng cộng {total} câu. <b>Làm Chuyên đề 1 trước</b>, vì cách quyết định học ở đó được dùng lại ở cả bảy chuyên đề sau. Mỗi câu hiện phần giải thích sau khi bạn chọn.', { topicCount: general.length, total });
+  const sub = esc(rawSub).replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>');
   let o = '<div class="activity-portal qin">';
-  o += '<div class="backrow"><a href="/cuoc-thi/" class="btn ghost sm">‹ Cuộc thi</a></div>';
+  o += backOrCrumbsHtml();
   o += '<header class="pageh">';
   o += `<p class="eyebrow">${esc(blockCopy('topics', 'eyebrow', 'Kiểm tra kiến thức'))}</p>`;
-  o += `<h2 id="eh" tabindex="-1" class="pageh-title contest__h2">${esc(blockCopy('topics', 'title', 'Phần thi trắc nghiệm'))}</h2>`;
+  o += `<h1 id="eh" tabindex="-1" class="pageh-title contest__h2">${esc(blockCopy('topics', 'title', 'Phần thi trắc nghiệm'))}</h1>`;
   o += `<p class="pageh-lead exam__sub">${sub}</p>`;
-  if (state.practice && topics.some(isOrganization)) o += `<p><a class="btn ghost sm" href="#thidn">Câu hỏi doanh nghiệp · ${topics.filter(isOrganization).reduce((sum, t) => sum + t.count, 0)} câu ›</a></p>`;
   o += '</header>';
   if (offline) o += box('warn', '<b>Chưa kết nối được máy chủ.</b> Tiến độ có thể chưa mới nhất; các đáp án chưa gửi sẽ tự gửi lại khi có mạng.');
   o += phaseHtml();
 
-  // Khối thông báo rgbar
+  // Khoi thong bao rgbar: chi khi da dang ky (ban chinh thuc khong co dong "Che do tu luyen")
   if (state.entry) {
     if (state.entry.mode === 'anon') {
       o += `<div class="rgbar"><b>Đang thi ẩn danh.</b> Mã ẩn danh của bạn là <b>${esc(state.entry.code)}</b>. Bài làm không được xét giải.</div>`;
@@ -251,50 +288,26 @@ function menuHtml() {
       const maxT = Number(state.entry.maxAttempts) === 0 ? '' : ` trên ${esc(state.entry.maxAttempts || 2)}`;
       o += `<div class="rgbar"><b>Đã đăng ký.</b> Mã dự thi của bạn là số <b>${esc(pNum)}</b>. Đây là lượt thứ ${esc(nth)}${maxT}.</div>`;
     }
-  } else {
-    o += '<div class="rgbar"><b>Chế độ tự luyện.</b> Làm bài không tính điểm, kết quả chỉ lưu trên thiết bị của bạn.</div>';
   }
 
   o += panelHtml(topics);
 
-  const cd1Done = !!(prog.find((x) => String(x.cd) === '1')?.done);
-  const gate = !cd1Done;
+  const hasCd1 = general.some((t) => String(t.cd) === '1');
+  const gate = hasCd1 && !prog.find((x) => String(x.cd) === '1')?.done;
 
-  o += '<h3>Câu hỏi phổ thông</h3><ol class="cdlist toplist">';
-  for (const t of topics) {
-    if (isOrganization(t) && t === topics.find(isOrganization)) {
-      o += `</ol><h3 id="doanh-nghiep">Câu hỏi doanh nghiệp</h3><p>${topics.filter(isOrganization).reduce((sum, t) => sum + t.count, 0)} câu dành cho nhân viên doanh nghiệp. Chọn tự do phần A, B hoặc C, không cần hoàn thành câu hỏi phổ thông trước. Mỗi câu có 40 giây để đọc giải thích.</p><ol class="cdlist toplist">`;
-    }
-    const p = prog.find((x) => String(x.cd) === String(t.cd)) || {};
-    const lock = isLocked(String(t.cd), prog);
-    const done = !!p.done;
-    const isCd1 = String(t.cd) === '1';
-    const cleanTitle = esc(t.title.replace(/^CHUYÊN ĐỀ\s*\d+\s*[-–—:]\s*/i, ''));
-
-    let meta = `${t.count} câu`;
-    if (lock) {
-      meta += ` · mở sau khi xong Chuyên đề ${state.practice ? '1' : prevTopic(t.cd)?.cd || '1'}`;
-    } else if (done) {
-      meta += ' · đã làm xong';
-    } else if (isCd1 && gate) {
-      meta += ' · làm chuyên đề này trước';
-    } else if (p.answered) {
-      meta += ` · đã trả lời ${p.answered}`;
-    }
-
-    if (lock) {
-      o += `<li><div class="lock qrow qrow--lock" aria-disabled="true"><span class="cn s qrow__n">${esc(t.cd)}</span><span class="ct qrow__body"><span class="qrow__t">${cleanTitle}</span><small class="qrow__meta">${esc(meta)}</small></span><span class="lock-ic" aria-hidden="true">${ICO_LOCK}</span></div></li>`;
-    } else {
-      o += `<li><a class="cdbtn qrow${done ? ' ok qrow--done' : ''}" href="${topicHash(esc(t.cd))}"><span class="cn${done ? ' ok' : ''} qrow__n">${done ? '✓' : esc(isOrganization(t) ? ({dn1:'A', dn2:'B', dn3:'C'}[t.code] || t.cd) : t.cd)}</span><span class="ct qrow__body"><span class="qrow__t">${cleanTitle}</span><small class="qrow__meta">${esc(meta)}</small></span><span class="cdbtn__go qrow__go" aria-hidden="true">›</span></a></li>`;
-    }
-  }
-  o += '</ol>';
-
-  if (gate && generalTopics.length) {
-    const cd1Count = topics[0]?.count || 19;
+  o += `<ol class="cdlist toplist">${general.map((t) => topicRowHtml(t, prog, gate)).join('')}</ol>`;
+  if (gate) {
+    const cd1Count = topicOf('1')?.count || 0;
     o += `<div class="gate note"><p><b>Bảy chuyên đề còn lại mở ngay khi bạn làm xong Chuyên đề 1.</b></p><p class="small">Chuyên đề 1 có ${cd1Count} câu. Sau đó thứ tự do bạn chọn.</p></div>`;
-  } else {
-    o += '<div class="gate open note"><p><b>Bảy chuyên đề còn lại đã mở.</b></p><p class="small">Làm chuyên đề nào gần với việc mình đang gặp thì nhớ lâu hơn.</p></div>';
+  }
+
+  // Phan danh cho nhan vien doanh nghiep (ban chinh thuc #thi-dn); chi o che do tu luyen, nhu API cua BE.
+  if (business.length) {
+    const dnTotal = business.reduce((sum, t) => sum + t.count, 0);
+    o += '<section class="sec exam-dn" id="thi-dn" aria-labelledby="h-dn">'
+      + '<h2 id="h-dn" tabindex="-1">Dành cho nhân viên doanh nghiệp</h2>'
+      + `<p class="small">${dnTotal} câu tình huống về phòng ngừa lừa đảo và rủi ro trong giao dịch, hợp đồng kinh tế của doanh nghiệp. Dành cho người làm kế toán, ngân quỹ, mua hàng, bán hàng, pháp chế và quản lý. Không cần làm Chuyên đề 1 trước.</p>`
+      + `<ol class="cdlist toplist">${business.map((t) => topicRowHtml(t, prog, gate)).join('')}</ol></section>`;
   }
 
   o += `<p class="small pbfoot exam__note">${esc(blockCopy('topics', 'notice', NOT_POLICE))}</p>`;
@@ -306,7 +319,7 @@ function menuHtml() {
 function startLabel(t) {
   const p = progress().find((x) => x.cd === String(t.cd));
   if (!p || !p.answered) return blockCopy('intro', 'startLabel', 'Bắt đầu {count} câu ›', { count: t.count });
-  if (p.done) return `Làm lại ${topicLabel(t)} ›`;
+  if (p.done) return isOrganization(t) ? 'Làm lại phần này ›' : `Làm lại chuyên đề ${t.cd} ›`;
   const list = qcache.get(String(t.cd));
   const k = list ? firstUnanswered(list) + 1 : p.answered + 1;
   return blockCopy('intro', 'resumeLabel', 'Làm tiếp từ câu {number} ›', { number: k });
@@ -316,19 +329,21 @@ function introHtml(t) {
   const intro = Array.isArray(t.intro) ? t.intro : (t.intro ? [t.intro] : []);
   const terms = Array.isArray(t.terms) ? t.terms : [];
   const cleanTitle = esc(t.title.replace(/^CHUYÊN ĐỀ\s*\d+\s*[-–—:]\s*/i, ''));
-  const backLabel = esc(blockCopy('intro', 'backLabel', 'Danh sách chuyên đề')).replace(/^[‹<]\s*/, '');
 
   let o = '<div class="activity-portal qin exam-intro-view">';
-  o += `<div class="backrow"><a class="btn ghost sm" href="${listHref()}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5 8 12l7 7"/></svg> ${backLabel}</a></div>`;
+  const org = isOrganization(t);
+  // Ban chinh thuc (vBank): man gioi thieu dung chung duong dan dau trang voi danh sach
+  o += backOrCrumbsHtml();
   o += '<header class="pageh">';
-  o += `<p class="eyebrow">Ngân hàng câu hỏi · ${esc(topicLabel(t))}</p>`;
+  o += `<p class="eyebrow">Ngân hàng câu hỏi · ${org ? 'Nhân viên doanh nghiệp' : esc(topicLabel(t))}</p>`;
   o += `<h1 id="eh" tabindex="-1">${cleanTitle}</h1>`;
   o += '</header>';
   o += `<div class="exam__intro intro-text">${intro.map((p) => `<p>${esc(p)}</p>`).join('')}</div>`;
 
   if (terms.length) {
     o += `<div class="peek terms-peek"><button type="button" class="peekbtn" data-open="pk-terms" aria-expanded="false" aria-controls="pk-terms">`
-      + `<span><b>${esc(blockCopy('intro', 'termsTitle', 'Hiểu nhanh mấy từ'))}</b><small>${terms.length} từ dùng trong chuyên đề này</small></span></button>`
+      + `<span><b>${esc(blockCopy('intro', 'termsTitle', 'Hiểu nhanh mấy từ'))}</b><small>${terms.length} từ dùng trong chuyên đề này</small></span>`
+      + `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></button>`
       + `<div class="peekbody" id="pk-terms" hidden><dl class="terms">${terms.map((x) => `<div><dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd></div>`).join('')}</dl></div></div>`;
   }
 
@@ -338,8 +353,12 @@ function introHtml(t) {
     o += box('soft', '<b>Làm lại là xem lại để học.</b> Điểm của lượt thi chỉ tính lần trả lời đầu tiên của mỗi câu.');
   }
 
+  // Ban chinh thuc: chuyen de co nut "Doc bai truoc da" (bai doc chuyen de) va "Chon chuyen de khac"; phan doanh nghiep co "Chon phan khac".
+  const reading = !org && /^[1-8]$/.test(String(t.cd)) ? `/hay-tu-kiem-tra/bai-doc/chuyen-de-${t.cd}/` : null;
   o += `<div class="btnrow exam__actions"><button type="button" class="btn pri" ${isRedo ? 'data-redo' : 'data-start'}="${esc(t.cd)}">${esc(startLabel(t))}</button>`
-    + `<a class="btn ghost" href="${listHref()}">${esc(blockCopy('intro', 'otherLabel', 'Chọn chuyên đề khác'))}</a></div>`;
+    + (org ? '<a class="btn ghost" href="#thidn">Chọn phần khác</a>'
+      : (reading ? `<a class="btn ghost" href="${reading}">Đọc bài trước đã</a>` : '')
+        + `<a class="btn ghost" href="${listHref()}">${esc(blockCopy('intro', 'otherLabel', 'Chọn chuyên đề khác'))}</a>`) + '</div>';
   o += '</div>';
   return o;
 }
@@ -352,18 +371,24 @@ function doneHtml(t) {
     const a = getAnswer(q.code);
     return a && a.a === q.ans;
   }).length;
-  const rest = progress().filter((p) => !p.done).length;
+  const org = isOrganization(t);
+  // Dem phan con lai trong cung nhom (chuyen de chung hoac phan doanh nghiep), nhu ban chinh thuc
+  const group = new Set((org ? businessOf(topics) : generalOf(topics)).map((x) => String(x.cd)));
+  const rest = progress().filter((p) => group.has(String(p.cd)) && !p.done).length;
   const saved = hasLateAnswers() ? 'Phần bài làm này chỉ được lưu trên thiết bị, chưa được ghi nhận vào kết quả dự thi hoặc xét thưởng.' : state.practice ? blockCopy('topic-result', 'practiceMessage', 'Kết quả này chỉ hiện trên máy của bạn.') : blockCopy('topic-result', 'savedMessage', 'Kết quả đã được lưu vào lượt thi của bạn.');
   let o = `<div class="qin exam__done">${headHtml(`${topicLabel(t)} · đã làm xong`, blockCopy('topic-result', 'title', 'Bạn trả lời đúng {correct} trên {total} câu', { correct: right, total: list.length }), `${esc(saved)} Câu nào chưa đúng thì đọc lại phần giải thích là đủ.`)}`;
-  const nx = topics[topics.findIndex((x) => String(x.cd) === cd) + 1];
-  if (nx && !isOrganization(t)) o += box('ok', `<b>Chuyên đề ${esc(nx.cd)} đã mở.</b>${esc(nx.title)}.`);
+  if (cd === '1') o += '<div class="gate open note"><p><b>Bảy chuyên đề còn lại đã mở.</b></p><p class="small">Làm chuyên đề nào gần với việc mình đang gặp thì nhớ lâu hơn.</p></div>';
   if (!state.practice && state.entry && state.entry.mode === 'anon') {
     o += box('soft', `<b>Bạn đang thi ẩn danh</b> (mã ${esc(state.entry.code)}), nên kết quả này không được xét giải.`);
   }
   o += panelHtml(topics);
-  const next = rest ? `Chọn chuyên đề tiếp theo, còn ${rest} ›` : `Đã làm hết ${topics.length} chuyên đề, xem lại danh sách ›`;
-  o += `<div class="btnrow exam__actions"><a class="btn pri" href="${listHref()}">${esc(next)}</a>`
-    + `<button type="button" class="btn ghost" data-redo="${esc(cd)}">${esc(t.code ? `Làm lại ${topicLabel(t)}` : blockCopy('topic-result', 'retryLabel', 'Làm lại chuyên đề {cd}', { cd }))}</button></div>`
+  const next = org
+    ? (rest ? `Chọn phần tiếp theo, còn ${rest} ›` : 'Đã làm hết ba phần, xem lại danh sách ›')
+    : (rest ? `Chọn chuyên đề tiếp theo, còn ${rest} ›` : `Đã làm hết ${group.size} chuyên đề, xem lại danh sách ›`);
+  const reading = !org && /^[1-8]$/.test(cd) ? `/hay-tu-kiem-tra/bai-doc/chuyen-de-${cd}/` : null;
+  o += `<div class="btnrow exam__actions"><a class="btn pri" href="${org ? '#thidn' : listHref()}">${esc(next)}</a>`
+    + `<button type="button" class="btn ghost" data-redo="${esc(cd)}">${esc(org ? 'Làm lại phần này' : blockCopy('topic-result', 'retryLabel', 'Làm lại chuyên đề {cd}', { cd }))}</button>`
+    + (reading ? `<a class="btn ghost" href="${reading}">Đọc lại bài</a>` : '') + '</div>'
     + '<p class="exam__note">Làm hết câu hỏi không có nghĩa là an toàn. Gặp việc thật, vẫn phải chậm lại và tự kiểm tra bằng kênh do chính mình tìm ra.</p></div>';
   return o;
 }
@@ -513,10 +538,11 @@ function questionScreenHtml() {
   const nextAttrs = { id: 'qnext', 'data-next': '' };
   if (chosen == null || (qs.left.get(q.code) || 0) > 0) nextAttrs.disabled = '';
   const prev = i > 0 ? navButtonHtml(blockCopy('question', 'previousLabel', '‹ Câu trước'), 'o', { 'data-prev': '' }) : '';
-  return `<div class="qin"><div class="qtop"><a class="qnav o" href="${topicHash(esc(cd))}">‹ ${esc(topicLabel(topicOf(cd)))}</a>`
+  const org = isOrganization(topicOf(cd));
+  return `<div class="qin"><div class="qtop"><a class="qnav o" href="${topicHash(esc(cd))}">${ICO_BACK} ${esc(topicLabel(topicOf(cd)))}</a>`
     + `<span class="qcount">Câu ${i + 1} / ${list.length}</span></div>`
     + `<div id="qprog">${progressHtml(i + (chosen != null ? 1 : 0), list.length, 'Tiến độ trong chuyên đề')}</div>`
-    + `<div class="qstem">${eyebrowHtml(`Mã ${q.code} · ${q.kind || 'Chọn đáp án phù hợp nhất'}`)}${situationHtml(q.sit)}${questionHtml(q.q)}</div>`
+    + `<div class="qstem">${eyebrowHtml(org ? (q.kind || 'Chọn đáp án phù hợp nhất') : `Mã ${q.code} · ${q.kind || 'Chọn đáp án phù hợp nhất'}`)}${situationHtml(q.sit)}${questionHtml(q.q)}</div>`
     + `<div id="qoptsbox">${optionsHtml(q, chosen)}</div>`
     + `<p id="qnote" class="qnote" role="status"${noteText() ? '' : ' hidden'}>${esc(noteText())}</p>`
     + `<div id="qlive" class="qlive" aria-live="polite">${resultBodyHtml(q, chosen)}</div>`
@@ -759,7 +785,7 @@ async function route(focus) {
   examView.innerHTML = view.view === 'done' ? doneHtml(topicOf(view.cd)) : view.view === 'intro' ? introHtml(topicOf(view.cd)) : menuHtml();
   renderSide(view.view);
   if (focus) focusHeading(document.getElementById('eh'));
-  if (view.business) document.getElementById('doanh-nghiep')?.scrollIntoView({ block: 'start' });
+  if (view.business) { const dn = document.getElementById('thi-dn'); dn?.scrollIntoView({ block: 'start' }); if (focus) dn?.querySelector('h2')?.focus({ preventScroll: true }); }
 }
 
 // Co the thi them luot: da nop co ten, con luot, cuoc con mo
