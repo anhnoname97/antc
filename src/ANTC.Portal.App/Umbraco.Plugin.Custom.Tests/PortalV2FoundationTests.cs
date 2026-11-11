@@ -195,15 +195,18 @@ public class PortalV2FoundationTests
         var bgConfig = File.ReadAllText(Path.Combine(uSyncDir, "DataTypes", "BoCucHoiDapBlockGrid.config"));
         Assert.Contains("Hỏi – đáp nhanh", bgConfig);
 
-        // 6. Content hỏi-đáp.config has block grid order: Hero -> PublishedAnswers -> Process -> Submission -> Guidelines
-        var contentConfig = File.ReadAllText(Path.Combine(uSyncDir, "Content", "hỏi-đáp.config"));
-        var heroIdx = contentConfig.IndexOf("0d7dcbf1-7171-5323-a36c-1a4494965e72", StringComparison.Ordinal);
-        var fastQaIdx = contentConfig.IndexOf("46fb6b08-4e10-5deb-a8ae-f1b44d68b7ba", StringComparison.Ordinal);
-        var processIdx = contentConfig.IndexOf("04c920c9-cd55-505a-a5a7-d702726947dd", StringComparison.Ordinal);
-        var subIdx = contentConfig.IndexOf("8458c717-71a3-5f4f-ad3a-1c36515a7d7d", StringComparison.Ordinal);
+        // 6. Trang Hoi – Dap khong con dung Block Grid: nhap noi dung o cac o rieng cua hoiDapPage (thay QD-041 cho trang nay).
+        var pageType = File.ReadAllText(Path.Combine(uSyncDir, "ContentTypes", "hoidappage.config"));
+        Assert.DoesNotContain("<Alias>layout</Alias>", pageType);
+        foreach (var alias in new[] { "title", "lead", "urgentTitle", "quickTitle", "askTitle", "step1Title", "warnLines", "contentLabel", "consentLabel", "publishLabel", "legal", "successTitle" })
+            Assert.Contains($"<Alias>{alias}</Alias>", pageType);
 
-        Assert.True(heroIdx < fastQaIdx, "Hero should be before Fast QA");
-        Assert.True(fastQaIdx < processIdx, "Fast QA should be before Process");
-        Assert.True(processIdx < subIdx, "Process should be before Submission");
+        var contentConfig = File.ReadAllText(Path.Combine(uSyncDir, "Content", "hỏi-đáp.config"));
+        Assert.DoesNotContain("<layout>", contentConfig);
+        Assert.Contains("Gửi câu hỏi, kiến nghị riêng", contentConfig);
+
+        var pageView = File.ReadAllText(Path.Combine(viewsDir, "hoiDapPage.cshtml"));
+        Assert.DoesNotContain("BlockGridModel", pageView);
+        Assert.Contains("\"warnLines\"", pageView);
     }
 }
