@@ -1,0 +1,65 @@
+.foundation-library,.foundation-article{color:#0e1e30;overflow-wrap:anywhere}
+.foundation-library.self-check-page{gap:26px;padding-block:16px 32px}
+.foundation-library .self-check-heading{gap:8px}
+.foundation-library .self-check-heading__title{gap:12px}
+.foundation-library .self-check-heading h1{font-size:1.75rem;letter-spacing:-.02em;line-height:1.25}
+.foundation-library .self-check-heading>p{font-size:1.09375rem;max-width:66ch;line-height:1.6}
+.foundation-library section{display:grid;gap:14px;min-width:0;scroll-margin-top:100px}
+.foundation-library h2{font-size:1.375rem;font-weight:800;letter-spacing:-.01em;color:#123b63;margin:0;line-height:1.25}
+.foundation-library h3{font-size:1.125rem;margin:0;font-weight:800;line-height:1.25}
+.foundation-library section>p{color:#4a5a6e;font-size:1rem;line-height:1.5;margin:0}
+.foundation-emergency{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;color:#fff;background:#b8431a;border-radius:12px;text-decoration:none;font-weight:700}
+.foundation-emergency:hover{color:#fff;background:#983512;text-decoration:none}
+.foundation-library .foundation-emergency{padding:11px 18px;min-height:48px}
+.foundation-tabs{display:grid;gap:8px;margin:0}
+.foundation-tabs a{display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 12px;border:1px solid #d3dfed;background:#fff;border-radius:14px;color:#0e1e30;font-weight:700;text-decoration:none;font-size:1rem}
+.foundation-tabs a>span{display:grid;gap:2px;min-width:0;line-height:1.6}
+.foundation-tabs small{font-size:.875rem;font-weight:400;color:#4a5a6e}
+.foundation-tabs .site-icon{color:#0b6bcb;flex:none}
+.foundation-tabs a:hover{border-color:#0b6bcb;background:#edf4fb}
+.foundation-list{display:grid;gap:8px;list-style:none;padding:0;margin:0}
+.foundation-list a{display:flex;align-items:center;gap:12px;height:100%;padding:12px;border:1px solid #d3dfed;background:#fff;border-radius:14px;text-decoration:none;color:#0e1e30}
+.foundation-list a:hover{border-color:#0b6bcb;background:#f0f6fc;text-decoration:none}
+.foundation-history a,.foundation-topics a{height:auto}
+.foundation-list .foundation-list__text{display:grid;gap:2px;min-width:0;flex:1}
+.foundation-list b{font-size:.96875rem;line-height:1.35;font-weight:700}
+.foundation-list small{color:#4a5a6e;font-size:.84375rem;line-height:1.6}
+.foundation-list .site-icon{flex:none;color:#0b6bcb}
+.foundation-number{flex:none;width:32px;height:32px;display:grid;place-items:center;background:#0b6bcb;color:#fff;border-radius:9px;font-size:.90625rem;font-weight:800}
+.foundation-number--story{background:#eaf0f6;color:#506176;font-size:.78125rem}
+.foundation-guide-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;list-style:none;padding:0;margin:0}
+.foundation-guide-tiles a{display:flex;flex-direction:column;align-items:flex-start;gap:10px;height:100%;padding:14px;border:1px solid #d3dfed;background:#fff;border-radius:16px;box-shadow:0 1px 2px #123b6308;text-decoration:none;color:#0e1e30}
+.foundation-guide-tiles a:hover{border-color:#0b6bcb;text-decoration:none}
+.foundation-guide-tiles b{font-size:1rem;line-height:1.35;font-weight:700}
+.foundation-guide-tiles small{font-size:.84375rem;color:#4a5a6e}
+.foundation-search{display:flex;align-items:end;gap:12px;padding:14px;border:1px solid #d3dfed;border-radius:14px;margin:0;background:#fff}
+.foundation-search label{display:grid;gap:6px;min-width:0;flex:1;font-weight:700;font-size:.9375rem}
+.foundation-search :is(input,select){width:100%;min-width:0;font:inherit;border:1px solid #a2b7cd;border-radius:8px;padding:10px;min-height:44px}
+.foundation-search button{font:inherit;min-height:44px;border:0;border-radius:8px;padding:10px 18px;background:#0b6bcb;color:#fff;cursor:pointer}
+.foundation-library--enhanced .foundation-search__submit{display:none}
+.foundation-chips{display:flex;flex-wrap:wrap;gap:8px}
+.foundation-chips button{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:7px 12px;border:1.5px solid #b7c8db;border-radius:999px;min-height:42px;background:#fff;color:#0e1e30;text-align:left;font:700 .9375rem/1.6 var(--font);cursor:pointer}
+.foundation-chips .site-icon{width:19px;height:19px;flex:none;color:#0b6bcb}
+.foundation-chips button[aria-pressed=true]{background:#0b6bcb;border-color:#0b6bcb;color:#fff}
+.foundation-chips button[aria-pressed=true] .site-icon{color:#fff}
+.foundation-chips button:hover{border-color:#0b6bcb}
+.foundation-library #foundation-group-form{display:none}
+.foundation-library .foundation-count{font-size:1rem}
+.foundation-tactics a{align-items:flex-start}
+.foundation-tactics a>.site-icon{margin-top:2px}
+.foundation-tactics .foundation-list__text{gap:4px}
+.foundation-tactics b{font-size:1.03125rem}
+.foundation-tactics small{font-size:.90625rem;line-height:1.45}
+.foundation-tactics em{font-style:normal;font-size:.84375rem;color:#4a5a6e}
+.foundation-empty{padding:16px;border:1px dashed #b7c8db;border-radius:14px;color:#4a5a6e}
+.foundation-empty p+p{margin-top:10px}
+.foundation-more{justify-self:start;border:1px solid #d3dfed;border-radius:10px;padding:8px 14px;min-height:44px;background:#fff;color:#123b63;text-decoration:none;font-size:.9375rem;font-weight:700}
+.foundation-more:hover{border-color:#0b6bcb;text-decoration:none}
+.foundation-library [hidden]{display:none!important}
+.foundation-article__body{max-width:820px;margin:28px auto;font-size:1.0625rem;line-height:1.8}
+.foundation-article__body h2{font-size:1.5rem;color:#123b63;margin:32px 0 12px}
+.foundation-article__body p{margin-bottom:16px}
+:is(.foundation-library,.foundation-article) :is(a,button,input,select):focus-visible{outline:3px solid #0b6bcb;outline-offset:3px}
+@media(min-width:768px){.foundation-library .self-check-heading h1{font-size:2rem}.foundation-tabs,.foundation-guide-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.foundation-list:not(.foundation-tactics){grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1025px){.foundation-library .self-check-heading h1{font-size:2.25rem}.foundation-library h2{font-size:1.5625rem}.foundation-tactics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{.foundation-tabs,.foundation-search,.foundation-emergency,.foundation-chips,.foundation-more{display:none}.foundation-list{display:block}.foundation-list li{break-inside:avoid;margin-bottom:10px}}

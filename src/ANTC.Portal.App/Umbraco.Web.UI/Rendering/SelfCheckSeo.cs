@@ -79,8 +79,9 @@ public static class SelfCheckSeoRules
 
 public static class SelfCheckSeoBuilder
 {
-    public static bool Supports(IPublishedContent content) => content.ContentType.Alias is "congCuPage" or "truocKhiChuyenTienPage"
+    public static bool Supports(IPublishedContent content) => content.ContentType.Alias is "home" or "congCuPage" or "truocKhiChuyenTienPage"
         or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" or "checklistPage" or "ungPhoPage" or "wizardPage" or "lienHePage"
+        or "situationChooserPage" or "foundationLibraryPage" or "foundationArticlePage"
         || (content.ContentType.Alias == "viecCanLamPage" && AntcPublicPaths.SelfCheckGuidancePath(ActionGuideData.Slug(content)) is not null)
         // Cac rui ro (V2-13i, WEB-05): moi bai viet va canh bao co canonical; bai viet theo Nhom chinh (UrlProvider), canh bao theo Canh bao moi.
         || content.ContentType.Alias is "riskArticlePage" or "alertPage";
@@ -91,6 +92,8 @@ public static class SelfCheckSeoBuilder
         "khiNghiBiLuaPage" => SelfCheckBranchDataBuilder.Build(content).Ready,
         "checklistPage" => SelfCheckChecklistDataBuilder.Build(content).Ready,
         "wizardPage" => EmergencyWizardDataBuilder.Build(content).Ready,
+        "foundationArticlePage" => content.HasValue("body"),
+        "situationChooserPage" => EmergencyContent.Rows(content, "situations").Length > 0,
         "riskArticlePage" => !string.IsNullOrWhiteSpace(content.Value<string>("readingBody"))
             || !string.IsNullOrWhiteSpace(content.Value<string>("description"))
             || !string.IsNullOrWhiteSpace(content.Value<string>("summary"))
@@ -102,7 +105,12 @@ public static class SelfCheckSeoBuilder
     public static SelfCheckSeoData Build(IPublishedContent content, HttpRequest request, bool preview = false)
     {
         var site = content.Root();
-        SelfCheckSeoImage? Image(IPublishedContent? media) => media is null ? null : new(media.Url(), media.Value<string>("altText") ?? media.Name,
+        var isHome = content.ContentType.Alias == "home";
+        var illustration = isHome ? content.Value<IPublishedContent>("illustration") : null;
+        var illustrationAlt = isHome ? content.Value<string>("illustrationAlt") : null;
+        var shareImage = content.Value<IPublishedContent>("ogImage");
+        SelfCheckSeoImage? Image(IPublishedContent? media, string? alt = null) => media is null ? null : new(media.Url(),
+            !string.IsNullOrWhiteSpace(alt) ? alt : media.Value<string>("altText") ?? media.Name,
             media.Value<int?>("umbracoWidth"), media.Value<int?>("umbracoHeight"));
         return SelfCheckSeoRules.Resolve(new()
         {
@@ -110,10 +118,12 @@ public static class SelfCheckSeoBuilder
             Title = content.Value<string>("title"), SeoTitle = content.Value<string>("seoTitle"), SeoDescription = content.Value<string>("seoDescription"),
             Description = content.Value<string>("lead") is { Length: > 0 } lead ? lead : content.Value<string>("description"),
             Canonical = content.Value<string>("canonicalUrl"), SiteName = site.Value<string>("siteName"), Hidden = content.Value<bool>("hideFromSearch") || !Ready(content),
-            TestSite = site.Value<bool>("showPreviewBanner"), Preview = preview, Article = content.ContentType.Alias is "riskArticlePage" or "viecCanLamPage" or "alertPage",
-            Image = Image(content.Value<IPublishedContent>("ogImage")),
-            DefaultImage = Image(site.Value<IPublishedContent>("ogImage")) ?? Image(site.Value<IPublishedContent>("heroImage1")),
-            Updated = content.Value<DateTime?>("updatedDate") ?? content.Value<DateTime?>("displayUpdatedDate")
+            TestSite = site.Value<bool>("showPreviewBanner"), Preview = preview, Article = content.ContentType.Alias is "riskArticlePage" or "viecCanLamPage" or "foundationArticlePage" or "alertPage",
+            Image = Image(shareImage, isHome && shareImage?.Key == illustration?.Key ? illustrationAlt : null),
+            DefaultImage = Image(illustration, illustrationAlt) ?? Image(site.Value<IPublishedContent>("ogImage"))
+                ?? (isHome ? null : Image(site.Value<IPublishedContent>("heroImage1"))),
+            Updated = isHome ? content.Value<DateTime?>("displayUpdatedDate")
+                : content.Value<DateTime?>("updatedDate") ?? content.Value<DateTime?>("displayUpdatedDate")
         });
     }
 }
