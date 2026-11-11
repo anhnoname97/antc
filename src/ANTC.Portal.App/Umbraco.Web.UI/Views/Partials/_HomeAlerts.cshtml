@@ -3,15 +3,17 @@
 @using Umbraco.Cms.Core.Services.Navigation
 @using Umbraco.Plugin.Custom.Core.PortalV2.Home
 @using Umbraco.Plugin.Custom.Core.PortalV2.Schema
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
 @inject IDocumentNavigationQueryService Navigation
 @inject IPublishedContentCache PublishedCache
+@inject RiskContentCache RiskCache
 @{
     var title = Model.Value<string>("alertTitle");
     var moreText = Model.Value<string>("alertMoreText");
     var today = DateTime.Today;
     // Even in preview, a draft selection must not make an unpublished alert visible here.
     IPublishedContent? Published(Guid key) => PublishedCache.GetById(false, key);
-    var candidates = RiskAlertContent.Alerts(Navigation, Published)
+    var candidates = RiskAlertContent.Alerts(RiskSnapshot.Read(RiskCache, Published, Navigation))
         .Where(node => EmergencyContent.PublicUrl(node) is not null).Select(RiskAlertContent.Card);
     var pinned = RiskAlertContent.Picked(Model, "pinnedAlert").FirstOrDefault();
     var pinnedUrl = pinned is null ? null : EmergencyContent.PublicUrl(Published(pinned.Key));

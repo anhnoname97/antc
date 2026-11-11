@@ -8,6 +8,8 @@
 @inject IPublishedContentCache PublishedCache
 @inject IDocumentNavigationQueryService Navigation
 @inject IQuestionBank QuestionBank
+@inject RiskContentCache RiskCache
+@inject RuiRoDerivation Derivation
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     IPublishedContent? Published(Guid key) => PublishedCache.GetById(false, key);
@@ -17,8 +19,9 @@
     var histories = Picked("historyArticles");
     var readings = Picked("topicArticles");
     var guides = Picked("guideArticles");
+    var riskData = RiskSnapshot.Read(RiskCache, Published, Navigation);
     var groupPages = RiskStructure.Pages.Skip(2).Select(p => Published(p.Key)).OfType<IPublishedContent>().ToArray();
-    var allTactics = groupPages.SelectMany(group => RiskAlertContent.GroupCards(group, site, Navigation, Published)
+    var allTactics = groupPages.SelectMany(group => RiskAlertContent.Group(group, riskData, Derivation).Cards
         .Where(x => x.Kind == "tac").Select(x => (Card: x, Group: group))).DistinctBy(x => x.Card.Url).ToArray();
     var groups = allTactics.Select(x => x.Group).DistinctBy(x => x.Key).ToArray();
     var query = Context.Request.Query["q"].ToString().Trim();
