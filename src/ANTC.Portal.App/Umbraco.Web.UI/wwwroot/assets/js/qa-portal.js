@@ -141,16 +141,20 @@ function initQaForm() {
     if (contactWrap) contactWrap.hidden = true;
     qerr.hidden = true;
 
+    form.hidden = true;
     if (askSection) askSection.hidden = true;
     if (sentSection) {
       sentSection.hidden = false;
       sentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    var sentHeading = document.getElementById('h-sent');
+    if (sentHeading) sentHeading.focus({ preventScroll: true });
   }
 
   if (backBtn) {
     backBtn.addEventListener('click', function () {
       if (sentSection) sentSection.hidden = true;
+      form.hidden = false;
       if (askSection) {
         askSection.hidden = false;
         askSection.scrollIntoView({ behavior: 'smooth', block: 'start' });

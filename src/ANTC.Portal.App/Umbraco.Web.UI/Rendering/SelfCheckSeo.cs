@@ -83,10 +83,10 @@ public static class SelfCheckSeoBuilder
         or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" or "checklistPage" or "ungPhoPage" or "wizardPage" or "lienHePage"
         or "situationChooserPage" or "foundationLibraryPage" or "foundationArticlePage"
         || (content.ContentType.Alias == "viecCanLamPage" && AntcPublicPaths.SelfCheckGuidancePath(ActionGuideData.Slug(content)) is not null)
-        || (content.ContentType.Alias == "riskArticlePage" && (AntcPublicPaths.SelfCheckReadingPath(content.Value<string>("selfCheckSourceNumber")) is not null
-            || (content.Value<string>("articleKind") ?? "").Contains("Bài hướng dẫn")));
+        // Cac rui ro (V2-13i, WEB-05): moi bai viet va canh bao co canonical; bai viet theo Nhom chinh (UrlProvider), canh bao theo Canh bao moi.
+        || content.ContentType.Alias is "riskArticlePage" or "alertPage";
 
-    private static bool Ready(IPublishedContent content) => content.ContentType.Alias switch
+    public static bool Ready(IPublishedContent content) => content.ContentType.Alias switch
     {
         "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" => SelfCheckToolDataBuilder.Build(content).Ready,
         "khiNghiBiLuaPage" => SelfCheckBranchDataBuilder.Build(content).Ready,
@@ -95,7 +95,9 @@ public static class SelfCheckSeoBuilder
         "foundationArticlePage" => content.HasValue("body"),
         "situationChooserPage" => EmergencyContent.Rows(content, "situations").Length > 0,
         "riskArticlePage" => !string.IsNullOrWhiteSpace(content.Value<string>("readingBody"))
-            || (!string.IsNullOrWhiteSpace(content.Value<string>("summary")) && content.Value<IEnumerable<string>>("warningSigns")?.Any() == true),
+            || !string.IsNullOrWhiteSpace(content.Value<string>("description"))
+            || !string.IsNullOrWhiteSpace(content.Value<string>("summary"))
+            || content.Value<IEnumerable<string>>("warningSigns")?.Any() == true,
         "viecCanLamPage" => ActionGuideData.Steps(content).Any(step => !string.IsNullOrWhiteSpace(step.MainText)) || EmergencyContent.HasScreening(content),
         _ => true
     };
@@ -116,7 +118,7 @@ public static class SelfCheckSeoBuilder
             Title = content.Value<string>("title"), SeoTitle = content.Value<string>("seoTitle"), SeoDescription = content.Value<string>("seoDescription"),
             Description = content.Value<string>("lead") is { Length: > 0 } lead ? lead : content.Value<string>("description"),
             Canonical = content.Value<string>("canonicalUrl"), SiteName = site.Value<string>("siteName"), Hidden = content.Value<bool>("hideFromSearch") || !Ready(content),
-            TestSite = site.Value<bool>("showPreviewBanner"), Preview = preview, Article = content.ContentType.Alias is "riskArticlePage" or "viecCanLamPage" or "foundationArticlePage",
+            TestSite = site.Value<bool>("showPreviewBanner"), Preview = preview, Article = content.ContentType.Alias is "riskArticlePage" or "viecCanLamPage" or "foundationArticlePage" or "alertPage",
             Image = Image(shareImage, isHome && shareImage?.Key == illustration?.Key ? illustrationAlt : null),
             DefaultImage = Image(illustration, illustrationAlt) ?? Image(site.Value<IPublishedContent>("ogImage"))
                 ?? (isHome ? null : Image(site.Value<IPublishedContent>("heroImage1"))),

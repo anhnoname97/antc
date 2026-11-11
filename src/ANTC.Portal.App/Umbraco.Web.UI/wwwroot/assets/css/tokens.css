@@ -16,6 +16,45 @@
   /* Nen hong nhat */
   --c-tint: #FDECEA;
   --c-tint-border: #F3C5C0;
+  /* Bang mau ban dung v2 (Portal v2, app.css cua docs/ban-dung-v2). Cac trang v2 dung nhom --v2-*. */
+  --v2-surface: #FFFFFF;
+  --v2-on-strong: #FFFFFF; /* chu tren nen dam (navy, blue, stop) */
+  --v2-sunk: #EBEFF5;
+  --v2-line: #D6DEE8;
+  --v2-line-2: #AEBACB;
+  --v2-ink: #0E1E30;
+  --v2-ink-2: #4A5A6E;
+  --v2-navy: #123B63;
+  --v2-navy-soft: #E3ECF5;
+  --v2-blue: #0B6BCB;
+  --v2-blue-soft: #E2EEFB;
+  --v2-stop: #B8431A;
+  --v2-stop-soft: #FCEBE3;
+  --v2-hold: #7A5300;
+  --v2-hold-soft: #FFF1CC;
+  --v2-neutral: #4A586B;
+  --v2-neutral-soft: #E7ECF2;
+  --v2-yellow: #FFC94D;
+  --v2-yellow-soft: #FFF4D6;
+  --v2-fig-bg: #0B1B30;
+  --v2-on-yellow: #3D2E00;
+  --v2-orange: #D9531E;
+  --v2-green: #1E7B4D;
+  --v2-green-soft: #E3F3EA;
+  --v2-stop-line: rgba(184, 67, 26, .25);
+  --v2-stop-line-soft: rgba(184, 67, 26, .22);
+  --v2-shadow: 0 1px 2px rgba(18, 59, 99, .06), 0 6px 18px rgba(18, 59, 99, .07);
+  --v2-bg: #F5F7FA;
+  --v2-on-hold: #3D2E00;
+  --v2-f-ui: "Roboto", Arial, Helvetica, sans-serif;
+  --v2-r: 0.875rem;
+  --v2-blue-line: rgba(11, 107, 203, .18);
+  --v2-shadow-sm: 0 1px 3px rgba(18, 59, 99, .06);
+  --v2-shadow-blue: 0 2px 8px rgba(11, 107, 203, .08);
+  --v2-shadow-btn: 0 2px 4px rgba(11, 107, 203, .15);
+  --v2-shadow-hero: 0 9px 26px rgba(11, 27, 48, .12);
+  --v2-backdrop: rgba(14, 30, 48, .5);
+
   /* Chu */
   --c-text: #1E1E1E;
   --c-text-2: #3A3A3A;

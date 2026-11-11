@@ -1,13 +1,13 @@
 {
   "$schema": "../../umbraco-package-schema.json",
   "name": "ANTC Backoffice Theme",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "extensions": [
     {
       "type": "backofficeEntryPoint",
       "alias": "Antc.EntryPoint.Theme",
       "name": "Màu và logo thanh điều hướng An toàn tài chính",
-      "js": "/App_Plugins/AntcTheme/entrypoint.js?v=0.1.2"
+      "js": "/App_Plugins/AntcTheme/entrypoint.js?v=0.1.3"
     }
   ]
 }

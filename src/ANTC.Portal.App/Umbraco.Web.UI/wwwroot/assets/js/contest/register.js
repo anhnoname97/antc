@@ -23,6 +23,8 @@ const orgEl = document.getElementById('rgorg');
 const okEl = document.getElementById('rgok');
 const submitBtn = document.getElementById('rgsubmit');
 const anonBtn = document.getElementById('anonstart');
+const defaultSubmitHtml = submitBtn ? submitBtn.innerHTML : '';
+const defaultAnonHtml = anonBtn ? anonBtn.innerHTML : '';
 const pickBox = document.getElementById('pickbox');
 const regSec = document.getElementById('regsec');
 const fieldEls = { fullName: nameEl, phone: phoneEl, org: orgEl, consent: okEl };
@@ -74,8 +76,17 @@ function setBusy(on) {
   busy = on;
   modesBox.disabled = on;
   submitBtn.disabled = anonBtn.disabled = on;
-  submitBtn.textContent = on ? 'Đang đăng ký…' : blockCopy('registration', 'submitLabel', 'Đăng ký và bắt đầu làm bài ›');
-  anonBtn.textContent = on ? 'Đang đăng ký…' : blockCopy('registration', 'anonymousSubmitLabel', 'Bắt đầu thi ẩn danh ›');
+  if (on) {
+    submitBtn.textContent = 'Đang đăng ký…';
+    anonBtn.textContent = 'Đang đăng ký…';
+  } else {
+    const submitLabel = blockCopy('registration', 'submitLabel', 'Đăng ký và bắt đầu làm bài ›');
+    const anonLabel = blockCopy('registration', 'anonymousSubmitLabel', 'Bắt đầu thi ẩn danh ›');
+    if (defaultSubmitHtml && submitLabel === 'Đăng ký và bắt đầu làm bài ›') submitBtn.innerHTML = defaultSubmitHtml;
+    else submitBtn.textContent = submitLabel;
+    if (defaultAnonHtml && anonLabel === 'Bắt đầu thi ẩn danh ›') anonBtn.innerHTML = defaultAnonHtml;
+    else anonBtn.textContent = anonLabel;
+  }
 }
 
 // Cuoc dang chon khong dang ky duoc nua (het han, bi tat...): chi con loi vao luyen tap
@@ -224,7 +235,7 @@ function selectContest(c) {
   const cnameEl = document.getElementById('cname');
   if (cnameEl) cnameEl.textContent = c.name;
   const vhEl = document.getElementById('vh');
-  if (vhEl) vhEl.textContent = c.name;
+  if (vhEl && c.name) vhEl.textContent = c.name;
   const desc = document.getElementById('cdesc');
   if (desc) {
     desc.textContent = c.description || '';

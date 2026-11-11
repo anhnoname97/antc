@@ -1,5 +1,4 @@
 @using Umbraco.Cms.Core.Models.Blocks
-@using Umbraco.Cms.Core.Models
 @using Umbraco.Cms.Core.Models.PublishedContent
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
@@ -13,12 +12,6 @@
     var description = (!string.IsNullOrWhiteSpace(descRaw) && !descRaw.StartsWith("Gửi câu hỏi, kiến nghị"))
         ? descRaw
         : defaultDesc;
-
-    var heroImage = c.Value<MediaWithCrops>("image");
-    var imageUrl = (heroImage != null && !string.IsNullOrWhiteSpace(heroImage.Url()))
-        ? heroImage.Url()
-        : "/assets/img/qa-hero.jpg";
-    var imageAlt = heroImage?.Value<string>("altText") ?? fullTitle;
 }
 
 @* Đường dẫn (Breadcrumb) *@
@@ -42,11 +35,6 @@
     <p class="lead">@description</p>
 </header>
 
-@* Ảnh đại diện / Ảnh nền tùy ý do người dùng thay thế *@
-<div class="pageh-hero-wrap">
-    <img src="@imageUrl" alt="@imageAlt" class="pageh-hero-img" />
-</div>
-
 @* Dải khẩn cấp *@
 <div class="quick">
     <div class="quick-main">
@@ -55,5 +43,5 @@
         </svg>
         <span><b>Đang gặp chuyện gấp?</b> Đừng chờ trả lời, xem việc cần làm ngay.</span>
     </div>
-    <a href="/khan-cap" class="btn red sm">Xem việc cần làm ngay</a>
+    <a href="/khan-cap/" class="btn red sm">Xem việc cần làm ngay</a>
 </div>

@@ -9,6 +9,7 @@
 
   var STEP = 12;
   var shown = STEP;
+  var inputTimer = null;
   var unit = results.getAttribute('data-unit') || 'mục';
   var freshList = results.querySelector('[data-risk-more-list]');
   var freshCards = freshList ? Array.prototype.slice.call(freshList.querySelectorAll('[data-risk-card]')) : [];
@@ -26,7 +27,7 @@
     return (s || '').replace(/đ/g, 'd').replace(/Đ/g, 'D').normalize('NFD').replace(/[̀-ͯ]/g, '')
       .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   }
-  function hasLongDigits(s) { return /\d{6,}/.test((s || '').replace(/[\s.\-]/g, '')); }
+  function hasLongDigits(s) { return /^\d{6,}$/.test((s || '').replace(/[\s.\-]/g, '')); }
   function has(card, attr, value) { return !value || (' ' + card.getAttribute(attr) + ' ').indexOf(' ' + value + ' ') > -1; }
 
   function matches(card, q) {
@@ -81,17 +82,39 @@
     }
   }
 
-  form.addEventListener('submit', function (event) { event.preventDefault(); shown = STEP; apply(true); });
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    clearTimeout(inputTimer);
+    shown = STEP;
+    apply(true);
+  });
+  form.addEventListener('input', function (event) {
+    if (event.target && event.target.name === 'q') {
+      clearTimeout(inputTimer);
+      inputTimer = setTimeout(function () { shown = STEP; apply(true); }, 180);
+    }
+  });
   form.addEventListener('change', function (event) {
-    if (event.target.tagName === 'SELECT') { shown = STEP; apply(true); }
+    if (event.target.tagName === 'SELECT') {
+      clearTimeout(inputTimer);
+      shown = STEP;
+      apply(true);
+    }
   });
   // Nut xoa (x) cua o tim kiem
-  form.addEventListener('search', function (event) { if (!event.target.value) { shown = STEP; apply(true); } });
+  form.addEventListener('search', function (event) {
+    if (!event.target.value) {
+      clearTimeout(inputTimer);
+      shown = STEP;
+      apply(true);
+    }
+  });
 
   results.addEventListener('click', function (event) {
     var clear = event.target.closest('[data-risk-clear]');
     if (!clear) return;
     event.preventDefault();
+    clearTimeout(inputTimer);
     form.reset();
     Array.prototype.forEach.call(form.elements, function (f) { if (f.name === 'q') f.value = ''; if (f.tagName === 'SELECT') f.value = ''; });
     shown = STEP;

@@ -166,9 +166,10 @@ public class PortalV2FoundationTests
         Assert.Contains("<Alias>image</Alias>", heroConfig);
         Assert.Contains("89e3ef2d-532a-5d5c-947e-8aa017dbf46f", heroConfig); // Chon anh
 
-        // 2. qaHeroBlock.cshtml renders image and portal header
+        // 2. qaHeroBlock.cshtml renders portal header. Ban chinh thuc 10/11/2026: dau trang Hoi – Dap khong co anh,
+        // nen view khong hien truong image (truong van giu trong document type).
         var heroView = File.ReadAllText(Path.Combine(viewsDir, "Partials", "blockgrid", "Components", "qaHeroBlock.cshtml"));
-        Assert.Contains("heroImage", heroView);
+        Assert.DoesNotContain("heroImage", heroView);
         Assert.Contains("pageh", heroView);
         Assert.Contains("btn red sm", heroView);
 

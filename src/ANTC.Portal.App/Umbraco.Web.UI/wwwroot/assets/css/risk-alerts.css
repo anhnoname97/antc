@@ -1,162 +1,162 @@
 /* Các rủi ro: Cảnh báo mới (V2-13h) và trang một cảnh báo (V2-13i). Theo app.css của bản dựng v2. */
 .risk-page {
-  --rk-surface: #ffffff;
-  --rk-sunk: #ebeff5;
-  --rk-line: #d6dee8;
-  --rk-line2: #aebacb;
-  --rk-ink: #0e1e30;
-  --rk-ink2: #4a5a6e;
-  --rk-navy: #123b63;
-  --rk-navy-soft: #e3ecf5;
-  --rk-blue: #0b6bcb;
-  --rk-blue-soft: #e2eefb;
-  --rk-stop: #b8431a;
-  --rk-stop-soft: #fcebe3;
-  --rk-hold: #7a5300;
-  --rk-hold-soft: #fff1cc;
-  --rk-neut: #4a586b;
-  --rk-neut-soft: #e7ecf2;
-  --rk-shadow: 0 1px 2px rgba(18, 59, 99, .06), 0 6px 18px rgba(18, 59, 99, .07);
   gap: 24px;
 }
 .risk-page [hidden] { display: none !important; }
 /* Duong dan: theo .crumbs cua ban dung v2 */
 .risk-page .self-check-crumbs a { font-weight: 600; }
-.risk-page .self-check-crumbs [aria-current] { font-weight: 700; color: var(--rk-ink); }
+.risk-page .self-check-crumbs [aria-current] { font-weight: 700; color: var(--v2-ink); }
 /* base.css doi mau moi a:hover; ban dung v2 dung button nen giu nguyen mau chu khi hover */
-.risk-page .risk-card:hover, .risk-page .risk-links a:hover { color: var(--rk-ink); }
-.risk-page .risk-btn:hover, .risk-page .risk-tabs a:not([aria-current]):hover { color: var(--rk-navy); }
-.risk-page .risk-btn--primary:hover, .risk-page .risk-btn--stop:hover { color: #fff; }
-.risk-page h2, .risk-page h3 { margin: 0; color: var(--rk-navy); }
+.risk-page .risk-card:hover, .risk-page .risk-links a:hover { color: var(--v2-ink); }
+.risk-page .risk-btn:hover, .risk-page .risk-tabs a:not([aria-current]):hover { color: var(--v2-navy); }
+.risk-page .risk-btn--primary:hover, .risk-page .risk-btn--stop:hover { color: var(--v2-on-strong); }
+.risk-page h2, .risk-page h3 { margin: 0; color: var(--v2-navy); }
 .risk-page .site-icon { width: 20px; height: 20px; flex: none; }
 .risk-page .self-check-spot .site-icon { width: 24px; height: 24px; }
 
-.risk-eyebrow { margin: 0; font-size: .84375rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--rk-navy); }
-.risk-small { font-size: 1rem; line-height: 1.5; color: var(--rk-ink2); }
+.risk-eyebrow { margin: 0; font-size: .84375rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--v2-navy); }
+.risk-small { font-size: 1rem; line-height: 1.5; color: var(--v2-ink-2); }
 .risk-h2 { font-size: 1.1875rem; }
-.risk-figure { margin: 0; }
-.risk-figure img { display: block; width: 100%; max-height: 480px; object-fit: cover; border-radius: 16px; }
+.risk-figure { margin: 0; display: grid; gap: 6px; max-width: 820px; }
+.risk-figure img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; background: var(--v2-fig-bg); }
+.risk-figure figcaption { font-size: .84375rem; line-height: 1.45; color: var(--v2-ink-2); }
+/* Luoi anh thu doan cua bai huong dan: theo .tgal .fig cua ban chinh thuc */
+.risk-tgal { display: grid; gap: 16px; margin-top: 6px; }
+.risk-tfig { display: grid; align-content: start; gap: 6px; min-width: 0; margin: 0; }
+.risk-tfig img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: var(--v2-fig-bg); }
+.risk-tfig figcaption { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: .84375rem; line-height: 1.45; color: var(--v2-ink-2); }
+.risk-tfig figcaption > span:first-child { font-size: .90625rem; font-weight: 700; color: var(--v2-ink); }
+@media (min-width: 768px) {
+  .risk-tgal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .risk-tgal--one { grid-template-columns: minmax(0, 1fr); }
+}
+/* Anh vuong nho canh tieu de trang Canh bao va trang nhom (ban dung v2: .ph-img) */
+.risk-ph-img { flex: none; width: 64px; height: 64px; border-radius: 14px; overflow: hidden; background: var(--v2-fig-bg); }
+.risk-ph-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (min-width: 768px) { .risk-ph-img { width: 80px; height: 80px; border-radius: 16px; } }
+.risk-eimg { width: 96px; height: 96px; border-radius: 14px; overflow: hidden; background: var(--v2-fig-bg); }
+.risk-eimg img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 /* Nút */
-.risk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 10px 16px; border-radius: 12px; border: 1.5px solid var(--rk-line2); background: var(--rk-surface); color: var(--rk-navy); font: inherit; font-weight: 700; font-size: 1rem; text-decoration: none; cursor: pointer; }
-.risk-btn:hover { border-color: var(--rk-navy); }
-.risk-btn--primary { background: var(--rk-blue); border-color: var(--rk-blue); color: #fff; }
-.risk-btn--primary:hover { background: var(--rk-navy); border-color: var(--rk-navy); }
-.risk-btn--stop { background: var(--rk-stop); border-color: var(--rk-stop); color: #fff; }
-.risk-btn:focus-visible, .risk-tabs a:focus-visible, .risk-card:focus-visible, .risk-links a:focus-visible, .risk-chips a:focus-visible { outline: 3px solid var(--rk-blue); outline-offset: 2px; }
+.risk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 10px 16px; border-radius: 12px; border: 1.5px solid var(--v2-line-2); background: var(--v2-surface); color: var(--v2-navy); font: inherit; font-weight: 700; font-size: 1rem; text-decoration: none; cursor: pointer; }
+.risk-btn:hover { border-color: var(--v2-navy); }
+.risk-btn--primary { background: var(--v2-blue); border-color: var(--v2-blue); color: var(--v2-on-strong); }
+.risk-btn--primary:hover { background: var(--v2-navy); border-color: var(--v2-navy); }
+.risk-btn--stop { background: var(--v2-stop); border-color: var(--v2-stop); color: var(--v2-on-strong); }
+.risk-btn:focus-visible, .risk-tabs a:focus-visible, .risk-card:focus-visible, .risk-links a:focus-visible, .risk-chips a:focus-visible { outline: 3px solid var(--v2-blue); outline-offset: 2px; }
 .risk-more { justify-self: start; margin-bottom: 12px; }
 
 /* Thanh 6 tab */
 .risk-tabs { margin-inline: -16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 .risk-tabs__list { display: flex; gap: 6px; margin: 0; padding: 2px 16px 6px; list-style: none; width: max-content; }
-.risk-tabs a { display: inline-flex; align-items: center; gap: 7px; min-height: 48px; padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--rk-line2); background: var(--rk-surface); font-weight: 700; font-size: .96875rem; color: var(--rk-navy); white-space: nowrap; text-decoration: none; }
-.risk-tabs a:hover { border-color: var(--rk-navy); }
-.risk-tabs a[aria-current="page"] { background: var(--rk-navy); border-color: var(--rk-navy); color: #fff; }
+.risk-tabs a { display: inline-flex; align-items: center; gap: 7px; min-height: 48px; padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--v2-line-2); background: var(--v2-surface); font-weight: 700; font-size: .96875rem; color: var(--v2-navy); white-space: nowrap; text-decoration: none; }
+.risk-tabs a:hover { border-color: var(--v2-navy); }
+.risk-tabs a[aria-current="page"] { background: var(--v2-navy); border-color: var(--v2-navy); color: var(--v2-on-strong); }
 
 /* Dòng Mẫu trình bày */
-.risk-sample { display: flex; gap: 10px; align-items: flex-start; font-size: 1rem; line-height: 1.5; color: var(--rk-ink2); background: var(--rk-sunk); border-radius: 12px; padding: 10px 12px; }
-.risk-sample .site-icon { margin-top: 2px; color: var(--rk-neut); }
+.risk-sample { display: flex; gap: 10px; align-items: flex-start; font-size: 1rem; line-height: 1.5; color: var(--v2-ink-2); background: var(--v2-sunk); border-radius: 12px; padding: 10px 12px; }
+.risk-sample .site-icon { margin-top: 2px; color: var(--v2-neutral); }
 
 /* Ô tìm và bộ lọc */
-.risk-tools { display: grid; gap: 10px; background: var(--rk-surface); border: 1px solid var(--rk-line); border-radius: 16px; padding: 14px; }
+.risk-tools { display: grid; gap: 10px; background: var(--v2-surface); border: 1px solid var(--v2-line); border-radius: 16px; padding: 14px; }
 .risk-tools__label { font-weight: 700; font-size: 1rem; }
 .risk-search { display: flex; gap: 8px; }
-.risk-search input { flex: 1; min-width: 0; min-height: 48px; padding: 8px 14px; font: inherit; font-size: 1rem; border: 1.5px solid var(--rk-line2); border-radius: 10px; background: var(--rk-surface); color: var(--rk-ink); }
-.risk-search input:focus-visible, .risk-select select:focus-visible { outline: 3px solid var(--rk-blue); outline-offset: 1px; border-color: var(--rk-blue); }
+.risk-search input { flex: 1; min-width: 0; min-height: 48px; padding: 8px 14px; font: inherit; font-size: 1rem; border: 1.5px solid var(--v2-line-2); border-radius: 10px; background: var(--v2-surface); color: var(--v2-ink); }
+.risk-search input:focus-visible, .risk-select select:focus-visible { outline: 3px solid var(--v2-blue); outline-offset: 1px; border-color: var(--v2-blue); }
 .risk-search .risk-btn { flex: none; }
 .risk-filters { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
 .risk-filters:not(.risk-filters--four) .risk-select:last-child { grid-column: 1 / -1; }
 .risk-select { display: grid; gap: 4px; min-width: 0; font-weight: 700; font-size: 1rem; }
-.risk-select select { width: 100%; min-width: 0; min-height: 48px; padding: 8px 10px; font: inherit; font-weight: 500; border: 1.5px solid var(--rk-line2); border-radius: 10px; background: var(--rk-surface); color: var(--rk-ink); }
+.risk-select select { width: 100%; min-width: 0; min-height: 48px; padding: 8px 10px; font: inherit; font-weight: 500; border: 1.5px solid var(--v2-line-2); border-radius: 10px; background: var(--v2-surface); color: var(--v2-ink); }
 
 /* Kết quả */
 .risk-results, .risk-found, .risk-archive { display: grid; gap: 14px; }
 .risk-found > p, .risk-archive > h2 { margin: 0; }
 .risk-count { font-size: 1.03125rem; }
 .risk-list { display: grid; gap: 10px; }
-.risk-empty { display: grid; gap: 10px; padding: 14px; background: var(--rk-surface); border: 1.5px dashed var(--rk-line2); border-radius: 14px; }
+.risk-empty { display: grid; gap: 10px; padding: 14px; background: var(--v2-surface); border: 1.5px dashed var(--v2-line-2); border-radius: 14px; }
 .risk-empty > b { font-size: 1.03125rem; }
-.risk-empty p { color: var(--rk-ink2); }
+.risk-empty p { color: var(--v2-ink-2); }
 .risk-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* Thẻ cảnh báo */
-.risk-card { display: flex; gap: 12px; align-items: flex-start; min-width: 0; padding: 14px; background: var(--rk-surface); border: 1px solid var(--rk-line); border-radius: 16px; color: var(--rk-ink); text-decoration: none; }
-.risk-card:hover { border-color: var(--rk-navy); box-shadow: var(--rk-shadow); }
-.risk-spot { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--rk-blue-soft); color: var(--rk-blue); }
-.risk-spot--d { background: var(--rk-stop-soft); color: var(--rk-stop); }
-.risk-spot--h { background: var(--rk-hold-soft); color: var(--rk-hold); }
+.risk-card { display: flex; gap: 12px; align-items: flex-start; min-width: 0; padding: 14px; background: var(--v2-surface); border: 1px solid var(--v2-line); border-radius: 16px; color: var(--v2-ink); text-decoration: none; }
+.risk-card:hover { border-color: var(--v2-navy); box-shadow: var(--v2-shadow); }
+.risk-spot { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--v2-blue-soft); color: var(--v2-blue); }
+.risk-spot--d { background: var(--v2-stop-soft); color: var(--v2-stop); }
+.risk-spot--h { background: var(--v2-hold-soft); color: var(--v2-hold); }
 .risk-card__body { display: grid; gap: 4px; flex: 1; min-width: 0; }
 .risk-card__title { font-size: 1.0625rem; line-height: 1.35; }
-.risk-card__type { font-size: .84375rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--rk-ink2); }
-.risk-card__desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .96875rem; line-height: 1.45; color: var(--rk-ink2); }
-.risk-card__meta { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-top: 2px; font-size: .90625rem; color: var(--rk-ink2); }
+.risk-card__type { font-size: .84375rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--v2-ink-2); }
+.risk-card__desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .96875rem; line-height: 1.45; color: var(--v2-ink-2); }
+.risk-card__meta { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-top: 2px; font-size: .90625rem; color: var(--v2-ink-2); }
 .risk-card__meta > span { display: inline-flex; align-items: center; gap: 4px; }
 .risk-card__meta .site-icon { width: 16px; height: 16px; }
 
 /* Nhãn nguồn, mức độ, lưu trữ */
 .risk-label { display: inline-flex; align-items: center; gap: 8px; justify-self: start; margin: 0; padding: 2px 8px; border-radius: 9px; font-size: .84375rem; font-weight: 700; }
-.risk-label--source { background: var(--rk-blue-soft); color: var(--rk-blue); }
-.risk-label--check { background: var(--rk-hold-soft); color: var(--rk-hold); }
+.risk-label--source { background: var(--v2-blue-soft); color: var(--v2-blue); }
+.risk-label--check { background: var(--v2-hold-soft); color: var(--v2-hold); }
 .risk-label--big { padding: 5px 10px; font-size: 1rem; }
 .risk-level { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 7px; border-radius: 999px; font-size: .875rem; font-weight: 800; line-height: 1.3; white-space: nowrap; }
 .risk-page .risk-level .site-icon { width: 16px; height: 16px; }
-.risk-level--d { background: var(--rk-stop-soft); color: var(--rk-stop); }
-.risk-level--h { background: var(--rk-hold-soft); color: var(--rk-hold); }
-.risk-level--n { background: var(--rk-neut-soft); color: var(--rk-neut); }
-.risk-stale { justify-self: start; padding: 4px 9px; border-radius: 7px; background: var(--rk-hold-soft); color: var(--rk-hold); font-size: .84375rem; font-weight: 600; }
+.risk-level--d { background: var(--v2-stop-soft); color: var(--v2-stop); }
+.risk-level--h { background: var(--v2-hold-soft); color: var(--v2-hold); }
+.risk-level--n { background: var(--v2-neutral-soft); color: var(--v2-neutral); }
+.risk-stale { justify-self: start; padding: 4px 9px; border-radius: 7px; background: var(--v2-hold-soft); color: var(--v2-hold); font-size: .84375rem; font-weight: 600; }
 .risk-card__meta .risk-stale { padding: 1px 8px; }
 
 /* Hộp mở/đóng: Website không tư vấn tài chính, Bộ khung nhận diện */
-.risk-peek { background: var(--rk-surface); border: 1px solid var(--rk-line); border-radius: 16px; }
+.risk-peek { background: var(--v2-surface); border: 1px solid var(--v2-line); border-radius: 16px; }
 .risk-peek > summary { display: flex; gap: 12px; align-items: center; min-height: 56px; padding: 12px 14px; cursor: pointer; list-style: none; }
 .risk-peek > summary::-webkit-details-marker { display: none; }
-.risk-peek > summary:focus-visible { outline: 3px solid var(--rk-blue); outline-offset: 2px; border-radius: 16px; }
-.risk-peek__title { display: grid; gap: 2px; flex: 1; min-width: 0; font-weight: 800; font-size: 1.0625rem; color: var(--rk-navy); }
-.risk-peek__title small { font-weight: 400; font-size: .9375rem; color: var(--rk-ink2); }
-.risk-peek > summary .site-icon { color: var(--rk-ink2); }
+.risk-peek > summary:focus-visible { outline: 3px solid var(--v2-blue); outline-offset: 2px; border-radius: 16px; }
+.risk-peek__title { display: grid; gap: 2px; flex: 1; min-width: 0; font-weight: 800; font-size: 1.0625rem; color: var(--v2-navy); }
+.risk-peek__title small { font-weight: 400; font-size: .9375rem; color: var(--v2-ink-2); }
+.risk-peek > summary .site-icon { color: var(--v2-ink-2); }
 .risk-peek[open] > summary .site-icon { transform: rotate(90deg); }
-.risk-peek__body { display: grid; gap: 10px; padding: 0 14px 14px; font-size: 1rem; line-height: 1.6; color: var(--rk-ink); }
+.risk-peek__body { display: grid; gap: 10px; padding: 0 14px 14px; font-size: 1rem; line-height: 1.6; color: var(--v2-ink); }
 .risk-peek__body ul { margin: 0; padding-left: 1.25em; display: grid; gap: 6px; }
 .risk-peek__body h3 { font-size: 1.0625rem; margin-top: 4px; }
 
 /* Hộp Không thấy câu trả lời? */
-.risk-ask { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding: 16px; border-radius: 16px; background: var(--rk-navy-soft); }
+.risk-ask { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding: 16px; border-radius: 16px; background: var(--v2-navy-soft); }
 .risk-ask h2 { font-size: 1.1875rem; }
-.risk-ask p { margin-top: 4px; font-size: 1rem; color: var(--rk-ink2); }
+.risk-ask p { margin-top: 4px; font-size: 1rem; color: var(--v2-ink-2); }
 .risk-ask .risk-btn { grid-column: 1 / -1; justify-self: start; }
 
 /* Trang một cảnh báo */
 /* Trang mot canh bao: so do theo .alert1 / .sec / .h3 trong app.css cua ban dung v2 (chu goc 17px) */
-.risk-alert { display: grid; gap: 14px; max-width: 820px; font-size: 1.0625rem; line-height: 1.6; color: var(--rk-ink); }
-.risk-alert h1 { margin: 0; font-size: 1.625rem; line-height: 1.25; font-weight: 800; letter-spacing: -.02em; color: var(--rk-ink); }
-.risk-docmeta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: .96875rem; color: var(--rk-ink2); }
+.risk-alert { display: grid; gap: 14px; max-width: 820px; font-size: 1.0625rem; line-height: 1.6; color: var(--v2-ink); }
+.risk-alert h1 { margin: 0; font-size: 1.625rem; line-height: 1.25; font-weight: 800; letter-spacing: -.02em; color: var(--v2-ink); }
+.risk-docmeta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: .96875rem; color: var(--v2-ink-2); }
 .risk-docmeta > span { display: inline-flex; align-items: center; gap: 5px; }
 .risk-section { display: grid; gap: 10px; padding-top: 6px; }
-.risk-section h2 { font-size: 1.375rem; line-height: 1.25; font-weight: 800; letter-spacing: -.01em; color: var(--rk-navy); }
-.risk-section h3 { margin-top: 4px; font-size: 1.09375rem; line-height: 1.25; font-weight: 800; color: var(--rk-ink); }
+.risk-section h2 { font-size: 1.375rem; line-height: 1.25; font-weight: 800; letter-spacing: -.01em; color: var(--v2-navy); }
+.risk-section h3 { margin-top: 4px; font-size: 1.09375rem; line-height: 1.25; font-weight: 800; color: var(--v2-ink); }
 .risk-section p { line-height: 1.6; }
-.risk-source { font-size: 1rem; line-height: 1.5; color: var(--rk-ink); }
+.risk-source { font-size: 1rem; line-height: 1.5; color: var(--v2-ink); }
 .risk-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
 /* Chip doi tuong, kenh: theo .gchip cua ban dung v2 */
-.risk-chips a { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 9px 13px; border: 1.5px solid var(--rk-line2); border-radius: 999px; background: var(--rk-surface); color: var(--rk-ink); font-weight: 700; font-size: 1rem; line-height: 1.3; text-align: left; text-decoration: none; }
-.risk-page .risk-chips a .site-icon { width: 19px; height: 19px; color: var(--rk-blue); }
-.risk-page .risk-chips a:hover { border-color: var(--rk-navy); color: var(--rk-ink); }
+.risk-chips a { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 9px 13px; border: 1.5px solid var(--v2-line-2); border-radius: 999px; background: var(--v2-surface); color: var(--v2-ink); font-weight: 700; font-size: 1rem; line-height: 1.3; text-align: left; text-decoration: none; }
+.risk-page .risk-chips a .site-icon { width: 19px; height: 19px; color: var(--v2-blue); }
+.risk-page .risk-chips a:hover { border-color: var(--v2-navy); color: var(--v2-ink); }
 .risk-steps { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; counter-reset: risk-step; }
-.risk-steps li { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--rk-blue-soft); font-weight: 800; font-size: .96875rem; line-height: 1.45; counter-increment: risk-step; }
-.risk-steps li::before { content: counter(risk-step); flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--rk-blue); color: #fff; font-size: .8125rem; font-weight: 800; }
+.risk-steps li { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--v2-blue-soft); font-weight: 800; font-size: .96875rem; line-height: 1.45; counter-increment: risk-step; }
+.risk-steps li::before { content: counter(risk-step); flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--v2-blue); color: var(--v2-on-strong); font-size: .8125rem; font-weight: 800; }
 .risk-signs { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.risk-signs li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--rk-line); border-radius: 12px; background: var(--rk-surface); font-size: 1.03125rem; line-height: 1.45; }
-.risk-signs .site-icon { margin-top: 1px; color: var(--rk-stop); }
-.risk-signs--other .site-icon { color: var(--rk-hold); }
-.risk-note { display: grid; gap: 6px; padding: 14px; border-radius: 16px; background: var(--rk-blue-soft); font-size: .96875rem; line-height: 1.55; }
-.risk-note > b { font-size: 1.03125rem; color: var(--rk-blue); }
+.risk-signs li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--v2-line); border-radius: 12px; background: var(--v2-surface); font-size: 1.03125rem; line-height: 1.45; }
+.risk-signs .site-icon { margin-top: 1px; color: var(--v2-stop); }
+.risk-signs--other .site-icon { color: var(--v2-hold); }
+.risk-note { display: grid; gap: 6px; padding: 14px; border-radius: 16px; background: var(--v2-blue-soft); font-size: .96875rem; line-height: 1.55; }
+.risk-note > b { font-size: 1.03125rem; color: var(--v2-blue); }
 .risk-links { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.risk-links a { display: flex; gap: 10px; align-items: center; min-height: 52px; padding: 11px 12px; border: 1px solid var(--rk-line); border-radius: 12px; background: var(--rk-surface); color: var(--rk-ink); font-size: 1.03125rem; font-weight: 600; line-height: 1.35; text-decoration: none; }
-.risk-links a:hover { border-color: var(--rk-blue); }
+.risk-links a { display: flex; gap: 10px; align-items: center; min-height: 52px; padding: 11px 12px; border: 1px solid var(--v2-line); border-radius: 12px; background: var(--v2-surface); color: var(--v2-ink); font-size: 1.03125rem; font-weight: 600; line-height: 1.35; text-decoration: none; }
+.risk-links a:hover { border-color: var(--v2-blue); }
 .risk-links a > span { display: grid; gap: 2px; flex: 1; min-width: 0; }
-.risk-links small { font-weight: 400; font-size: .9375rem; color: var(--rk-ink2); }
-.risk-links a > .site-icon:first-child { color: var(--rk-blue); }
-.risk-links a > .site-icon:last-child { width: 18px; height: 18px; color: var(--rk-ink2); }
+.risk-links small { font-weight: 400; font-size: .9375rem; color: var(--v2-ink-2); }
+.risk-links a > .site-icon:first-child { color: var(--v2-blue); }
+.risk-links a > .site-icon:last-child { width: 18px; height: 18px; color: var(--v2-ink-2); }
 
 @media (min-width: 768px) {
   .risk-tabs { margin-inline: 0; }
@@ -176,20 +176,20 @@
   .risk-card, .risk-tabs a, .risk-links a { transition: border-color .15s, box-shadow .15s; }
 }
 @media print {
-  .risk-tabs, .risk-tools, .risk-ask, .risk-more { display: none; }
+  .risk-tabs, .risk-tools, .risk-ask, .risk-more, .risk-figure, .risk-ph-img, .risk-tgal, .risk-eimg { display: none !important; }
 }
 
 /* Bộ nút Nghe bài viết · Chữ lớn · In · Gửi: theo .tools / .tbtn / .okmsg của bản dựng v2 */
 .risk-pagetools { display: flex; flex-wrap: wrap; gap: 8px; }
-.risk-pagetools .tbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 9px 13px; border: 1.5px solid var(--rk-line2); border-radius: 11px; background: var(--rk-surface); color: var(--rk-ink); font: inherit; font-size: 1rem; font-weight: 700; line-height: 1.2; cursor: pointer; }
-.risk-pagetools .tbtn:hover { border-color: var(--rk-blue); }
-.risk-pagetools .tbtn:focus-visible { outline: 3px solid var(--rk-blue); outline-offset: 2px; }
-.risk-pagetools .tbtn b { color: var(--rk-blue); }
-.risk-pagetools .ic { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--rk-blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.risk-pagetools .tbtn[aria-pressed="true"] { background: var(--rk-blue); border-color: var(--rk-blue); color: #fff; }
-.risk-pagetools .tbtn[aria-pressed="true"] .ic { stroke: #fff; }
-.risk-pagetools .tbtn[aria-pressed="true"] b { color: #fff; }
-.risk-okmsg { justify-self: start; margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--rk-blue-soft); color: var(--rk-blue); font-size: .96875rem; font-weight: 700; }
+.risk-pagetools .tbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 9px 13px; border: 1.5px solid var(--v2-line-2); border-radius: 11px; background: var(--v2-surface); color: var(--v2-ink); font: inherit; font-size: 1rem; font-weight: 700; line-height: 1.2; cursor: pointer; }
+.risk-pagetools .tbtn:hover { border-color: var(--v2-blue); }
+.risk-pagetools .tbtn:focus-visible { outline: 3px solid var(--v2-blue); outline-offset: 2px; }
+.risk-pagetools .tbtn b { color: var(--v2-blue); }
+.risk-pagetools .ic { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--v2-blue); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.risk-pagetools .tbtn[aria-pressed="true"] { background: var(--v2-blue); border-color: var(--v2-blue); color: var(--v2-on-strong); }
+.risk-pagetools .tbtn[aria-pressed="true"] .ic { stroke: var(--v2-on-strong); }
+.risk-pagetools .tbtn[aria-pressed="true"] b { color: var(--v2-on-strong); }
+.risk-okmsg { justify-self: start; margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--v2-blue-soft); color: var(--v2-blue); font-size: .96875rem; font-weight: 700; }
 .risk-alert__read { display: contents; }
 @media print {
   .site-utility, .site-header, .site-footer, .self-check-crumbs, .risk-pagetools, .risk-okmsg, .risk-links { display: none !important; }
@@ -198,33 +198,54 @@
 /* Trang Bài hướng dẫn (V2-13i phần bài): theo .lvart / .pageh / .toc / .dbox / .ask / .tlist / .docnow / .nol của bản dựng v2 */
 .risk-guide { gap: 18px; }
 .risk-guide__head { display: grid; gap: 8px; }
-.risk-guide__head .self-check-heading__title h1 { margin: 0; font-size: 1.75rem; line-height: 1.25; font-weight: 800; letter-spacing: -.02em; color: var(--rk-navy); }
-.risk-guide__lead { margin: 0; color: var(--rk-ink2); }
+.risk-guide__head .self-check-heading__title h1 { margin: 0; font-size: 1.75rem; line-height: 1.25; font-weight: 800; letter-spacing: -.02em; color: var(--v2-navy); }
+.risk-guide__lead { margin: 0; color: var(--v2-ink-2); }
 .risk-section { scroll-margin-top: 84px; }
-.risk-toc { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--rk-line); border-radius: 14px; background: var(--rk-surface); }
+.risk-toc { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--v2-line); border-radius: 14px; background: var(--v2-surface); }
 .risk-toc b { font-size: 1rem; }
 .risk-toc ol { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.risk-toc a { display: inline-flex; align-items: center; min-height: 48px; padding: 6px 14px; border-radius: 999px; background: var(--rk-sunk); color: var(--rk-navy); font-weight: 600; font-size: 1rem; text-decoration: none; }
-.risk-page .risk-toc a:hover { background: var(--rk-navy-soft); color: var(--rk-navy); }
-.risk-toc a:focus-visible { outline: 3px solid var(--rk-blue); outline-offset: 2px; }
+.risk-toc a { display: inline-flex; align-items: center; min-height: 48px; padding: 6px 14px; border-radius: 999px; background: var(--v2-sunk); color: var(--v2-navy); font-weight: 600; font-size: 1rem; text-decoration: none; }
+.risk-page .risk-toc a:hover { background: var(--v2-navy-soft); color: var(--v2-navy); }
+.risk-toc a:focus-visible { outline: 3px solid var(--v2-blue); outline-offset: 2px; }
 .risk-rte { display: grid; gap: 10px; }
 .risk-rte p, .risk-rte ul, .risk-rte ol { margin: 0; }
-.risk-kicker { font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--rk-navy); }
-.risk-remember { display: grid; gap: 6px; padding: 14px; border: 2px solid var(--rk-blue); border-radius: 14px; background: var(--rk-surface); }
+.risk-kicker { font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--v2-navy); }
+.risk-remember { display: grid; gap: 6px; padding: 14px; border: 2px solid var(--v2-blue); border-radius: 14px; background: var(--v2-surface); }
 .risk-remember p { margin: 0; font-size: 1.1875rem; font-weight: 800; line-height: 1.4; }
-.risk-mustask { display: grid; gap: 6px; padding: 16px; border-radius: 16px; background: var(--rk-blue); color: #fff; }
-.risk-mustask .risk-kicker { color: #fff; opacity: .8; }
+.risk-mustask { display: grid; gap: 6px; padding: 16px; border-radius: 16px; background: var(--v2-blue); color: var(--v2-on-strong); }
+.risk-mustask .risk-kicker { color: var(--v2-on-strong); opacity: .8; }
 .risk-mustask p { margin: 0; font-size: 1.09375rem; font-weight: 700; line-height: 1.45; }
 .risk-tactics { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.risk-tactics li { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; padding: 11px 12px; border: 1px solid var(--rk-line); border-radius: 12px; background: var(--rk-surface); font-size: 1rem; line-height: 1.45; scroll-margin-top: 120px; }
-.risk-tactics li > .site-icon { margin-top: 2px; color: var(--rk-stop); }
+.risk-tactics li { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; padding: 11px 12px; border: 1px solid var(--v2-line); border-radius: 12px; background: var(--v2-surface); font-size: 1rem; line-height: 1.45; scroll-margin-top: 120px; }
+.risk-tactics li > .site-icon { margin-top: 2px; color: var(--v2-stop); }
 .risk-tactics li > span:not(.risk-level) { flex: 1; min-width: 0; }
 .risk-tactics li .risk-level { margin-left: auto; }
-.risk-tactics li:target { background: #fff4d6; outline: 2px solid #ffc94d; border-radius: 10px; }
-.risk-now { display: grid; gap: 8px; padding: 14px; border-radius: 16px; background: var(--rk-stop-soft); }
-.risk-now p { font-size: 1rem; line-height: 1.55; }
-.risk-now p:first-child { color: var(--rk-stop); font-weight: 700; font-size: 1.03125rem; }
-.risk-signs--no .site-icon { color: var(--rk-stop); }
+.risk-tactics li:target, .risk-tactics li.is-hit { background: var(--v2-yellow-soft); outline: 2px solid var(--v2-yellow); border-radius: 10px; }
+/* Khi nao phai dung / Khi nao can hoan (tu chuyen de) */
+.risk-when { display: grid; gap: 10px; margin-top: 14px; }
+@media (min-width: 745px) { .risk-when { grid-template-columns: 1fr 1fr; } }
+.risk-when__item { display: grid; gap: 6px; padding: 14px; border-radius: 14px; }
+.risk-when__item b { display: flex; gap: 8px; align-items: center; font-size: 1.03125rem; }
+.risk-when__item p { margin: 0; font-size: 1rem; line-height: 1.5; color: var(--v2-ink); }
+.risk-when__item--d { background: var(--v2-stop-soft); }
+.risk-when__item--d b { color: var(--v2-stop); }
+.risk-when__item--h { background: var(--v2-hold-soft); }
+.risk-when__item--h b { color: var(--v2-hold); }
+/* Bai huong dan (ban chinh thuc 10/11/2026): .cond, .note.r, .docnow, bang .dtbl cua ban dung */
+.risk-note--r { background: var(--v2-stop-soft); }
+.risk-note--r > b { color: var(--v2-stop); }
+.risk-cond { display: grid; gap: 8px; padding: 14px; border: 2px dashed var(--v2-line-2); border-radius: 16px; }
+.risk-cond > b { font-size: 1rem; }
+.risk-cond ul { display: grid; gap: 6px; margin: 0; padding-left: 20px; font-size: .96875rem; line-height: 1.5; }
+.risk-now > b { color: var(--v2-stop); font-size: 1.03125rem; }
+.risk-tblwrap { overflow-x: auto; }
+.risk-dtbl { width: 100%; border-collapse: collapse; font-size: .96875rem; }
+.risk-dtbl th { padding: 8px 10px 8px 0; border-bottom: 2px solid var(--v2-line-2); text-align: left; vertical-align: bottom; font-size: .78125rem; letter-spacing: .06em; text-transform: uppercase; color: var(--v2-ink-2); }
+.risk-dtbl td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--v2-line); vertical-align: top; line-height: 1.55; }
+.risk-steps li strong { font-weight: 800; }
+.risk-now { display: grid; gap: 8px; padding: 14px; border-radius: 16px; background: var(--v2-stop-soft); }
+.risk-now p { margin: 0; font-size: 1rem; line-height: 1.55; }
+.risk-signs--no .site-icon { color: var(--v2-stop); }
 .risk-refs { display: grid; gap: 6px; margin: 0; padding-left: 20px; font-size: 1rem; line-height: 1.5; }
 @media (min-width: 768px) {
   .risk-guide__head .self-check-heading__title h1 { font-size: 2rem; }

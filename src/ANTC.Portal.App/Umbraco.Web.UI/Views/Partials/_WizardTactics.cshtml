@@ -1,11 +1,32 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Plugin.Custom.Core.PortalV2
+@inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
 @{
-    var tactics = Model.Root().Descendants().Where(node => node.ContentType.Alias == "tacticItem" && node.Value<bool>("isActive")
-        && node.Value<IPublishedContent>("containingArticle")?.Key == Model.Key).OrderBy(node => node.SortOrder).ToArray();
+    var tacticKeys = Navigation.TryGetChildrenKeysOfType(PortalV2Keys.Node("f-tac"), "tacticItem", out IEnumerable<Guid> keys)
+        ? keys : [];
+    var tactics = tacticKeys.Select(k => Umbraco.Content(k)).OfType<IPublishedContent>()
+        .Where(t => (!t.HasProperty("isActive") || !t.HasValue("isActive") || t.Value<bool>("isActive"))
+            && RiskAlertContent.Picked(t, "containingArticle").Any(a => a.Key == Model.Key))
+        .OrderBy(t => t.SortOrder).ToArray();
 }
 @if (tactics.Length > 0)
 {
     <section class="self-check-section" aria-labelledby="article-tactics-title"><h2 id="article-tactics-title">Thủ đoạn thường gặp</h2>
-        @foreach (var tactic in tactics) { <section id="tactic-@tactic.Key.ToString("N")" class="emergency-tactic"><h3>@tactic.Name</h3></section> }
+        @foreach (var tactic in tactics)
+        {
+            var article = Model.ContentType.Alias == "riskArticlePage" && Model.TemplateId is > 0
+                ? Model
+                : RiskAlertContent.Picked(tactic, "containingArticle").FirstOrDefault(a => a.TemplateId is > 0);
+            <section id="tactic-@tactic.Key.ToString("N")" class="emergency-tactic">
+                @if (article is not null)
+                {
+                    <h3><a href="@RiskAlertContent.TacticUrl(article, tactic)">@tactic.Name</a></h3>
+                }
+                else
+                {
+                    <h3>@tactic.Name</h3>
+                }
+            </section>
+        }
     </section>
 }
