@@ -1057,6 +1057,19 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("id");
 
+                    b.Property<string>("Audience")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("general")
+                        .HasColumnName("audience");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("caption");
+
                     b.Property<string>("Intro")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -1075,6 +1088,11 @@ namespace Umbraco.Plugin.Custom.Core.Data.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("INTEGER")
                         .HasColumnName("revision");
+
+                    b.Property<string>("ShortTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("short_title");
 
                     b.Property<string>("Terms")
                         .HasColumnType("TEXT")

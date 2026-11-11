@@ -14,6 +14,8 @@
         var current = Model.Current.Key == target!.Key || Model.Current.Ancestors().Any(a => a.Key == target.Key);
         var prefix = href.TrimEnd('/');
         if (prefix.Length > 0 && Model.Current.Url().StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)) { current = true; }
+        // Emergency guides retain their legacy tools URLs, but belong to the emergency section.
+        if (Model.Current.ContentType.Alias == "viecCanLamPage") { current = target.ContentType.Alias == "ungPhoPage"; }
         var highlighted = item.Content.Value<bool>("highlight");
         <a href="@href" class="site-nav-link @(highlighted ? "site-nav-link--urgent" : null)" aria-current="@(current ? "page" : null)">
             @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", item.Content.Value<string>("icon") ?? "")

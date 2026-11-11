@@ -1,0 +1,6 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    var text = Model.Value<string>("privacyNote");
+    if (string.IsNullOrWhiteSpace(text)) { text = "Không cần đăng nhập. Câu trả lời không được lưu và không gửi đi đâu. Không cần nhập tên, số điện thoại hay số tài khoản."; }
+}
+<p class="self-check-privacy">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-lock")<span>@text</span></p>

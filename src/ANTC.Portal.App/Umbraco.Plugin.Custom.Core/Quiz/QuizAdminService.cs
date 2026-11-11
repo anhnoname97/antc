@@ -203,6 +203,9 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         var errors = new Dictionary<string, string>();
         if (request.Type is not null && !QuizAudience.IsValid(request.Type)) errors["type"] = "Type phải là Cá nhân hoặc Tổ chức.";
         if (request.Id <= 0) errors["id"] = "Mã chuyên đề phải lớn hơn 0.";
+        if (request.Audience is not null and not ("general" or "enterprise")) errors["audience"] = "Chọn nhóm người đọc hợp lệ.";
+        if (request.ShortTitle?.Trim().Length > 200) errors["shortTitle"] = "Tên trên danh sách tối đa 200 ký tự.";
+        if (request.Caption?.Trim().Length > 300) errors["caption"] = "Dòng mô tả tối đa 300 ký tự.";
         if (string.IsNullOrWhiteSpace(request.Title) || request.Title.Trim().Length is < 2 or > 200) errors["title"] = "Tên chuyên đề phải có 2–200 ký tự.";
         if ((request.Intro ?? []).Any(x => string.IsNullOrWhiteSpace(x) || x.Trim().Length > 2000)) errors["intro"] = "Mỗi đoạn giới thiệu phải có nội dung và tối đa 2000 ký tự.";
         if ((request.Terms ?? []).Any(x => string.IsNullOrWhiteSpace(x.Term) || x.Term.Trim().Length > 200 || x.Definition.Trim().Length > 1000)) errors["terms"] = "Thuật ngữ bắt buộc, tối đa 200 ký tự; giải nghĩa tối đa 1000 ký tự.";
@@ -213,6 +216,10 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     {
         topic.Title = request.Title!.Trim();
         if (request.Type is not null) topic.Type = request.Type;
+        else if (request.Audience is not null) topic.Type = request.Audience == "enterprise" ? QuizAudience.Organization : QuizAudience.Personal;
+        topic.Audience = topic.Type == QuizAudience.Organization ? "enterprise" : "general";
+        topic.ShortTitle = NullIfEmpty(request.ShortTitle);
+        topic.Caption = NullIfEmpty(request.Caption);
         topic.Intro = JsonSerializer.Serialize((request.Intro ?? []).Select(x => x.Trim()), JsonOptions);
         topic.Terms = JsonSerializer.Serialize((request.Terms ?? []).Select(x => new[] { x.Term.Trim(), x.Definition.Trim() }), JsonOptions);
         topic.IsActive = request.IsActive;
@@ -249,7 +256,9 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     }
 
     private static QuizTopicAdminDto MapTopic(QuizTopic x, int total, int active) => new(
-        x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt, x.Revision, x.PublicCode, x.Type);
+        x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt, x.Revision,
+        x.Type == QuizAudience.Organization || x.Audience == "enterprise" ? "enterprise" : "general",
+        x.ShortTitle, x.Caption, x.PublicCode, x.Type);
 
     private static QuizQuestionAdminDto MapQuestion(QuizQuestion x)
     {

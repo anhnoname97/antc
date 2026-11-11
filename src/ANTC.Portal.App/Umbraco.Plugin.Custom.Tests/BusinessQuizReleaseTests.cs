@@ -9,6 +9,29 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class BusinessQuizReleaseTests
 {
     [Fact]
+    public async Task Release_AdoptsLegacyEnterpriseTopicWithoutDuplicatingQuestionsOrLosingMetadata()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options);
+        await db.Database.MigrateAsync();
+        db.QuizTopics.Add(new QuizTopic { Id = 9, Title = "Tiêu đề đã biên tập", Audience = "enterprise", ShortTitle = "Phần A", Caption = "Mô tả đã biên tập" });
+        db.QuizQuestions.Add(new QuizQuestion { Code = "A01", TopicId = 9, Kind = "Tình huống", Question = "Nội dung đã biên tập", Options = "[[\"A\",\"Dừng\"],[\"B\",\"Tiếp tục\"]]", Answer = "A", Explanations = "{\"A\":\"Dừng để kiểm chứng\"}", ReadSeconds = 40 });
+        await db.SaveChangesAsync();
+        await QuizBankRelease20261110.ApplyAsync(db, NullLogger.Instance, default);
+        var topic = await db.QuizTopics.SingleAsync(t => t.PublicCode == "dn1");
+        Assert.Equal(9, topic.Id);
+        Assert.Equal(QuizAudience.Organization, topic.Type);
+        Assert.Equal("enterprise", topic.Audience);
+        Assert.Equal("Tiêu đề đã biên tập", topic.Title);
+        Assert.Equal("Phần A", topic.ShortTitle);
+        Assert.Equal("Mô tả đã biên tập", topic.Caption);
+        Assert.Equal("Nội dung đã biên tập", (await db.QuizQuestions.FindAsync("A01"))!.Question);
+        Assert.Equal(11, await db.QuizTopics.CountAsync());
+        Assert.Equal(278, await db.QuizQuestions.CountAsync());
+    }
+
+    [Fact]
     public async Task AudienceMigration_ClassifiesExistingRowsWithoutChangingQuestions()
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");

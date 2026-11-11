@@ -1,7 +1,6 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using System.Globalization
 @using System.Text.Json
-@using System.Text.RegularExpressions
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var site = Model.Root();
@@ -17,7 +16,6 @@
 @functions {
     private static DateTime? Checked(string value) => DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
         && date.Year > 1900 && date.Date <= DateTime.UtcNow.Date ? date : null;
-    private static string Plain(string value) => Regex.Replace(System.Net.WebUtility.HtmlDecode(Regex.Replace(value, "<[^>]*>", " ")), @"\s+", " ").Trim();
     private static string? SourceUrl(Uri origin, string value) => Uri.TryCreate(value, UriKind.Absolute, out _) ? SelfCheckSeoRules.AbsoluteUrl(origin, value, false) : null;
 }
 @section Head {
@@ -29,7 +27,6 @@
     <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li aria-current="page">@Model.Value("title")</li></ol></nav>
     <header class="self-check-heading"><div class="self-check-heading__title"><span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "call")</span><h1>@Model.Value("title")</h1></div><p>@Model.Value("lead")</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
     @if (image is not null) { <figure class="emergency-image"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure> }
-    <nav class="contact-jumps" aria-label="Các phần trên trang"><a href="#tinh-huong">Chọn tình huống</a><a href="#ho-tro">Nơi liên hệ</a><a href="#nguon">Nguồn kiểm chứng</a><a href="#ngan-hang">Số ngân hàng</a></nav>
     <section class="self-check-section" id="tinh-huong" aria-labelledby="contact-case-title">
         <h2 id="contact-case-title">@Model.Value("situationsTitle")</h2>
         @if (situations.Length > 0) {
@@ -39,16 +36,7 @@
     </section>
     <section class="self-check-section" id="ho-tro" aria-labelledby="contact-help-title">
         <h2 id="contact-help-title">@Model.Value("contactsTitle")</h2>
-        <div class="contact-groups">@foreach (var row in EmergencyContent.Rows(Model, "contactGroups")) {
-            var checkedDate = Checked(EmergencyContent.Text(row, "checkedDate"));
-            var source = EmergencyContent.Text(row, "source");
-            <section class="emergency-support" data-contact-group><h3>@EmergencyContent.Text(row, "groupName")</h3><p class="contact-organization">@EmergencyContent.Text(row, "organization")</p>
-                <ul>@foreach (var method in EmergencyContent.Rows(row, "contactMethods")) { if (method.ValueKind == JsonValueKind.String) { <li>@Plain(method.GetString() ?? "")</li> } }</ul>
-                @if (checkedDate is { } date && !string.IsNullOrWhiteSpace(source)) { <p class="emergency-note">Nguồn: @source · Kiểm chứng gần nhất: <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p> }
-                else { <p class="emergency-note emergency-verification">Chưa có thông tin kiểm chứng.</p> }
-            </section>
-        }</div>
-        @if (bankSteps.Any()) { <div class="emergency-support"><h3>Cách tự tìm số ngân hàng của bạn</h3><ol class="emergency-bank-steps">@foreach (var step in bankSteps) { <li>@step</li> }</ol></div> }
+        @if (bankSteps.Any()) { <div class="emergency-support"><h3>Cách tự tìm số ngân hàng của bạn</h3><ol class="emergency-bank-steps">@foreach (var step in bankSteps) { <li>@step</li> }</ol>@if (Model.Value<string>("bankListNote") is { Length: > 0 } bankNote) { <p class="emergency-note">@bankNote</p> }</div> }
         @if (emergency is not null) { @await Html.PartialAsync("~/Views/Partials/_ContactHotlines.cshtml", (emergency, "stateHotlines", "Số do Nhà nước vận hành")) }
     </section>
     <section class="self-check-section" id="nguon" aria-labelledby="contact-source-title">
@@ -59,18 +47,11 @@
             var checkedDate = Checked(EmergencyContent.Text(row, "checkedDate"));
             <section class="emergency-support" data-verification-source><h3>@EmergencyContent.Text(row, "title")</h3><p>@EmergencyContent.Text(row, "description")</p>
                 @if (url is not null) { <a class="contact-source-link" href="@url" rel="external">Mở nguồn chính thức<span class="contact-source-url">@url</span></a> }
-                else { <p class="emergency-note emergency-verification">Chưa bổ sung đường dẫn chính thức.</p> }
                 @if (checkedDate is { } date && url is not null) { <p class="emergency-note">Kiểm tra gần nhất: <time datetime="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</time></p>@if (date.Date < DateTime.UtcNow.Date.AddDays(-90)) { <p class="emergency-note emergency-verification">Quá hạn rà soát. Hãy kiểm tra lại thông tin tại nguồn chính thức.</p> } }
-                else { <p class="emergency-note emergency-verification">Chưa có thông tin kiểm chứng.</p> }
             </section>
         }</div>
+        @if (Model.Value<string>("sourceFindingAdvice") is { Length: > 0 } findingAdvice) { <aside class="contact-note contact-note--blue" data-source-finding><h3>Cách tự tìm đúng địa chỉ</h3><p>@findingAdvice</p></aside> }
         <p class="emergency-note">@Model.Value("sourcesNote")</p>
-    </section>
-    <section class="self-check-section" id="ngan-hang" aria-labelledby="contact-banks-title">
-        <h2 id="contact-banks-title">Đường dây nóng của tổ chức tín dụng</h2>
-        <aside class="contact-note contact-note--blue"><h3>Quy tắc của danh sách này</h3><p>@Model.Value("bankListRules")</p><p>@Model.Value("bankListNote")</p></aside>
-        @if (emergency is not null) { @await Html.PartialAsync("~/Views/Partials/_ContactHotlines.cshtml", (emergency, "bankHotlines", "Danh sách số đã cấu hình")) }
-        <a class="emergency-button" href="/khan-cap/">Chọn việc cần làm ngay</a>
     </section>
     <p class="emergency-note">@site.Value("notOnDutyNote")</p>
     <div class="contact-print"><button class="emergency-button" type="button" data-contact-print>In hoặc lưu PDF</button></div>

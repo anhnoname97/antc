@@ -4,13 +4,37 @@ const page = document.querySelector('[data-situation-chooser]');
 if (page) {
   const data = JSON.parse(page.querySelector('[data-situation-data]').textContent);
   const body = page.querySelector('[data-situation-body]');
+  // Reuse server-rendered, approved icons so CMS icon selections match the backoffice.
+  const icons = new Map([...page.querySelectorAll('template[data-situation-icon]')].map(template => [template.dataset.situationIcon, template.innerHTML]));
+  const icon = (key, fallback = 'icon-document') => icons.get(key) || icons.get(fallback) || '';
   const escape = value => String(value || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const arrow = '<span aria-hidden="true">›</span>';
+  const arrow = `<span class="situation-chevron" aria-hidden="true">${icon('chevron-right')}</span>`;
   const local = url => typeof url === 'string' && /^\/(?!\/)/.test(url) && !/[\\\u0000-\u001f]/.test(url);
-  const link = (url, text, description = '') => local(url) ? `<a class="situation-link" href="${escape(url)}"><span><b>${escape(text)}</b>${description ? `<small>${escape(description)}</small>` : ''}</span>${arrow}</a>` : '';
+  const link = (url, text, description = '') => local(url) ? `<a class="situation-link" href="${escape(url)}">${icon(`link:${url}`)}<span class="situation-link__copy"><b>${escape(text)}</b>${description ? `<small>${escape(description)}</small>` : ''}</span>${arrow}</a>` : '';
   const state = { step: 0, id: null, selected: [], query: '' };
   const validCodes = new Set(['none', 'unk', ...data.consequences.map(c => c.code)]);
-  let result = null, timer, printClosed = null;
+  let result = null, timer, printClosed = null, groupResize = null;
+  function sizeGroupHeaders() {
+    groupResize?.disconnect();
+    const groups = body.querySelector('.situation-groups');
+    if (!groups) return;
+    const headers = [...groups.querySelectorAll('summary')];
+    const resize = () => {
+      if (innerWidth < 768) { groups.style.removeProperty('--sit-group-height'); return; }
+      const height = Math.max(72, ...headers.map(header => {
+        const style = getComputedStyle(header);
+        return Math.max(header.querySelector('.situation-group-copy').getBoundingClientRect().height, header.querySelector('.self-check-spot').getBoundingClientRect().height)
+          + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      }));
+      const next = `${Math.ceil(height)}px`;
+      if (groups.style.getPropertyValue('--sit-group-height') !== next) groups.style.setProperty('--sit-group-height', next);
+    };
+    resize();
+    groupResize = new ResizeObserver(() => requestAnimationFrame(resize));
+    groupResize.observe(groups);
+    groups.querySelectorAll('.situation-group-copy').forEach(copy => groupResize.observe(copy));
+    document.fonts.ready.then(resize);
+  }
   function preparePrint() {
     if (state.step !== 2 || printClosed !== null) return;
     printClosed = [...body.querySelectorAll('details:not([open])')];
@@ -18,10 +42,11 @@ if (page) {
   }
   window.addEventListener('beforeprint', preparePrint);
   window.addEventListener('afterprint', () => { printClosed?.forEach(x => { x.open = false; }); printClosed = null; });
-  const button = (action, label, value = '', css = '') => `<button type="button" data-action="${action}" data-value="${escape(value)}" class="situation-button ${css}">${escape(label)}</button>`;
+  const actionIcons = { change: 'icon-arrow-left', again: 'icon-refresh', result: 'chevron-right', print: 'icon-print', share: 'icon-share', edit: 'icon-edit' };
+  const button = (action, label, value = '', css = '') => `<button type="button" data-action="${action}" data-value="${escape(value)}" class="situation-button ${css}">${action !== 'result' ? icon(actionIcons[action]) : ''}<span>${escape(label)}</span>${action === 'result' ? icon(actionIcons[action]) : ''}</button>`;
   const choose = situation => `<li><button type="button" class="situation-option" data-action="pick" data-value="${escape(situation.id)}"><span class="situation-dot situation-dot--${escape(situation.level)}" aria-hidden="true"></span><span>${escape(situation.title)}</span>${arrow}</button></li>`;
   const alternatives = () => `<section class="situation-section"><h2>Không thấy chuyện giống mình?</h2><p>Không thấy không có nghĩa là an toàn. Chọn một trong các lối dưới đây.</p>${data.alternatives.map(a => link(a.url, a.title, a.description)).join('')}</section>`;
-  const principles = () => `<section class="situation-section"><h2>Trong lúc chưa rõ, nhớ bốn điều</h2><ul class="situation-principles">${data.principles.map(p => `<li><b>${escape(p.title)}</b><p>${escape(p.description)}</p></li>`).join('')}</ul></section>`;
+  const principles = () => `<section class="situation-section"><h2>Trong lúc chưa rõ, nhớ bốn điều</h2><ul class="situation-principles">${data.principles.map(p => `<li><span class="self-check-spot">${icon(p.icon)}</span><div><b>${escape(p.title)}</b><p>${escape(p.description)}</p></div></li>`).join('')}</ul></section>`;
   function searchHTML() {
     if (!state.query) return '';
     // Names, account details and phone numbers are neither needed nor transmitted.
@@ -34,15 +59,15 @@ if (page) {
     return `<section class="situation-section"><h2>Gõ vài chữ về chuyện bạn gặp</h2><label for="situation-query">Tìm chuyện giống với bạn</label><input type="search" id="situation-query" maxlength="160" placeholder="Ví dụ: công an gọi, đọc mã OTP, việc làm trên mạng" value="${escape(state.query)}" autocomplete="off" enterkeyhint="search"><div data-search-results aria-live="polite">${searchHTML()}</div></section>
       <section class="situation-section"><h2>Hoặc chọn theo nhóm</h2><div class="situation-groups">${data.groups.map(group => {
         const items = data.situations.filter(s => s.group === group.id);
-        return `<details><summary><span><b>${escape(group.title)}</b><small>${items.length} tình huống</small></span>${arrow}</summary><ul class="situation-list">${items.map(choose).join('')}</ul></details>`;
+        return `<details><summary><span class="self-check-spot ${['de-doa', 'da-lo'].includes(group.id) ? 'situation-spot--urgent' : ''}">${icon(group.icon, 'icon-help-alt')}</span><span class="situation-group-copy"><b>${escape(group.title)}</b><small>${items.length} tình huống</small></span>${arrow}</summary><ul class="situation-list">${items.map(choose).join('')}</ul></details>`;
       }).join('')}</div></section>${alternatives()}${principles()}`;
   }
   function choicesHTML() {
     const situation = data.situations.find(s => s.id === state.id);
-    const options = [{ code: 'none', title: 'Không có việc nào trong các dòng dưới đây. Tôi chỉ gặp đúng chuyện đã chọn ở trên' }, ...data.consequences, { code: 'unk', title: 'Tôi không nhớ rõ mình đã làm gì' }];
-    return `<div class="situation-picked"><small>Chuyện gần giống</small><p>${escape(situation.title)}</p>${button('change', '‹ Chọn chuyện khác')}</div><section class="situation-section"><h2 tabindex="-1">Đến lúc này, chuyện gì đã xảy ra?</h2><p>Có thể chọn nhiều dòng. Hãy kiểm tra cả dòng được đánh dấu sẵn. Không có dòng nào đúng thì chọn dòng đầu tiên.</p>
-      <fieldset class="situation-choices"><legend class="sr-only">Chuyện đã xảy ra</legend>${options.map(o => `<label><input type="checkbox" data-choice="${escape(o.code)}" ${state.selected.includes(o.code) ? 'checked' : ''}><span>${escape(o.title)}</span></label>`).join('')}</fieldset>
-      <p class="situation-error" data-choice-error role="alert" hidden>Chọn một dòng, hoặc chọn “Tôi không nhớ rõ mình đã làm gì”.</p><div class="situation-actions">${button('change', 'Quay lại')}${button('result', 'Xem việc nên làm ›', '', 'situation-button--primary')}</div></section>`;
+    const options = [{ code: 'none', title: 'Không có việc nào trong các dòng dưới đây. Tôi chỉ gặp đúng chuyện đã chọn ở trên', icon: 'icon-check' }, ...data.consequences, { code: 'unk', title: 'Tôi không nhớ rõ mình đã làm gì', icon: 'icon-help-alt' }];
+    return `<div class="situation-picked"><small>Chuyện gần giống</small><p>${escape(situation.title)}</p>${button('change', 'Chọn chuyện khác')}</div><section class="situation-section"><h2 tabindex="-1">Đến lúc này, chuyện gì đã xảy ra?</h2><p>Có thể chọn nhiều dòng. Hãy kiểm tra cả dòng được đánh dấu sẵn. Không có dòng nào đúng thì chọn dòng đầu tiên.</p>
+      <fieldset class="situation-choices"><legend class="sr-only">Chuyện đã xảy ra</legend>${options.map(o => `<label><input type="checkbox" data-choice="${escape(o.code)}" ${state.selected.includes(o.code) ? 'checked' : ''}>${icon(o.icon)}<span>${escape(o.title)}</span></label>`).join('')}</fieldset>
+      <p class="situation-error" data-choice-error role="alert" hidden>Chọn một dòng, hoặc chọn “Tôi không nhớ rõ mình đã làm gì”.</p><div class="situation-actions">${button('change', 'Quay lại')}${button('result', 'Xem việc nên làm', '', 'situation-button--primary')}</div></section>`;
   }
   const critical = /thiết bị khác|An toàn của bạn|ĐỪNG CHỜ|Không chờ ngân hàng|Không dùng lại máy|Không phải nơi thu hồi|nói với người đó trước|người bị hại|ngừng liên lạc trước|Chưa tự khôi phục|làm sạch máy|làm giả được/;
   const bankHTML = () => `<aside class="situation-bank"><b>Cách tự tìm số ngân hàng của bạn</b><ol>${data.bankSteps.map(s => `<li>${escape(s)}</li>`).join('')}</ol></aside>`;
@@ -72,6 +97,7 @@ if (page) {
   }
   function paint(focus = true) {
     body.innerHTML = state.step === 0 ? pickHTML() : state.step === 1 ? choicesHTML() : resultHTML();
+    sizeGroupHeaders();
     if (focus) {
       const target = body.querySelector(state.step === 2 ? '.situation-first, h2' : state.step === 1 ? 'h2' : '#situation-query');
       if (target) { target.setAttribute('tabindex', '-1'); target.focus({ preventScroll: true }); target.scrollIntoView({ block: 'start' }); }

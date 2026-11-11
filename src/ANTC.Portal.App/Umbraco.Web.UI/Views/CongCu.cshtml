@@ -1,4 +1,4 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Models.PublishedContent
 @using Umbraco.Cms.Core.PublishedCache
@@ -7,6 +7,7 @@
 @inject IDocumentNavigationQueryService Navigation
 @inject IPublishedContentCache PublishedCache
 @inject IUmbracoContextAccessor ContextAccessor
+@inject Umbraco.Plugin.Custom.Core.Quiz.IQuestionBank QuestionBank
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var preview = ContextAccessor.TryGetUmbracoContext(out var context) && context.InPreviewMode;
@@ -68,7 +69,7 @@
             {
                 var toolTitle = tool.Value<string>("title");
                 if (string.IsNullOrWhiteSpace(toolTitle)) { toolTitle = tool.Name; }
-                @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(toolTitle, tool.Value<string>("card"), ToolIcon(tool), PublicLink(tool), tool.ContentType.Alias == "khiNghiBiLuaPage"), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["ActionLabel"] = "Bắt đầu" })
+                @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(toolTitle, tool.Value<string>("card"), ToolIcon(tool), PublicLink(tool), tool.ContentType.Alias == "khiNghiBiLuaPage", tool.Value<IPublishedContent>("cardImage")?.Url()), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["ActionLabel"] = "Bắt đầu" })
             }
         </div>
     </section>
@@ -83,8 +84,9 @@
                     var checklistTitle = checklist.Value<string>("title");
                     if (string.IsNullOrWhiteSpace(checklistTitle)) { checklistTitle = checklist.Name; }
                     var source = checklist.Value<IPublishedContent>("src");
-                    var sourceTitle = source?.Name;
-                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(checklistTitle, sourceTitle, checklist.Value<string>("icon") ?? "icon-check", PublicLink(checklist)), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["CompactCard"] = true })
+                    var sourceTitle = checklist.Value<string>("cardCaption");
+                    if (string.IsNullOrWhiteSpace(sourceTitle)) { sourceTitle = source?.Name; }
+                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(checklistTitle, sourceTitle, checklist.Value<string>("icon") ?? "icon-check", PublicLink(checklist), checklist.Value<string>("icon") == "icon-alert"), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["CompactCard"] = true })
                 }
             </div>
         }
@@ -101,6 +103,7 @@
                 @foreach (var block in knowledge)
                 {
                     var content = block.Content;
+                    var description = content.Value<string>("desc");
                     var label = content.Value<string>("nhan");
                     if (string.IsNullOrWhiteSpace(label)) { continue; }
                     var cardUrl = content.Value<string>("destinationUrl")?.Trim();
@@ -108,7 +111,13 @@
                     {
                         cardUrl = PublicLink(content.Value<IPublishedContent>("trang"));
                     }
-                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(label, content.Value<string>("desc"), content.Value<string>("ic") ?? "icon-help-alt", cardUrl), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["CompactCard"] = true })
+                    if (cardUrl?.TrimEnd('/') == "/ngan-hang") { label = System.Text.RegularExpressions.Regex.Replace(label, @"\b\d+\s+câu\b", $"{QuestionBank.Current.GeneralQuestionCount} câu"); }
+                    if (cardUrl == "/ngan-hang/#doanh-nghiep")
+                    {
+                        if (QuestionBank.Current.EnterpriseQuestionCount == 0) { continue; }
+                        description = description?.Replace("{count}", QuestionBank.Current.EnterpriseQuestionCount.ToString());
+                    }
+                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", new SelfCheckCard(label, description, content.Value<string>("ic") ?? "icon-help-alt", cardUrl), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["CompactCard"] = true })
                 }
             </div>
         </section>

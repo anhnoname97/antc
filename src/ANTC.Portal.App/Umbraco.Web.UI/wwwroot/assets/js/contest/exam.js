@@ -25,6 +25,11 @@ const regView = document.getElementById('regview');
 const examView = document.getElementById('examview');
 const sideCards = document.getElementById('sidecards');
 const regSideHtml = sideCards.innerHTML;
+const readingUrls = JSON.parse(document.querySelector('[data-reading-urls]')?.dataset.readingUrls || '{}');
+const readingUrlFor = cd => {
+  const url = readingUrls[cd];
+  return typeof url === 'string' && url.startsWith('/') && !url.startsWith('//') && !/[\\\u0000-\u001f]/.test(url) ? url : null;
+};
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // register.js dat data-contest-status sau khi tai API-07: 'open' khi co cuoc dang dien ra de dang ky
@@ -103,14 +108,17 @@ function totalQuestions() {
   return (topics || []).reduce((a, t) => a + t.count, 0);
 }
 
-const isOrganization = t => t?.type ? t.type === 'organization' : !!t?.code;
+const isOrganization = t => t?.type === 'organization' || t?.audience === 'enterprise' || !!t?.code;
 // Ten ngan va dong mo ta cua ba phan doanh nghiep, cung chu voi ban chinh thuc va API /quiz/banks/business.
 const DN_META = {
   dn1: { ab: 'A', sh: 'Phần A · Câu độc lập', sub: '18 câu · mỗi câu một tình huống ngắn' },
   dn2: { ab: 'B', sh: 'Phần B · Tình huống ứng dụng', sub: '36 câu · mỗi tình huống 3 bước quyết định' },
   dn3: { ab: 'C', sh: 'Phần C · Tình huống tổng hợp', sub: '24 câu · mỗi tình huống 4 bước, có dữ kiện gây nhiễu' }
 };
-const dnMeta = t => DN_META[t?.code] || { ab: t?.cd || '', sh: t?.title || '', sub: `${t?.count || 0} câu` };
+const dnMeta = t => {
+  const defaults = DN_META[t?.code] || { ab: t?.cd || '', sh: t?.title || '', sub: `${t?.count || 0} câu` };
+  return { ...defaults, sh: t?.shortTitle || defaults.sh, sub: (t?.caption || defaults.sub).replaceAll('{count}', String(t?.count || 0)) };
+};
 // Ten hien thi cua mot chuyen de / mot phan doanh nghiep (bankName cua ban chinh thuc)
 function topicLabel(t) {
   return isOrganization(t) ? dnMeta(t).sh : `Chuyên đề ${t?.cd || ''}`;
@@ -177,6 +185,7 @@ function parseHash() {
   if (h === '#thidn' && bank) return { view: 'menu', bank, business: true };
   if (/^#thidn[123]$/.test(h) && bank) return { view: 'intro', cd: h.slice(4), bank };
   if (h === '#chuyen-de') return { view: 'menu', bank };
+  if (bank && h === '#doanh-nghiep') return { view: 'menu', bank, business: true };
   const m = /^#chuyen-de-(dn[123]|\d+)(\/cau-hoi|\/xong)?$/.exec(h);
   if (m) return { view: m[2] === '/cau-hoi' ? 'q' : m[2] === '/xong' ? 'done' : 'intro', cd: m[1], bank };
   if (h === '#dang-ky') return { view: 'register' };
@@ -305,10 +314,12 @@ function menuHtml() {
   if (business.length) {
     const dnTotal = business.reduce((sum, t) => sum + t.count, 0);
     o += '<section class="sec exam-dn" id="thi-dn" aria-labelledby="h-dn">'
-      + '<h2 id="h-dn" tabindex="-1">Dành cho nhân viên doanh nghiệp</h2>'
-      + `<p class="small">${dnTotal} câu tình huống về phòng ngừa lừa đảo và rủi ro trong giao dịch, hợp đồng kinh tế của doanh nghiệp. Dành cho người làm kế toán, ngân quỹ, mua hàng, bán hàng, pháp chế và quản lý. Không cần làm Chuyên đề 1 trước.</p>`
+      + `<h2 id="h-dn" tabindex="-1">${esc(blockCopy('topics', 'enterpriseTitle', 'Dành cho nhân viên doanh nghiệp'))}</h2>`
+      + `<p class="small">${esc(blockCopy('topics', 'enterpriseDescription', '{count} câu tình huống về phòng ngừa lừa đảo và rủi ro trong giao dịch, hợp đồng kinh tế của doanh nghiệp. Dành cho người làm kế toán, ngân quỹ, mua hàng, bán hàng, pháp chế và quản lý. Không cần làm Chuyên đề 1 trước.', { count: dnTotal }))}</p>`
       + `<ol class="cdlist toplist">${business.map((t) => topicRowHtml(t, prog, gate)).join('')}</ol></section>`;
   }
+
+
 
   o += `<p class="small pbfoot exam__note">${esc(blockCopy('topics', 'notice', NOT_POLICE))}</p>`;
   o += '</div>';
@@ -354,10 +365,10 @@ function introHtml(t) {
   }
 
   // Ban chinh thuc: chuyen de co nut "Doc bai truoc da" (bai doc chuyen de) va "Chon chuyen de khac"; phan doanh nghiep co "Chon phan khac".
-  const reading = !org && /^[1-8]$/.test(String(t.cd)) ? `/hay-tu-kiem-tra/bai-doc/chuyen-de-${t.cd}/` : null;
+  const reading = org ? null : readingUrlFor(t.cd);
   o += `<div class="btnrow exam__actions"><button type="button" class="btn pri" ${isRedo ? 'data-redo' : 'data-start'}="${esc(t.cd)}">${esc(startLabel(t))}</button>`
     + (org ? '<a class="btn ghost" href="#thidn">Chọn phần khác</a>'
-      : (reading ? `<a class="btn ghost" href="${reading}">Đọc bài trước đã</a>` : '')
+      : (reading ? `<a class="btn ghost" href="${esc(reading)}">Đọc bài trước đã</a>` : '')
         + `<a class="btn ghost" href="${listHref()}">${esc(blockCopy('intro', 'otherLabel', 'Chọn chuyên đề khác'))}</a>`) + '</div>';
   o += '</div>';
   return o;
@@ -385,10 +396,10 @@ function doneHtml(t) {
   const next = org
     ? (rest ? `Chọn phần tiếp theo, còn ${rest} ›` : 'Đã làm hết ba phần, xem lại danh sách ›')
     : (rest ? `Chọn chuyên đề tiếp theo, còn ${rest} ›` : `Đã làm hết ${group.size} chuyên đề, xem lại danh sách ›`);
-  const reading = !org && /^[1-8]$/.test(cd) ? `/hay-tu-kiem-tra/bai-doc/chuyen-de-${cd}/` : null;
+  const reading = org ? null : readingUrlFor(cd);
   o += `<div class="btnrow exam__actions"><a class="btn pri" href="${org ? '#thidn' : listHref()}">${esc(next)}</a>`
     + `<button type="button" class="btn ghost" data-redo="${esc(cd)}">${esc(org ? 'Làm lại phần này' : blockCopy('topic-result', 'retryLabel', 'Làm lại chuyên đề {cd}', { cd }))}</button>`
-    + (reading ? `<a class="btn ghost" href="${reading}">Đọc lại bài</a>` : '') + '</div>'
+    + (reading ? `<a class="btn ghost" href="${esc(reading)}">Đọc lại bài</a>` : '') + '</div>'
     + '<p class="exam__note">Làm hết câu hỏi không có nghĩa là an toàn. Gặp việc thật, vẫn phải chậm lại và tự kiểm tra bằng kênh do chính mình tìm ra.</p></div>';
   return o;
 }

@@ -12,10 +12,15 @@ const base = process.env.ANTC_TEST_URL || 'http://localhost:11000';
     const root = page.locator('[data-contact-v2]');
     assert.equal(await root.locator('h1').innerText(), 'Liên hệ đúng nơi');
     assert.equal(await root.locator('.contact-situations a').count(), 4);
-    assert.equal(await root.locator('[data-contact-group]').count(), 3);
+    assert.equal(await root.locator('[data-contact-group]').count(), 0, 'Legacy contact groups repeat the help section');
+    assert.equal(await root.locator('.contact-jumps, #ngan-hang').count(), 0, 'New demo has no jump menu or bank directory');
     assert.equal(await root.locator('[data-verification-source]').count(), 5);
     assert.equal(await root.locator('[data-verification-source] a').count(), 0, 'No invented official source URLs');
-    assert.equal(await root.locator('[data-bank-empty]').count(), 1, 'Unverified bank numbers must not be advertised');
+    assert.equal(await root.locator('[data-bank-empty]').count(), 0, 'Removed bank directory has no empty placeholder');
+    assert.equal(await root.locator('[data-source-finding]').count(), 1);
+    assert.match(await root.locator('[data-source-finding]').innerText(), /\.gov\.vn/);
+    assert.doesNotMatch(await root.locator('#nguon').innerText(), /Chưa bổ sung đường dẫn|Chưa có thông tin kiểm chứng/);
+    assert.match(await root.locator('#ho-tro').innerText(), /Website không đưa số điện thoại hay đường dẫn/);
     assert.equal(await root.locator('[data-hotline="5656"] a[href^="tel:"]').count(), 0);
     assert.equal(await root.locator('[data-hotline="5656"] a[href="sms:5656"]').count(), 1);
     assert.equal(await root.locator('[data-hotline="156"] a').count(), 2);
@@ -25,12 +30,12 @@ const base = process.env.ANTC_TEST_URL || 'http://localhost:11000';
     }
     assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), base + '/lien-he/');
     assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'), base + '/lien-he/');
-    for (const href of await root.locator('.contact-jumps a').evaluateAll(links => links.map(a => a.getAttribute('href')))) {
-      assert.equal(await root.locator(href).count(), 1);
-    }
-    const firstJump = root.locator('.contact-jumps a').first();
-    await firstJump.focus(); await page.keyboard.press('Enter');
-    assert.equal(new URL(page.url()).hash, '#tinh-huong');
+    const firstSituation = root.locator('.contact-situations a').first();
+    const firstTarget = await firstSituation.getAttribute('href');
+    await firstSituation.focus();
+    await Promise.all([page.waitForURL(new URL(firstTarget, base).href), page.keyboard.press('Enter')]);
+    assert.equal(new URL(page.url()).pathname, new URL(firstTarget, base).pathname);
+    await page.goBack();
     const localUrls = new Set(await root.locator('a[href^="/"]').evaluateAll(links => links.map(a => a.getAttribute('href'))));
     for (const href of localUrls) assert.equal((await page.request.get(new URL(href, base).href)).status(), 200, href);
     for (const width of [1440, 744, 390, 320]) {

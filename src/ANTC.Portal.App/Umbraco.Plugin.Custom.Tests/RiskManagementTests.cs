@@ -147,7 +147,7 @@ public partial class RiskManagementTests
         Assert.All(RiskSchema.PageAliases, alias => Assert.Null(types[alias].ListViewDataType));
         Assert.DoesNotContain("riskCategoryPage", types.Keys);
         Assert.All(RiskStructure.GroupAliases, alias => Assert.DoesNotContain(types[alias].Properties, x => x.Alias is "tactics" or "pinnedArticles" or "noAnswerNote"));
-        Assert.DoesNotContain(types["riskArticlePage"].Properties, x => x.Alias is "cautionLevel" or "channels" or "audiences" or "relatedItems" or "checklist");
+        Assert.DoesNotContain(types["riskArticlePage"].Properties, x => x.Alias is "cautionLevel" or "channels" or "audiences" or "relatedItems" or "checklist" or "version");
         Assert.DoesNotContain(types["alertPage"].Properties, x => x.Alias is "relatedItems" or "alsoInCategories");
     }
     [Fact]

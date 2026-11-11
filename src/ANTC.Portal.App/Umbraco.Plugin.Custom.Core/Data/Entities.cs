@@ -167,9 +167,12 @@ public class QuizTopic
 {
     public string? PublicCode { get; set; }
     public string Type { get; set; } = QuizAudience.Personal;
-    /// <summary>So chuyen de (hien la 1-8), khong tu tang.</summary>
+    /// <summary>Stable topic identifier; independent of its audience and public label.</summary>
     public int Id { get; set; }
     public string Title { get; set; } = "";
+    public string Audience { get; set; } = "general";
+    public string? ShortTitle { get; set; }
+    public string? Caption { get; set; }
     /// <summary>JSON: mang cac doan gioi thieu.</summary>
     public string Intro { get; set; } = "[]";
     /// <summary>JSON: mang cap [tu, giai nghia].</summary>

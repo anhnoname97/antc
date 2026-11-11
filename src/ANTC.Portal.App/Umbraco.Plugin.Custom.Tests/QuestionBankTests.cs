@@ -8,6 +8,69 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class QuestionBankTests
 {
     [Fact]
+    public async Task FreshStartup_MigratesAndSeedsBothAudiences_WhileDemoContestKeepsGeneralQuestions()
+    {
+        string file = Path.Combine(Path.GetTempPath(), $"antc-seed-{Guid.NewGuid():N}.db");
+        try
+        {
+            await using var services = new ServiceCollection().AddDbContext<AppDbContext>(o => o.UseSqlite($"Data Source={file};Pooling=False")).BuildServiceProvider();
+            var initializer = new AppDbInitializer(services.GetRequiredService<IServiceScopeFactory>(),
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<AppDbInitializer>.Instance, new SeedHost());
+            await initializer.StartAsync(default);
+            await using var scope = services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(11, await db.QuizTopics.CountAsync());
+            Assert.Equal(200, await db.QuizQuestions.CountAsync(q => q.Topic!.Audience == "general"));
+            Assert.Equal(78, await db.QuizQuestions.CountAsync(q => q.Topic!.Audience == "enterprise"));
+            Assert.Equal(8, await db.QuizQuestions.CountAsync(q => q.SampleOrder != null));
+            Assert.Equal(200, await db.ContestQuestions.CountAsync());
+            var question = await db.QuizQuestions.SingleAsync(q => q.Code == "A01");
+            question.Question = "Nội dung biên tập đã sửa trong backoffice";
+            await db.SaveChangesAsync();
+            await initializer.StartAsync(default);
+            await db.Entry(question).ReloadAsync();
+            Assert.Equal("Nội dung biên tập đã sửa trong backoffice", question.Question);
+            Assert.Equal(278, await db.QuizQuestions.CountAsync());
+        }
+        finally { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); File.Delete(file); }
+    }
+
+    private sealed class SeedHost : Microsoft.Extensions.Hosting.IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = "Development";
+        public string ApplicationName { get; set; } = "Tests";
+        public string ContentRootPath { get; set; } = Path.GetTempPath();
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = new Microsoft.Extensions.FileProviders.NullFileProvider();
+    }
+
+    [Fact]
+    public async Task PracticeAudiences_ExposeMetadataAndSeparateCounts_WithoutChangingTotalOrSample()
+    {
+        string databasePath = Path.Combine(Path.GetTempPath(), $"antc-audiences-{Guid.NewGuid():N}.db");
+        try
+        {
+            await using ServiceProvider provider = CreateProvider(databasePath);
+            await using (AsyncServiceScope scope = provider.CreateAsyncScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                await db.Database.EnsureCreatedAsync();
+                db.QuizTopics.AddRange(Topic(1, true), new QuizTopic { Id = 9, Title = "Phần A · Câu độc lập",
+                    Audience = "enterprise", ShortTitle = "Phần A", Caption = "{count} câu độc lập" });
+                db.QuizQuestions.AddRange(Question("GENERAL", 1, 1, sampleOrder: 1), Question("BUSINESS", 9, 1));
+                await db.SaveChangesAsync();
+            }
+            var snapshot = new QuestionBank(provider.GetRequiredService<IServiceScopeFactory>()).Current;
+            Assert.Equal(2, snapshot.TotalQuestions);
+            Assert.Equal(1, snapshot.GeneralQuestionCount); Assert.Equal(1, snapshot.EnterpriseQuestionCount);
+            var enterprise = Assert.Single(snapshot.Topics, t => t.Audience == "enterprise");
+            Assert.Equal("Phần A", enterprise.ShortTitle); Assert.Equal("{count} câu độc lập", enterprise.Caption);
+            Assert.Equal("BUSINESS", Assert.Single(snapshot.QuestionsByTopic[9]).Code);
+            Assert.Equal("GENERAL", Assert.Single(snapshot.Sample).Code);
+        }
+        finally { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); File.Delete(databasePath); }
+    }
+
+    [Fact]
     public async Task Snapshot_ContainsOnlyActiveTopicsAndTheirActiveQuestions_InConfiguredOrder()
     {
         string databasePath = Path.Combine(Path.GetTempPath(), $"antc-question-bank-{Guid.NewGuid():N}.db");

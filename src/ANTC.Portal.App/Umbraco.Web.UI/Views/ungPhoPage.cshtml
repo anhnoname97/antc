@@ -60,7 +60,7 @@
     {
         <section class="self-check-section" aria-labelledby="emergency-principles-title"><h2 id="emergency-principles-title">@Model.Value("principlesTitle")</h2><div class="emergency-principles">
             @foreach (var principle in principles) { <div><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", EmergencyContent.Text(principle, "icon"))</span><h3>@EmergencyContent.Text(principle, "title")</h3><p>@EmergencyContent.Text(principle, "description")</p></div> }
-        </div><p class="emergency-note">@Model.Value("principlesNote")</p></section>
+        </div><p class="emergency-note">@await Html.PartialAsync("~/Views/Partials/_ContentSourceLinks.cshtml", (Model, Model.Value<string>("principlesNote")))</p></section>
     }
     <section class="self-check-section" id="viec-can-lam" aria-labelledby="emergency-doors-title"><h2 id="emergency-doors-title">Việc cần làm ngay</h2><p>@Model.Value("doorLead")</p>
         <div class="emergency-doors">
@@ -102,7 +102,7 @@
         @if (bankSteps.Any()) { <div class="emergency-support"><h3>Cách tự tìm số ngân hàng của bạn</h3><ol class="emergency-bank-steps">@foreach (var step in bankSteps) { <li>@step</li> }</ol></div> }
         @foreach (var group in new[] { (Alias: "stateHotlines", Title: "Số do Nhà nước vận hành"), (Alias: "bankHotlines", Title: "Đường dây nóng của tổ chức tín dụng") })
         {
-            if (group.Alias == "bankHotlines") { @await Html.PartialAsync("~/Views/Partials/_ContactHotlines.cshtml", (Model, group.Alias, group.Title)) continue; }
+            if (group.Alias == "bankHotlines") { @await Html.PartialAsync("~/Views/Partials/_ContactHotlines.cshtml", (Model, group.Alias, group.Title), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["HideEmptyNote"] = true }) continue; }
             var phones = EmergencyContent.Rows(Model, group.Alias).Where(row => EmergencyContent.IsPhoneNumber(EmergencyContent.Text(row, "number"))).ToArray();
             if (phones.Length == 0) { continue; }
             <div class="emergency-support"><h3>@group.Title</h3><div class="emergency-phones">
@@ -120,6 +120,5 @@
     </section>
     <div class="emergency-footer-buttons">@foreach (var button in EmergencyContent.Rows(Model, "footerButtons")) { var url = Link(button, "targetPage"); if (url is not null) { <a class="emergency-button" href="@url">@EmergencyContent.Text(button, "label")</a> } else { <span class="emergency-button emergency-unavailable">@EmergencyContent.Text(button, "label") <small>Sắp có</small></span> } }</div>
     <p class="emergency-note">@site.Value("notOnDutyNote")</p>
-    <p class="emergency-note">@site.Value("noReportNote")</p>
 </article>
 @section Scripts { <script type="module" src="~/assets/js/emergency-v2.js" asp-append-version="true"></script> }

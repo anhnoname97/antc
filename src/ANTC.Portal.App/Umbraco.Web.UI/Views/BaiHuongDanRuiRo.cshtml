@@ -331,7 +331,7 @@
                 </ul>
                 @if (reading?.TemplateId is > 0)
                 {
-                    <p class="risk-small">Trang này tóm lại @readingName do website biên soạn.</p>
+                    <p class="risk-small">Trang này tóm lại <a class="content-source-link" href="@reading.Url()" title="@RiskAlertContent.Title(reading)">@readingName</a> do website biên soạn.</p>
                 }
                 @if (reviewDate is { } rd) { <p class="risk-small">Rà soát gần nhất: @rd.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)</p> }
             </section>

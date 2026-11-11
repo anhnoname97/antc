@@ -32,22 +32,22 @@ async function api(page, method, options) {
     await field('title').waitFor({timeout:30000});
     console.log('Opened content form.');
     if(process.env.ANTC_SELF_CHECK_ARTIFACTS)await page.screenshot({path:path.join(process.env.ANTC_SELF_CHECK_ARTIFACTS,'current.png'),fullPage:true});
-    assert.equal(await field('title').locator('input').inputValue(), 'Hãy tự kiểm tra');
+    assert.equal(await field('title').locator('input').inputValue(), 'CÔNG CỤ KIỂM TRA');
     for (const name of ['Trước khi chuyển tiền','Trước khi đầu tư, vay','Khi nghi ngờ bị lừa']) {
       await field('tools').getByText(name,{exact:true}).waitFor();
     }
     await field('know').scrollIntoViewIfNeeded();
     if(process.env.ANTC_SELF_CHECK_ARTIFACTS)await page.screenshot({path:path.join(process.env.ANTC_SELF_CHECK_ARTIFACTS,'knowledge-current.png')});
     await field('know').locator('umb-block-list-entry').last().waitFor({state:'attached'});
-    assert.equal(await field('know').locator('umb-block-list-entry').count(),2);
+    assert.equal(await field('know').locator('umb-block-list-entry').count(),4);
     await field('chkOrder').getByRole('link',{name:'Mở Danh sách kiểm tra'}).waitFor();
     await field('illustration').waitFor();
     await field('illustrationAlt').waitFor();
     const original = (await api(page,'getDocumentById',{path:{id}})).data;
     assert(original.values.find(v=>v.alias==='tools').value.length===3);
     const rows=original.values.find(v=>v.alias==='know').value.contentData;
-    assert.equal(rows.length,2);
-    for(const row of rows)assert.equal(row.values.find(v=>v.alias==='trang').value.length,1);
+    assert.equal(rows.length,4);
+    for(const row of rows)assert(row.values.find(v=>v.alias==='trang')?.value?.length===1 || ['/ngan-hang/','/ngan-hang/#doanh-nghiep'].includes(row.values.find(v=>v.alias==='destinationUrl')?.value));
 
     const body={template:original.template,variants:original.variants,values:original.values,cultures:['*']};
     let result=await api(page,'putDocumentByIdValidate',{path:{id},body});
@@ -83,6 +83,6 @@ async function api(page, method, options) {
     const after=(await api(page,'getDocumentById',{path:{id}})).data;
     assert.deepEqual(after.values,original.values,'Browser checks must not save content.');
     assert.deepEqual(errors,[]);
-    console.log('PASS: content, 3 ordered tools, 2 knowledge links, SEO tab, server validation and unsaved edits across tabs.');
+    console.log('PASS: content, 3 ordered tools, 4 knowledge links, SEO tab, server validation and unsaved edits across tabs.');
   } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

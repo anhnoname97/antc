@@ -3,3 +3,4 @@
 @media print{.site-header,.site-footer,.site-mobile-nav,.site-topbar,.self-check-crumbs,.wizard-controls,.wizard-privacy{display:none!important}.wizard-result>section{break-inside:avoid;box-shadow:none}.wizard-result a{color:inherit;text-decoration:none}.emergency-wizard-page{display:block}.wizard-result{gap:12px}}
 
 .wizard-result li>a{color:#0b6bcb;text-underline-offset:3px}
+@media(min-width:641px){.wizard-question fieldset{grid-template-columns:repeat(2,minmax(0,1fr))}}

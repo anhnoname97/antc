@@ -8,7 +8,8 @@
     var siteName = site?.Value<string>("siteName") ?? "antoantaichinh.vn";
     var articleSeo = (Model as ArticlePageModel)?.ArticleSeo;
     var preview = SeoContextAccessor.TryGetUmbracoContext(out var seoContext) && seoContext.InPreviewMode;
-    var selfCheckSeo = SelfCheckSeoBuilder.Supports(Model) ? SelfCheckSeoBuilder.Build(Model, Context.Request, preview) : null;
+    var selfCheckSeo = ViewData["SelfCheckSeo"] as SelfCheckSeoData
+        ?? (SelfCheckSeoBuilder.Supports(Model) ? SelfCheckSeoBuilder.Build(Model, Context.Request, preview) : null);
     var description = selfCheckSeo?.Description ?? articleSeo?.Description ?? Model.Value<string>("seoDescription");
     if (string.IsNullOrWhiteSpace(description) && (Model.ContentType.Alias is "article" or "articleList"))
     {

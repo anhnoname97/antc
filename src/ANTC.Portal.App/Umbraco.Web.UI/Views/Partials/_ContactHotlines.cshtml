@@ -11,7 +11,7 @@
             && DateTime.TryParseExact(EmergencyContent.Text(row, "checkedDate"), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var review)
             && review.Year > 1900 && review.Date <= DateTime.UtcNow.Date)).ToArray();
 }
-@if (bank && rows.Length == 0) {
+@if (bank && rows.Length == 0 && ViewData["HideEmptyNote"] is not true) {
     <p class="emergency-note" data-bank-empty>Chưa có số ngân hàng đủ thông tin nguồn và ngày kiểm chứng trong danh sách. Hãy tự tìm số ở mặt sau thẻ hoặc trong ứng dụng bạn đã cài từ trước.</p>
 }
 else if (rows.Length > 0) {

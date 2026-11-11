@@ -1,7 +1,17 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.Blocks
+@inject Umbraco.Plugin.Custom.Core.PortalV2.RuiRo.ReadingArticleDirectory ReadingArticles
+@inject Umbraco.Plugin.Custom.Core.Quiz.IQuestionBank QuestionBank
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    if (Context.Request.Path.Value?.TrimEnd('/') == "/ngan-hang")
+    {
+        var title = (Model.Value<string>("practiceTitle") ?? "Tự luyện {count} câu").Replace("{count}", QuestionBank.Current.GeneralQuestionCount.ToString());
+        var seo = SelfCheckSeoBuilder.Build(Model, Context.Request);
+        ViewData["SelfCheckSeo"] = seo with { Title = title, DocumentTitle = $"{title} — {seo.SiteName}",
+            Description = Model.Value<string>("practiceLead") ?? "Ngân hàng câu hỏi tự luyện với giải thích cho từng lựa chọn. Không cần đăng ký dự thi.",
+            CanonicalUrl = $"{Context.Request.Scheme}://{Context.Request.Host}/ngan-hang/", Type = "website" };
+    }
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/quiz-fonts.css" asp-append-version="true">
@@ -11,7 +21,7 @@
     <link rel="stylesheet" href="~/assets/css/contest-flow-blocks.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/contest-activity.css" asp-append-version="true">
 }
-<div class="contest-flow-page">
+<div class="contest-flow-page" data-reading-urls="@System.Text.Json.JsonSerializer.Serialize(ReadingArticles.All().ToDictionary(x => x.Number.ToString(), x => x.Url))">
     @if (Model.Value<BlockGridModel>("layout") is { } blocks)
     {
         @await Html.GetBlockGridHtmlAsync(blocks)

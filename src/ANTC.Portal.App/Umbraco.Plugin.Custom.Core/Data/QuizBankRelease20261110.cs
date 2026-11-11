@@ -26,6 +26,23 @@ public static class QuizBankRelease20261110
             bool enterprise = entry.Name.StartsWith("dn", StringComparison.Ordinal);
             var topic = enterprise ? topics.SingleOrDefault(x => x.PublicCode == entry.Name)
                 : topics.SingleOrDefault(x => x.Id == int.Parse(entry.Name));
+            if (enterprise && topic is null)
+            {
+                // The other branch already seeded these questions under numeric topic IDs.
+                // Adopt that topic instead of creating a second topic with the same question codes.
+                var existingTopicIds = entry.Value.GetProperty("q").EnumerateArray()
+                    .Select(q => questions.GetValueOrDefault(Text(q, "code"))?.TopicId)
+                    .OfType<int>().Distinct().ToArray();
+                if (existingTopicIds.Length > 1)
+                    throw new InvalidOperationException($"Business bank {entry.Name} spans multiple existing topics.");
+                if (existingTopicIds.Length == 1)
+                {
+                    topic = topics.Single(x => x.Id == existingTopicIds[0]);
+                    if (topic.PublicCode is not null || (topic.Type != QuizAudience.Organization && topic.Audience != "enterprise"))
+                        throw new InvalidOperationException($"Topic {topic.Id} is already assigned to {topic.PublicCode}.");
+                    topic.PublicCode = entry.Name;
+                }
+            }
             if (topic is null)
             {
                 topic = new QuizTopic { Id = enterprise ? nextId++ : int.Parse(entry.Name),
@@ -40,6 +57,8 @@ public static class QuizBankRelease20261110
                 { SetTopic(topic, entry.Value); topic.Revision++; topic.UpdatedAt = now; }
             }
             nextId = Math.Max(nextId, topic.Id + 1);
+            if (enterprise) topic.Type = QuizAudience.Organization;
+            topic.Audience = topic.Type == QuizAudience.Organization ? "enterprise" : "general";
             var oldQuestions = !enterprise && baseline.RootElement.TryGetProperty(entry.Name, out var old)
                 ? old.GetProperty("q").EnumerateArray().ToDictionary(x => Text(x, "code")) : new Dictionary<string, JsonElement>();
             int order = 0;

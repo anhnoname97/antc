@@ -15,6 +15,8 @@ const base=process.env.ANTC_TEST_URL || 'http://localhost:11000';
     for(const [index,link]of links.entries()){
       assert.equal((await page.goto(base+link.url)).status(),200,link.url);await page.waitForLoadState('networkidle');
       assert.equal(await page.locator('h1').innerText(),link.title);
+      assert.doesNotMatch(await page.locator('.self-check-checklist-meta').innerText(),/Phiên bản/);
+      assert.match(await page.locator('.self-check-checklist-meta').innerText(),/Ngày rà soát:/);
       const data=JSON.parse(await page.locator('[data-checklist-data]').textContent());
       assert.equal(data.ready,true);assert.equal(data.questions.length,5);
       assert.equal(await page.locator('[data-checklist-question]').count(),5);
@@ -58,7 +60,7 @@ const base=process.env.ANTC_TEST_URL || 'http://localhost:11000';
     }
     // The full source articles remain readable at phone size, including tables.
     for(const source of sources){await page.goto(base+source);const reading=page.locator('.self-check-reading-body, [data-reading-body]');assert((await reading.innerText()).length>4000);assert.equal(await reading.locator('.k-stop').count(),1);assert.equal(await reading.locator('.k-pocket').count(),1);await page.setViewportSize({width:320,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,source);}
-    await page.goto(base+links[0].url);await page.locator('[data-font-toggle]').click();await page.locator('[data-font-toggle]').click();
+    await page.goto(base+links[0].url);await page.locator('[data-font-toggle]').first().click();await page.locator('[data-font-toggle]').first().click();
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Large text overflow');
     const first=page.locator('input[name=checklist-answer-0][value=y]');await first.focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('input[name=checklist-answer-0][value=n]').isChecked(),true);
     await page.locator('[data-checklist-item]').first().check();await page.reload();assert.equal(await page.locator('input:checked').count(),0,'Reload retained answers');

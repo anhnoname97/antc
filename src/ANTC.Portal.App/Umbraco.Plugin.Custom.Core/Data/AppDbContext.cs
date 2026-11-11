@@ -190,6 +190,9 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.PublicCode).IsUnique();
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Title).HasMaxLength(200);
+            e.Property(x => x.Audience).HasMaxLength(20).HasDefaultValue("general");
+            e.Property(x => x.ShortTitle).HasMaxLength(200);
+            e.Property(x => x.Caption).HasMaxLength(300);
             e.Property(x => x.Revision).IsConcurrencyToken();
         });
 
