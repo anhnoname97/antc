@@ -1,0 +1,61 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Text.RegularExpressions
+@using Umbraco.Cms.Core.Strings
+@inject Umbraco.Plugin.Custom.Core.Articles.ArticleHtmlSanitizer Sanitizer
+@inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
+@{
+    // Van ban chinh sach cua website (ban chinh thuc 10/11/2026, vPol): Chinh sach bao ve du lieu ca nhan,
+    // Tuyen bo mien tru trach nhiem... Noi dung nhap o tab "Dau trang" va "Noi dung" cua trang.
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    string T(IPublishedContent page, string alias, string fallback) => page.Value<string>(alias) is { Length: > 0 } value ? value.Trim() : fallback;
+    var title = T(Model, "title", Model.Name ?? "");
+    var eyebrow = T(Model, "eyebrow", "Chính sách của website");
+    var updated = Model.Value<string>("updatedNote");
+    string Rte(string alias) => Sanitizer.Clean(Model.Value<IHtmlEncodedString>(alias)?.ToHtmlString() ?? "");
+    var summary = Rte("summary");
+    // Bien tap vien dung "Tieu de" (H3) cua trinh soan thao cho ten tung muc; tren trang la h2 nhu ban chinh thuc.
+    var body = Regex.Replace(Rte("body"), @"<(/?)h3(\s|>)", "<$1h2$2", RegexOptions.IgnoreCase);
+    // Bang rong thi cuon ngang tren dien thoai (.tblwrap cua ban chinh thuc).
+    body = Regex.Replace(body, @"<table(\s|>)", "<div class=\"policy-table\"><table$1", RegexOptions.IgnoreCase)
+        .Replace("</table>", "</table></div>", StringComparison.OrdinalIgnoreCase);
+
+    // Thanh chuyen giua cac van ban: cac trang chinh sach cung thu muc, chi trang da co giao dien, theo thu tu ban chinh thuc.
+    string[] order = ["mienTruTrachNhiemPage", "baoVeDuLieuCaNhanPage", "nguyenTacNoiDungPage", "baoLoiVaCaiChinhPage"];
+    var folderChildren = Model.Parent<IPublishedContent>()?.Children()?.ToArray() ?? [];
+    var siblings = folderChildren
+        .Where(x => order.Contains(x.ContentType.Alias) && EmergencyContent.PublicUrl(x) is not null)
+        .OrderBy(x => Array.IndexOf(order, x.ContentType.Alias)).ToArray();
+    var about = folderChildren.FirstOrDefault(x => x.ContentType.Alias == "veWebsitePage");
+    var aboutUrl = EmergencyContent.PublicUrl(about);
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/policy-v2.css" asp-append-version="true">
+}
+<div class="policy-v2 site-chrome-wrap">
+    <div class="policy-back">
+        @if (aboutUrl is not null)
+        {
+            <a class="policy-back__btn" href="@aboutUrl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>Về website</a>
+        }
+        <button type="button" class="policy-back__btn" data-policy-print hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>In ra giấy</button>
+    </div>
+    @if (siblings.Length > 1)
+    {
+        <nav class="policy-tabs" aria-label="Các chính sách">
+            @foreach (var page in siblings)
+            {
+                <a href="@EmergencyContent.PublicUrl(page)" aria-current="@(page.Key == Model.Key ? "page" : null)">@T(page, "tabLabel", T(page, "title", page.Name ?? ""))</a>
+            }
+        </nav>
+    }
+    <article class="policy-doc">
+        <p class="policy-doc__eyebrow">@eyebrow</p>
+        <h1 tabindex="-1">@title</h1>
+        @if (!string.IsNullOrWhiteSpace(updated)) { <p class="policy-doc__meta">@updated</p> }
+        @if (!string.IsNullOrWhiteSpace(summary)) { <div class="policy-doc__box">@Html.Raw(summary)</div> }
+        <div class="policy-doc__body">@Html.Raw(body)</div>
+    </article>
+</div>
+@section Scripts {
+    <script src="~/assets/js/policy-v2.js" asp-append-version="true" defer></script>
+}

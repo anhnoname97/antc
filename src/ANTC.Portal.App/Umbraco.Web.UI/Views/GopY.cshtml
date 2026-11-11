@@ -1,0 +1,81 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Trang Gop y (gopYPage) theo ban chinh thuc 10/11/2026 (vGopy).
+    // Gop y gui qua API chung voi Hoi - Dap (POST /api/v1/questions, type = "gop-y") de vao muc Loai > Gop y o backoffice.
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var title = Model.Value<string>("title") is { Length: > 0 } t ? t : "Góp ý cho website";
+    var lead = Model.Value<string>("lead") is { Length: > 0 } l ? l
+        : "Đây là phiên bản đầu, còn thiếu sót. Chỗ nào khó hiểu, thiếu hoặc sai, bà con cứ nói thẳng. Một câu ngắn cũng quý.";
+    var image = Model.Value<IPublishedContent>("illustration");
+    // Trang "Ve website" la cha cua duong dan; chi gan link khi trang do da co template.
+    var about = Model.Root().Descendants().FirstOrDefault(x => x.ContentType.Alias == "veWebsitePage");
+    var aboutUrl = about?.TemplateId is > 0 ? about.Url() : null;
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/contest-shell.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/qa-portal.css" asp-append-version="true">
+}
+<div class="qa-portal gopy-page" id="gop-y">
+    <nav class="crumbs" aria-label="Bạn đang ở">
+        <ol>
+            <li><a href="/">Trang chủ</a></li>
+            <li>@if (aboutUrl is not null) { <a href="@aboutUrl">Về website</a> } else { <span>Về website</span> }</li>
+            <li><span aria-current="page">Góp ý</span></li>
+        </ol>
+    </nav>
+
+    <header class="pageh">
+        <p class="eyebrow">Về website</p>
+        <div class="pageh-title">
+            <span class="spot" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20.5h4L19 9.5a2.1 2.1 0 0 0-4-4L4 16.5z"/><path d="m13.5 7 3.5 3.5"/></svg>
+            </span>
+            <h1 tabindex="-1">@title</h1>
+        </div>
+        <p class="lead">@lead</p>
+    </header>
+
+    <figure class="fig hero">
+        @if (image is not null)
+        {
+            <img src="@image.Url()" alt="@Model.Value("illustrationAlt")" width="1640" height="923" decoding="async">
+        }
+        else
+        {
+            <img src="/assets/img/v2/img-42-to-dan-pho-820.webp"
+                 srcset="/assets/img/v2/img-42-to-dan-pho-480.webp 480w, /assets/img/v2/img-42-to-dan-pho-820.webp 820w, /assets/img/v2/img-42-to-dan-pho-1640.webp 1640w"
+                 sizes="(max-width: 860px) 100vw, 820px" width="1640" height="923"
+                 alt="Buổi họp tổ dân phố ở đầu ngõ, tổ trưởng phát tờ rơi cho bà con; xe tuần tra đỗ ở xa." decoding="async">
+        }
+    </figure>
+
+    <div class="warn">
+        <b>Trước khi gõ</b>
+        <ul>
+            <li>Đừng viết mật khẩu, mã OTP, mã PIN, số thẻ hay số tài khoản.</li>
+            <li>Đừng gửi họ tên, số điện thoại, địa chỉ, ảnh giấy tờ của người khác.</li>
+            <li>Website không nhận tệp và ảnh chụp màn hình.</li>
+        </ul>
+    </div>
+
+    <form class="box form" data-form="gopy" novalidate>
+        <div class="hp" aria-hidden="true">
+            <label>Để trống ô này<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
+        <div>
+            <label class="lbl" for="gtext">Góp ý của bạn</label>
+            <textarea id="gtext" name="content" maxlength="2000" placeholder="Ví dụ: mục dấu hiệu đang dùng chữ nhỏ quá, mẹ tôi 70 tuổi đọc không ra."></textarea>
+        </div>
+        <label class="check one" for="gok">
+            <input type="checkbox" id="gok" name="consent">
+            <span><b>Tôi đồng ý</b> cho Ban biên tập đọc và dùng góp ý này để sửa nội dung website và cuộc thi.</span>
+        </label>
+        <p class="err" id="gerr" role="alert" hidden></p>
+        <p class="okmsg" id="gdone" role="status" tabindex="-1" hidden>Đã nhận góp ý của bạn. Cảm ơn bạn đã giúp website tốt hơn.</p>
+        <div class="btnrow"><button type="submit" class="btn pri">Gửi góp ý</button></div>
+        <p class="small">Không cần tên, không cần số điện thoại, không cần tài khoản.</p>
+    </form>
+</div>
+@section Scripts {
+    <script src="~/assets/js/gop-y.js" asp-append-version="true" defer></script>
+}
