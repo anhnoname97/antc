@@ -3,14 +3,18 @@
 @using Umbraco.Cms.Core.Services.Navigation
 @using Umbraco.Cms.Core.Web
 @using Umbraco.Plugin.Custom.Core.PortalV2.Schema
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
 @inject IDocumentNavigationQueryService Navigation
 @inject IPublishedContentCache PublishedCache
 @inject IUmbracoContextAccessor ContextAccessor
+@inject RiskContentCache RiskCache
+@inject RuiRoDerivation Derivation
 @{
     var title = Model.Value<string>("riskTitle");
     var site = Model.Root();
     var preview = ContextAccessor.TryGetUmbracoContext(out var context) && context.InPreviewMode;
     IPublishedContent? ByKey(Guid key) => PublishedCache.GetById(preview, key);
+    var riskData = RiskSnapshot.Read(RiskCache, ByKey, Navigation);
     var selection = RiskAlertContent.Picked(Model, "riskGroups");
     var order = selection.Count > 0 ? selection.Select(p => p.Key).ToArray() : RiskStructure.Pages.Skip(2).OrderBy(p => p.Order).Select(p => p.Key).ToArray();
     var groups = order.Select(key => (Spec: RiskStructure.Pages.Skip(2).FirstOrDefault(p => p.Key == key), Node: ByKey(key)))
@@ -40,7 +44,7 @@
                     if (string.IsNullOrWhiteSpace(groupTitle)) { groupTitle = RiskAlertContent.Title(group); }
                     var image = group.Value<IPublishedContent>("thumbnail") ?? group.Value<IPublishedContent>("illustration");
                     var icon = RiskAlertContent.IconId(group.Value<string>("icon"), "shield");
-                    var count = RiskAlertContent.GroupCards(group, site, Navigation, ByKey).Count;
+                    var count = RiskAlertContent.Group(group, riskData, Derivation).Cards.Count;
                     <a class="home-risk-card" href="@EmergencyContent.PublicUrl(group)" data-home-risk-card data-group-key="@group.Key">
                         @if (image is not null)
                         {
