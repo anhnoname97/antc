@@ -1,0 +1,86 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Strings
+@inject ArticleHtmlSanitizer Sanitizer
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    var site = Model.Root();
+    var image = Model.Value<IPublishedContent>("illustration");
+    var facts = Model.Value<BlockListModel>("facts") ?? Enumerable.Empty<BlockListItem>();
+    var sections = Model.Value<BlockListModel>("sectionLinks") ?? Enumerable.Empty<BlockListItem>();
+    var sources = Model.Value<IEnumerable<string>>("sources") ?? [];
+    var commitments = site.Value<BlockListModel>("footerCommitments") ?? Enumerable.Empty<BlockListItem>();
+    var principles = Model.Value<IPublishedContent>("principlesPage");
+    var verification = Model.Value<IPublishedContent>("verificationPage");
+    var feedback = Model.Value<IPublishedContent>("feedbackPage");
+    var activity = Model.Value<IPublishedContent>("activityPage");
+    var activityLabel = Model.Value<string>("activityLabel");
+    if (string.IsNullOrWhiteSpace(activityLabel)) { activityLabel = activity?.Name; }
+    var address = verification?.Value<string>("officialAddress") ?? site.Value<string>("siteName");
+    string Rich(IPublishedElement content, string alias) => Sanitizer.Clean(content.Value<IHtmlEncodedString>(alias)?.ToHtmlString() ?? "");
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/contest-shell.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/qa-portal.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/about-v2.css" asp-append-version="true">
+}
+<article class="qa-portal about-page" id="ve-website">
+    <nav class="crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><span aria-current="page">@Model.Value("title")</span></li></ol></nav>
+    <header class="pageh">
+        <div class="pageh-title"><span class="spot" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-info")</span><h1 tabindex="-1">@Model.Value("title")</h1></div>
+        <p class="lead">@Model.Value("lead")</p>
+    </header>
+    @if (image is not null) {
+        <figure class="fig hero">
+            <img src="@image.GetCropUrl(width: 820)" srcset="@image.GetCropUrl(width: 480) 480w, @image.GetCropUrl(width: 820) 820w, @image.GetCropUrl(width: 1640) 1640w" sizes="(max-width: 868px) calc(100vw - 32px), 820px" alt="@Model.Value("illustrationAlt")" width="1640" height="923" fetchpriority="high" decoding="async">
+            @if (Model.Value<string>("illustrationCaption") is { Length: > 0 } caption) { <figcaption>@caption</figcaption> }
+        </figure>
+    }
+    <section class="sec box" aria-labelledby="about-what">
+        <h2 id="about-what">@Model.Value("overviewTitle")</h2>
+        <ul class="about-facts">
+            @foreach (var fact in facts) {
+                <li><span class="spot" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", fact.Content.Value<string>("icon") ?? "icon-info")</span><div>@Html.Raw(Rich(fact.Content, "text"))</div></li>
+            }
+        </ul>
+        @if (Model.Value<string>("overviewNote") is { Length: > 0 } overviewNote) { <p class="about-note">@overviewNote</p> }
+    </section>
+    <section class="sec" aria-labelledby="about-map">
+        <h2 id="about-map">@Model.Value("sectionsTitle")</h2>
+        <ul class="about-links">
+            @foreach (var entry in sections) {
+                var target = entry.Content.Value<IPublishedContent>("page");
+                if (EmergencyContent.PublicUrl(target) is not { } url) { continue; }
+                <li><a href="@url"><span class="about-link-icon" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", entry.Content.Value<string>("icon") ?? "icon-info")</span><span><b>@entry.Content.Value("title")</b><small>@entry.Content.Value("description")</small></span><span class="about-next" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</span></a></li>
+            }
+        </ul>
+    </section>
+    <section class="sec" aria-labelledby="about-sources">
+        <h2 id="about-sources">@Model.Value("sourcesTitle")</h2>
+        <ul class="plain">@foreach (var source in sources.Where(x => !string.IsNullOrWhiteSpace(x))) { <li>@source</li> }</ul>
+        @if (EmergencyContent.PublicUrl(principles) is { } principlesUrl) { <a class="more" href="@principlesUrl">@Model.Value("principlesLabel")<span aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</span></a> }
+    </section>
+    <section class="sec" aria-labelledby="about-commitments">
+        <h2 id="about-commitments">@Model.Value("commitmentsTitle")</h2>
+        <ul class="bonkhong">
+            @foreach (var commitment in commitments) {
+                if (commitment.Content.Value<string>("text") is not { Length: > 0 } text) { continue; }
+                <li><span class="bonkhong__ic" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", commitment.Content.Value<string>("icon") ?? "icon-shield")</span><span>@text</span></li>
+            }
+        </ul>
+        @if (Model.Value<string>("commitmentsNote") is { Length: > 0 } commitmentsNote) { <p class="about-note">@commitmentsNote</p> }
+    </section>
+    <section class="sec" aria-labelledby="about-address">
+        <h2 id="about-address">@Model.Value("addressTitle")</h2>
+        <div class="addr"><span class="about-link-icon" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-lock")</span><b>@address</b></div>
+        @if (EmergencyContent.PublicUrl(verification) is { } verificationUrl) { <a class="more" href="@verificationUrl">@Model.Value("verificationLabel")<span aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</span></a> }
+    </section>
+    <section class="sec" aria-labelledby="about-feedback">
+        <h2 id="about-feedback">@Model.Value("feedbackTitle")</h2>
+        <p>@Model.Value("feedbackText")</p>
+        <div class="btnrow">
+            @if (EmergencyContent.PublicUrl(feedback) is { } feedbackUrl) { <a class="btn pri" href="@feedbackUrl"><span aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-edit")</span>@Model.Value("feedbackLabel")</a> }
+            @if (EmergencyContent.PublicUrl(activity) is { } activityUrl) { <a class="btn ghost" href="@activityUrl"><span aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-trophy")</span>@activityLabel</a> }
+        </div>
+    </section>
+</article>

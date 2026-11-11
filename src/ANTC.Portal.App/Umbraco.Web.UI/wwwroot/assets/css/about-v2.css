@@ -1,0 +1,36 @@
+.about-page p { margin: 0; }
+.about-page .about-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.about-page .about-facts li { display: flex; gap: 12px; align-items: flex-start; }
+.about-page .about-facts .spot { flex-shrink: 0; }
+.about-page .about-facts p + p { margin-top: 8px; }
+.about-page .about-note,
+.about-page figcaption { color: var(--ink2); font-size: .875rem; line-height: 1.6; }
+.about-page figcaption { margin-top: 6px; }
+.about-page .about-links { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+.about-page .about-links li + li { border-top: 1px solid var(--line); }
+.about-page .about-links a { display: flex; gap: 12px; align-items: center; min-height: 72px; padding: 14px 16px; color: var(--navy); text-decoration: none; transition: background-color .18s ease, color .18s ease; }
+.about-page .about-links a:hover,
+.about-page .about-links a:focus-visible { background: var(--blue-soft); color: var(--blue); }
+.about-page .about-links a:focus-visible { outline-offset: -3px; }
+.about-page .about-links a > span:nth-child(2) { flex: 1; min-width: 0; }
+.about-page .about-links small { display: block; color: var(--ink2); font-size: .9375rem; font-weight: 400; margin-top: 3px; line-height: 1.5; }
+.about-page .about-link-icon,
+.about-page .about-next { display: inline-flex; flex-shrink: 0; }
+.about-page svg { width: 22px; height: 22px; }
+.about-page .about-next { transition: transform .18s ease; }
+.about-page .about-links a:hover .about-next,
+.about-page .about-links a:focus-visible .about-next { transform: translateX(3px); }
+.about-page .more { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
+.about-page .more span { display: inline-flex; }
+.about-page .btn span { display: inline-flex; }
+.about-page .btn { text-decoration: none; }
+@media (prefers-reduced-motion: reduce) {
+  .about-page .about-links a,
+  .about-page .about-next { transition: none; }
+  .about-page .about-links a:hover .about-next,
+  .about-page .about-links a:focus-visible .about-next { transform: none; }
+}
+@media print {
+  .about-page .btnrow { display: none; }
+  .about-page .sec, .about-page .about-links li { break-inside: avoid; }
+}
