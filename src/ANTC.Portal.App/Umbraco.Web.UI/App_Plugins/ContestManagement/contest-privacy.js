@@ -1,10 +1,10 @@
-import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.12';
+import { DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.13';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
-import { contestStyles } from './contest-theme.js?v=1.15.12';
-import { pageSizeSelect } from './contest-page-size.js?v=1.15.12';
+import { contestStyles } from './contest-theme.js?v=1.15.13';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.13';
 
 const API = '/umbraco/management/api/v1/antc/contest-privacy';
 const BULK = 'XÓA DỮ LIỆU CÁ NHÂN', ANON = 'XÓA THÔNG TIN', DELETE = 'XÓA VĨNH VIỄN';
