@@ -1,9 +1,9 @@
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { css, html, nothing } from '@umbraco-cms/backoffice/external/lit';
-import { contestStyles } from './contest-theme.js?v=1.15.12';
-import { pageSizeSelect } from './contest-page-size.js?v=1.15.12';
-import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.12';
-import { campaignState, loadCampaigns } from './contest-layout.js?v=1.15.12';
+import { contestStyles } from './contest-theme.js?v=1.15.13';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.13';
+import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.13';
+import { campaignState, loadCampaigns } from './contest-layout.js?v=1.15.13';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
@@ -237,6 +237,13 @@ export class ContestReportsView extends UmbLitElement {
         }
         @media (max-width: 1100px) {
             .filter-panel .filters.entries-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @container (max-width: 1050px) {
+            .filter-panel .filters.entries-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @container (max-width: 440px) {
+            .filter-panel .filters.entries-filters { grid-template-columns: minmax(0, 1fr); }
+            .filter-panel .entries-filters > .entry-score-range { grid-column: 1; }
         }
     `];
 }

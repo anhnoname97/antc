@@ -3,9 +3,9 @@ import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
-import { contestStyles } from './contest-theme.js?v=1.15.12';
-import { pageSizeSelect } from './contest-page-size.js?v=1.15.12';
-import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.12';
+import { contestStyles } from './contest-theme.js?v=1.15.13';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.13';
+import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.13';
 
 const API = '/umbraco/management/api/v1/antc/contest-draws';
 const date = value => value ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(value)) : '—';
