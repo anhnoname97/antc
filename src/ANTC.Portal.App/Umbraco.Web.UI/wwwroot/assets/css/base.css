@@ -10,7 +10,13 @@ body {
   line-height: 1.6;
   color: var(--c-text);
   background: var(--c-bg);
+  /* Chan trang dinh day: trang ngan hon man hinh thi phan noi dung gian ra, khong de lo nen trang duoi chan trang. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
+body > main#noi-dung { flex: 1 0 auto; }
 img, svg { max-width: 100%; }
 button, input, select, textarea { font: inherit; }
 a { color: var(--c-brand); }

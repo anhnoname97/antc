@@ -5,7 +5,7 @@
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
     var rawTitle = T("title");
     var titleAccent = T("titleAccent");
-    
+
     // Nếu chưa cấu hình tiêu đề, mặc định dùng "Gửi câu hỏi, kiến nghị riêng" theo chuẩn antoantaichinh_v2.html
     var fullTitle = !string.IsNullOrWhiteSpace(rawTitle)
         ? (rawTitle + (!string.IsNullOrWhiteSpace(titleAccent) ? " " + titleAccent : "")).Trim()
@@ -62,7 +62,6 @@
                 <source media="(max-width:767px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 <img src="/assets/img/v2/img-22-hoi-dap-750.webp" srcset="/assets/img/v2/img-22-hoi-dap-480.webp 480w, /assets/img/v2/img-22-hoi-dap-750.webp 750w" sizes="340px" width="750" height="500" alt="Những phong thư kín được gộp vào một hộp, rồi thành một lời trả lời chung cho mọi người." loading="lazy" decoding="async">
             </picture>
-            <span class="ailab">Ảnh minh họa tạo bằng AI</span>
         </div>
     </div>
 </section>

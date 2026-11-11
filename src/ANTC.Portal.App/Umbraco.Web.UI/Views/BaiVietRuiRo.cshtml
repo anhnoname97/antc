@@ -59,7 +59,7 @@
         @if (!string.IsNullOrWhiteSpace(description)) { <p class="reading-meta">@description</p> }
         @if (image is not null)
         {
-            <figure class="reading-fig"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"><figcaption>Ảnh minh họa tạo bằng AI</figcaption></figure>
+            <figure class="reading-fig"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure>
         }
 
         <div class="reading-tools" role="group" aria-label="Công cụ cho trang này">

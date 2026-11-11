@@ -80,7 +80,8 @@ public static class SelfCheckSeoRules
 public static class SelfCheckSeoBuilder
 {
     public static bool Supports(IPublishedContent content) => content.ContentType.Alias is "home" or "congCuPage" or "truocKhiChuyenTienPage"
-        or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" or "checklistPage" or "ungPhoPage" or "wizardPage" or "lienHePage"
+        or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" or "checklistPage" or "ungPhoPage" or "wizardPage" or "lienHePage" or "gopYPage" or "xacMinhDungTrangPage"
+        or "baoVeDuLieuCaNhanPage" or "mienTruTrachNhiemPage" or "nguyenTacNoiDungPage" or "baoLoiVaCaiChinhPage"
         or "situationChooserPage" or "foundationLibraryPage" or "foundationArticlePage"
         || (content.ContentType.Alias == "viecCanLamPage" && AntcPublicPaths.SelfCheckGuidancePath(ActionGuideData.Slug(content)) is not null)
         // Cac rui ro (V2-13i, WEB-05): moi bai viet va canh bao co canonical; bai viet theo Nhom chinh (UrlProvider), canh bao theo Canh bao moi.
