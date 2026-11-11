@@ -170,14 +170,29 @@ public sealed class AntcPublicContentFinder(
             request.SetRedirectPermanent(AntcPublicPaths.AlertListPath + request.Uri.Query);
             return Task.FromResult(true);
         }
+        // Ban chinh thuc 10/11/2026 bo hai trang cu cua ban v1 ("Phan 4 · Tham gia", "Phan 4/5 · Cuoc thi"): chuyen huong 301
+        // de lien ket da phat van mo duoc. Chi dung dung hai duong dan nay; trang con (vi du /thi/) khong bi anh huong.
+        if (!preview && fixedAlias == "thamGiaPage" && Child(home, "congCuPage")?.TemplateId is > 0)
+        {
+            request.SetRedirectPermanent(AntcPublicPaths.GetPath("congCuPage", null) + request.Uri.Query);
+            return Task.FromResult(true);
+        }
+        if (!preview && fixedAlias == "thiPage" && Child(home, "thiThangPage")?.TemplateId is > 0)
+        {
+            request.SetRedirectPermanent(AntcPublicPaths.GetPath("thiThangPage", null) + request.Uri.Query);
+            return Task.FromResult(true);
+        }
         IPublishedContent? found = fixedAlias == "home" ? home
             : fixedAlias is "ruiRoPage" or "alertListPage" ? RiskPage(fixedAlias)
             : fixedAlias == "wizardPage" ? Child(Child(home, "ungPhoPage"), "wizardPage")
+            : fixedAlias == "situationChooserPage" ? Child(Child(home, "ungPhoPage"), "situationChooserPage")
             : fixedAlias == "cuocThiLamBaiPage" ? (Child(Child(home, "thiThangPage"), fixedAlias) ?? Child(Child(home, "thiPage"), fixedAlias) ?? Child(home, fixedAlias))
             : fixedAlias is "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" ? Child(Child(home, "congCuPage"), fixedAlias)
             : fixedAlias is not null ? (Child(home, fixedAlias) ?? (fixedAlias == "thiThangPage" ? Child(home, "thiPage") : null)) : null;
         if (fixedAlias is null && parts.Length > 0)
         {
+            if (parts.Length == 2 && parts[0].Equals("thu-vien", StringComparison.OrdinalIgnoreCase))
+                found = BySegment(Child(home, "foundationLibraryPage"), "foundationArticlePage", parts[1]);
             if (parts.Length == 2 && parts[0].Equals("hoi-dap", StringComparison.OrdinalIgnoreCase))
                 found = BySegment(Child(home, "hoiDapPage"), "qaItem", parts[1]);
             IPublishedContent? library = Child(site, "contentManagement");

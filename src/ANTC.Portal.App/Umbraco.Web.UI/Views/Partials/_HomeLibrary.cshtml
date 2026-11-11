@@ -1,0 +1,23 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    var title = Model.Value<string>("libraryTitle");
+    var library = Model.Value<IPublishedContent>("libraryPage");
+    var url = EmergencyContent.PublicUrl(library);
+    var rows = EmergencyContent.Rows(Model, "libraryCards");
+}
+@if (!string.IsNullOrWhiteSpace(title) && url is not null)
+{
+    <section class="home-v2 home-v2-library" aria-labelledby="home-library-title" data-home-library>
+        <div class="site-chrome-wrap home-v2__section">
+            <header class="home-v2__section-heading"><h2 id="home-library-title">@title</h2><a class="home-v2__more" href="@url">@Model.Value("libraryMoreText") @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></header>
+            <div class="home-library-cards">
+                @foreach (var row in rows)
+                {
+                    var anchor = EmergencyContent.Text(row, "sectionId");
+                    if (anchor is not ("co-chi-kim" or "chuyen-de" or "thu-doan")) { continue; }
+                    <a class="home-library-card" href="@(url + "#" + anchor)"><span class="self-check-spot @(anchor == "thu-doan" ? "home-library-card__urgent" : null)">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", EmergencyContent.Text(row, "icon"))</span><h3>@EmergencyContent.Text(row, "title")</h3><p>@EmergencyContent.Text(row, "description")</p></a>
+                }
+            </div>
+        </div>
+    </section>
+}

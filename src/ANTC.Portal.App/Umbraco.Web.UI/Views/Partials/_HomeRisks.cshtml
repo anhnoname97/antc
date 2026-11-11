@@ -1,0 +1,65 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.PublishedCache
+@using Umbraco.Cms.Core.Services.Navigation
+@using Umbraco.Cms.Core.Web
+@using Umbraco.Plugin.Custom.Core.PortalV2.Schema
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@inject IDocumentNavigationQueryService Navigation
+@inject IPublishedContentCache PublishedCache
+@inject IUmbracoContextAccessor ContextAccessor
+@inject RiskContentCache RiskCache
+@inject RuiRoDerivation Derivation
+@{
+    var title = Model.Value<string>("riskTitle");
+    var site = Model.Root();
+    var preview = ContextAccessor.TryGetUmbracoContext(out var context) && context.InPreviewMode;
+    IPublishedContent? ByKey(Guid key) => PublishedCache.GetById(preview, key);
+    var riskData = RiskSnapshot.Read(RiskCache, ByKey, Navigation);
+    var selection = RiskAlertContent.Picked(Model, "riskGroups");
+    var order = selection.Count > 0 ? selection.Select(p => p.Key).ToArray() : RiskStructure.Pages.Skip(2).OrderBy(p => p.Order).Select(p => p.Key).ToArray();
+    var groups = order.Select(key => (Spec: RiskStructure.Pages.Skip(2).FirstOrDefault(p => p.Key == key), Node: ByKey(key)))
+        .Where(item => item.Spec is not null && item.Node is not null && item.Node.ContentType.Alias == item.Spec.Alias
+            && EmergencyContent.PublicUrl(item.Node) is not null).ToArray();
+    var riskRoot = ByKey(RiskStructure.Pages[0].Key);
+    // The root redirects to New alerts and does not need a template of its own.
+    var allUrl = riskRoot?.Url();
+    if (allUrl is null || !Url.IsLocalUrl(allUrl)) { allUrl = null; }
+}
+@if (!string.IsNullOrWhiteSpace(title) && groups.Length > 0)
+{
+    <section class="home-v2 home-v2-risks" aria-labelledby="home-risks-title" data-home-risks>
+        <div class="site-chrome-wrap home-v2__section">
+            <header class="home-v2__section-heading">
+                <h2 id="home-risks-title">@title</h2>
+                @if (allUrl is not null)
+                {
+                    <a class="home-v2__more" href="@allUrl">Xem tất cả @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a>
+                }
+            </header>
+            <div class="home-risk-cards">
+                @foreach (var item in groups)
+                {
+                    var group = item.Node!;
+                    var groupTitle = group.Value<string>("tabName");
+                    if (string.IsNullOrWhiteSpace(groupTitle)) { groupTitle = RiskAlertContent.Title(group); }
+                    var image = group.Value<IPublishedContent>("thumbnail") ?? group.Value<IPublishedContent>("illustration");
+                    var icon = RiskAlertContent.IconId(group.Value<string>("icon"), "shield");
+                    var count = RiskAlertContent.Group(group, riskData, Derivation).Cards.Count;
+                    <a class="home-risk-card" href="@EmergencyContent.PublicUrl(group)" data-home-risk-card data-group-key="@group.Key">
+                        @if (image is not null)
+                        {
+                            <span class="home-risk-card__image"><img src="@image.Url()" alt="" width="108" height="108" loading="lazy" decoding="async"></span>
+                        }
+                        else
+                        {
+                            <span class="home-risk-card__icon">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", icon)</span>
+                        }
+                        <h3>@groupTitle</h3>
+                        <p>@group.Value("cardDescription")</p>
+                        <span class="home-risk-card__count"><span>@count bài</span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-arrow-right")</span>
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+}

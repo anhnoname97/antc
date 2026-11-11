@@ -5,10 +5,14 @@ using Umbraco.Cms.Core.Services;
 
 namespace Umbraco.Plugin.Custom.Core.Backoffice;
 
-/// <summary>Use Vietnamese for existing and newly saved backoffice accounts.</summary>
+/// <summary>
+/// Use Vietnamese for existing and newly saved backoffice accounts.
+/// Runs on Starting, before the background queue (Examine) starts: saving users rewrites umbracoUser2UserGroup,
+/// which deadlocks with Examine reading users under SQLite Cache=Shared.
+/// </summary>
 public sealed class BackofficeUserLanguageHandler(IUserService users)
     : INotificationHandler<UserSavingNotification>,
-      INotificationAsyncHandler<UmbracoApplicationStartedNotification>
+      INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {
     public const string Language = "vi";
 
@@ -18,8 +22,9 @@ public sealed class BackofficeUserLanguageHandler(IUserService users)
             user.Language = Language;
     }
 
-    public async Task HandleAsync(UmbracoApplicationStartedNotification notification, CancellationToken cancellationToken)
+    public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
     {
+        if (notification.RuntimeLevel != RuntimeLevel.Run) return;
         const int pageSize = 100;
         for (int skip = 0; ; skip += pageSize)
         {

@@ -133,9 +133,9 @@ export function resultHtml(topics, r, canRetry) {
   const total = r ? r.total : state.total;
   const when = fmtTime(r ? r.submittedAt : state.submittedAt);
   const sub = [state.contest ? `Cuộc thi “${esc(state.contest.name)}”` : '', e ? `Mã dự thi ${esc(e.code)}` : '', when ? `Nộp lúc ${esc(when)}` : ''].filter(Boolean).join(' · ');
-  let o = `<div class="qin exam__result">${eyebrowHtml(blockCopy('entry-result', 'eyebrow', 'Đã nộp bài'))}<h2 id="eh" tabindex="-1" class="contest__h2">`
+  let o = `<div class="qin exam__result">${eyebrowHtml(blockCopy('entry-result', 'eyebrow', 'Đã nộp bài'))}<h1 id="eh" tabindex="-1" class="contest__h2">`
     + (score != null && total != null ? esc(blockCopy('entry-result', 'title', 'Bạn trả lời đúng {correct} trên {total} câu', { correct: score, total })) : 'Bài của bạn đã được nộp')
-    + `</h2>${sub ? `<p class="exam__sub">${sub}</p>` : ''}`;
+    + `</h1>${sub ? `<p class="exam__sub">${sub}</p>` : ''}`;
   if (!r) {
     o += box('warn', '<b>Chưa tải được chi tiết kết quả.</b> Kiểm tra mạng rồi bấm thử lại.')
       + '<div class="exam__actions"><button type="button" class="qnav f" data-result-retry>Thử lại</button></div>';

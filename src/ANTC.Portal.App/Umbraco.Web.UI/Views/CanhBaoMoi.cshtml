@@ -1,21 +1,23 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Plugin.Custom.Core.Content
 @using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
 @inject TimeProvider RiskClock
+@inject RiskContentCache RiskCache
 @inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
 @{
     // V2-13h: trang Cảnh báo mới (alertListPage). Lọc qua địa chỉ, dựng ở máy chủ.
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
-    var site = Model.Root();
+    var data = RiskSnapshot.Read(RiskCache, key => Umbraco.Content(key), Navigation);
+    var fixedText = RiskAlertContent.FixedText(Umbraco.ContentAtRoot());
     var today = AlertFreshness.Today(RiskClock);
     var title = RiskAlertContent.Title(Model);
     var image = Model.Value<IPublishedContent>("illustration");
     var tabs = RiskAlertContent.Tabs(key => Umbraco.Content(key), "alertListPage");
     var filters = new RiskFilterView(AntcPublicPaths.AlertListPath, new AlertListQuery(null, null, null, null, null),
-        RiskAlertContent.ChannelOptions(site), RiskAlertContent.AudienceOptions(site), RiskAlertContent.DateOptions);
+        RiskAlertContent.ChannelOptions(data), RiskAlertContent.AudienceOptions(data), RiskAlertContent.DateOptions);
     var query = RiskAlertContent.ReadQuery(Context.Request.Query, filters);
     filters = filters with { Query = query };
-    var results = RiskResultsView.Build(RiskAlertContent.Alerts(Navigation, key => Umbraco.Content(key)).Select(RiskAlertContent.Card).ToArray(),
+    var results = RiskResultsView.Build(RiskAlertContent.Alerts(data).Select(RiskAlertContent.Card).ToArray(),
         query, today, false, "mục", AntcPublicPaths.AlertListPath);
 }
 @section Head {
@@ -29,33 +31,26 @@
     <nav class="self-check-crumbs" aria-label="Bạn đang ở">
         <ol>
             <li><a href="/">Trang chủ</a></li>
-            <li><a href="/cac-rui-ro/">Các rủi ro</a></li>
+            <li><a href="/cac-rui-ro/">RỦI RO</a></li>
             <li aria-current="page">@title</li>
         </ol>
     </nav>
 
     <header class="self-check-heading">
-        <p class="risk-eyebrow">Các rủi ro</p>
+        <p class="risk-eyebrow">RỦI RO</p>
         <div class="self-check-heading__title">
-            <span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "mega")</span>
+            @* Ban dung v2: anh vuong nho canh tieu de thay cho anh lon; chua co anh thi dung bieu tuong. *@
+            @if (image is not null) { <span class="risk-ph-img"><img src="@image.Url()" alt="" decoding="async"></span> }
+            else { <span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "mega")</span> }
             <h1>@title</h1>
         </div>
         @if (Model.Value<string>("lead") is { Length: > 0 } lead) { <p>@lead</p> }
     </header>
 
-    @if (image is not null)
-    {
-        <figure class="risk-figure"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure>
-    }
-
     @await Html.PartialAsync("~/Views/Partials/_RiskTabs.cshtml", tabs)
 
-    @if (Model.Value<bool>("showSampleNote"))
-    {
-        <p class="risk-sample">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "info")<span><b>Mẫu trình bày.</b> @RiskAlertContent.SampleNote</span></p>
-    }
-
+@* Ban chinh thuc 10/11/2026 bo dong "Mau trinh bay"; truong showSampleNote van giu trong backoffice. *@
     @await Html.PartialAsync("~/Views/Partials/_RiskFilters.cshtml", filters)
     @await Html.PartialAsync("~/Views/Partials/_RiskResults.cshtml", results)
-    @await Html.PartialAsync("~/Views/Partials/_RiskAsk.cshtml")
+    @await Html.PartialAsync("~/Views/Partials/_RiskAsk.cshtml", fixedText.NoAnswer)
 </article>

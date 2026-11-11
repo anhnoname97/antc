@@ -1,0 +1,124 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.PublishedCache
+@using Umbraco.Cms.Core.Services.Navigation
+@using Umbraco.Cms.Core.Strings
+@using Umbraco.Plugin.Custom.Core.PortalV2.Schema
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@using Umbraco.Plugin.Custom.Core.Quiz
+@inject IPublishedContentCache PublishedCache
+@inject IDocumentNavigationQueryService Navigation
+@inject IQuestionBank QuestionBank
+@inject RiskContentCache RiskCache
+@inject RuiRoDerivation Derivation
+@{
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    IPublishedContent? Published(Guid key) => PublishedCache.GetById(false, key);
+    IPublishedContent[] Picked(string alias) => RiskAlertContent.Picked(Model, alias).Select(x => Published(x.Key))
+        .OfType<IPublishedContent>().Where(x => EmergencyContent.PublicUrl(x) is not null).ToArray();
+    var site = Model.Root();
+    var histories = Picked("historyArticles");
+    var readings = Picked("topicArticles");
+    var guides = Picked("guideArticles");
+    var riskData = RiskSnapshot.Read(RiskCache, Published, Navigation);
+    var groupPages = RiskStructure.Pages.Skip(2).Select(p => Published(p.Key)).OfType<IPublishedContent>().ToArray();
+    var allTactics = groupPages.SelectMany(group => RiskAlertContent.Group(group, riskData, Derivation).Cards
+        .Where(x => x.Kind == "tac").Select(x => (Card: x, Group: group))).DistinctBy(x => x.Card.Url).ToArray();
+    var groups = allTactics.Select(x => x.Group).DistinctBy(x => x.Key).ToArray();
+    var query = Context.Request.Query["q"].ToString().Trim();
+    if (query.Length > 120) { query = query[..120]; }
+    var words = AlertList.Normalize(query).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var groupFilter = Context.Request.Query["group"].ToString();
+    if (!groups.Any(x => x.Key.ToString() == groupFilter)) { groupFilter = ""; }
+    bool Matches(int i) => (groupFilter.Length == 0 || allTactics[i].Group.Key.ToString() == groupFilter)
+        && words.All(word => AlertList.Normalize(allTactics[i].Card.Title + " " + allTactics[i].Card.Summary + " " + allTactics[i].Card.Keywords).Contains(word, StringComparison.Ordinal));
+    var matching = Enumerable.Range(0, allTactics.Length).Where(Matches).ToArray();
+    var shown = int.TryParse(Context.Request.Query["n"], out var n) ? Math.Clamp(n, 20, Math.Max(20, allTactics.Length)) : 20;
+    var visible = matching.Take(shown).ToHashSet();
+    var moreUrl = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(Model.Url(),
+        new Dictionary<string, string?> { ["q"] = query, ["group"] = groupFilter, ["n"] = (shown + 20).ToString() }) + "#thu-doan";
+    string GuideIcon(IPublishedContent item) => item.Value<IPublishedContent>("topic")?.Value<int>("topicNumber") switch
+    { 7 => "call", 6 => "cart", 5 => "brief", 3 => "chart", 4 => "coins", _ => "doc" };
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/foundation-library.css" asp-append-version="true">
+}
+@section Scripts {
+    <script src="~/assets/js/foundation-library.js" asp-append-version="true" defer></script>
+}
+<article class="self-check-page site-chrome-wrap foundation-library" data-foundation-library>
+    <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li aria-current="page">@Model.Value("title")</li></ol></nav>
+    <header class="self-check-heading">
+        <div class="self-check-heading__title"><span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "book")</span><h1>@Model.Value("title")</h1></div>
+        <p>@Model.Value("lead")</p>
+    </header>
+    <div><a class="foundation-emergency" href="/khan-cap/chon-tinh-huong/">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "alert") Tôi đang gặp chuyện, cần biết làm gì</a></div>
+    <nav class="foundation-tabs" aria-label="Ba ngăn bài viết">
+        <a href="#co-chi-kim">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "book")<span>@Model.Value("historyTitle")<small>@histories.Length bài kể chuyện</small></span></a>
+        <a href="#chuyen-de">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "doc")<span>@Model.Value("topicsTitle")<small>@readings.Length bài đọc, @guides.Length bài hướng dẫn</small></span></a>
+        <a href="#thu-doan">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "alert")<span>@Model.Value("tacticsTitle")<small>Tìm theo tên hoặc theo nhóm</small></span></a>
+    </nav>
+    <section id="co-chi-kim" aria-labelledby="history-title">
+        <h2 id="history-title">@Model.Value("historyTitle")</h2><p>@Model.Value("historyLead")</p>
+        <ol class="foundation-list foundation-history">
+            @for (var i = 0; i < histories.Length; i++)
+            {
+                var item = histories[i];
+                var number = item.Value<string>("seriesNumber") is { Length: > 0 } numberText ? numberText : (i + 1).ToString();
+                <li><a href="@item.Url()"><span class="foundation-number foundation-number--story">@number</span><span class="foundation-list__text"><b>@RiskAlertContent.Title(item)</b></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+            }
+        </ol>
+    </section>
+    <section id="chuyen-de" aria-labelledby="topics-title">
+        <h2 id="topics-title">@Model.Value("topicsTitle")</h2><p>@Model.Value("topicsLead")</p>
+        <ol class="foundation-list foundation-topics">
+            @for (var i = 0; i < readings.Length; i++)
+            {
+                var item = readings[i];
+                var number = item.Value<IPublishedContent>("topic")?.Value<int>("topicNumber") ?? i + 1;
+                var count = QuestionBank.Current.QuestionsByTopic.TryGetValue(number, out var questions) ? questions.Count : 0;
+                var minutes = ReadingBodyRenderer.Render(item.Value<IHtmlEncodedString>("readingBody")?.ToHtmlString(), "/khan-cap/", "d" + number).Minutes;
+                <li><a href="@item.Url()"><span class="foundation-number">@number</span><span class="foundation-list__text"><b>@RiskAlertContent.Title(item)</b><small>@(count > 0 ? $"{count} câu · " : "")đọc khoảng @minutes phút</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+            }
+        </ol>
+        @if (guides.Length > 0)
+        {
+            <h3>Bài hướng dẫn theo lĩnh vực</h3><ul class="foundation-guide-tiles">
+                @foreach (var item in guides)
+                {
+                    var topic = item.Value<IPublishedContent>("topic");
+                    var shortName = topic?.Value<string>("shortName");
+                    var count = site.Descendants().Count(t => t.ContentType.Alias == "tacticItem"
+                        && !(t.HasValue("isActive") && !t.Value<bool>("isActive")) && RiskAlertContent.Picked(t, "containingArticle").Any(a => a.Key == item.Key));
+                    <li><a href="@item.Url()"><span class="self-check-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", GuideIcon(item))</span><b>@(string.IsNullOrWhiteSpace(shortName) ? RiskAlertContent.Title(item) : shortName)</b><small>@count thủ đoạn</small></a></li>
+                }
+            </ul>
+        }
+    </section>
+    <section id="thu-doan" aria-labelledby="tactics-title">
+        <h2 id="tactics-title">@Model.Value("tacticsTitle")</h2><p>@Model.Value("tacticsLead")</p>
+        <form method="get" action="@(Model.Url() + "#thu-doan")" class="foundation-search" role="search" data-library-search>
+            <label for="foundation-query">Tìm bài theo tên thủ đoạn<input type="search" id="foundation-query" name="q" value="@query" maxlength="120" placeholder="Ví dụ: đặt cọc, giả giọng nói, hụi, phạt nguội" autocomplete="off" enterkeyhint="search"></label>
+            <input type="hidden" name="group" value="@groupFilter">
+            <button class="foundation-search__submit" type="submit">Tìm</button>
+        </form>
+        <div class="foundation-chips" role="group" aria-label="Lọc theo nhóm">
+            <button type="submit" form="foundation-group-form" name="group" value="" data-library-group="" aria-pressed="@(groupFilter.Length == 0 ? "true" : "false")">Tất cả</button>
+            @foreach (var group in groups)
+            {
+                <button type="submit" form="foundation-group-form" name="group" value="@group.Key" data-library-group="@group.Key" aria-pressed="@(group.Key.ToString() == groupFilter ? "true" : "false")">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "shield")<span>@group.Name</span></button>
+            }
+        </div>
+        <form id="foundation-group-form" action="@(Model.Url() + "#thu-doan")" method="get"><input type="hidden" name="q" value="@query"></form>
+        <p class="foundation-count" aria-live="polite" aria-atomic="true" data-library-count>@matching.Length bài</p>
+        <ul class="foundation-list foundation-tactics">
+            @for (var i = 0; i < allTactics.Length; i++)
+            {
+                var item = allTactics[i];
+                <li data-library-item data-group="@item.Group.Key" data-search="@(item.Card.Title + " " + item.Card.Summary + " " + item.Card.Keywords)" hidden="@(!visible.Contains(i))"><a href="@item.Card.Url">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "person")<span class="foundation-list__text"><b>@item.Card.Title</b><small>@item.Card.Summary</small>@if (item.Card.Minutes > 0) { <em>Đọc khoảng @item.Card.Minutes phút</em> }</span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+            }
+        </ul>
+        <div class="foundation-empty" data-library-empty hidden="@(matching.Length > 0)"><p><b>Chưa thấy bài nào khớp.</b> Thử từ khác, hoặc bỏ bớt bộ lọc.</p><p>Không thấy bài <b>không có nghĩa là an toàn</b>. Đang gặp chuyện thì <a href="/khan-cap/chon-tinh-huong/">chọn tình huống của bạn</a>.</p></div>
+        <a class="foundation-more" href="@moreUrl" data-library-more hidden="@(matching.Length <= shown)">Xem thêm @Math.Max(0, Math.Min(20, matching.Length - shown)) bài</a>
+    </section>
+</article>

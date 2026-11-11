@@ -14,25 +14,26 @@
     }
     var eyebrow = Val("eyebrow", "Hoạt động");
     var title = Val("title", "Cuộc thi trực tuyến tìm hiểu phòng, chống lừa đảo");
-    var lead = Val("lead", "Hoạt động không thường xuyên của Chương trình. Không thu bất kỳ khoản phí nào.");
-    var timeText = Val("timeText", "[ngày bắt đầu – ngày kết thúc]");
-    var eligibility = Val("eligibilityText", "Mọi người có số điện thoại để liên hệ. Cách xử lý người dưới 16 tuổi ghi trong Thể lệ [chờ chủ quản chốt].");
+    var lead = Val("lead", "Hoạt động không thường xuyên của website. Không thu bất kỳ khoản phí nào.");
+    var timeText = Val("timeText", "Sẽ công bố tại trang này trước khi cuộc thi bắt đầu.");
+    var eligibility = Val("eligibilityText", "Mọi người có số điện thoại để liên hệ. Người dưới 16 tuổi dự thi bằng số điện thoại của cha, mẹ hoặc người giám hộ và phải được người đó đồng ý.");
     var format = Val("formatText", "Đăng ký bằng họ tên và số điện thoại, rồi vào thi ngay. 8 chuyên đề, 200 câu. Làm Chuyên đề 1 trước. Mỗi số điện thoại thi tối đa 2 lượt.");
-    var prize = Val("prizeText", "[cơ cấu giải theo Thể lệ]. Giải thưởng thực hiện nghĩa vụ thuế thu nhập cá nhân theo quy định.");
-    var rules = Val("rulesText", "[đường dẫn tới Thể lệ đã ban hành]");
+    var prize = Val("prizeText", "Sẽ công bố cùng Thể lệ. Giải thưởng thực hiện nghĩa vụ thuế thu nhập cá nhân theo quy định.");
+    var rules = Val("rulesText", "Sẽ công bố tại trang này.");
     var rulesLink = c?.Value<Link>("rulesLink") ?? c?.Value<IEnumerable<Link>>("rulesLink")?.FirstOrDefault();
     var primaryLink = c?.Value<Link>("primaryLink") ?? c?.Value<IEnumerable<Link>>("primaryLink")?.FirstOrDefault();
     var secondaryLink = c?.Value<Link>("secondaryLink") ?? c?.Value<IEnumerable<Link>>("secondaryLink")?.FirstOrDefault();
-    var note = c?.Value<string>("note")?.Trim();
+    var note = c?.Value<string>("note")?.Trim() is { Length: > 0 } n ? n : "Thông tin người dự thi chỉ dùng để chấm bài, xét và trao giải, rồi xóa sau khi trao giải xong.";
 
     var heroImage = c?.Value<MediaWithCrops>("image");
-    var imageUrl = (heroImage != null && !string.IsNullOrWhiteSpace(heroImage.Url()))
-        ? heroImage.Url()
-        : "/assets/img/contest-hero.jpg";
+    var hasCustomImage = heroImage != null && !string.IsNullOrWhiteSpace(heroImage.Url());
+    var imageUrl = hasCustomImage ? heroImage!.Url() : "/assets/img/v2/img-33-cuoc-thi-820.webp";
     var imageAlt = heroImage?.Value<string>("altText");
     if (string.IsNullOrWhiteSpace(imageAlt))
     {
-        imageAlt = string.IsNullOrWhiteSpace(title) ? "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính" : title;
+        imageAlt = !hasCustomImage
+            ? "Bà con trong hội trường giơ thẻ trả lời câu hỏi, phía trước là chiếc cúp."
+            : (string.IsNullOrWhiteSpace(title) ? "Ảnh minh họa tình huống tự bảo vệ trước rủi ro tài chính" : title);
     }
 
     var primaryUrl = primaryLink?.Url ?? "/thi/";
@@ -48,6 +49,12 @@
         {
             title = currentContest.Name;
         }
+        // Cau dan theo mo ta cua cuoc thi; mo ta trong hoac chi lap lai ten thi giu cau dan cua block.
+        var description = currentContest.Description?.Trim();
+        if (!string.IsNullOrWhiteSpace(description) && !string.Equals(description, currentContest.Name?.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            lead = description;
+        }
 
         var vnOffset = TimeSpan.FromHours(7);
         var startVn = new DateTimeOffset(currentContest.StartAt, TimeSpan.Zero).ToOffset(vnOffset);
@@ -56,10 +63,10 @@
 
         var topicCount = currentContest.Topics.Count;
         var qCount = currentContest.QuestionCount;
-        var attemptsText = currentContest.MaxAttempts == 0 
-            ? "Không giới hạn lượt thi cho mỗi số điện thoại." 
+        var attemptsText = currentContest.MaxAttempts == 0
+            ? "Không giới hạn lượt thi cho mỗi số điện thoại."
             : $"Mỗi số điện thoại thi tối đa {currentContest.MaxAttempts} lượt.";
-        eligibility = $"Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. {attemptsText}";
+        eligibility = $"Mọi lứa tuổi, chỉ cần có số điện thoại để liên hệ. {attemptsText} Người dưới 16 tuổi dự thi bằng số điện thoại của cha, mẹ hoặc người giám hộ và phải được người đó đồng ý.";
 
         var cd1Text = currentContest.Topics.Any(t => t.Cd == "1") ? "Làm Chuyên đề 1 trước. " : "";
         format = $"Đăng ký bằng họ tên và số điện thoại, rồi vào thi ngay. {topicCount} chuyên đề, {qCount} câu. {cd1Text}{attemptsText}";
@@ -95,7 +102,7 @@
             prize = "Cơ cấu giải theo Thể lệ cuộc thi. Giải thưởng thực hiện nghĩa vụ thuế thu nhập cá nhân theo quy định.";
         }
 
-        if (rules == "[đường dẫn tới Thể lệ đã ban hành]")
+        if (rules == "Sẽ công bố tại trang này.")
         {
             rules = "Theo Thể lệ đã ban hành của Ban Tổ chức.";
         }
@@ -129,23 +136,32 @@
         </div>
         @if (!string.IsNullOrWhiteSpace(lead))
         {
-            <p class="lead">@lead</p>
+            <p class="lead" id="act-lead">@lead</p>
         }
     </header>
 
-    @if (!string.IsNullOrWhiteSpace(imageUrl))
-    {
-        <figure class="attc-visual wide pageh-hero-wrap">
-            <img src="@imageUrl" alt="@imageAlt" class="pageh-hero-img" loading="lazy" decoding="async" />
-        </figure>
-    }
+    <figure class="act-fig">
+        @if (hasCustomImage)
+        {
+            <img src="@imageUrl" alt="@imageAlt" fetchpriority="high" decoding="async" />
+        }
+        else
+        {
+            <img src="/assets/img/v2/img-33-cuoc-thi-820.webp"
+                 srcset="/assets/img/v2/img-33-cuoc-thi-480.webp 480w, /assets/img/v2/img-33-cuoc-thi-820.webp 820w, /assets/img/v2/img-33-cuoc-thi-1640.webp 1640w"
+                 sizes="(min-width: 860px) 820px, 100vw"
+                 width="1640" height="923"
+                 alt="@imageAlt" fetchpriority="high" decoding="async" />
+        }
+        <figcaption>Ảnh minh họa tạo bằng AI</figcaption>
+    </figure>
 
     <div class="facts box">
         <div class="fact">
             <span class="spot">
                 <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
             </span>
-            <span><b>Thời gian:</b> <span class="fill" id="act-time">@timeText</span></span>
+            <span><b>Thời gian:</b> <span id="act-time">@timeText</span></span>
         </div>
         <div class="fact">
             <span class="spot">
@@ -163,7 +179,7 @@
             <span class="spot">
                 <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8.5h14V12M12 8v12.5"/><path d="M12 8C10.5 5 7 4.5 7 6.5S10 8 12 8zm0 0c1.5-3 5-3.5 5-1.5S14 8 12 8z"/></svg>
             </span>
-            <span><b>Giải thưởng:</b> <span class="fill" id="act-prize">@prize</span></span>
+            <span><b>Giải thưởng:</b> <span id="act-prize">@prize</span></span>
         </div>
         <div class="fact">
             <span class="spot">
@@ -171,7 +187,7 @@
             </span>
             <span>
                 <b>Thể lệ:</b>
-                <span class="fill" id="act-rules">
+                <span id="act-rules">
                     @if (rulesLink is not null && !string.IsNullOrEmpty(rulesLink.Url))
                     {
                         <a href="@rulesLink.Url" target="@(string.IsNullOrEmpty(rulesLink.Target) ? null : rulesLink.Target)" rel="@(rulesLink.Target == "_blank" ? "noopener" : null)">@(string.IsNullOrWhiteSpace(rulesLink.Name) ? rules : rulesLink.Name)</a>
@@ -185,6 +201,15 @@
         </div>
     </div>
 
+    @if (currentContest is null)
+    {
+        <div class="note b"><b>Cuộc thi chưa mở đăng ký</b><p>Thời gian, thể lệ và giải thưởng sẽ được công bố tại trang này. Trong lúc chờ, bạn có thể tự luyện toàn bộ câu hỏi, không cần đăng ký và không tính điểm.</p></div>
+        <div class="btnrow">
+            <a href="@secondaryUrl" class="btn pri">Tự luyện toàn bộ câu hỏi<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></a>
+        </div>
+    }
+    else
+    {
     <div class="btnrow">
         <a href="@primaryUrl" class="btn pri" id="act-reg-btn">
             @primaryName
@@ -192,9 +217,25 @@
         </a>
         <a href="@secondaryUrl" class="btn ghost">@secondaryName</a>
     </div>
+    }
 
     @if (!string.IsNullOrWhiteSpace(note))
     {
         <p class="small">@note</p>
     }
+
+    <section class="act-share" aria-labelledby="act-share-h">
+        <h2 id="act-share-h">Ảnh để chia sẻ cho người thân</h2>
+        <p>Mở ảnh bản đầy đủ, lưu về máy rồi gửi qua Zalo, Facebook. Trên ảnh chỉ có một địa chỉ là antoantaichinh.vn, không có đường dẫn hay mã QR nào khác.</p>
+        <div class="act-sharegal">
+            <a class="act-shimg" href="/assets/img/share/chia-se-bon-dieu.jpg" target="_blank" rel="noopener">
+                <img src="/assets/img/share/chia-se-bon-dieu-540.webp" width="540" height="675" alt="Ảnh dọc: Trong lúc chưa rõ, nhớ bốn điều — không chuyển tiền, không cung cấp OTP, không bấm đường dẫn lạ, không cài ứng dụng theo yêu cầu." loading="lazy" decoding="async">
+                <span><b>Trong lúc chưa rõ, nhớ bốn điều</b><small>Ảnh dọc 4:5 cho Facebook, Zalo · Ảnh minh họa tạo bằng AI</small></span>
+            </a>
+            <a class="act-shimg" href="/assets/img/share/chia-se-story.jpg" target="_blank" rel="noopener">
+                <img src="/assets/img/share/chia-se-story-540.webp" width="540" height="960" alt="Ảnh tin: Đừng nghe họ tự xưng là ai, hãy nhìn vào việc họ đang bảo mình làm." loading="lazy" decoding="async">
+                <span><b>Đừng nghe họ tự xưng là ai</b><small>Ảnh tin 9:16 cho Zalo, Facebook, TikTok · Ảnh minh họa tạo bằng AI</small></span>
+            </a>
+        </div>
+    </section>
 </div>

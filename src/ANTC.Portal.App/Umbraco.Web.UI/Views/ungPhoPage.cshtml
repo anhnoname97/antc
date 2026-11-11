@@ -38,6 +38,9 @@
     Navigation.TryGetChildrenKeysOfType(Model.Key, "wizardPage", out var wizardKeys);
     var wizardUrl = wizardKeys.Select(key => PublishedCache.GetById(preview, key)).OfType<IPublishedContent>()
         .Select(EmergencyContent.PublicUrl).FirstOrDefault(url => url is not null);
+    Navigation.TryGetChildrenKeysOfType(Model.Key, "situationChooserPage", out var chooserKeys);
+    var chooserUrl = chooserKeys.Select(key => PublishedCache.GetById(preview, key)).OfType<IPublishedContent>()
+        .Select(EmergencyContent.PublicUrl).FirstOrDefault(url => url is not null);
     var hasVerification = Model.Value<DateTime?>("hotlinesCheckedDate") is { Year: > 1900 } && !string.IsNullOrWhiteSpace(Model.Value<string>("hotlinesSource"));
 }
 @section Head {
@@ -49,7 +52,8 @@
     <header class="self-check-heading"><div class="self-check-heading__title"><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "alert")</span><h1>@title</h1></div><p>@Model.Value("lead")</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
     @if (image is not null) { <figure class="emergency-image"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure> }
     <section class="emergency-wizard" aria-labelledby="emergency-wizard-title"><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")</span><div><h2 id="emergency-wizard-title">@Model.Value("wizardTitle")</h2><p>@Model.Value("wizardDescription")</p></div>
-        @if (wizardUrl is not null) { <a class="emergency-button emergency-button--primary" href="@wizardUrl">@Model.Value("wizardButtonText") <span aria-hidden="true">›</span></a> }
+        @if (chooserUrl is not null) { <a class="emergency-button emergency-button--primary" href="@chooserUrl">@Model.Value("wizardButtonText") <span aria-hidden="true">›</span></a> }
+        @if (wizardUrl is not null) { <a class="emergency-wizard__alternative" href="@wizardUrl">Hoặc trả lời 3 câu hỏi ngắn về cuộc liên hệ đáng ngờ</a> }
         else { <span class="emergency-pending">Sắp có</span> }
     </section>
     @if (principles.Length > 0)

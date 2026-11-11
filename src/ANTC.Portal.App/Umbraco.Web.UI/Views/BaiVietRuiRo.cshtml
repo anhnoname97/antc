@@ -22,12 +22,10 @@
     {
         description = $"Đọc khoảng {body.Minutes} phút. Đọc xong rồi hãy làm {questionText} của Chuyên đề {number}.";
     }
+    var image = Model.Value<IPublishedContent>("illustration");
     var topics = isTopicReading ? ReadingArticles.All() : [];
 }
 @section Head {
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="~/assets/css/contest-activity.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/reading-article.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/emergency-wizard.css" asp-append-version="true">
@@ -36,7 +34,7 @@
     <nav class="crumbs" aria-label="Bạn đang ở">
         <ol>
             <li><a href="/">Trang chủ</a></li>
-            <li>@if (riskPage is not null) { <a href="@riskPage.Url()">Các rủi ro</a> } else { <span>Các rủi ro</span> }</li>
+            <li>@if (riskPage is not null) { <a href="@riskPage.Url()">RỦI RO</a> } else { <span>RỦI RO</span> }</li>
             @if (group is not null)
             {
                 <li>@if (groupPage is not null) { <a href="@groupPage.Url()">@group.Name</a> } else { <span>@group.Name</span> }</li>
@@ -59,6 +57,10 @@
         @if (isTopicReading) { <p class="reading-kicker">Bài đọc · Chuyên đề @number</p> }
         <h1>@title</h1>
         @if (!string.IsNullOrWhiteSpace(description)) { <p class="reading-meta">@description</p> }
+        @if (image is not null)
+        {
+            <figure class="reading-fig"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"><figcaption>Ảnh minh họa tạo bằng AI</figcaption></figure>
+        }
 
         <div class="reading-tools" role="group" aria-label="Công cụ cho trang này">
             <button type="button" class="tbtn" data-reading-speak hidden aria-pressed="false">
@@ -92,7 +94,7 @@
             <div class="reading-end">
                 <b>Giờ hãy làm bài</b>
                 <p>@(char.ToUpper(questionText[0]) + questionText[1..]) của Chuyên đề @number. Mỗi câu đều có phần giải thích sau khi trả lời — chọn sai cũng không sao, phần giải thích mới là chỗ để học.</p>
-                <a class="btn pri" href="/ngan-hang/#chuyen-de-@number">Bắt đầu @questionText của Chuyên đề @number ›</a>
+                <a class="btn pri" href="/ngan-hang/#chuyen-de-@number">Bắt đầu @questionText của Chuyên đề @number <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></a>
             </div>
         }
         <p class="reading-printfoot">Bản in từ antoantaichinh.vn — @Model.Name. Nội dung có thể đã được cập nhật sau ngày in.</p>

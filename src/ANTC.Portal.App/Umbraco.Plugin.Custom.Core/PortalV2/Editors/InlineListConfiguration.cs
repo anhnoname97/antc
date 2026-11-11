@@ -49,6 +49,9 @@ public sealed class InlineListField
     [JsonPropertyName("width")] public string? Width { get; set; }
     [JsonPropertyName("description")] public string? Description { get; set; }
     [JsonPropertyName("list")] public string? List { get; set; }
+    // Small, type-specific choices (for example the customer's situation groups).
+    // Each pair contains a persisted code and an editor-facing label.
+    [JsonPropertyName("options")] public List<string[]>? Options { get; set; }
     [JsonPropertyName("multiple")] public bool Multiple { get; set; }
     [JsonPropertyName("allowedContentTypes")] public List<string>? AllowedContentTypes { get; set; }
     [JsonPropertyName("startNode")] public Guid? StartNode { get; set; }

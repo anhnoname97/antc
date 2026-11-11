@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Umbraco.Web.UI.Rendering;
 using Xunit;
 
@@ -5,6 +6,27 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public class SelfCheckSeoTests
 {
+    [Fact]
+    public void Homepage_uses_root_canonical_and_website_metadata_with_the_editorial_review_date()
+    {
+        var seo = SelfCheckSeoRules.Resolve(Input() with
+        {
+            PublicPath = "/", Canonical = "/?utm_source=campaign#noi-dung", Name = "Trang chủ",
+            Title = "Bạn vừa nhận lời mời đáng ngờ?", Description = "Nội dung đầu trang",
+            SeoTitle = "Nhận diện lừa đảo và rủi ro tài chính", SeoDescription = "Mô tả chia sẻ Trang chủ",
+            DefaultImage = new("/media/home.jpg", "Cùng xác minh thông tin", 640, 335),
+            Updated = new DateTime(2026, 11, 10)
+        });
+        Assert.Equal("https://antoantaichinh.vn/", seo.CanonicalUrl);
+        Assert.Equal("website", seo.Type);
+        Assert.Equal("Nhận diện lừa đảo và rủi ro tài chính — antoantaichinh.vn", seo.DocumentTitle);
+        Assert.Equal("Mô tả chia sẻ Trang chủ", seo.Description);
+        Assert.Equal("https://antoantaichinh.vn/media/home.jpg", seo.Image!.Url);
+        Assert.Equal(new DateTime(2026, 11, 10), seo.Updated);
+        // The dedicated Self-check sitemap must remain limited to that URL subtree.
+        Assert.False(SelfCheckSeoRules.IncludeInSitemap(seo, Input().Origin));
+    }
+
     private static SelfCheckSeoInput Input() => new()
     {
         Origin = new Uri("https://antoantaichinh.vn"), PublicPath = "/hay-tu-kiem-tra/", Name = "Tên node",
@@ -84,5 +106,53 @@ public class SelfCheckSeoTests
         Assert.Null(seo.Image.Height);
         Assert.Null(SelfCheckSeoRules.Resolve(Input()).Image);
         Assert.Null(SelfCheckSeoRules.Resolve(Input() with { Updated = DateTime.MinValue }).Updated);
+    }
+
+    [Theory]
+    [InlineData("riskArticlePage", true)]
+    [InlineData("alertPage", true)]
+    [InlineData("otherPage", false)]
+    public void Supports_checks_risk_article_and_alert_document_types(string alias, bool expected)
+    {
+        var node = PublishedContentTestHelper.Content(alias, "Trang thử");
+        Assert.Equal(expected, SelfCheckSeoBuilder.Supports(node));
+    }
+
+    [Theory]
+    [InlineData("readingBody", "<p>Nội dung</p>", true)]
+    [InlineData("description", "Mô tả", true)]
+    [InlineData("summary", "<p>Tóm tắt</p>", true)]
+    [InlineData("", "", false)]
+    public void Risk_article_readiness_detects_editorial_content(string field, string value, bool expected)
+    {
+        var props = string.IsNullOrEmpty(field) ? Array.Empty<(string, object?)>() : [(field, (object?)value)];
+        var node = PublishedContentTestHelper.Content("riskArticlePage", "Bài", values: props);
+        Assert.Equal(expected, SelfCheckSeoBuilder.Ready(node));
+    }
+
+    [Fact]
+    public void Risk_article_canonical_follows_primary_group_url_unless_overridden()
+    {
+        var site = PublishedContentTestHelper.Content("home", "Trang chủ", level: 1, url: "/", values: [("siteName", "antoantaichinh.vn")]);
+        var article = PublishedContentTestHelper.Content("riskArticlePage", "Bài đọc chuyên đề 1", level: 3,
+            url: "/cac-rui-ro/lua-dao/bai-doc-chuyen-de-1/", parent: site,
+            values: [("title", "Nền tảng và tài khoản"), ("readingBody", "<p>Nội dung</p>")]);
+        var overridden = PublishedContentTestHelper.Content("riskArticlePage", "Bài đọc", level: 3,
+            url: "/cac-rui-ro/lua-dao/bai-khac/", parent: site,
+            values: [("title", "Bài khác"), ("description", "Tóm tắt"), ("canonicalUrl", "/cac-rui-ro/vay-va-no/ban-goc/")]);
+
+        using var _ = PublishedContentTestHelper.Scope(site, article, overridden);
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("antoantaichinh.vn");
+        context.Request.Path = "/cac-rui-ro/vay-va-no/bai-doc-chuyen-de-1/";
+
+        var seo = SelfCheckSeoBuilder.Build(article, context.Request);
+        Assert.Equal("https://antoantaichinh.vn/cac-rui-ro/lua-dao/bai-doc-chuyen-de-1/", seo.CanonicalUrl);
+        Assert.Equal("article", seo.Type);
+        Assert.False(seo.NoIndex);
+
+        var custom = SelfCheckSeoBuilder.Build(overridden, context.Request);
+        Assert.Equal("https://antoantaichinh.vn/cac-rui-ro/vay-va-no/ban-goc/", custom.CanonicalUrl);
     }
 }

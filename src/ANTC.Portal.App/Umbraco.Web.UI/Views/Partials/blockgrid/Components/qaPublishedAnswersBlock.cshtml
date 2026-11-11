@@ -1,24 +1,45 @@
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Models.PublishedContent
 @using Umbraco.Cms.Core.Strings
+@using Umbraco.Plugin.Custom.Core.PortalV2
 @inject Umbraco.Cms.Web.Common.UmbracoHelper UmbracoHelper
+@inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
+@inject Umbraco.Plugin.Custom.Core.Articles.ArticleHtmlSanitizer Sanitizer
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockGridItem>
 @{
     var c = Model.Content;
     string T(string alias) => c.Value<string>(alias) ?? string.Empty;
     var title = !string.IsNullOrWhiteSpace(T("title")) ? T("title") : "Hỏi – đáp nhanh";
-    var note = !string.IsNullOrWhiteSpace(T("note"))
-        ? T("note")
-        : "Bản dựng thử: đây là ví dụ cách trình bày. Khi vận hành, mỗi câu trả lời đều do Ban biên tập duyệt và dẫn về một nội dung đã thẩm định.";
+    // Ban chinh thuc khong con dong "Ban dung thu"; chi hien ghi chu khi bien tap vien tu nhap.
+    var note = T("note");
 
-    // Lấy nội dung từ phần "Hỏi – đáp nhanh" trong Quản lý nội dung trong Backoffice
-    var allRoots = UmbracoHelper.ContentAtRoot();
-    var qaFolder = allRoots.SelectMany(r => r.DescendantsOrSelf())
-        .FirstOrDefault(x => x.ContentType.Alias is "quickQaFolderV2" or "quickQaFolder");
+    // Lấy nội dung từ phần "Hỏi – đáp nhanh" trong Quản lý nội dung qua Navigation thay cho Descendants (WEB-07)
+    var qaFolder = UmbracoHelper.Content(PortalV2Keys.Node("f-qa")) is { ContentType.Alias: "quickQaFolderV2" or "quickQaFolder" } directFolder
+        ? directFolder
+        : null;
+    if (qaFolder is null && Navigation.TryGetRootKeysOfType("antc", out var rootKeys))
+    {
+        foreach (var rootKey in rootKeys)
+        {
+            if (!Navigation.TryGetChildrenKeysOfType(rootKey, "contentManagement", out var libraryKeys)) continue;
+            foreach (var libraryKey in libraryKeys)
+            {
+                if (Navigation.TryGetChildrenKeysOfType(libraryKey, "quickQaFolderV2", out var v2Keys))
+                    qaFolder ??= v2Keys.Select(UmbracoHelper.Content).FirstOrDefault(x => x is not null);
+                if (qaFolder is null && Navigation.TryGetChildrenKeysOfType(libraryKey, "quickQaFolder", out var v1Keys))
+                    qaFolder ??= v1Keys.Select(UmbracoHelper.Content).FirstOrDefault(x => x is not null);
+                if (qaFolder is not null) break;
+            }
+            if (qaFolder is not null) break;
+        }
+    }
 
-    var cmsItems = qaFolder != null
-        ? qaFolder.Children().Where(x => x.IsVisible() && x.ContentType.Alias == "quickQaItem").OrderBy(x => x.SortOrder).ToList()
-        : allRoots.SelectMany(r => r.DescendantsOrSelfOfType("quickQaItem")).Where(x => x.IsVisible()).OrderBy(x => x.SortOrder).ToList();
+    var cmsItems = qaFolder is not null && Navigation.TryGetChildrenKeysOfType(qaFolder.Key, "quickQaItem", out var itemKeys)
+        ? itemKeys.Select(UmbracoHelper.Content).OfType<IPublishedContent>()
+            .Where(x => x.IsVisible())
+            .OrderBy(x => x.SortOrder)
+            .ToList()
+        : [];
 
     var hasCmsItems = cmsItems.Count > 0;
 }
@@ -37,8 +58,8 @@
                 var shortAnswer = item.Value<string>("shortAnswer");
                 var reason = item.Value<IHtmlEncodedString>("reason");
                 var actions = item.Value<IHtmlEncodedString>("actions");
-                var relatedPages = item.Value<IEnumerable<IPublishedContent>>("relatedPages");
-                var approvedBy = item.Value<string>("approvedBy");
+                // Chi hien trang co giao dien (co template); bo thu muc va muc khong co trang rieng.
+                var relatedPages = item.Value<IEnumerable<IPublishedContent>>("relatedPages")?.Where(x => x.TemplateId is > 0).ToList();
 
                 <div class="qai">
                     <button type="button" class="qaq" data-open="@panelId" aria-expanded="false" aria-controls="@panelId">
@@ -58,12 +79,12 @@
                         @if (reason is not null && !string.IsNullOrWhiteSpace(reason.ToHtmlString()))
                         {
                             <p class="qlab">Vì sao</p>
-                            <div class="qbody">@reason</div>
+                            <div class="qbody">@Html.Raw(Sanitizer.Clean(reason.ToHtmlString()))</div>
                         }
                         @if (actions is not null && !string.IsNullOrWhiteSpace(actions.ToHtmlString()))
                         {
                             <p class="qlab">Việc cần làm</p>
-                            <div class="qbody">@actions</div>
+                            <div class="qbody">@Html.Raw(Sanitizer.Clean(actions.ToHtmlString()))</div>
                         }
                         @if (relatedPages?.Any() == true)
                         {
@@ -84,10 +105,6 @@
                                 }
                             </ul>
                         }
-                        @if (!string.IsNullOrWhiteSpace(approvedBy))
-                        {
-                            <p class="qmeta">Duyệt bởi: @approvedBy</p>
-                        }
                     </div>
                 </div>
             }
@@ -101,50 +118,50 @@
                     Q: "Có người gọi nói tài khoản của tôi sắp bị khóa, bảo đọc mã OTP để xác minh. Tôi phải làm gì?",
                     A: "Không đọc mã. Cúp máy, rồi tự gọi số in ở mặt sau thẻ hoặc tự mở ứng dụng ngân hàng để hỏi.",
                     Why: "Bảo bạn <b>đọc</b> hoặc <b>gửi</b> mật khẩu, mã OTP, mã PIN là một dấu hiệu phải dừng. Đừng nghe họ tự xưng là ai, hãy nhìn vào việc họ đang bảo mình làm.",
-                    Todo: "<b>Có thẻ ngân hàng:</b> lật mặt sau thẻ, gọi số chăm sóc khách hàng in trên thẻ.<br><b>Không có thẻ:</b> mở ứng dụng ngân hàng bạn đã cài từ trước, vào mục Trợ giúp hoặc Liên hệ.<br><b>Luôn luôn:</b> không bấm đường link và không gọi số do người kia gửi.",
-                    Links: new[] { ("/khan-cap", "Có người đang thúc bạn làm ngay"), ("/khan-cap", "Lỡ đọc mã rồi thì làm gì") }
+                    Todo: "<b>Có thẻ ngân hàng:</b> lật mặt sau thẻ, gọi số chăm sóc khách hàng in trên thẻ.<br><b>Không có thẻ:</b> mở ứng dụng ngân hàng bạn đã cài từ trước, vào mục Trợ giúp hoặc Liên hệ.<br><b>Luôn luôn:</b> không bấm đường dẫn và không gọi số do người kia gửi.",
+                    Links: new[] { ("/hay-tu-kiem-tra/huong-dan/co-nguoi-dang-thuc-ban-lam-ngay/", "Có người đang thúc bạn làm ngay"), ("/hay-tu-kiem-tra/huong-dan/bao-ve-tai-khoan-va-dien-thoai/", "Lỡ đọc mã rồi thì làm gì") }
                 ),
                 (
                     Q: "Người lạ bảo tôi cài ứng dụng để được hỗ trợ. Có nên cài không?",
-                    A: "Không cài. Người khác gửi đường link và bảo bạn cài ứng dụng là một dấu hiệu phải dừng.",
+                    A: "Không cài. Người khác gửi đường dẫn và bảo bạn cài ứng dụng là một dấu hiệu phải dừng.",
                     Why: "Cài công cụ điều khiển là giao cả điện thoại cho người khác. Đọc mã xác thực là giao luôn chìa khóa tài khoản. Không có cơ quan hay ngân hàng nào cần những thứ đó của mình.",
                     Todo: "Nếu đã cài: ngắt mạng trên điện thoại hoặc máy tính đó, tắt Wi-Fi và tắt dữ liệu di động, rồi ngừng dùng máy. Từ đây trở đi, mọi việc làm trên một thiết bị khác mà bạn tin cậy.",
-                    Links: new[] { ("/khan-cap", "Người khác đang có quyền vào máy của bạn"), ("/thu-doan", "Cuộc gọi, tin nhắn, đường dẫn và giả mạo") }
+                    Links: new[] { ("/hay-tu-kiem-tra/huong-dan/bao-ve-tai-khoan-va-dien-thoai/", "Người khác đang có quyền vào máy của bạn"), ("/cac-rui-ro/lua-dao/cuoc-goi-tin-nhan-duong-dan-va-gia-mao/", "Cuộc gọi, tin nhắn, đường dẫn và giả mạo") }
                 ),
                 (
                     Q: "Người quen đầu tư lãi nhiều, rủ tôi góp vốn. Có nên theo không?",
                     A: "Trước hết hỏi ba câu: lợi nhuận ở đâu ra, ai có nghĩa vụ trả tiền cho mình, và muốn rút thì rút bằng cách nào.",
                     Why: "Người thân quen có thể cũng đang bị dẫn. Nhiều mô hình sống được chính là nhờ người quen rủ người quen. Rút thử được một khoản nhỏ chỉ chứng minh lần rút đó đã xong; khoản trả đầu tiên thường chính là tiền mồi.",
-                    Todo: "Dùng phần kiểm tra nhanh “Trước khi đầu tư, vay”. Không vay, không thế chấp nhà đất, không dùng tiền dưỡng già để góp.",
-                    Links: new[] { ("/khan-cap", "Kiểm tra nhanh: Trước khi đầu tư, vay"), ("/thu-doan", "Có người mời bạn góp vốn, đầu tư") }
+                    Todo: "Dùng công cụ “Trước khi đầu tư, vay”. Không vay, không thế chấp nhà đất, không dùng tiền dưỡng già để góp.",
+                    Links: new[] { ("/hay-tu-kiem-tra/truoc-khi-dau-tu-vay/", "Công cụ: Trước khi đầu tư, vay"), ("/hay-tu-kiem-tra/huong-dan/co-nguoi-moi-ban-gop-von-dau-tu/", "Có người mời bạn góp vốn, đầu tư") }
                 ),
                 (
                     Q: "Ứng dụng vay đòi nộp phí trước rồi mới giải ngân. Có nên nộp?",
                     A: "Chưa nộp. Xem tiền chảy về phía nào. Bạn phải nộp tiền trước thì dừng lại.",
                     Why: "Ba con số phải ghi ra giấy trước khi quyết: số thực nhận là tiền thật sự về tay sau khi trừ phí, bảo hiểm và khoản giữ lại; tổng phải trả gồm gốc, lãi, phí và bảo hiểm cộng lại; mỗi kỳ trả là số phải nộp mỗi lần theo lịch.",
                     Todo: "Với ứng dụng cho vay, xem thêm quyền mà nó đòi. Quyền nào không cần cho chức năng rõ ràng thì không cấp.",
-                    Links: new[] { ("/thu-doan", "Danh sách kiểm tra trước khi vay"), ("/thu-doan", "Vay, cho vay và bảo lãnh") }
+                    Links: new[] { ("/hay-tu-kiem-tra/truoc-khi-vay-bao-lanh-dung-ten/", "Kiểm tra trước khi vay"), ("/cac-rui-ro/vay-va-no/vay-cho-vay-va-bao-lanh/", "Vay, cho vay và bảo lãnh") }
                 ),
                 (
                     Q: "Tôi lỡ chuyển tiền rồi. Bây giờ làm gì trước?",
                     A: "Gọi ngay ngân hàng hoặc ví điện tử bạn đã chuyển. Làm bước này trước, rồi mới làm các bước còn lại.",
                     Why: "Gọi càng sớm thì ngân hàng càng có cơ hội tra soát giao dịch. Số đúng là số bạn tự lấy từ thẻ hoặc ứng dụng của chính mình.",
                     Todo: "Câu nói mẫu với tổng đài: “Tôi vừa chuyển tiền và nghi có rủi ro lừa đảo. Xin ghi nhận sự việc, tra soát giao dịch và hướng dẫn tôi cách bảo vệ tài khoản.”",
-                    Links: new[] { ("/khan-cap", "Bạn vừa chuyển tiền: các bước tiếp theo"), ("/khan-cap", "Kiểm tra nhanh: Khi nghi ngờ bị lừa") }
+                    Links: new[] { ("/hay-tu-kiem-tra/huong-dan/ban-vua-chuyen-tien-hoac-giao-hang/", "Bạn vừa chuyển tiền: các bước tiếp theo"), ("/hay-tu-kiem-tra/khi-nghi-bi-lua/", "Công cụ: Khi nghi ngờ bị lừa") }
                 ),
                 (
                     Q: "Có người chuyển nhầm tiền vào tài khoản tôi rồi gọi đòi lại. Tôi có nên chuyển trả ngay theo số họ đưa?",
                     A: "Chưa chuyển trả theo số tài khoản người gọi đưa, và không tiêu, không rút khoản đó.",
                     Why: "Không quét mã QR hoặc bấm đường dẫn trong tin nhắn báo “chuyển nhầm tiền” để hoàn lại.",
                     Todo: "Liên hệ ngân hàng của chính bạn để báo có khoản tiền lạ, rồi chỉ hoàn trả theo đúng cách ngân hàng hướng dẫn.",
-                    Links: new[] { ("/khan-cap", "Tự nhiên có tiền lạ chuyển vào tài khoản") }
+                    Links: new[] { ("/hay-tu-kiem-tra/huong-dan/tien-la-chuyen-vao/", "Tự nhiên có tiền lạ chuyển vào tài khoản") }
                 ),
                 (
                     Q: "Có người nhờ tôi cho mượn tài khoản ngân hàng, trả tiền công. Có sao không?",
                     A: "Từ chối ngay, dù được trả tiền công.",
                     Why: "Không mở, cho mượn, cho thuê hay bán tài khoản ngân hàng, và không nhận chuyển tiền hộ. Đây là hành vi bị cấm, và nó kéo người đứng tên vào dòng tiền phạm pháp.",
                     Todo: "Nếu đã lỡ giao thẻ, SIM hoặc mã xác thực, báo cả ngân hàng và nhà mạng bằng số chính thức bạn tự tìm.",
-                    Links: new[] { ("/thu-doan", "Việc làm, tuyển dụng và nhiệm vụ trực tuyến") }
+                    Links: new[] { ("/cac-rui-ro/lua-dao/viec-lam-tuyen-dung-va-nhiem-vu-truc-tuyen/", "Việc làm, tuyển dụng và nhiệm vụ trực tuyến") }
                 )
             };
 
@@ -186,7 +203,6 @@
                                 </li>
                             }
                         </ul>
-                        <p class="qmeta">Duyệt bởi: Ban biên tập</p>
                     </div>
                 </div>
             }
@@ -194,6 +210,6 @@
     </div>
     @if (!string.IsNullOrWhiteSpace(note))
     {
-        <p class="small" style="margin-top: 14px;">@note</p>
+        <p class="small qa-note">@note</p>
     }
 </section>

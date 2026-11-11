@@ -76,4 +76,39 @@ public class ReadingArticleTests
         Assert.Empty(body.Headings);
         Assert.Equal(1, body.Minutes);
     }
+
+    [Fact]
+    public void Reading_time_follows_shared_alert_list_rate()
+    {
+        Assert.Equal(1, Render("<p>" + string.Join(' ', Enumerable.Repeat("tu", 180)) + "</p>").Minutes);
+        Assert.Equal(2, Render("<p>" + string.Join(' ', Enumerable.Repeat("tu", 360)) + "</p>").Minutes);
+        Assert.Equal(3, Render("<p>" + string.Join(' ', Enumerable.Repeat("tu", 540)) + "</p>").Minutes);
+    }
+
+    [Fact]
+    public void Render_sanitizes_unsafe_markup_while_preserving_structural_classes_and_external_links()
+    {
+        string dirty = """
+            <div class="k-box" data-evil="1" style="color:red"><p>An toàn <a href="https://example.org/hd">tài liệu</a> và <a href="javascript:alert(1)">độc</a></p></div>
+            <div class="k-pocket" data-tick="spoof"><ul><li>Bước một</li></ul></div>
+            <aside class="antc-article-notice">Lưu ý</aside>
+            <img src="javascript:alert(2)" onerror="alert(3)" alt="anh">
+            <script>alert(4)</script>
+            """;
+
+        var body = Render(dirty);
+
+        Assert.DoesNotContain("<script", body.Html);
+        Assert.DoesNotContain("alert(", body.Html);
+        Assert.DoesNotContain("javascript:", body.Html);
+        Assert.DoesNotContain("onerror", body.Html);
+        Assert.DoesNotContain("style=", body.Html);
+        Assert.DoesNotContain("data-evil", body.Html);
+        Assert.DoesNotContain("data-tick=\"spoof\"", body.Html);
+        Assert.Contains("class=\"k-box\"", body.Html);
+        Assert.Contains("class=\"antc-article-notice\"", body.Html);
+        Assert.Contains("data-tick=\"d1-1\"", body.Html);
+        Assert.Contains("target=\"_blank\"", body.Html);
+        Assert.Contains("rel=\"noopener noreferrer\"", body.Html);
+    }
 }

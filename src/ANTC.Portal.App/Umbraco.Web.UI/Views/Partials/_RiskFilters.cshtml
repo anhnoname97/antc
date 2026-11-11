@@ -4,7 +4,7 @@
 <form class="risk-tools" method="get" action="@Model.Action" role="search" data-risk-filters>
     <label class="risk-tools__label" for="risk-q">Bạn muốn tìm tình huống nào?</label>
     <div class="risk-search">
-        <input type="search" id="risk-q" name="q" value="@Model.Query.Text" maxlength="120" placeholder="Ví dụ: việc làm online, đặt cọc, người lạ đến nhà." autocomplete="off" enterkeyhint="search">
+        <input type="search" id="risk-q" name="q" value="@Model.Query.Text" maxlength="120" placeholder="Ví dụ: việc làm trên mạng, đặt cọc, người lạ đến nhà." autocomplete="off" enterkeyhint="search">
         <button type="submit" class="risk-btn risk-btn--primary">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "search")<span>Tìm</span></button>
     </div>
     <p class="risk-small">Không nhập số điện thoại, số tài khoản hoặc tên riêng.</p>

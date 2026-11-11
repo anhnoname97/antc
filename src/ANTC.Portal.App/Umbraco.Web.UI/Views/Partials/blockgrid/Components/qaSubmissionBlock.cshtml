@@ -19,7 +19,7 @@
     if (string.IsNullOrWhiteSpace(warn2)) { warn2 = "Đừng gửi họ tên, số điện thoại, ảnh giấy tờ của người khác."; }
 
     var warn3 = guidelinesBlock?.Value<string>("info");
-    if (string.IsNullOrWhiteSpace(warn3)) { warn3 = "Giai đoạn đầu chưa nhận tệp đính kèm và ảnh chụp màn hình."; }
+    if (string.IsNullOrWhiteSpace(warn3)) { warn3 = "Website không nhận tệp đính kèm và ảnh chụp màn hình."; }
 
     var contentLabel = !string.IsNullOrWhiteSpace(T("contentLabel")) ? T("contentLabel") : "Câu hỏi hoặc kiến nghị của bạn";
     var placeholder = !string.IsNullOrWhiteSpace(T("placeholder")) ? T("placeholder") : "Ví dụ: Tôi được mời làm cộng tác viên, họ bảo nạp 300 nghìn để mở tài khoản. Có nên nạp không?";
@@ -47,7 +47,7 @@
 
 <form class="box form" data-form="ask" novalidate>
     @* Honeypot chống bot rác *@
-    <div class="hp" aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;">
+    <div class="hp" aria-hidden="true">
         <label>Để trống ô này<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
     </div>
 
@@ -74,7 +74,7 @@
     <div id="qcontactwrap" hidden>
         <label class="lbl" for="qcontact">@contactLabel</label>
         <input type="text" id="qcontact" name="contact" autocomplete="off">
-        <p class="small" style="margin-top: 6px;">@contactHint</p>
+        <p class="small qa-hint">@contactHint</p>
     </div>
 
     <label class="check one" for="qok">
@@ -109,7 +109,7 @@
 </form>
 
 @* Trạng thái đã gửi thành công *@
-<section class="sec" id="qa-sent" hidden aria-labelledby="h-sent" style="margin-top: 24px;">
+<section class="sec qa-sent" id="qa-sent" hidden aria-labelledby="h-sent">
     <header class="pageh">
         <p class="eyebrow">Hỏi – Đáp</p>
         <div class="pageh-title">
@@ -118,7 +118,7 @@
                     <path d="m5 12.5 4.5 4.5L19 7.5"/>
                 </svg>
             </span>
-            <h1 id="h-sent" tabindex="-1">@successTitle</h1>
+            <h2 id="h-sent" tabindex="-1">@successTitle</h2>
         </div>
         <p class="lead">@successDescription</p>
     </header>
@@ -126,12 +126,17 @@
     <div class="note r">
         <b>Đang có chuyện gấp? Đừng chờ câu trả lời.</b>
         <p>Nếu bạn đang bị giục chuyển tiền, vừa chuyển tiền, hoặc đang bị đe dọa, hãy làm ngay:</p>
-        <div class="btnrow" style="margin-top: 6px;">
-            <a href="/khan-cap" class="btn red sm">Tôi đang bị đe dọa</a>
-            <a href="/khan-cap" class="btn red sm">Tôi vừa chuyển tiền hoặc giao hàng</a>
-            <a href="/khan-cap" class="btn red sm">Có người đang thúc tôi làm ngay</a>
+        <div class="btnrow">
+            <a href="/hay-tu-kiem-tra/huong-dan/co-nguoi-dang-de-doa-ep-buoc-ban/" class="btn red sm">Tôi đang bị đe dọa</a>
+            <a href="/hay-tu-kiem-tra/huong-dan/ban-vua-chuyen-tien-hoac-giao-hang/" class="btn red sm">Tôi vừa chuyển tiền hoặc giao hàng</a>
+            <a href="/hay-tu-kiem-tra/huong-dan/co-nguoi-dang-thuc-ban-lam-ngay/" class="btn red sm">Có người đang thúc tôi làm ngay</a>
         </div>
-        <a href="/khan-cap" class="more">Xem tất cả lựa chọn &rarr;</a>
+        <a href="/khan-cap/" class="more">
+            Xem tất cả lựa chọn
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m9 5 7 7-7 7"/>
+            </svg>
+        </a>
     </div>
 
     <div class="note g">
@@ -139,7 +144,7 @@
         <p>@legal Mang theo tin nhắn, biên lai và mọi bằng chứng đang có.</p>
     </div>
 
-    <div class="btnrow" style="margin-top: 14px;">
+    <div class="btnrow">
         <button type="button" class="btn ghost" id="btn-back-qa">
             <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M15 5 8 12l7 7"/>

@@ -1,5 +1,6 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Strings
+@inject Umbraco.Plugin.Custom.Core.Articles.ArticleHtmlSanitizer Sanitizer
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
     var topic = Model.Value<IPublishedContent>("topic");
@@ -15,7 +16,7 @@
 <article class="self-check-page site-chrome-wrap">
     <nav class="self-check-crumbs" aria-label="Bạn đang ở"><ol><li><a href="/">Trang chủ</a></li><li><a href="/khan-cap/">Khẩn cấp</a></li><li aria-current="page">@Model.Value("title")</li></ol></nav>
     <header class="self-check-heading"><h1>@Model.Value("title")</h1><p>@Model.Value("description")</p></header>
-    <section class="self-check-section">@(Model.Value<IHtmlEncodedString>("summary"))</section>
+    <section class="self-check-section">@Html.Raw(Sanitizer.Clean(Model.Value<IHtmlEncodedString>("summary")?.ToHtmlString() ?? ""))</section>
     @await Html.PartialAsync("~/Views/Partials/_WizardTactics.cshtml", Model)
     @foreach (var group in new[] { (Alias: "warningSigns", Heading: "Dấu hiệu cần chú ý"), (Alias: "actionsNow", Heading: "Việc cần làm ngay"), (Alias: "avoidActions", Heading: "Việc không nên làm") })
     {

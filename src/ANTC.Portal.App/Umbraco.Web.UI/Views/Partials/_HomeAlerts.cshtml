@@ -1,0 +1,43 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.PublishedCache
+@using Umbraco.Cms.Core.Services.Navigation
+@using Umbraco.Plugin.Custom.Core.PortalV2.Home
+@using Umbraco.Plugin.Custom.Core.PortalV2.Schema
+@using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
+@inject IDocumentNavigationQueryService Navigation
+@inject IPublishedContentCache PublishedCache
+@inject RiskContentCache RiskCache
+@{
+    var title = Model.Value<string>("alertTitle");
+    var moreText = Model.Value<string>("alertMoreText");
+    var today = DateTime.Today;
+    // Even in preview, a draft selection must not make an unpublished alert visible here.
+    IPublishedContent? Published(Guid key) => PublishedCache.GetById(false, key);
+    var candidates = RiskAlertContent.Alerts(RiskSnapshot.Read(RiskCache, Published, Navigation))
+        .Where(node => EmergencyContent.PublicUrl(node) is not null).Select(RiskAlertContent.Card);
+    var pinned = RiskAlertContent.Picked(Model, "pinnedAlert").FirstOrDefault();
+    var pinnedUrl = pinned is null ? null : EmergencyContent.PublicUrl(Published(pinned.Key));
+    var cards = HomeAlerts.Select(candidates, Model.Value<int?>("alertCount") ?? 3, pinnedUrl, today);
+    var listing = Published(RiskStructure.Pages.Single(page => page.Alias == "alertListPage").Key);
+    var moreUrl = EmergencyContent.PublicUrl(listing);
+}
+@if (!string.IsNullOrWhiteSpace(title) && cards.Count > 0)
+{
+    <section class="home-v2 risk-page home-v2-alerts @(Model.Value<bool>("alertsAsGrid") ? "home-v2-alerts--grid" : null)" aria-labelledby="home-alerts-title" data-home-alerts>
+        <div class="site-chrome-wrap home-v2__section">
+            <header class="home-v2__section-heading">
+                <h2 id="home-alerts-title">@if (Model.Value<IPublishedContent>("alertImage") is { } image) { <img class="home-alert-heading-image" src="@image.Url()" alt="" width="44" height="44" loading="lazy" decoding="async"> } else { @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "megaphone") } @title</h2>
+                @if (moreUrl is not null && !string.IsNullOrWhiteSpace(moreText))
+                {
+                    <a class="home-v2__more" href="@moreUrl">@moreText @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a>
+                }
+            </header>
+            <div class="home-alert-cards" data-count="@cards.Count">
+                @foreach (var card in cards)
+                {
+                    @await Html.PartialAsync("~/Views/Partials/_RiskAlertCard.cshtml", new RiskAlertCardView(card, false, false, today))
+                }
+            </div>
+        </div>
+    </section>
+}

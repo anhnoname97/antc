@@ -1,18 +1,25 @@
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Models.PublishedContent
 @model (IEnumerable<BlockListItem>? Items, string CurrentPath, string? LinkClass, bool MarkCurrent)
+@{
+    var requirePublicPage = ViewData["RequirePublicPage"] is true;
+}
 @if (Model.Items is not null)
 {
     foreach (var item in Model.Items)
     {
         var target = item.Content.Value<IPublishedContent>("page")
             ?? item.Content.Value<IPublishedContent>("document");
-        var href = target?.Url();
+        var label = item.Content.Value<string>("label") ?? target?.Name;
+        var href = requirePublicPage ? EmergencyContent.PublicUrl(target) : target?.Url();
         if (string.IsNullOrWhiteSpace(href) || href.StartsWith('#'))
         {
+            if (requirePublicPage && !string.IsNullOrWhiteSpace(label))
+            {
+                <span class="site-footer__pending" data-footer-pending><span>@label</span><small>Đang cập nhật</small></span>
+            }
             continue;
         }
-        var label = item.Content.Value<string>("label") ?? target!.Name;
         var prefix = href.TrimEnd('/');
         var current = string.Equals(Model.CurrentPath.TrimEnd('/'), prefix, StringComparison.OrdinalIgnoreCase)
             || (prefix.Length > 0 && Model.CurrentPath.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase));

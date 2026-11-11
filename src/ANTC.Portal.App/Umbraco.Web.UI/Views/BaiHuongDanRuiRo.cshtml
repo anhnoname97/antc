@@ -1,16 +1,22 @@
-﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using System.Globalization
-@using System.Text.Json.Nodes
 @using Umbraco.Cms.Core.Strings
 @using Umbraco.Plugin.Custom.Core.Content
 @using Umbraco.Plugin.Custom.Core.PortalV2.Editors
 @using Umbraco.Plugin.Custom.Core.PortalV2.RuiRo
 @using Umbraco.Plugin.Custom.Core.PortalV2.Schema
+@inject RiskContentCache RiskCache
+@inject RuiRoDerivation Derivation
+@inject Umbraco.Plugin.Custom.Core.Articles.ArticleHtmlSanitizer Sanitizer
+@inject Umbraco.Cms.Core.Services.Navigation.IDocumentNavigationQueryService Navigation
 @{
     // V2-13i (phần bài): trang "Bài hướng dẫn" của Các rủi ro (riskArticlePage), theo màn lvart của bản dựng v2.
-    // Neo #tactic-{khóa} giữ nguyên để trình hỏi Khẩn cấp vẫn trỏ đúng thủ đoạn.
+    // Neo #tactic-{khóa} giữ nguyên để trình hỏi Khẩn cấp vẫn trỏ đúng thủ đoạn; ?thu-doan=<mã> tô sáng dòng (WEB-04).
+    // Thủ đoạn, đối tượng, kênh, mức độ, bài cùng nhóm, thời gian đọc lấy từ RuiRoDerivation (WEB-01).
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
-    var site = Model.Root();
+    var data = RiskSnapshot.Read(RiskCache, key => Umbraco.Content(key), Navigation);
+    var derived = data.Node(Model.Key) is { } node ? Derivation.Derive(node, data.Nodes) : null;
+    IPublishedContent[] Contents(IEnumerable<RiskNode>? nodes) => (nodes ?? []).Select(data.Content).OfType<IPublishedContent>().ToArray();
     var title = RiskAlertContent.Title(Model);
     var group = RiskStructure.GroupOf(Model.GetProperty("primaryGroup")?.GetSourceValue());
     var groupPage = group is null ? null : Umbraco.Content(group.Key);
@@ -21,53 +27,78 @@
     var number = topic?.Value<int>("topicNumber") ?? 0;
     var reading = topic?.Value<IPublishedContent>("readingArticle");
     var checklist = topic?.Value<IPublishedContent>("checklist");
-    var summary = Model.Value<IHtmlEncodedString>("summary")?.ToHtmlString();
-    var remember = Model.Value<string>("rememberLine")?.Trim();
-    var mustAsk = Model.Value<string>("mustAsk")?.Trim();
+    // WEB-03 (QĐ-054): bốn câu dùng chung lấy từ chuyên đề của bài.
+    string? TopicText(string alias) => topic?.Value<string>(alias)?.Trim() is { Length: > 0 } v ? v : null;
+    var remember = TopicText("rememberLine");
+    var mustAsk = TopicText("mustAsk");
+    var stopWhen = TopicText("stopWhen");
+    var holdWhen = TopicText("holdWhen");
     var signs = RiskAlertContent.Lines(Model, "warningSigns");
     var now = RiskAlertContent.Lines(Model, "actionsNow");
     var avoid = RiskAlertContent.Lines(Model, "avoidActions");
-    var scenarios = Model.Value<InlineListValue>("scenarios") ?? InlineListValue.Empty;
     var references = Model.Value<InlineListValue>("references") ?? InlineListValue.Empty;
     var action = RiskAlertContent.Picked(Model, "actionPage").FirstOrDefault(x => x.TemplateId is > 0);
     var reviewDate = RiskAlertContent.Date(Model, "reviewDate");
-    var reviewer = Model.Value<string>("reviewer")?.Trim();
-    var version = Model.Value<string>("version")?.Trim();
-    var tactics = site.Descendants().Where(x => x.ContentType.Alias == "tacticItem" && x.Value<bool>("isActive")
-        && RiskAlertContent.Picked(x, "containingArticle").Any(a => a.Key == Model.Key)).OrderBy(x => x.SortOrder).ToArray();
-    // Ai thuong bi nham den: doi tuong co thu doan cua bai (giong RuiRoDerivation va grpOfLv cua ban dung v2)
-    var tacticKeys = tactics.Select(x => x.Key).ToHashSet();
-    var audiences = site.Descendants().Where(x => x.ContentType.Alias == "audienceItem"
-        && RiskAlertContent.Picked(x, "tactics").Any(t => tacticKeys.Contains(t.Key))).OrderBy(x => x.SortOrder).ToArray();
-    var channels = tactics.SelectMany(x => RiskAlertContent.Picked(x, "channels")).DistinctBy(x => x.Key).ToArray();
-    var levels = tactics.Select(RiskAlertContent.Level).Where(x => x.Length > 0).ToArray();
-    var level = AlertList.Levels.Select(x => x.Code).FirstOrDefault(levels.Contains) ?? "";
+    // Anh dau bai (LVIMG cua ban dung): truong illustration cua composition, hien sau phan dau trang nhu trang canh bao.
+    var image = Model.Value<IPublishedContent>("illustration");
+    var tactics = Contents(derived?.Tactics);
+    var audiences = Contents(derived?.Audiences);
+    var channels = Contents(derived?.Channels);
+    var level = AlertList.LevelCode(derived?.Level);
     var tone = AlertList.LevelTone(level);
-    var others = site.Descendants().Where(x => x.ContentType.Alias == "riskArticlePage" && x.Key != Model.Key && x.TemplateId is > 0
-        && RiskAlertContent.IsKind(x, "Bài hướng dẫn") && group is not null
-        && RiskStructure.GroupOf(x.GetProperty("primaryGroup")?.GetSourceValue())?.Key == group.Key).ToArray();
-    string Plain(string? html) => System.Text.RegularExpressions.Regex.Replace(html ?? "", "<[^>]+>", " ");
-    var minutes = AlertList.ReadingMinutes(string.Join(' ', new[] { Plain(summary), remember, mustAsk }.Concat(signs).Concat(now).Concat(avoid)
-        .Concat(scenarios.Select(x => x.GetString("tacticName") + " " + x.Data["steps"]?.ToJsonString()))));
-    IReadOnlyList<string> Steps(InlineListRow row) => row.Data["steps"] switch
-    {
-        JsonArray list => list.Select(x => x?.ToString().Trim() ?? "").Where(x => x.Length > 0).ToArray(),
-        JsonValue v when v.TryGetValue(out string? s) => s.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-        _ => []
-    };
+    var related = Contents(derived?.Articles.Where(x => x.Key != Model.Key)).Where(x => x.TemplateId is > 0).ToArray();
+    var others = related.Where(x => data.Node(x.Key)?.IsKind("huongDan") == true).ToArray();
+    var extras = related.Where(x => data.Node(x.Key)?.IsKind("docThem") == true).Take(3).ToArray();
+    // Ban chinh thuc 10/11/2026 (lvBody): Kich ban, bang "Vi sao...", Ba cach xu ly, Neu da lo lay tu bai doc chuyen de.
+    var parts = RiskReadingParts.Parse(reading?.Value<IHtmlEncodedString>("readingBody")?.ToHtmlString());
+    // Uu tien o cua bai huong dan, o trong thi lay tu bai doc chuyen de:
+    // - "Tom tat" (summary): cac doan dau phan Kich ban; tieu de muc van lay tu bai doc (form chua co o tieu de).
+    // - "Viec can lam ngay" (actionsNow): dong 1 la noi dung khung "Chuyen dang xay ra ngay luc nay?", dong 2 la "Lam ngay" khi phai dung.
+    // WEB-12: tom tat qua bo loc HTML truoc khi xuat.
+    var summary = Sanitizer.Clean(Model.Value<IHtmlEncodedString>("summary")?.ToHtmlString() ?? "");
+    string Plain(string? html) => System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(html ?? "", "<[^>]+>", " "));
+    var hasSummary = !string.IsNullOrWhiteSpace(Plain(summary));
+    IReadOnlyList<string> urgentText = now.Count > 0 ? [now[0]] : parts.UrgentText;
+    var urgentTitle = parts.UrgentTitle ?? (now.Count > 0 ? "Chuyện đang xảy ra ngay lúc này?" : null);
+    var stopNow = (now.Count > 1 ? now[1] : null) ?? parts.Decision("DỪNG", "Làm ngay");
+    var stopWhenText = stopWhen ?? parts.Decision("DỪNG", "Khi nào");
+    var holdWhenText = holdWhen ?? parts.Decision("HOÃN", "Khi nào");
+    var holdNow = parts.Decision("HOÃN", "Làm ngay");
+    // Ban dung: Cong cu "Truoc khi dau tu, vay" cho chuyen de 3, 4; con lai "Truoc khi chuyen tien".
+    var tool = number is 3 or 4
+        ? (Url: AntcPublicPaths.GetPath("truocKhiDauTuVayPage", null), Name: "Công cụ: Trước khi đầu tư, vay", Icon: "chart")
+        : (Url: AntcPublicPaths.GetPath("truocKhiChuyenTienPage", null), Name: "Công cụ: Trước khi chuyển tiền", Icon: "money");
+    var readingName = reading is null ? null : number > 0 ? $"Bài đọc Chuyên đề {number}" : RiskAlertContent.Title(reading);
+    // WEB-04: chỉ nhận mã có trong danh sách thủ đoạn của bài; giá trị khác bỏ qua.
+    var targetCode = Context.Request.Query["thu-doan"].ToString().Trim();
     string[] numberWords = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín", "mười"];
     var signCount = signs.Count < numberWords.Length ? numberWords[signs.Count] + " việc" : "những việc";
     string Filter(string name, string code) => $"{groupPath}?{name}={Uri.EscapeDataString(code)}";
+    // Thoi gian doc tinh tren chu cua ca trang, nhu minutes(L.body) cua ban dung.
+    var minutes = AlertList.ReadingMinutes(string.Join(" ", new[] { remember, mustAsk, holdWhenText, parts.FirstHeading, urgentTitle, hasSummary ? Plain(summary) : null, stopWhenText, stopNow, holdNow, parts.NoFault, parts.RecoveryTitle, parts.RecoveryText }
+        .Concat(audiences.Select(x => x.Name)).Concat(channels.Select(x => x.Name)).Concat(signs).Concat(hasSummary ? [] : parts.FirstParagraphs)
+        .Concat(tactics.Select(x => x.Name)).Concat(parts.MythRows.SelectMany(x => new[] { x.Left, x.Right })).Concat(urgentText)
+        .Concat(parts.Cases.SelectMany(x => new[] { x.Title, x.Text })).Concat(avoid)
+        .Concat(tactics.Select(x => RiskAlertContent.LevelName(RiskAlertContent.Level(x))))
+        .Concat(others.Concat(extras).Select(x => RiskAlertContent.Title(x) + " Bài hướng dẫn"))
+        .Append(image is null ? null : "Ảnh minh họa tạo bằng AI")
+        .Concat(tactics.Where(x => x.Value<IPublishedContent>("illustration") is not null).Select(x => x.Name + " Ảnh minh họa tạo bằng AI")).Append(checklist is null ? null : "Kiểm tra: " + RiskAlertContent.Title(checklist)).Append(tool.Name)
+        .Append(reading is null ? null : $"{readingName}: {RiskAlertContent.Title(reading)} Thử 1 câu của chuyên đề này Trang này tóm lại {readingName} do website biên soạn.")
+        .Append(reviewDate is { } d ? $"Rà soát gần nhất: {d.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)}" : null)
+        // Tieu de muc va nhan co dinh tren trang
+        .Append("Tóm tắt Nhớ một câu Câu hỏi phải hỏi Ai thường bị nhắm đến Kênh tiếp cận Dấu hiệu Không chờ dấu hiệu thứ hai. Gặp một trong năm việc này thì chặn ngay việc đó, rồi mới tính tiếp. Cần hoãn lại để kiểm chứng khi Kịch bản Thủ đoạn thường gặp Vì sao người cẩn thận vẫn quyết định sai Điều nhiều người nghĩ Thực tế Việc cần làm ngay Khi phải dừng Làm ngay: Khi cần hoãn Làm ngay: Nếu đã lỡ Cảnh giác với người hứa lấy lại tiền Xem việc cần làm ngay Tự kiểm tra Không nên làm Bài liên quan Đọc thêm")));
     var sections = new List<(string Id, string Name)>();
-    if (!string.IsNullOrWhiteSpace(Plain(summary)) || !string.IsNullOrEmpty(remember) || !string.IsNullOrEmpty(mustAsk) || audiences.Length > 0 || channels.Length > 0) { sections.Add(("lv-sum", "Tóm tắt")); }
-    if (signs.Count > 0) { sections.Add(("lv-sign", "Dấu hiệu")); }
-    if (scenarios.Count > 0 || tactics.Length > 0) { sections.Add(("lv-how", "Kịch bản")); }
-    if (now.Count > 0 || action is not null) { sections.Add(("lv-now", "Việc cần làm ngay")); }
+    if (!string.IsNullOrEmpty(remember) || !string.IsNullOrEmpty(mustAsk) || audiences.Length > 0 || channels.Length > 0) { sections.Add(("lv-sum", "Tóm tắt")); }
+    if (signs.Count > 0 || holdWhenText is not null) { sections.Add(("lv-sign", "Dấu hiệu")); }
+    if (parts.FirstHeading is not null || hasSummary || tactics.Length > 0 || parts.MythRows.Count > 0) { sections.Add(("lv-how", "Kịch bản")); }
+    sections.Add(("lv-now", "Việc cần làm ngay"));
     if (avoid.Count > 0) { sections.Add(("lv-no", "Không nên làm")); }
-    var hasRelated = reading?.TemplateId is > 0 || checklist?.TemplateId is > 0 || others.Length > 0;
+    var hasRelated = checklist?.TemplateId is > 0 || tool.Url is not null || others.Length > 0 || extras.Length > 0;
     if (hasRelated) { sections.Add(("lv-rel", "Bài liên quan")); }
-    var hasSource = references.Count > 0 || !string.IsNullOrEmpty(reviewer) || reviewDate is not null;
-    if (hasSource) { sections.Add(("lv-src", "Nguồn")); }
+    // Muc "Doc them": bai doc chuyen de, thu 1 cau, cau tom lai, ngay ra soat (bo dong tham dinh).
+    var webRefs = references.Where(r => Uri.TryCreate(r.GetString("url")?.Trim(), UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToArray();
+    var hasSource = reading?.TemplateId is > 0 || webRefs.Length > 0 || reviewDate is not null;
+    if (hasSource) { sections.Add(("lv-src", "Đọc thêm")); }
 }
 @section Head {
     <link rel="stylesheet" href="~/assets/css/self-check.css" asp-append-version="true">
@@ -81,7 +112,7 @@
     <nav class="self-check-crumbs" aria-label="Bạn đang ở">
         <ol>
             <li><a href="/">Trang chủ</a></li>
-            <li><a href="/cac-rui-ro/">Các rủi ro</a></li>
+            <li><a href="/cac-rui-ro/">RỦI RO</a></li>
             @if (groupPage is not null && groupPath is not null) { <li><a href="@groupPath">@(tabs.FirstOrDefault(x => x.Current)?.Name ?? groupPage.Name)</a></li> }
             <li aria-current="page">@title</li>
         </ol>
@@ -103,6 +134,11 @@
                 }
             </p>
         </header>
+
+        @if (image is not null)
+        {
+            <figure class="risk-figure"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"><figcaption>Ảnh minh họa tạo bằng AI</figcaption></figure>
+        }
 
         <div class="risk-pagetools" role="group" aria-label="Công cụ cho trang này">
             <button type="button" class="tbtn" data-reading-speak hidden aria-pressed="false">
@@ -134,7 +170,6 @@
                     <h2 id="lv-sum-h">Tóm tắt</h2>
                     @if (!string.IsNullOrEmpty(remember)) { <div class="risk-remember"><span class="risk-kicker">Nhớ một câu</span><p>@remember</p></div> }
                     @if (!string.IsNullOrEmpty(mustAsk)) { <div class="risk-mustask"><span class="risk-kicker">Câu hỏi phải hỏi</span><p>@mustAsk</p></div> }
-                    @if (!string.IsNullOrWhiteSpace(Plain(summary))) { <div class="risk-rte">@Html.Raw(summary)</div> }
                     @if (audiences.Length > 0)
                     {
                         <h3>Ai thường bị nhắm đến</h3>
@@ -148,12 +183,16 @@
                 </section>
             }
 
-            @if (signs.Count > 0)
+            @if (sections.Any(x => x.Id == "lv-sign"))
             {
                 <section class="risk-section" id="lv-sign" aria-labelledby="lv-sign-h">
                     <h2 id="lv-sign-h">Dấu hiệu</h2>
-                    <p class="risk-small">Không chờ dấu hiệu thứ hai. Gặp một trong @signCount này thì chặn ngay việc đó, rồi mới tính tiếp.</p>
-                    <ul class="risk-signs">@foreach (var sign in signs) { <li>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "stop")<span>@sign</span></li> }</ul>
+                    @if (signs.Count > 0)
+                    {
+                        <p class="risk-small">Không chờ dấu hiệu thứ hai. Gặp một trong @signCount này thì chặn ngay việc đó, rồi mới tính tiếp.</p>
+                        <ul class="risk-signs">@foreach (var sign in signs) { <li>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "stop")<span>@sign</span></li> }</ul>
+                    }
+                    @if (holdWhenText is not null) { <div class="risk-note"><b>Cần hoãn lại để kiểm chứng khi</b><p>@holdWhenText</p></div> }
                 </section>
             }
 
@@ -161,11 +200,14 @@
             {
                 <section class="risk-section" id="lv-how" aria-labelledby="lv-how-h">
                     <h2 id="lv-how-h">Kịch bản</h2>
-                    @foreach (var row in scenarios)
+                    @if (parts.FirstHeading is not null)
                     {
-                        var steps = Steps(row);
-                        if (row.GetString("tacticName") is { Length: > 0 } name) { <h3>@name</h3> }
-                        if (steps.Count > 0) { <ol class="risk-steps">@foreach (var step in steps) { <li><span>@step</span></li> }</ol> }
+                        <h3>@parts.FirstHeading</h3>
+                    }
+                    @if (hasSummary) { <div class="risk-rte">@Html.Raw(summary)</div> }
+                    else if (parts.FirstHeading is not null)
+                    {
+                        foreach (var para in parts.FirstParagraphs) { <p>@para</p> }
                     }
                     @if (tactics.Length > 0)
                     {
@@ -175,29 +217,66 @@
                             {
                                 var tl = RiskAlertContent.Level(tactic);
                                 var tt = AlertList.LevelTone(tl);
-                                <li id="tactic-@tactic.Key.ToString("N")" tabindex="-1">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "alert")<span>@tactic.Name</span>
+                                var hit = targetCode.Length > 0 && string.Equals(tactic.Value<string>("code")?.Trim(), targetCode, StringComparison.OrdinalIgnoreCase);
+                                <li id="tactic-@tactic.Key.ToString("N")" tabindex="-1" class="@(hit ? "is-hit" : null)" aria-current="@(hit ? "true" : null)">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "alert")<span>@tactic.Name</span>
                                     @if (tl.Length > 0) { <span class="risk-level risk-level--@tt">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", tt == "d" ? "stop" : tt == "h" ? "clock" : "info")<span>@RiskAlertContent.LevelName(tl)</span></span> }
                                 </li>
                             }
                         </ul>
+                        @* Ban chinh thuc (TACIMG): luoi anh cua cac thu doan co anh; mot anh thi rong ca cot. *@
+                        var gallery = tactics.Select(x => (Tactic: x, Image: x.Value<IPublishedContent>("illustration"))).Where(x => x.Image is not null).ToArray();
+                        if (gallery.Length > 0)
+                        {
+                            <div class="risk-tgal@(gallery.Length == 1 ? " risk-tgal--one" : "")">
+                                @foreach (var g in gallery)
+                                {
+                                    <figure class="risk-tfig"><img src="@g.Image!.Url()" alt="@g.Tactic.Value("illustrationAlt")" loading="lazy" decoding="async"><figcaption><span>@g.Tactic.Name</span><span>Ảnh minh họa tạo bằng AI</span></figcaption></figure>
+                                }
+                            </div>
+                        }
+                    }
+                    @if (parts.MythRows.Count > 0)
+                    {
+                        <h3>Vì sao người cẩn thận vẫn quyết định sai</h3>
+                        <div class="risk-tblwrap">
+                            <table class="risk-dtbl">
+                                <thead><tr><th scope="col">@(parts.MythHead?.Left ?? "Điều nhiều người nghĩ")</th><th scope="col">@(parts.MythHead?.Right ?? "Thực tế")</th></tr></thead>
+                                <tbody>@foreach (var row in parts.MythRows) { <tr><td>@row.Left</td><td>@row.Right</td></tr> }</tbody>
+                            </table>
+                        </div>
                     }
                 </section>
             }
 
-            @if (sections.Any(x => x.Id == "lv-now"))
-            {
-                <section class="risk-section" id="lv-now" aria-labelledby="lv-now-h">
-                    <h2 id="lv-now-h">Việc cần làm ngay</h2>
-                    @if (now.Count > 0)
+            <section class="risk-section" id="lv-now" aria-labelledby="lv-now-h">
+                <h2 id="lv-now-h">Việc cần làm ngay</h2>
+                @if (urgentTitle is not null && urgentText.Count > 0)
+                {
+                    <div class="risk-now"><b>@urgentTitle</b>@foreach (var para in urgentText) { <p>@para</p> }</div>
+                }
+                @if (stopWhenText is not null || stopNow is not null)
+                {
+                    <div class="risk-cond"><b>Khi phải dừng</b><ul>
+                        @if (stopWhenText is not null) { <li>@stopWhenText</li> }
+                        @if (stopNow is not null) { <li><b>Làm ngay:</b> @stopNow</li> }
+                    </ul></div>
+                }
+                @if (holdNow is not null) { <div class="risk-cond"><b>Khi cần hoãn</b><ul><li><b>Làm ngay:</b> @holdNow</li></ul></div> }
+                @if (parts.NoFault is not null || parts.Cases.Count > 0)
+                {
+                    <h3>Nếu đã lỡ</h3>
+                    @if (parts.NoFault is not null) { <p><b>@parts.NoFault</b></p> }
+                    @if (parts.Cases.Count > 0)
                     {
-                        <div class="risk-now">@foreach (var line in now) { <p>@line</p> }</div>
+                        <ol class="risk-steps">@foreach (var c in parts.Cases) { <li><span>@if (c.Title.Length > 0) { <strong>@c.Title</strong> }@(c.Title.Length > 0 ? " " : "")@c.Text</span></li> }</ol>
                     }
-                    <div class="risk-actions">
-                        <a class="risk-btn risk-btn--stop" href="@(action?.Url() ?? "/khan-cap/")">Xem việc cần làm ngay</a>
-                        @if (checklist?.TemplateId is > 0) { <a class="risk-btn" href="@checklist.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")Tự kiểm tra bằng checklist</a> }
-                    </div>
-                </section>
-            }
+                }
+                @if (parts.RecoveryText is not null) { <div class="risk-note risk-note--r"><b>Cảnh giác với người hứa lấy lại tiền</b><p>@parts.RecoveryText</p></div> }
+                <div class="risk-actions">
+                    <a class="risk-btn risk-btn--stop" href="@(action?.Url() ?? "/khan-cap/")">Xem việc cần làm ngay</a>
+                    @if (checklist?.TemplateId is > 0) { <a class="risk-btn" href="@checklist.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")Tự kiểm tra</a> }
+                </div>
+            </section>
 
             @if (avoid.Count > 0)
             {
@@ -215,15 +294,19 @@
                 <ul class="risk-links">
                     @if (checklist?.TemplateId is > 0)
                     {
-                        <li><a href="@checklist.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")<span>Checklist: @RiskAlertContent.Title(checklist)<small>Danh sách kiểm tra</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+                        <li><a href="@checklist.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "quiz")<span>Kiểm tra: @RiskAlertContent.Title(checklist)</span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
                     }
-                    @if (reading?.TemplateId is > 0)
+                    @if (tool.Url is not null)
                     {
-                        <li><a href="@reading.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "book")<span>@RiskAlertContent.Title(reading)<small>Bài đọc chuyên đề</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+                        <li><a href="@tool.Url">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", tool.Icon)<span>@tool.Name</span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
                     }
                     @foreach (var other in others)
                     {
                         <li><a href="@other.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "doc")<span>@RiskAlertContent.Title(other)<small>Bài hướng dẫn</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+                    }
+                    @foreach (var extra in extras)
+                    {
+                        <li><a href="@extra.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "doc")<span>@RiskAlertContent.Title(extra)<small>Bài đọc thêm</small></span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
                     }
                 </ul>
             </section>
@@ -232,22 +315,24 @@
         @if (hasSource)
         {
             <section class="risk-section" id="lv-src" aria-labelledby="lv-src-h">
-                <h2 id="lv-src-h">Nguồn</h2>
-                @if (references.Count > 0)
+                <h2 id="lv-src-h">Đọc thêm</h2>
+                <ul class="risk-links">
+                    @if (reading?.TemplateId is > 0)
+                    {
+                        <li><a href="@reading.Url()">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "book")<span>@readingName: @RiskAlertContent.Title(reading)</span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+                    }
+                    @foreach (var r in webRefs)
+                    {
+                        <li><a href="@r.GetString("url")!.Trim()" rel="noopener" target="_blank">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "doc")<span>@r.GetString("title")@if (r.GetString("organization") is { Length: > 0 } org) { <small>@org</small> }</span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+                    }
+                    @{
+                        var sampleUrl = (AntcPublicPaths.GetPath("thiThuPage", null) ?? "/thu-suc/") + (number > 0 ? $"?cd={number}" : "");
+                    }
+                    <li><a href="@sampleUrl">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-help")<span>Thử 1 câu của chuyên đề này</span>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a></li>
+                </ul>
+                @if (reading?.TemplateId is > 0)
                 {
-                    <ul class="risk-refs">
-                        @foreach (var r in references)
-                        {
-                            var name = r.GetString("title") ?? "";
-                            var org = r.GetString("organization");
-                            var url = Uri.TryCreate(r.GetString("url")?.Trim(), UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps ? u.AbsoluteUri : null;
-                            <li>@if (url is not null) { <a href="@url" rel="noopener" target="_blank">@name</a> } else { <span>@name</span> }@if (!string.IsNullOrEmpty(org)) { <text> · @org</text> }</li>
-                        }
-                    </ul>
-                }
-                @if (!string.IsNullOrEmpty(reviewer) || !string.IsNullOrEmpty(version))
-                {
-                    <p class="risk-small">@(string.IsNullOrEmpty(version) ? "" : $"Bản {version}. ")@(string.IsNullOrEmpty(reviewer) ? "" : $"Thẩm định chuyên môn: {reviewer}.")</p>
+                    <p class="risk-small">Trang này tóm lại @readingName do website biên soạn.</p>
                 }
                 @if (reviewDate is { } rd) { <p class="risk-small">Rà soát gần nhất: @rd.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)</p> }
             </section>

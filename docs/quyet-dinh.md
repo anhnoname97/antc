@@ -503,7 +503,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 
 ### QĐ-050 · Portal v2: mục thứ hai gọi là "Hãy tự kiểm tra"
 
-- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Ngày: 2026-11-03 · Người xác nhận: anhnn · Trạng thái: Thay bằng QĐ-057 (tên gọi)
 - Phạm vi: menu chính, trang chủ, trang `congCuPage` và các trang con, tên loại nội dung trong backoffice. Thay phần tên gọi trong QĐ-033
 - Vấn đề: đặc tả của khách gọi mục thứ hai là "Công cụ & checklist"; bản dựng mới `antoantaichinh_co_anh_nen_sang.html` đổi thành "Hãy tự kiểm tra".
 - Quyết định: dùng cách gọi của bản dựng mới.
@@ -595,7 +595,7 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 
 ### QĐ-056 · Portal v2 Khẩn cấp: trình hỏi theo bản dựng, website tự lấy thay ma trận
 
-- Ngày: 2026-11-04 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Ngày: 2026-11-04 · Người xác nhận: anhnn · Trạng thái: Thay một phần bởi QĐ-057 (lối vào chính của Khẩn cấp)
 - Phạm vi: `wizardPage`, `tacticItem`, `khanCapPage`; dịch vụ tính kết quả trình hỏi, view Khẩn cấp và trình hỏi. Thay QĐ-034
 - Vấn đề: thiết kế đang dùng ma trận tình huống tự gõ (QĐ-034: hàng là tình huống, biên tập viên gõ mức độ, dấu hiệu, việc cần làm cho từng hàng). Trình hỏi của bản dựng `mockup/antoantaichinh_v2.html` không có ma trận: mức độ lấy từ loại của lựa chọn, "Tình huống gần giống" là các thủ đoạn trong Danh mục, "Việc cần làm ngay" là bước của trang Việc cần làm. Ô "Tình huống điển hình" của Khẩn cấp trùng với công tắc "Ẩn khỏi danh sách tình huống" của từng trang Việc cần làm.
 - Quyết định: làm theo bản dựng, cái gì suy ra được thì website tự lấy (cùng nguyên tắc QĐ-054).
@@ -606,3 +606,23 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
   - (5) Bỏ `khanCapPage.typicalSituations`: website lấy mọi trang Việc cần làm không bật "Ẩn khỏi danh sách tình huống", theo thứ tự kéo ở Quản lý nội dung › Việc cần làm. Thêm `khanCapPage.principlesTitle`, `.principlesNote` cho khối "Bốn việc không làm khi nghi ngờ" (bốn việc lấy từ Cài đặt website).
 - Lý do: ít ô nhập; trình hỏi, thủ đoạn và trang Việc cần làm không lệch nhau; giống bản dựng.
 - Ảnh hưởng: sửa Phụ lục A (`wizardPage`, `tacticItem`, `khanCapPage`), thêm danh sách cố định "Loại lựa chọn trình hỏi"; bỏ việc làm editor ma trận (V2-07c, V2-07d), V2-07b đổi thành dịch vụ tính kết quả; `wizard-cases.json` sinh lại theo cách tính mới.
+
+### QĐ-057 · Portal v2: làm theo bản chính thức ngày 10/11/2026
+
+- Ngày: 2026-11-10 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: toàn bộ giao diện, câu chữ, đường dẫn và cấu trúc nội dung của portal-v2. Thay mọi bản dựng làm mẫu trước đó (`docs/ban-dung-v2/…`, `antoantaichinh_co_anh_nen_sang.html`, `PORTAL-V2/mockup/antoantaichinh_v2.html`)
+- Vấn đề: khách gửi bản chính thức `docs/portal-final/` (README, `index.html`, `bai-viet.js`, mã nguồn `nguon/`). Bản này khác bản v2 mà portal-v2 đang theo: thêm công cụ chọn tình huống (82 tình huống, 12 nhóm), Kiến thức nền tảng (157 bài), ngân hàng câu hỏi doanh nghiệp (78 câu); đổi tên mục (KHẨN CẤP, CÔNG CỤ KIỂM TRA, RỦI RO, CẢNH BÁO; "kiểm tra" thay "checklist"); gỡ dải bản dựng thử, `noindex`, đơn vị vận hành, tài trợ, Thiên Lộc, nhãn dự thảo, nhãn nguồn cảnh báo.
+- Quyết định: làm theo bản chính thức `docs/portal-final/`. Bản v2 cũ bỏ, không còn là mẫu. Mọi quyết định trước ghi "theo bản dựng" nay hiểu là theo bản chính thức; chỗ bản chính thức khác thì bản chính thức thắng.
+  - Tên mục và đường dẫn theo bản chính thức (thay tên gọi của QĐ-050).
+  - Nút "Chuyện gì đây???" mở công cụ chọn tình huống; trình hỏi 3 câu (QĐ-056) giữ làm lối phụ như bản chính thức.
+- Lý do: bản chính thức là bản khách phát hành; bản v2 đã bỏ.
+- Ảnh hưởng: sửa view, chân trang, đầu trang, cài đặt website và nội dung uSync theo bản chính thức; thiết kế thêm mô hình nội dung cho tình huống, nhóm tình huống, kho bài Kiến thức nền tảng và phần thi doanh nghiệp; rà lại các task V2 chưa làm.
+
+### QĐ-058 · Portal v2: Góp ý và gửi câu hỏi Hỏi – Đáp dùng thư điện tử (mailto)
+
+- Ngày: 2026-11-10 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: trang Góp ý, phần gửi câu hỏi ở Hỏi – Đáp (`hoiDapPage`, `qa-submission.js`, `gopyPage`), Cài đặt website
+- Vấn đề: bản chính thức (`docs/portal-final/README.md` › "Ba việc người quản trị cần làm" › 1) gửi qua ứng dụng thư của người dùng (`ATTC_MAIL`); chưa có hộp thư thì ghi "nơi nhận sẽ được công bố tại trang này" và không bao giờ báo "đã gửi". Portal-v2 đang có API gửi câu hỏi.
+- Quyết định: làm theo bản chính thức, dùng `mailto`. Hộp thư nhận do quản trị điền ở Cài đặt website; để trống thì hiện câu "nơi nhận sẽ được công bố".
+- Lý do: theo bản chính thức (QĐ-057); website không lưu dữ liệu người gửi lâu dài.
+- Ảnh hưởng: biểu mẫu Góp ý và gửi câu hỏi không gọi API nữa; thêm trường hộp thư nhận ở Cài đặt website. Phần hiển thị câu trả lời đã công bố ở Hỏi – Đáp không đổi. API gửi câu hỏi cũ không bị xóa trong việc này.

@@ -27,7 +27,7 @@ public class CustomCoreComposer : IComposer
     public void Compose(IUmbracoBuilder builder)
     {
         builder.AddNotificationHandler<UserSavingNotification, BackofficeUserLanguageHandler>();
-        builder.AddNotificationAsyncHandler<UmbracoApplicationStartedNotification, BackofficeUserLanguageHandler>();
+        builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, BackofficeUserLanguageHandler>();
 
         // CSDL ung dung, tach khoi CSDL cua Umbraco
         string configured = builder.Config.GetConnectionString("appDb") ?? "Data Source=App_Data/app.sqlite.db";
@@ -123,9 +123,9 @@ public class CustomCoreComposer : IComposer
         builder.Services.AddSingleton<QuizWorkbookPreviews>();
         builder.Services.AddScoped<QuizWorkbookService>();
 
-        // Cap quyen section Backoffice cho nhom Administrators sau khi Umbraco khoi dong.
+        // Cap quyen section Backoffice cho nhom Administrators o buoc Starting, truoc hang doi nen.
         builder.AddNotificationAsyncHandler<
-            UmbracoApplicationStartedNotification,
+            UmbracoApplicationStartingNotification,
             ContestManagementSectionAccessHandler>();
 
         builder.Services.AddSingleton<IAppInfoService, AppInfoService>();

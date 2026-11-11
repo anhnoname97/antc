@@ -1,25 +1,10 @@
 // Script tương tác trang Hỏi – Đáp (antoantaichinh.vn/hoi-dap)
 document.addEventListener('DOMContentLoaded', function () {
-  initQaAccordion();
   initQaContactToggle();
   initQaForm();
 });
 
-// 1. Quản lý Accordion Hỏi – đáp nhanh
-function initQaAccordion() {
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.qaq[data-open]');
-    if (!btn) return;
-
-    var targetId = btn.getAttribute('data-open');
-    var panel = document.getElementById(targetId);
-    if (!panel) return;
-
-    var isExpanded = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', !isExpanded);
-    panel.hidden = isExpanded;
-  });
-}
+// 1. Accordion Hỏi – đáp nhanh: site.js da xu ly moi nut [data-open]; khong gan them o day (gan hai lan se mo roi dong ngay).
 
 // 2. Toggle ô nhập liên hệ khi muốn nhận trả lời riêng
 function initQaContactToggle() {
@@ -156,16 +141,20 @@ function initQaForm() {
     if (contactWrap) contactWrap.hidden = true;
     qerr.hidden = true;
 
+    form.hidden = true;
     if (askSection) askSection.hidden = true;
     if (sentSection) {
       sentSection.hidden = false;
       sentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    var sentHeading = document.getElementById('h-sent');
+    if (sentHeading) sentHeading.focus({ preventScroll: true });
   }
 
   if (backBtn) {
     backBtn.addEventListener('click', function () {
       if (sentSection) sentSection.hidden = true;
+      form.hidden = false;
       if (askSection) {
         askSection.hidden = false;
         askSection.scrollIntoView({ behavior: 'smooth', block: 'start' });

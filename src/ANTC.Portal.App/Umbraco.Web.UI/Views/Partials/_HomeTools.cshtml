@@ -1,0 +1,57 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.PublishedCache
+@using Umbraco.Cms.Core.Services.Navigation
+@using Umbraco.Cms.Core.Web
+@inject IDocumentNavigationQueryService Navigation
+@inject IPublishedContentCache PublishedCache
+@inject IUmbracoContextAccessor ContextAccessor
+@{
+    var title = Model.Value<string>("toolsTitle");
+    var tools = (Model.Value<IEnumerable<IPublishedContent>>("tools") ?? [])
+        .Where(tool => tool.ContentType.Alias is "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage")
+        .DistinctBy(tool => tool.Key).Take(3).ToArray();
+    var preview = ContextAccessor.TryGetUmbracoContext(out var context) && context.InPreviewMode;
+    Navigation.TryGetChildrenKeysOfType(Model.Key, "congCuPage", out var landingKeys);
+    var landingUrl = landingKeys.Select(key => PublishedCache.GetById(preview, key)).OfType<IPublishedContent>()
+        .Select(EmergencyContent.PublicUrl).FirstOrDefault(url => url is not null);
+
+    SelfCheckCard ToolCard(IPublishedContent tool)
+    {
+        var urgent = tool.ContentType.Alias == "khiNghiBiLuaPage";
+        var ready = urgent ? SelfCheckBranchDataBuilder.Build(tool).Ready : SelfCheckToolDataBuilder.Build(tool).Ready;
+        var cardTitle = tool.Value<string>("title");
+        if (string.IsNullOrWhiteSpace(cardTitle)) { cardTitle = tool.Name; }
+        var icon = tool.Value<string>("icon");
+        if (string.IsNullOrWhiteSpace(icon))
+        {
+            icon = tool.ContentType.Alias switch
+            {
+                "truocKhiChuyenTienPage" => "icon-credit-card",
+                "truocKhiDauTuVayPage" => "icon-chart",
+                _ => "icon-alert"
+            };
+        }
+        return new SelfCheckCard(cardTitle, tool.Value<string>("card"), icon,
+            ready ? EmergencyContent.PublicUrl(tool) : null, urgent, tool.Value<IPublishedContent>("cardImage")?.Url());
+    }
+}
+@if (!string.IsNullOrWhiteSpace(title) && tools.Length > 0)
+{
+    <section class="home-v2 home-v2-tools" aria-labelledby="home-tools-title" data-home-tools>
+        <div class="site-chrome-wrap home-v2__section">
+            <header class="home-v2__section-heading">
+                <h2 id="home-tools-title">@title</h2>
+                @if (landingUrl is not null)
+                {
+                    <a class="home-v2__more" href="@landingUrl">@Model.Value("toolsMoreText") @await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</a>
+                }
+            </header>
+            <div class="self-check-tools">
+                @foreach (var tool in tools)
+                {
+                    @await Html.PartialAsync("~/Views/Partials/_SelfCheckCard.cshtml", ToolCard(tool), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["ActionLabel"] = "Bắt đầu" })
+                }
+            </div>
+        </div>
+    </section>
+}
