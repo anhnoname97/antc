@@ -626,3 +626,38 @@ Trạng thái: `Hiệu lực` · `Thay bằng QĐ-xxx` · `Đã đưa vào tài 
 - Quyết định: làm theo bản chính thức, dùng `mailto`. Hộp thư nhận do quản trị điền ở Cài đặt website; để trống thì hiện câu "nơi nhận sẽ được công bố".
 - Lý do: theo bản chính thức (QĐ-057); website không lưu dữ liệu người gửi lâu dài.
 - Ảnh hưởng: biểu mẫu Góp ý và gửi câu hỏi không gọi API nữa; thêm trường hộp thư nhận ở Cài đặt website. Phần hiển thị câu trả lời đã công bố ở Hỏi – Đáp không đổi. API gửi câu hỏi cũ không bị xóa trong việc này.
+
+### QĐ-059 · Portal v2: công cụ chọn tình huống lưu nội dung trong Umbraco
+
+- Ngày: 2026-11-10 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: công cụ chọn tình huống (`#khan-cap.chon-tinh-huong` của bản chính thức), Khẩn cấp, trang chủ
+- Vấn đề: bản chính thức để 12 nhóm, 82 tình huống, các việc đã xảy ra và bước xử lý trong `docs/portal-final/nguon/src/st_data.js` (tệp tĩnh). Portal cần quyết dữ liệu nằm ở Umbraco hay ở tệp tĩnh.
+- Quyết định: câu chữ (nhóm, tình huống, từ khóa, việc nên làm trước tiên, vì sao, nên làm, đừng làm, các việc đã xảy ra) là nội dung Umbraco, có document type riêng và công cụ nhập từ `st_data.js`. Quy tắc xếp thứ tự việc (`STACT`, `STSF`) và cách tính (`stCompute`) giữ trong JS như bản chính thức.
+- Lý do: biên tập viên rà và sửa được 19 tình huống bổ sung theo góp ý; logic đã kiểm 83.886 tổ hợp giữ nguyên.
+- Ảnh hưởng: thêm document type, công cụ nhập, view và JS; kiểm chứng bằng `chk_combos.js`, `chk_sits.js` của bản chính thức trên dữ liệu xuất từ Umbraco.
+
+### QĐ-060 · Portal v2: Kiến thức nền tảng dùng lại loại bài viết `article`
+
+- Ngày: 2026-11-10 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: trang Kiến thức nền tảng (`#thu-vien` của bản chính thức), 157 bài thủ đoạn, ba ngăn Từ cổ chí kim, Chuyên đề, Thủ đoạn
+- Quyết định: dùng lại document type `article` (đã có API, danh sách, tìm kiếm); phân ngăn bằng danh mục; nhập 157 bài từ `docs/portal-final/nguon/bai/*.md`. Không tạo loại bài mới.
+- Lý do: tận dụng phần đã có, ít loại nội dung hơn.
+- Ảnh hưởng: thêm danh mục cho ba ngăn, công cụ nhập bài, trang Kiến thức nền tảng và các lối vào.
+
+### QĐ-061 · Portal v2: cuộc thi giữ hệ thống hiện có
+
+- Ngày: 2026-11-10 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: cuộc thi, đăng ký dự thi, thử sức. Ngoại lệ của QĐ-057 cho phần cuộc thi
+- Vấn đề: bản chính thức là trang tĩnh: cuộc thi "chưa mở đăng ký", bài làm chỉ chấm trên máy người thi (`docs/portal-final/README.md` › "Ba việc người quản trị cần làm" › 2). Portal đã có hệ thống cuộc thi theo thời gian (gói CUOC-THI).
+- Quyết định: giữ hệ thống cuộc thi và các API hiện có; không làm theo cách chạy của bản tĩnh.
+- Ảnh hưởng: không đổi API, CSDL cuộc thi. Phần câu chữ và ngân hàng câu hỏi doanh nghiệp xem trong thiết kế gói bản chính thức.
+
+### QĐ-062 · Portal v2: mỗi đợt chỉ một người sửa nội dung trong backoffice
+
+- Ngày: 2026-11-10 · Người xác nhận: anhnn · Trạng thái: Hiệu lực
+- Phạm vi: nội dung, document type, data type lưu bằng uSync (`Umbraco.Web.UI/uSync/v18/`)
+- Vấn đề: mỗi dev có CSDL riêng; uSync tự xuất file khi lưu và khi khởi động. Hai người cùng sửa nội dung thì file uSync ghi đè nhau; ngày 10/11/2026 đã gặp file trùng khóa (commit 68f1ac27) và nhiều file tự xuất lẫn vào thay đổi.
+- Quyết định: mỗi đợt nội dung giao cho đúng một người; người khác pull rồi khởi động lại trước khi sửa nội dung. Chỉ commit file uSync và view mà task chủ ý sửa; không commit file Umbraco tự ghi lại (view thêm BOM, mất dòng trống cuối; uSync xuất lại có khóa riêng của máy).
+- Lý do: tránh mất nội dung và xung đột khi gộp.
+- Ảnh hưởng: phân công trong `1-thiet-ke.md` của gói bản chính thức ghi rõ người giữ nội dung từng đợt.
+
