@@ -189,7 +189,7 @@ public sealed class AntcPublicContentFinder(
             : fixedAlias == "cuocThiLamBaiPage" ? (Child(Child(home, "thiThangPage"), fixedAlias) ?? Child(Child(home, "thiPage"), fixedAlias) ?? Child(home, fixedAlias))
             : fixedAlias is "truocKhiChuyenTienPage" or "truocKhiDauTuVayPage" or "khiNghiBiLuaPage" ? Child(Child(home, "congCuPage"), fixedAlias)
             // Van ban chinh sach nam trong thu muc "Trang thong tin, chinh sach" nhung co duong dan ngan theo ban chinh thuc.
-            : fixedAlias is "baoVeDuLieuCaNhanPage" or "mienTruTrachNhiemPage" or "nguyenTacNoiDungPage" or "baoLoiVaCaiChinhPage" or "xacMinhDungTrangPage"
+            : fixedAlias is "veWebsitePage" or "baoVeDuLieuCaNhanPage" or "mienTruTrachNhiemPage" or "nguyenTacNoiDungPage" or "baoLoiVaCaiChinhPage" or "xacMinhDungTrangPage"
                 ? Child(Child(home, "otherPagesFolder"), fixedAlias)
             : fixedAlias is not null ? (Child(home, fixedAlias) ?? (fixedAlias == "thiThangPage" ? Child(home, "thiPage") : null)) : null;
         if (fixedAlias is null && parts.Length > 0)

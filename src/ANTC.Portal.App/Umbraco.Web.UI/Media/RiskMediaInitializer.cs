@@ -82,6 +82,9 @@ public sealed class RiskMediaInitializer(IMediaService mediaService, IMediaTypeS
         (new("81a6a6de-3e1a-4331-af34-0f8a99400d48"), "img/risks/img-41-quay-ngan-hang-1640.webp", "Cảnh báo · img-41-quay-ngan-hang (bản dựng 10/11)"),
         (new("8be34e1c-72a8-477c-8fa5-47c9ba750746"), "img/risks/img-41-quay-ngan-hang-1640.webp", "Thủ đoạn · img-41-quay-ngan-hang (bản dựng 10/11)"),
 
+        // Anh trang Ve website tu ban HTML chinh thuc; bien tap vien co the thay trong Media.
+        (new("bbfba28e-39b4-58c7-b462-70735ed1b621"), "img/v2/img-21-ve-website-1640.webp", "Về website · Bà con tự kiểm tra thông tin"),
+
         // 2 anh trang chu va hoat dong cuoc thi
         (new("bc8c5385-ac5c-5075-aa5a-f7112d760000"), "images/home-v2-illustration.jpg", "Trang chủ V2 · Minh họa từ bản dựng"),
         (new("e1a89c3e-8812-4eb5-8271-9c8e19bfa520"), "img/risks/contest-hero.jpg", "Ảnh hoạt động cuộc thi")

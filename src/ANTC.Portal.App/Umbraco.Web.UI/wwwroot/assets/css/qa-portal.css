@@ -144,7 +144,7 @@
 .qa-portal .pageh .lead {
   font-size: 1.09375rem;
   color: var(--ink2);
-  max-width: 72ch;
+  max-width: none;
   margin: 0;
   line-height: 1.6;
 }

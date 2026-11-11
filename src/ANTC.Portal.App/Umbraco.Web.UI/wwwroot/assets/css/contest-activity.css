@@ -192,7 +192,7 @@
   font-family: var(--v2-f-ui) !important;
   font-size: 1.03125rem;
   color: var(--v2-ink-2);
-  max-width: 64ch;
+  max-width: none;
   margin: 0;
   line-height: 1.5;
 }
@@ -200,7 +200,7 @@
 @media (min-width: 1025px) {
   .activity-portal .pageh .lead {
     font-size: 1.09375rem;
-    max-width: 66ch;
+    max-width: none;
   }
 }
 

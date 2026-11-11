@@ -1,6 +1,6 @@
 .self-check-tool.self-check-page { max-width: 1200px; gap: 26px; padding-block: 16px 32px; }
 .self-check-tool .self-check-heading { gap: 8px; }
-.self-check-tool .self-check-heading p { max-width: 66ch; }
+.self-check-tool .self-check-heading p { max-width: none; }
 .self-check-tool > :is(.self-check-privacy,.self-check-advice,.self-check-must,.self-check-urgent,[data-self-check-stage],[data-self-check-more],[data-self-check-hit-notes]) { width: 100%; max-width: 880px; min-width: 0; }
 .self-check-eyebrow { color: #4a5a6e; font-size: .875rem; font-weight: 700; }
 .self-check-privacy { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #ebeff5; font-size: .96875rem; color: #4a5a6e; line-height: 1.6; }

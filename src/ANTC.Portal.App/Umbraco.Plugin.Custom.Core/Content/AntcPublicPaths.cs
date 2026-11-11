@@ -17,6 +17,7 @@ public static class AntcPublicPaths
         ["situationChooserPage"] = "/khan-cap/chon-tinh-huong/",
         ["foundationLibraryPage"] = "/thu-vien/",
         ["lienHePage"] = "/lien-he/",
+        ["veWebsitePage"] = "/ve-website/",
         ["gopYPage"] = "/gop-y/",
         ["baoVeDuLieuCaNhanPage"] = "/chinh-sach-bao-mat/", ["mienTruTrachNhiemPage"] = "/dieu-khoan-su-dung/",
         ["nguyenTacNoiDungPage"] = "/nguyen-tac-noi-dung/", ["baoLoiVaCaiChinhPage"] = "/cach-bao-loi-va-cai-chinh/",

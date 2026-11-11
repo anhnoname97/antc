@@ -7,14 +7,24 @@
 .self-check-checklist-question { min-width: 0; padding: 0 0 12px; margin: 0; border: 0; border-bottom: 1px solid #d6dee8; }
 .self-check-checklist-question legend { padding: 0; margin-bottom: 8px; font-weight: 700; line-height: 1.65; }
 .self-check-radio-options { display: flex; gap: 10px; flex-wrap: wrap; }
-.self-check-radio-options label { display: flex; gap: 8px; align-items: center; min-height: 44px; padding: 8px 12px; font-weight: 700; position: relative; border: 1px solid #bdcbdc; border-radius: 12px; cursor: pointer; }
+.self-check-radio-options label { display: flex; gap: 8px; align-items: center; min-height: 44px; padding: 8px 12px; font-weight: 700; position: relative; border: 1px solid #bdcbdc; border-radius: 12px; cursor: pointer; transition: background-color .18s ease, border-color .18s ease, color .18s ease; }
 .self-check-radio-options label:has(:checked) { background: #e2eefb; border-color: #0b6bcb; }
 .self-check-checklist input { flex: none; width: 20px; height: 20px; accent-color: #0b6bcb; margin: 0; }
 .self-check-checklist label:has(:focus-visible) { outline: 3px solid #0b6bcb; outline-offset: 3px; }
 .self-check-pocket { display: grid; gap: 0; padding: 12px; border: 2px dashed #bdcbdc; border-radius: 14px; }
-.self-check-pocket label { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border: 0; border-bottom: 1px solid #d6dee8; border-radius: 0; background: #fff; cursor: pointer; }
+.self-check-pocket label { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border: 0; border-bottom: 1px solid #d6dee8; border-radius: 0; background: #fff; cursor: pointer; transition: background-color .18s ease, border-color .18s ease, color .18s ease; }
 .self-check-pocket input { margin-top: 4px; }
 .self-check-pocket label:has(:checked) { background: #eaf2fb; border-color: #0b6bcb; }
+.self-check-radio-options label:has(:focus-visible), .self-check-pocket label:has(:focus-visible) { background: #f0f6fd; border-color: #0b6bcb; color: #0b6bcb; }
+.self-check-radio-options label:has(:checked):has(:focus-visible), .self-check-pocket label:has(:checked):has(:focus-visible) { background: #d7e8fb; }
+@media (hover: hover) {
+  .self-check-radio-options label:hover, .self-check-pocket label:hover { background: #f0f6fd; border-color: #0b6bcb; color: #0b6bcb; }
+  .self-check-radio-options label:has(:checked):hover, .self-check-pocket label:has(:checked):hover { background: #d7e8fb; }
+  .self-check-pocket > .self-check-button:hover { color: #123b63; text-decoration: underline; text-underline-offset: 3px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .self-check-radio-options label, .self-check-pocket label { transition: none; }
+}
 .self-check-checklist-error { color: #9a3210; background: #fff4ef; padding: 16px; border-radius: 12px; line-height: 1.7; }
 .self-check-checklist-note, .self-check-checklist-meta { color: #4a5a6e; font-size: .9375rem; line-height: 1.7; }
 .self-check-checklist-meta { display: grid; gap: 12px; border-top: 1px solid #d6dee8; padding-top: 18px; }
