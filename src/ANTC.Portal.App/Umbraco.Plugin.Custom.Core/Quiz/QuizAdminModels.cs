@@ -14,7 +14,9 @@ public sealed record QuizTopicAdminDto(
     long Revision = 1,
     string Audience = "general",
     string? ShortTitle = null,
-    string? Caption = null);
+    string? Caption = null,
+    string? PublicCode = null,
+    string Type = "personal");
 
 public sealed record QuizTermAdminDto(string Term, string Definition);
 
@@ -25,9 +27,10 @@ public sealed record SaveQuizTopicRequest(
     IReadOnlyList<QuizTermAdminDto>? Terms,
     bool IsActive = true,
     long? ExpectedRevision = null,
-    string Audience = "general",
+    string? Audience = null,
     string? ShortTitle = null,
-    string? Caption = null);
+    string? Caption = null,
+    string? Type = null);
 
 public sealed record QuizAnswerAdminDto(string Key, string Text, string Explanation, bool IsCorrect);
 
@@ -47,7 +50,8 @@ public sealed record QuizQuestionAdminDto(
     int SortOrder,
     bool IsActive,
     DateTime UpdatedAt,
-    long Revision = 1);
+    long Revision = 1,
+    string Type = "personal");
 
 public sealed record SaveQuizQuestionRequest(
     string? Code,

@@ -5,7 +5,7 @@ import { unsafeCSS } from '@umbraco-cms/backoffice/external/lit';
 if (!document.querySelector('link[data-contest-admin-font]')) {
   const fonts = document.createElement('link');
   fonts.rel = 'stylesheet';
-  fonts.href = '/assets/css/fonts.css?v=1.15.8';
+  fonts.href = '/assets/css/fonts.css?v=1.15.13';
   fonts.dataset.contestAdminFont = '';
   document.head.append(fonts);
 }
@@ -93,22 +93,22 @@ select{
    Browsers without customizable selects retain the existing native picker. */
 @supports (appearance:base-select){
   select:not([multiple]):not([size]),select:not([multiple]):not([size])::picker(select){appearance:base-select}
-  select:not([multiple]):not([size]){background-image:none;padding-inline-end:12px;gap:8px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  select:not([multiple]):not([size]){display:inline-flex;background-image:none;box-sizing:border-box;block-size:40px;min-block-size:40px;padding:0 12px;gap:8px;align-items:center;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
   select:not([multiple]):not([size]):disabled{cursor:not-allowed}
   select:not([multiple]):not([size])::picker-icon{content:'';width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);flex-shrink:0;margin-inline-start:auto;color:var(--cm-muted)}
   select:not([multiple]):not([size]):open::picker-icon{transform:translateY(2px) rotate(225deg);color:var(--cm-accent)}
   select:not([multiple]):not([size]):open{border-color:var(--cm-accent);box-shadow:0 0 0 3px #0e7c721a}
   select:not([multiple]):not([size])::picker(select){
-    box-sizing:border-box;min-inline-size:anchor-size(self-inline);inline-size:max-content;
-    max-inline-size:min(560px,calc(100vw - 24px));max-block-size:min(320px,50dvh);
-    margin-block:5px;padding:6px;border:1px solid var(--cm-border);border-radius:12px;
+    box-sizing:border-box;inline-size:anchor-size(self-inline);min-inline-size:0;
+    max-inline-size:calc(100vw - 24px);max-block-size:min(360px,50dvh);
+    margin-block:5px;padding:4px;border:1px solid var(--cm-border);border-radius:8px;
     background:var(--cm-surface);color:var(--cm-text);font:inherit;
     box-shadow:0 12px 32px #14233b24,0 2px 8px #14233b0d;
     overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c5d4d1 transparent;
   }
   select:not([multiple]):not([size]) option{
-    display:flex;align-items:center;gap:12px;min-block-size:36px;padding:8px 12px;
-    border:0;border-radius:7px;background:var(--cm-surface);color:var(--cm-text);
+    display:flex;align-items:center;gap:10px;min-block-size:36px;padding:8px 10px;
+    border:0;border-radius:5px;background:var(--cm-surface);color:var(--cm-text);
     font:inherit;line-height:1.5;white-space:normal;overflow-wrap:anywhere;cursor:pointer;
   }
   select:not([multiple]):not([size]) option+option{margin-block-start:2px}
@@ -320,6 +320,99 @@ th,td{padding:12px 14px}
 .campaign-dates time{display:block;line-height:1.5}
 .campaign-date-arrow{color:var(--cm-muted);font-family:inherit;font-size:14px;line-height:12px}
 @media(max-width:760px){.page-heading{padding:14px 0 10px}.toolbar{gap:10px}}
+/* Quiz filters reserve more space for long topic titles than short audience labels. */
+.quiz-toolbar{width:100%;align-items:start}
+.quiz-toolbar .filters.quiz-filters{display:grid;flex:1 1 100%;min-width:0;gap:16px 12px;align-items:end}
+.quiz-toolbar .quiz-filters--questions{grid-template-columns:160px minmax(240px,1fr) 180px 144px;grid-template-areas:"search search search create" "type topic status submit"}
+.quiz-toolbar .quiz-filters--topics{grid-template-columns:minmax(140px,1fr) minmax(160px,1fr) 112px}
+.quiz-filter{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:12px;font-weight:500;color:var(--cm-muted)}
+.quiz-filter--search{grid-column:1/-2}
+.quiz-filters--topics .quiz-filter--search{grid-column:1/-1}
+.quiz-filters--questions .quiz-filter--search{grid-area:search}
+.quiz-filters--questions .quiz-filter--type{grid-area:type}
+.quiz-filters--questions .quiz-filter--topic{grid-area:topic}
+.quiz-filters--questions .quiz-filter--status{grid-area:status}
+.quiz-filters--questions .quiz-filter-create{grid-area:create}
+.quiz-filters--questions .quiz-filter-submit{grid-area:submit}
+.quiz-toolbar .quiz-filters .quiz-filter>input,.quiz-toolbar .quiz-filters .quiz-filter>select{box-sizing:border-box;width:100%;max-width:none;min-width:0;height:40px;min-height:40px;margin:0;font-size:13px;font-weight:400}
+.quiz-toolbar .quiz-filters>button{height:40px;min-height:40px;white-space:nowrap}
+.form-grid select,.form-grid input:not([type=checkbox]):not([type=radio]){height:40px;min-height:40px}
+.page-size select:not([multiple]):not([size]),.local-pager select:not([multiple]):not([size]){height:32px;min-height:32px;block-size:32px;min-block-size:32px;padding-block:0}
+@media(max-width:1279px){
+  .quiz-toolbar .quiz-filters--questions{grid-template-columns:minmax(140px,1fr) minmax(200px,2fr) 144px;grid-template-areas:"search search create" "type topic topic" "status status submit"}
+}
+@media(max-width:760px){
+  .quiz-toolbar .quiz-filters--questions,.quiz-toolbar .quiz-filters--topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .quiz-toolbar .quiz-filters--questions{grid-template-areas:"search search" "type status" "topic topic" "submit create"}
+}
+/* The available width excludes Umbraco's resizable sidebar and nested previews.
+   Use that width for page layouts; dialogs use their own top-layer width below. */
+:host{container-type:inline-size}
+.scroll,.table-wrap,.embedded-page,.question-workspace>*{min-width:0;max-width:100%}
+.page-heading>div,.panel-heading>*{min-width:0}
+.question-preview,.notice,.error-notice,.success-notice{overflow-wrap:anywhere}
+.question-preview .preview-answer>span{min-width:0;overflow-wrap:anywhere}
+.tabs{max-width:100%}
+@container(max-width:1050px){
+  .question-workspace{grid-template-columns:1fr}.question-preview{position:static}
+  .metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .dashboard-panels,.draw-workspace{grid-template-columns:1fr}
+  .dashboard-banner{grid-template-columns:1fr}
+  .filter-panel .filters{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .quiz-toolbar .quiz-filters--questions{grid-template-columns:minmax(0,1fr) minmax(0,2fr) 144px;grid-template-areas:"search search create" "type topic topic" "status status submit"}
+}
+@container(max-width:720px){
+  .page{padding:0 16px 24px}.page-heading{align-items:flex-start}
+  h1{font-size:24px}.page-context{display:none}
+  .toolbar{align-items:stretch}.toolbar>.actions{width:100%}
+  .toolbar .filters{flex-basis:100%;flex-wrap:wrap}
+  .toolbar .filters input,.toolbar .filters select{min-width:0;max-width:100%}
+  .filter-panel .filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .filter-panel .wide{grid-column:1/-1}
+  .quiz-toolbar .quiz-filters--questions,.quiz-toolbar .quiz-filters--topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .quiz-toolbar .quiz-filters--questions{grid-template-areas:"search search" "type status" "topic topic" "submit create"}
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .metrics.bank-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .panel-heading,.publication-state{flex-wrap:wrap}
+  .list-heading{flex-wrap:wrap}.list-heading p{max-width:none}
+  .campaign-search{flex:1 1 100%}
+  .draw-fields,.draw-workspace .draw-fields{grid-template-columns:1fr}
+  .page-description,.summary,.publication-draw{overflow-wrap:anywhere}
+  .draw-reels{gap:5px}.draw-reel{min-width:0;flex:0 1 48px}
+}
+@container(max-width:440px){
+  .page{padding-inline:12px}.box,section,.report-panel{padding:12px}
+  .filter-panel .filters{grid-template-columns:1fr}
+  .filter-panel .wide{grid-column:auto}
+  .quiz-toolbar .quiz-filters--questions,.quiz-toolbar .quiz-filters--topics{grid-template-columns:minmax(0,1fr)}
+  .quiz-toolbar .quiz-filters--questions{grid-template-areas:"search" "type" "topic" "status" "submit" "create"}
+  .quiz-filters--topics .quiz-filter--search{grid-column:auto}
+  .quiz-filter-submit,.quiz-filter-create{width:100%}
+  .toolbar>.actions>button{flex:1 1 100%;white-space:normal}
+  .tabs{gap:10px}.tabs button{white-space:normal}
+  .advanced-search>summary .filter-status{display:block;margin:4px 0 0}
+  .privacy-options{padding:12px}.check{align-items:flex-start!important}
+  .metrics{gap:8px}.metrics article{padding:12px}.metrics article strong{font-size:26px}
+  .publication-actions button{white-space:normal}
+}
+/* Dialogs escape the section's layout: size them against the viewport. */
+dialog form>header>div,.dialog-header>div{min-width:0}
+dialog header h2,.dialog-header h2{overflow-wrap:anywhere}
+dialog .close{flex-shrink:0}
+.form-grid>*{min-width:0}
+@media(max-width:760px){
+  .campaign-editor-body{min-width:0}.editor-nav{max-width:100%}
+  .editor-section>.form-grid{grid-template-columns:minmax(0,1fr)}
+  .contest-prize-option{grid-template-columns:minmax(0,1fr)}
+  .contest-prize-option>label:nth-of-type(3){grid-column:auto}
+  .tree-topic summary{flex-wrap:wrap;padding:12px;gap:8px}
+  .tree-topic summary label{min-width:0;overflow-wrap:anywhere}
+  .tree-count{margin-left:auto}.tree-questions{padding:0 12px}
+  .tree-question{grid-template-columns:17px minmax(0,1fr);gap:8px}
+  .tree-question>span:not(.mono),.tree-question>em{grid-column:2;overflow-wrap:anywhere}
+  dialog form>footer,.dialog-footer{flex-wrap:wrap}
+  dialog form>footer button,.dialog-footer button{white-space:normal}
+}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(forced-colors:active){button,input,select,textarea,.badge,.answer{border:1px solid ButtonText}button:focus-visible{outline:2px solid Highlight}}
 `;

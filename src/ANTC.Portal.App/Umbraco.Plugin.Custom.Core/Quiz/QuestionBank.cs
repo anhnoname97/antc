@@ -17,7 +17,9 @@ public record TopicDto(
     [property: JsonPropertyName("terms")] JsonElement Terms,
     [property: JsonPropertyName("audience")] string Audience = "general",
     [property: JsonPropertyName("shortTitle")] string? ShortTitle = null,
-    [property: JsonPropertyName("caption")] string? Caption = null);
+    [property: JsonPropertyName("caption")] string? Caption = null,
+    [property: JsonPropertyName("code")] string? PublicCode = null,
+    [property: JsonPropertyName("type")] string Type = QuizAudience.Personal);
 
 public record QuestionDto(
     [property: JsonPropertyName("code")] string Code,
@@ -174,10 +176,13 @@ public class QuestionBank : IQuestionBank
         var snapshot = new QuestionBankSnapshot
         {
             Version = version,
-            CacheKey = $"quiz-v{version}",
+            CacheKey = $"quiz-v{version}-audience-v1",
             Topics = topics.Select(t => new TopicDto(
                 t.Id.ToString(), t.Title, byTopic.TryGetValue(t.Id, out var list) ? list.Count : 0,
-                Parse(t.Intro), Parse(t.Terms ?? "[]"), t.Audience, t.ShortTitle, t.Caption)).ToList(),
+                Parse(t.Intro), Parse(t.Terms ?? "[]"),
+                t.Type == QuizAudience.Organization || t.Audience == "enterprise" ? "enterprise" : "general",
+                t.ShortTitle, t.Caption, t.PublicCode,
+                t.Type == QuizAudience.Organization || t.Audience == "enterprise" ? QuizAudience.Organization : QuizAudience.Personal)).ToList(),
             QuestionsByTopic = byTopic,
             Sample = questions.Where(q => q.SampleOrder is not null).OrderBy(q => q.SampleOrder)
                 .Select(q => new SampleQuestionDto(

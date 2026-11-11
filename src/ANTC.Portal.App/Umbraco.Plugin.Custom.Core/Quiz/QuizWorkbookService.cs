@@ -17,7 +17,7 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
 {
     public const int MaxFileBytes = 5 * 1024 * 1024;
     public const string ConfirmationPhrase = "XÁC NHẬN NHẬP NGÂN HÀNG";
-    public static readonly string[] TopicHeaders = ["Số chuyên đề", "Tên", "Giới thiệu", "Thuật ngữ", "Nhóm người đọc", "Tên trên danh sách", "Dòng mô tả"];
+    public static readonly string[] TopicHeaders = ["Số chuyên đề", "Tên", "Giới thiệu", "Thuật ngữ", "Type", "Tên trên danh sách", "Dòng mô tả"];
     public static readonly string[] QuestionHeaders = ["Số chuyên đề", "Mã câu", "Loại câu", "Tình huống", "Câu hỏi",
         "Lựa chọn A", "Lựa chọn B", "Lựa chọn C", "Lựa chọn D", "Đáp án đúng", "Giải thích A", "Giải thích B",
         "Giải thích C", "Giải thích D", "Hành động an toàn", "Thời gian đọc (giây)", "Thứ tự Thử sức",
@@ -25,7 +25,7 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private string Archive(long id) => Path.Combine(environment.ContentRootPath, "App_Data", "imports", $"{id}.xlsx");
     private DateTime Now => clock.GetUtcNow().UtcDateTime;
-    private sealed record TopicRow(int Row, int Id, string[] Values, bool HasMetadata);
+    private sealed record TopicRow(int Row, int Id, string[] Values, IReadOnlySet<string> MetadataColumns);
     private sealed record QuestionRow(int Row, int TopicId, string Code, string[] Values);
     private sealed record Matrix(List<TopicRow> Topics, List<QuestionRow> Questions, List<WorkbookError> Errors);
 
@@ -37,7 +37,7 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
         WriteRow(topics, 1, TopicHeaders); WriteRow(questions, 1, QuestionHeaders);
         if (template)
         {
-            WriteRow(topics, 2, ["1", "Chuyên đề mẫu", "Đoạn giới thiệu thứ nhất\nĐoạn giới thiệu thứ hai", "Thuật ngữ | Giải nghĩa"]);
+            WriteRow(topics, 2, ["1", "Chuyên đề mẫu", "Đoạn giới thiệu thứ nhất\nĐoạn giới thiệu thứ hai", "Thuật ngữ | Giải nghĩa", QuizAudience.Personal]);
             WriteRow(questions, 2, ["1", "MAU-001", "Đúng – Sai", "", "Có nên chia sẻ mã OTP cho người khác?", "Đúng", "Sai", "", "", "B",
                 "Không chia sẻ mã OTP.", "Chính xác, hãy giữ bí mật mã OTP.", "", "", "Giữ bí mật mã OTP.", "10", "", "", "1"]);
         }
@@ -107,9 +107,10 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
                 else if (!changedTopics.Contains(row.Id.ToString(CultureInfo.InvariantCulture))) continue;
                 else entity.Revision++;
                 entity.Title = row.Values[1];
+                if (row.Values[4].Length > 0) entity.Type = row.Values[4];
                 entity.Intro = JsonSerializer.Serialize(Lines(row.Values[2]), Json);
                 entity.Terms = JsonSerializer.Serialize(Terms(row.Values[3]), Json);
-                entity.Audience = row.Values[4];
+                entity.Audience = entity.Type == QuizAudience.Organization ? "enterprise" : "general";
                 entity.ShortTitle = Empty(row.Values[5]);
                 entity.Caption = Empty(row.Values[6]);
                 entity.UpdatedAt = now;
@@ -123,7 +124,7 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
                 Apply(entity, row.Values); entity.IsActive = true;
                 if (changedQuestions.Contains(row.Code)) entity.UpdatedAt = now;
             }
-            foreach (var q in questions.Where(x => x.IsActive && !codes.Contains(x.Code)))
+            foreach (var q in questions.Where(x => x.IsActive && !codes.Contains(x.Code) && !topics.Any(t => t.Id == x.TopicId && (t.Type == QuizAudience.Organization || t.Audience == "enterprise") && !matrix.Topics.Any(row => row.Id == t.Id))))
             { q.IsActive = false; q.SampleOrder = null; q.SampleLabel = null; q.Revision++; q.UpdatedAt = now; }
             var import = new QuizImport { CreatedAt = now, CreatedBy = actor[..Math.Min(actor.Length, 100)], FileName = pending.FileName,
                 Added = plan.Added, Updated = plan.Updated, Deactivated = plan.Deactivated, DuringContest = plan.DuringContest };
@@ -187,11 +188,11 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
         foreach (var row in matrix.Topics)
         {
             var existing = topicById.GetValueOrDefault(row.Id);
-            var columns = existing is null ? TopicHeaders.ToList() : Changed(TopicValues(existing), row.Values, TopicHeaders);
+            var columns = existing is null ? TopicHeaders.ToList() : Changed(TopicValues(existing), row.Values.Select((value, i) => i == 4 && value.Length == 0 ? existing.Type : value).ToArray(), TopicHeaders);
             if (columns.Count > 0) topicChanges.Add(new(row.Id.ToString(CultureInfo.InvariantCulture), columns));
         }
         var codes = matrix.Questions.Select(q => q.Code).ToHashSet();
-        var removed = questions.Where(q => q.IsActive && !codes.Contains(q.Code)).Select(q => q.Code).ToList();
+        var removed = questions.Where(q => q.IsActive && !codes.Contains(q.Code) && !topics.Any(t => t.Id == q.TopicId && (t.Type == QuizAudience.Organization || t.Audience == "enterprise") && !matrix.Topics.Any(row => row.Id == t.Id))).Select(q => q.Code).ToList();
         DateTime now = Now;
         var open = db.ContestCampaigns.Where(x => x.IsActive && x.StartAt <= now && x.EndAt >= now);
         bool during = await open.AnyAsync(ct);
@@ -239,6 +240,7 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
                     string heading = sheet.Cell(1, col).HasFormula ? "" : sheet.Cell(1, col).GetString().Trim();
                     if (!positions.TryAdd(heading, col)) result.Errors.Add(new(name, 1, heading, "Tên cột bị trùng."));
                 }
+                if (name == "ChuyenDe" && !positions.ContainsKey("Type") && positions.TryGetValue("Nhóm người đọc", out int audienceColumn)) positions["Type"] = audienceColumn;
                 var required = name == "ChuyenDe" ? headers.Take(4) : headers;
                 foreach (string header in required.Where(h => !positions.ContainsKey(h))) result.Errors.Add(new(name, 1, header, "Thiếu cột bắt buộc."));
                 if (required.Any(h => !positions.ContainsKey(h))) continue;
@@ -254,7 +256,7 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
                     {
                         values[2] = string.Join('\n', Lines(values[2]));
                         values[3] = string.Join('\n', Terms(values[3]).Select(t => string.Join(" | ", t)));
-                        result.Topics.Add(new(row, id, values, headers.Skip(4).Any(positions.ContainsKey)));
+                        result.Topics.Add(new(row, id, values, headers.Skip(4).Where(positions.ContainsKey).ToHashSet()));
                     }
                     else
                     {
@@ -281,8 +283,8 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
         var topicIds = new HashSet<int>(); var codes = new HashSet<string>(StringComparer.Ordinal); var samples = new HashSet<int>();
         foreach (var row in matrix.Topics)
         {
+            if (row.Values[4].Length > 0 && !QuizAudience.IsValid(row.Values[4])) Error("ChuyenDe", row.Row, "Type", "Type phải là personal (Cá nhân) hoặc organization (Tổ chức).");
             if (row.Id <= 0 || !topicIds.Add(row.Id)) Error("ChuyenDe", row.Row, TopicHeaders[0], "Số chuyên đề phải là số nguyên dương và không được trùng trong file.");
-            if (row.Values[4] is not ("general" or "enterprise")) Error("ChuyenDe", row.Row, TopicHeaders[4], "Nhóm người đọc là general (phần chung) hoặc enterprise (doanh nghiệp).");
             if (row.Values[5].Length > 200) Error("ChuyenDe", row.Row, TopicHeaders[5], "Tên trên danh sách tối đa 200 ký tự.");
             if (row.Values[6].Length > 300) Error("ChuyenDe", row.Row, TopicHeaders[6], "Dòng mô tả tối đa 300 ký tự.");
             if (row.Values[1].Length is < 2 or > 200) Error("ChuyenDe", row.Row, TopicHeaders[1], "Tên chuyên đề phải có 2–200 ký tự.");
@@ -304,7 +306,7 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
             int answer = Array.IndexOf(new[] { "A", "B", "C", "D" }, v[9]);
             for (int i = 0; i < 4; i++)
             {
-                if (v[5 + i].Length > 0) { optionCount++; if (v[10 + i].Length == 0 && (!enterpriseIds.Contains(row.TopicId) || i == answer)) E(10 + i, "Phần chung cần giải thích từng lựa chọn; phần doanh nghiệp cần giải thích đáp án đúng."); }
+                if (v[5 + i].Length > 0) { optionCount++; if (v[10 + i].Length == 0 && i == answer) E(10 + i, "Đáp án đúng phải có giải thích."); }
                 else if (v[10 + i].Length > 0) E(10 + i, "Không được có giải thích khi lựa chọn tương ứng để trống.");
                 if (v[5 + i].Length > 1000) E(5 + i, "Lựa chọn tối đa 1000 ký tự.");
                 if (v[10 + i].Length > 2000) E(10 + i, "Giải thích tối đa 2000 ký tự.");
@@ -324,10 +326,11 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
         }
         if (matrix.Questions.Count == 0) Error("CauHoi", 2, "Mã câu", "File phải có ít nhất một câu hỏi; không nhập file rỗng để ngừng toàn bộ ngân hàng.");
     }
+    private static string EffectiveType(QuizTopic t) => t.Type == QuizAudience.Organization || t.Audience == "enterprise" ? QuizAudience.Organization : QuizAudience.Personal;
     private static string[] TopicValues(QuizTopic t) => [t.Id.ToString(CultureInfo.InvariantCulture), t.Title,
         string.Join('\n', JsonSerializer.Deserialize<string[]>(t.Intro) ?? []),
         string.Join('\n', (JsonSerializer.Deserialize<string[][]>(t.Terms ?? "[]") ?? []).Select(x => string.Join(" | ", x))),
-        t.Audience, t.ShortTitle ?? "", t.Caption ?? ""];
+        EffectiveType(t), t.ShortTitle ?? "", t.Caption ?? ""];
 
     // Four-column workbooks remain supported and cannot silently erase audience metadata.
     private static void PreserveLegacyTopicMetadata(Matrix matrix, List<QuizTopic> topics)
@@ -335,13 +338,19 @@ public sealed class QuizWorkbookService(AppDbContext db, IQuestionBank bank, Tim
         var existing = topics.ToDictionary(t => t.Id);
         foreach (var row in matrix.Topics)
         {
-            if (!row.HasMetadata && existing.TryGetValue(row.Id, out var topic))
+            if (existing.TryGetValue(row.Id, out var topic))
             {
-                row.Values[4] = topic.Audience;
-                row.Values[5] = topic.ShortTitle ?? "";
-                row.Values[6] = topic.Caption ?? "";
+                var saved = TopicValues(topic);
+                for (int i = 4; i < TopicHeaders.Length; i++)
+                    if (!row.MetadataColumns.Contains(TopicHeaders[i])) row.Values[i] = saved[i];
+                if (row.Values[4].Length == 0) row.Values[4] = saved[4];
             }
-            if (string.IsNullOrEmpty(row.Values[4])) row.Values[4] = "general";
+            row.Values[4] = row.Values[4] switch
+            {
+                "" or "general" => QuizAudience.Personal,
+                "enterprise" => QuizAudience.Organization,
+                var value => value
+            };
         }
     }
     private static string[] QuestionValues(QuizQuestion q)

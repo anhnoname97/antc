@@ -81,8 +81,7 @@
         .Concat(parts.Cases.SelectMany(x => new[] { x.Title, x.Text })).Concat(avoid)
         .Concat(tactics.Select(x => RiskAlertContent.LevelName(RiskAlertContent.Level(x))))
         .Concat(others.Concat(extras).Select(x => RiskAlertContent.Title(x) + " Bài hướng dẫn"))
-        .Append(image is null ? null : "Ảnh minh họa tạo bằng AI")
-        .Concat(tactics.Where(x => x.Value<IPublishedContent>("illustration") is not null).Select(x => x.Name + " Ảnh minh họa tạo bằng AI")).Append(checklist is null ? null : "Kiểm tra: " + RiskAlertContent.Title(checklist)).Append(tool.Name)
+        .Concat(tactics.Where(x => x.Value<IPublishedContent>("illustration") is not null).Select(x => x.Name)).Append(checklist is null ? null : "Kiểm tra: " + RiskAlertContent.Title(checklist)).Append(tool.Name)
         .Append(reading is null ? null : $"{readingName}: {RiskAlertContent.Title(reading)} Thử 1 câu của chuyên đề này Trang này tóm lại {readingName} do website biên soạn.")
         .Append(reviewDate is { } d ? $"Rà soát gần nhất: {d.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)}" : null)
         // Tieu de muc va nhan co dinh tren trang
@@ -137,7 +136,7 @@
 
         @if (image is not null)
         {
-            <figure class="risk-figure"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"><figcaption>Ảnh minh họa tạo bằng AI</figcaption></figure>
+            <figure class="risk-figure"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure>
         }
 
         <div class="risk-pagetools" role="group" aria-label="Công cụ cho trang này">
@@ -230,7 +229,7 @@
                             <div class="risk-tgal@(gallery.Length == 1 ? " risk-tgal--one" : "")">
                                 @foreach (var g in gallery)
                                 {
-                                    <figure class="risk-tfig"><img src="@g.Image!.Url()" alt="@g.Tactic.Value("illustrationAlt")" loading="lazy" decoding="async"><figcaption><span>@g.Tactic.Name</span><span>Ảnh minh họa tạo bằng AI</span></figcaption></figure>
+                                    <figure class="risk-tfig"><img src="@g.Image!.Url()" alt="@g.Tactic.Value("illustrationAlt")" loading="lazy" decoding="async"><figcaption><span>@g.Tactic.Name</span></figcaption></figure>
                                 }
                             </div>
                         }

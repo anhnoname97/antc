@@ -1,0 +1,85 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Strings
+@inject Umbraco.Plugin.Custom.Core.Articles.ArticleHtmlSanitizer Sanitizer
+@{
+    // Trang "Cach xac minh ban dang o dung trang" (ban chinh thuc 10/11/2026, vDungtrang).
+    // Bon dong "Trang that khong bao gio" lay tu Cai dat website > Cam ket (footerCommitments), dung chung voi chan trang.
+    Layout = "~/Views/Shared/_SiteLayout.cshtml";
+    string T(string alias, string fallback) => Model.Value<string>(alias) is { Length: > 0 } value ? value.Trim() : fallback;
+    string Rte(string alias) => Sanitizer.Clean(Model.Value<IHtmlEncodedString>(alias)?.ToHtmlString() ?? "");
+    var site = Model.Root();
+    var title = T("title", "Cách xác minh bạn đang ở đúng trang");
+    var lead = T("lead", "Website chống lừa đảo là mục tiêu bị làm giả hàng đầu. Mất một phút kiểm tra là đủ.");
+    var address = T("officialAddress", "antoantaichinh.vn");
+    var intro = Rte("intro");
+    var checkTitle = T("checkTitle", "Cách tự kiểm tra");
+    var checkText = Rte("checkText");
+    var channelsTitle = T("channelsTitle", "Kênh chính thức của website");
+    var channels = (Model.Value<IEnumerable<string>>("channels") ?? []).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+    var neverTitle = T("neverTitle", "Trang thật không bao giờ");
+    var never = (site.Value<BlockListModel>("footerCommitments") ?? Enumerable.Empty<BlockListItem>())
+        .Select(x => (Text: x.Content.Value<string>("text"), Icon: x.Content.Value<string>("icon")))
+        .Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToArray();
+    var about = Model.Parent<IPublishedContent>()?.Children()?.FirstOrDefault(x => x.ContentType.Alias == "veWebsitePage");
+    var aboutUrl = EmergencyContent.PublicUrl(about);
+}
+@section Head {
+    <link rel="stylesheet" href="~/assets/css/contest-shell.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/assets/css/qa-portal.css" asp-append-version="true">
+}
+<div class="qa-portal verify-page" id="xac-minh-dung-trang">
+    <nav class="crumbs" aria-label="Bạn đang ở">
+        <ol>
+            <li><a href="/">Trang chủ</a></li>
+            <li>@if (aboutUrl is not null) { <a href="@aboutUrl">Về website</a> } else { <span>Về website</span> }</li>
+            <li><span aria-current="page">Xác minh đúng trang</span></li>
+        </ol>
+    </nav>
+
+    <header class="pageh">
+        <div class="pageh-title">
+            <span class="spot" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+            </span>
+            <h1 tabindex="-1">@title</h1>
+        </div>
+        <p class="lead">@lead</p>
+    </header>
+
+    <div class="addr">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+        <b>@address</b>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(intro)) { <div class="verify-text">@Html.Raw(intro)</div> }
+
+    @if (!string.IsNullOrWhiteSpace(checkText))
+    {
+        <div class="note b">
+            <b>@checkTitle</b>
+            @Html.Raw(checkText)
+        </div>
+    }
+
+    @if (channels.Length > 0)
+    {
+        <section class="sec" aria-labelledby="h-channels">
+            <h2 id="h-channels">@channelsTitle</h2>
+            <ul class="plain">@foreach (var line in channels) { <li>@line</li> }</ul>
+        </section>
+    }
+
+    @if (never.Length > 0)
+    {
+        <section class="sec" aria-labelledby="h-never">
+            <h2 id="h-never">@neverTitle</h2>
+            <ul class="bonkhong">
+                @foreach (var item in never)
+                {
+                    <li><span class="bonkhong__ic">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", item.Icon ?? "icon-shield")</span><span>@item.Text</span></li>
+                }
+            </ul>
+        </section>
+    }
+</div>

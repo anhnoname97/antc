@@ -8,6 +8,64 @@ namespace Umbraco.Plugin.Custom.Tests;
 public class QuizAdminServiceTests
 {
     [Fact]
+    public async Task QuestionsController_PassesTypeFilterToService()
+    {
+        await using var test = await TestDatabase.CreateAsync();
+        await test.Service.CreateTopicAsync(new(2, "Tổ chức", [], [], Type: QuizAudience.Organization), "admin", default);
+        await test.Service.CreateQuestionAsync(ValidQuestion() with { TopicId = 2 }, "admin", default);
+        await test.Service.CreateQuestionAsync(ValidQuestion() with { Code = "Q-002" }, "admin", default);
+        var controller = new Umbraco.Plugin.Custom.Api.Controllers.QuizAdminController(test.Service);
+        var response = await controller.SearchQuestions(null, null, null, type: QuizAudience.Organization);
+        var result = Assert.IsType<Microsoft.AspNetCore.Mvc.OkObjectResult>(response.Result);
+        var page = Assert.IsType<PagedResult<QuizQuestionAdminDto>>(result.Value);
+        Assert.Equal("Q-001", Assert.Single(page.Items).Code);
+    }
+    [Fact]
+    public async Task Type_IsInheritedFromTopic_AndFollowsTopicChangeAndQuestionMove()
+    {
+        await using var test = await TestDatabase.CreateAsync();
+        var organization = await test.Service.CreateTopicAsync(new(2, "Tổ chức mới", [], [], Type: QuizAudience.Organization), "admin", default);
+        Assert.Null(organization.PublicCode);
+        var question = await test.Service.CreateQuestionAsync(ValidQuestion() with { TopicId = 2 }, "admin", default);
+        Assert.Equal(QuizAudience.Organization, question.Type);
+        Assert.Single((await test.Service.SearchQuestionsAsync(null, null, null, 1, 10, default, type: QuizAudience.Organization)).Items);
+        await test.Service.UpdateTopicAsync(2, new(2, organization.Title, [], [], Type: QuizAudience.Personal), "admin", default);
+        Assert.Equal(QuizAudience.Personal, (await test.Service.GetQuestionAsync(question.Code, default))!.Type);
+        Assert.Empty((await test.Service.SearchQuestionsAsync(null, null, null, 1, 10, default, type: QuizAudience.Organization)).Items);
+        await test.Service.UpdateTopicAsync(2, new(2, organization.Title, [], [], Type: QuizAudience.Organization), "admin", default);
+        var moved = await test.Service.UpdateQuestionAsync(question.Code, ValidQuestion() with { TopicId = 1 }, "admin", default);
+        Assert.Equal(QuizAudience.Personal, moved!.Type);
+        var invalid = await Assert.ThrowsAsync<QuizAdminValidationException>(() => test.Service.CreateTopicAsync(new(3, "Không hợp lệ", [], [], Type: "other"), "admin", default));
+        Assert.Contains("type", invalid.Fields.Keys);
+    }
+    [Fact]
+    public async Task BusinessBank_FiltersBeforePaging_AndKeepsInactiveQuestionsManageable()
+    {
+        await using TestDatabase test = await TestDatabase.CreateAsync();
+        await test.Service.CreateQuestionAsync(ValidQuestion(), "admin", default);
+        test.Db.QuizTopics.AddRange(
+            new QuizTopic { Id = 9, PublicCode = "dn1", Type = QuizAudience.Organization, Title = "Phần A" },
+            new QuizTopic { Id = 10, PublicCode = "dn2", Type = QuizAudience.Organization, Title = "Phần B", IsActive = false });
+        test.Db.QuizQuestions.AddRange(
+            new QuizQuestion { Code = "A01", TopicId = 9, Question = "Kiểm chứng doanh nghiệp", SortOrder = 1 },
+            new QuizQuestion { Code = "A02", TopicId = 9, Question = "Quyết định doanh nghiệp", SortOrder = 2, IsActive = false },
+            new QuizQuestion { Code = "TH01.1", TopicId = 10, Question = "Kiểm chứng tình huống", SortOrder = 1 });
+        await test.Db.SaveChangesAsync();
+        var first = await test.Service.SearchQuestionsAsync(null, null, null, 1, 2, default, "business");
+        var second = await test.Service.SearchQuestionsAsync(null, null, null, 2, 2, default, "business");
+        Assert.Equal(3, first.TotalItems); Assert.Equal(2, first.TotalPages);
+        Assert.Equal(new[] { "A01", "A02" }, first.Items.Select(x => x.Code));
+        Assert.Equal("TH01.1", Assert.Single(second.Items).Code);
+        Assert.Empty((await test.Service.SearchQuestionsAsync(null, 1, null, 1, 100, default, "business")).Items);
+        Assert.Single((await test.Service.SearchQuestionsAsync(null, null, false, 1, 100, default, "business")).Items);
+        Assert.Single((await test.Service.SearchQuestionsAsync(null, null, null, 1, 100, default, "general")).Items);
+        Assert.Equal(2, (await test.Service.SearchQuestionsAsync("Kiểm chứng", null, null, 1, 100, default, "business")).TotalItems);
+        var parts = await test.Service.SearchTopicsAsync(null, null, 1, 100, default, "business");
+        Assert.Equal(2, parts.TotalItems); Assert.All(parts.Items, x => Assert.NotNull(x.PublicCode));
+        Assert.Equal(2, parts.Items[0].QuestionCount);
+        Assert.Equal(1, parts.Items[0].ActiveQuestionCount);
+    }
+    [Fact]
     public async Task TrueFalseQuestion_CanBeCreatedAndEdited_WithoutInventingBlankOptions()
     {
         await using TestDatabase test = await TestDatabase.CreateAsync();

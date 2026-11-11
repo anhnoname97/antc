@@ -53,6 +53,7 @@ public class AppDbInitializer : IHostedService
         {
             await SeedSampleContestAsync(db, cancellationToken);
         }
+        await QuizBankRelease20261110.ApplyAsync(db, _logger, cancellationToken);
     }
 
     /// <summary>Cuoc thi mau giu 8 chuyen de chung; tai lieu luyen doanh nghiep khong tu dong them vao de thi.</summary>
@@ -71,8 +72,7 @@ public class AppDbInitializer : IHostedService
             UpdatedAt = now,
         };
 
-        // Adding practice material must not expand the default demo contest automatically.
-        List<QuizTopic> topics = await db.QuizTopics.Where(t => t.IsActive && t.Audience == "general")
+        List<QuizTopic> topics = await db.QuizTopics.Where(t => t.IsActive && t.Type == QuizAudience.Personal && t.Audience == "general")
             .Include(t => t.Questions)
             .OrderBy(t => t.Id).ToListAsync(ct);
         contest.BankVersion = await db.QuizImports.Select(x => (long?)x.Id).MaxAsync(ct) ?? 0;
@@ -198,6 +198,8 @@ public class AppDbInitializer : IHostedService
                 Id = topicId,
                 Title = topic.Value.GetProperty("t").GetString() ?? "",
                 Audience = topic.Value.TryGetProperty("audience", out var audience) ? audience.GetString() ?? "general" : "general",
+                Type = enterprise.RootElement.TryGetProperty(topic.Name, out _) ? QuizAudience.Organization : QuizAudience.Personal,
+                PublicCode = enterprise.RootElement.TryGetProperty(topic.Name, out _) ? $"dn{topicId - 8}" : null,
                 ShortTitle = topic.Value.TryGetProperty("sh", out var shortTitle) ? shortTitle.GetString() : null,
                 Caption = topic.Value.TryGetProperty("sub", out var caption) ? caption.GetString() : null,
                 Intro = topic.Value.GetProperty("intro").GetRawText(),

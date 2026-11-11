@@ -7,12 +7,12 @@ namespace Umbraco.Plugin.Custom.Core.Quiz;
 
 public interface IQuizAdminService
 {
-    Task<PagedResult<QuizTopicAdminDto>> SearchTopicsAsync(string? search, bool? isActive, int page, int pageSize, CancellationToken ct);
+    Task<PagedResult<QuizTopicAdminDto>> SearchTopicsAsync(string? search, bool? isActive, int page, int pageSize, CancellationToken ct, string bankFilter = "all", string? type = null);
     Task<QuizTopicAdminDto?> GetTopicAsync(int id, CancellationToken ct);
     Task<QuizTopicAdminDto> CreateTopicAsync(SaveQuizTopicRequest request, string actor, CancellationToken ct);
     Task<QuizTopicAdminDto?> UpdateTopicAsync(int id, SaveQuizTopicRequest request, string actor, CancellationToken ct);
     Task<bool> DeleteTopicAsync(int id, string actor, CancellationToken ct);
-    Task<PagedResult<QuizQuestionAdminDto>> SearchQuestionsAsync(string? search, int? topicId, bool? isActive, int page, int pageSize, CancellationToken ct);
+    Task<PagedResult<QuizQuestionAdminDto>> SearchQuestionsAsync(string? search, int? topicId, bool? isActive, int page, int pageSize, CancellationToken ct, string bankFilter = "all", string? type = null);
     Task<QuizQuestionAdminDto?> GetQuestionAsync(string code, CancellationToken ct);
     Task<QuizQuestionAdminDto> CreateQuestionAsync(SaveQuizQuestionRequest request, string actor, CancellationToken ct);
     Task<QuizQuestionAdminDto?> UpdateQuestionAsync(string code, SaveQuizQuestionRequest request, string actor, CancellationToken ct);
@@ -25,10 +25,13 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     private static readonly string[] AnswerKeys = ["A", "B", "C", "D"];
 
     public async Task<PagedResult<QuizTopicAdminDto>> SearchTopicsAsync(
-        string? search, bool? isActive, int page, int pageSize, CancellationToken ct)
+        string? search, bool? isActive, int page, int pageSize, CancellationToken ct, string bankFilter = "all", string? type = null)
     {
         (page, pageSize) = NormalizePaging(page, pageSize);
         IQueryable<QuizTopic> query = db.QuizTopics.AsNoTracking();
+        type ??= bankFilter == "business" ? QuizAudience.Organization : bankFilter == "general" ? QuizAudience.Personal : null;
+        if (type == QuizAudience.Organization) query = query.Where(x => x.Type == QuizAudience.Organization);
+        else if (type == QuizAudience.Personal) query = query.Where(x => x.Type == QuizAudience.Personal);
         if (!string.IsNullOrWhiteSpace(search))
         {
             string term = search.Trim().ToLower();
@@ -94,10 +97,13 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     }
 
     public async Task<PagedResult<QuizQuestionAdminDto>> SearchQuestionsAsync(
-        string? search, int? topicId, bool? isActive, int page, int pageSize, CancellationToken ct)
+        string? search, int? topicId, bool? isActive, int page, int pageSize, CancellationToken ct, string bankFilter = "all", string? type = null)
     {
         (page, pageSize) = NormalizePaging(page, pageSize);
         IQueryable<QuizQuestion> query = db.QuizQuestions.AsNoTracking().Include(x => x.Topic);
+        type ??= bankFilter == "business" ? QuizAudience.Organization : bankFilter == "general" ? QuizAudience.Personal : null;
+        if (type == QuizAudience.Organization) query = query.Where(x => x.Topic != null && x.Topic.Type == QuizAudience.Organization);
+        else if (type == QuizAudience.Personal) query = query.Where(x => x.Topic != null && x.Topic.Type == QuizAudience.Personal);
         if (!string.IsNullOrWhiteSpace(search))
         {
             string term = search.Trim().ToLower();
@@ -195,8 +201,9 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     private static void ValidateTopic(SaveQuizTopicRequest request)
     {
         var errors = new Dictionary<string, string>();
+        if (request.Type is not null && !QuizAudience.IsValid(request.Type)) errors["type"] = "Type phải là Cá nhân hoặc Tổ chức.";
         if (request.Id <= 0) errors["id"] = "Mã chuyên đề phải lớn hơn 0.";
-        if (request.Audience is not ("general" or "enterprise")) errors["audience"] = "Chọn nhóm người đọc hợp lệ.";
+        if (request.Audience is not null and not ("general" or "enterprise")) errors["audience"] = "Chọn nhóm người đọc hợp lệ.";
         if (request.ShortTitle?.Trim().Length > 200) errors["shortTitle"] = "Tên trên danh sách tối đa 200 ký tự.";
         if (request.Caption?.Trim().Length > 300) errors["caption"] = "Dòng mô tả tối đa 300 ký tự.";
         if (string.IsNullOrWhiteSpace(request.Title) || request.Title.Trim().Length is < 2 or > 200) errors["title"] = "Tên chuyên đề phải có 2–200 ký tự.";
@@ -208,7 +215,9 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
     private QuizTopic Apply(QuizTopic topic, SaveQuizTopicRequest request)
     {
         topic.Title = request.Title!.Trim();
-        topic.Audience = request.Audience;
+        if (request.Type is not null) topic.Type = request.Type;
+        else if (request.Audience is not null) topic.Type = request.Audience == "enterprise" ? QuizAudience.Organization : QuizAudience.Personal;
+        topic.Audience = topic.Type == QuizAudience.Organization ? "enterprise" : "general";
         topic.ShortTitle = NullIfEmpty(request.ShortTitle);
         topic.Caption = NullIfEmpty(request.Caption);
         topic.Intro = JsonSerializer.Serialize((request.Intro ?? []).Select(x => x.Trim()), JsonOptions);
@@ -248,7 +257,8 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
 
     private static QuizTopicAdminDto MapTopic(QuizTopic x, int total, int active) => new(
         x.Id, x.Title, ParseStringArray(x.Intro), ParseTerms(x.Terms), x.IsActive, total, active, x.UpdatedAt, x.Revision,
-        x.Audience, x.ShortTitle, x.Caption);
+        x.Type == QuizAudience.Organization || x.Audience == "enterprise" ? "enterprise" : "general",
+        x.ShortTitle, x.Caption, x.PublicCode, x.Type);
 
     private static QuizQuestionAdminDto MapQuestion(QuizQuestion x)
     {
@@ -257,7 +267,7 @@ public sealed partial class QuizAdminService(AppDbContext db, IQuestionBank bank
         return new(x.Code, x.TopicId, x.Topic?.Title ?? "", x.Kind, x.Situation ?? "", x.Question,
             options.Select(o => new QuizAnswerAdminDto(o.ElementAtOrDefault(0) ?? "", o.ElementAtOrDefault(1) ?? "",
                 explanations.GetValueOrDefault(o.ElementAtOrDefault(0) ?? "") ?? "", o.ElementAtOrDefault(0) == x.Answer)).ToList(),
-            x.Answer, x.SafeAction ?? "", x.ReadSeconds, x.SampleOrder, x.SampleLabel, x.SortOrder, x.IsActive, x.UpdatedAt, x.Revision);
+            x.Answer, x.SafeAction ?? "", x.ReadSeconds, x.SampleOrder, x.SampleLabel, x.SortOrder, x.IsActive, x.UpdatedAt, x.Revision, x.Topic?.Type ?? QuizAudience.Personal);
     }
 
     private static IReadOnlyList<string> ParseStringArray(string json) => JsonSerializer.Deserialize<List<string>>(json, JsonOptions) ?? [];

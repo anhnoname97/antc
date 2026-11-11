@@ -3,9 +3,9 @@ import { html, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { blobDownload } from '@umbraco-cms/backoffice/utils';
-import { contestStyles } from './contest-theme.js?v=1.15.8';
-import { pageSizeSelect } from './contest-page-size.js?v=1.15.8';
-import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.8';
+import { contestStyles } from './contest-theme.js?v=1.15.13';
+import { pageSizeSelect } from './contest-page-size.js?v=1.15.13';
+import { paginate, DEFAULT_PAGE_SIZE } from './contest-pagination.js?v=1.15.13';
 
 const API = '/api/v1/admin/quiz';
 const PHRASE = 'XÁC NHẬN NHẬP NGÂN HÀNG';
@@ -101,7 +101,7 @@ export class ContestBankView extends UmbLitElement {
         const removed = p ? this._slice(p.deactivatedCodes, 'removed') : null;
         const topics = p ? this._slice(p.topics, 'topic-changes') : null;
         return html`<section><h2>Nhập ma trận Excel</h2><p>1. Chọn tệp và kiểm tra toàn bộ → 2. Xem trước thay đổi → 3. Xác nhận nhập. Chưa xác nhận thì chưa ghi dữ liệu.</p>
-            <p class="muted">Hai trang tính bắt buộc: ChuyenDe và CauHoi. Nhóm người đọc: general (phần chung), enterprise (doanh nghiệp). Câu Đúng–Sai để trống C/D. Phần chung cần giải thích từng lựa chọn; phần doanh nghiệp cần giải thích đáp án đúng; chỉ một đáp án đúng. Chỉ nhận .xlsx tối đa 5 MB.</p>
+            <p class="muted">Hai trang tính bắt buộc: ChuyenDe và CauHoi. Type: personal (Cá nhân), organization (Tổ chức). File cũ dùng general/enterprise vẫn được nhận. Câu Đúng–Sai để trống C/D. Đáp án đúng phải có giải thích; giải thích các lựa chọn khác có thể để trống. Chỉ nhận .xlsx tối đa 5 MB.</p>
             <label for="workbook">Chọn tệp Excel</label><input id="workbook" type="file" accept=".xlsx" ?disabled=${this._busy} @change=${this._fileChanged}>
             <div class="actions"><button class="primary" ?disabled=${this._busy || !this._file} @click=${this._check}>Kiểm tra và xem trước</button><span class="muted">${this._file?.name || 'Chưa chọn tệp'}</span></div>
             ${p ? p.errors.length ? html`<div class="error-notice" role="alert">Có ${p.errors.length} lỗi. Chưa ghi dữ liệu; cần sửa file rồi kiểm tra lại.</div><div class="table-wrap"><table><thead><tr><th>Sheet</th><th>Dòng</th><th>Cột</th><th>Lỗi</th></tr></thead><tbody>${errors.items.map(e => html`<tr><td>${e.sheet}</td><td>${e.row || '—'}</td><td>${e.column}</td><td>${e.message}</td></tr>`)}</tbody></table></div>${errors.controls}` : html`
