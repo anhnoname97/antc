@@ -1,5 +1,5 @@
 import { UmbControllerBase } from '@umbraco-cms/backoffice/class-api';
-import './contest-theme.js?v=1.15.8';
+import './contest-theme.js?v=1.15.12';
 
 // The section context owns these shell tokens and releases them on navigation.
 // Native Umbraco navigation, search and permissions remain in control of the shell.

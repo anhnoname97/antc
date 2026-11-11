@@ -16,8 +16,8 @@ public sealed class QuizAdminController(IQuizAdminService service) : ControllerB
     [HttpGet("topics")]
     public async Task<ActionResult<PagedResult<QuizTopicAdminDto>>> SearchTopics(
         [FromQuery] string? search, [FromQuery] bool? isActive, [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20, CancellationToken ct = default) =>
-        Ok(await service.SearchTopicsAsync(search, isActive, page, pageSize, ct));
+        [FromQuery] int pageSize = 20, CancellationToken ct = default, [FromQuery, System.ComponentModel.DataAnnotations.RegularExpression("^(all|general|business)$")] string bank = "all", [FromQuery, System.ComponentModel.DataAnnotations.RegularExpression("^(personal|organization)$")] string? type = null) =>
+        Ok(await service.SearchTopicsAsync(search, isActive, page, pageSize, ct, bank, type));
 
     [HttpGet("topics/{id:int}")]
     public async Task<ActionResult<QuizTopicAdminDto>> GetTopic(int id, CancellationToken ct) =>
@@ -59,8 +59,8 @@ public sealed class QuizAdminController(IQuizAdminService service) : ControllerB
     [HttpGet("questions")]
     public async Task<ActionResult<PagedResult<QuizQuestionAdminDto>>> SearchQuestions(
         [FromQuery] string? search, [FromQuery] int? topicId, [FromQuery] bool? isActive,
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default) =>
-        Ok(await service.SearchQuestionsAsync(search, topicId, isActive, page, pageSize, ct));
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default, [FromQuery, System.ComponentModel.DataAnnotations.RegularExpression("^(all|general|business)$")] string bank = "all", [FromQuery, System.ComponentModel.DataAnnotations.RegularExpression("^(personal|organization)$")] string? type = null) =>
+        Ok(await service.SearchQuestionsAsync(search, topicId, isActive, page, pageSize, ct, bank, type));
 
     [HttpGet("questions/{code}")]
     public async Task<ActionResult<QuizQuestionAdminDto>> GetQuestion(string code, CancellationToken ct) =>

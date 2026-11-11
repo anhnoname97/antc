@@ -22,10 +22,15 @@ public class QuizController : ControllerBase
     }
 
     [HttpGet("topics")]
-    public async Task<IActionResult> Topics([FromQuery] long? contest, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Topics([FromQuery] long? contest, CancellationToken cancellationToken = default, [FromQuery] string bank = "general")
     {
         QuestionBankSnapshot root = _bank.Current;
-        if (contest is null) return Cached(root.Topics, CacheKey(root));
+        if (contest is null)
+        {
+            if (bank is not ("general" or "business" or "all"))
+                return BadRequest(Error("UNKNOWN_BANK", "Ngân hàng câu hỏi không tồn tại."));
+            return Cached(root.Topics.Where(t => bank == "all" || (bank == "business") == (t.Type == "organization")), CacheKey(root) + (bank == "general" ? "" : "-" + bank));
+        }
 
         (ContestInfo? info, IActionResult? error) = await ResolveContestAsync(contest.Value, cancellationToken);
         if (error is not null) return error;
@@ -79,6 +84,22 @@ public class QuizController : ControllerBase
     {
         QuestionBankSnapshot snapshot = _bank.Current;
         return Cached(snapshot.Sample, CacheKey(snapshot));
+    }
+
+    /// <summary>QBDN-compatible JSON, including backoffice edits.</summary>
+    [HttpGet("banks/business")]
+    public IActionResult BusinessBank()
+    {
+        var root = _bank.Current;
+        var payload = root.Topics.Where(t => t.PublicCode != null && t.Type == "organization").ToDictionary(t => t.PublicCode!, t => new
+        {
+            t = t.Title,
+            sh = t.PublicCode == "dn1" ? "Phần A · Câu độc lập" : t.PublicCode == "dn2" ? "Phần B · Tình huống ứng dụng" : "Phần C · Tình huống tổng hợp",
+            sub = t.PublicCode == "dn1" ? "18 câu · mỗi câu một tình huống ngắn" : t.PublicCode == "dn2" ? "36 câu · mỗi tình huống 3 bước quyết định" : "24 câu · mỗi tình huống 4 bước, có dữ kiện gây nhiễu",
+            intro = t.Intro, terms = t.Terms,
+            q = root.QuestionsByTopic.GetValueOrDefault(int.Parse(t.Cd)) ?? Array.Empty<QuestionDto>()
+        });
+        return Cached(payload, CacheKey(root) + "-business-json");
     }
 
     private async Task<(ContestInfo? Info, IActionResult? Error)> ResolveContestAsync(long id, CancellationToken ct)

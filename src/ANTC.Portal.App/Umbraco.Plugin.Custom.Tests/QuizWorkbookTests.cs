@@ -10,6 +10,41 @@ namespace Umbraco.Plugin.Custom.Tests;
 
 public sealed class QuizWorkbookTests
 {
+    [Fact] public async Task Workbook_TypeRoundtripChangeAndLegacyFile_PreserveInheritance()
+    {
+        await using var test = await Fixture.Create();
+        byte[] changed = await test.Edit(w => w.Worksheet("ChuyenDe").Cell(2, 5).Value = QuizAudience.Organization);
+        var preview = await test.Service.PreviewAsync(changed, "type.xlsx", "admin", default);
+        Assert.Empty(preview.Errors);
+        Assert.Contains("Type", Assert.Single(preview.Topics).Columns);
+        await test.Service.ConfirmAsync(new(preview.PreviewId!, null), "admin", default);
+        Assert.Equal(QuizAudience.Organization, (await test.Db.QuizTopics.FindAsync(1))!.Type);
+        var roundtrip = await test.Service.PreviewAsync(await test.Service.ExportAsync(false, default), "roundtrip.xlsx", "admin", default);
+        Assert.Empty(roundtrip.Errors); Assert.Empty(roundtrip.Topics);
+        byte[] legacy = await test.Edit(w => w.Worksheet("ChuyenDe").Column(5).Delete());
+        preview = await test.Service.PreviewAsync(legacy, "legacy.xlsx", "admin", default);
+        Assert.Empty(preview.Errors); Assert.Empty(preview.Topics);
+        await test.Service.ConfirmAsync(new(preview.PreviewId!, null), "admin", default);
+        Assert.Equal(QuizAudience.Organization, (await test.Db.QuizTopics.FindAsync(1))!.Type);
+    }
+    [Fact] public async Task LegacyGeneralWorkbook_PreservesBusiness_AndBusinessExportAcceptsCorrectOnlyExplanation()
+    {
+        await using var test = await Fixture.Create();
+        byte[] legacy = await test.Service.ExportAsync(false, default);
+        test.Db.QuizTopics.Add(new QuizTopic { Id = 9, Title = "Phần A", PublicCode = "dn1", Type = QuizAudience.Organization });
+        test.Db.QuizQuestions.Add(new QuizQuestion { Code = "A01", TopicId = 9, Kind = new string('x', 80),
+            Question = "Chọn quyết định phù hợp?", Options = "[[\"A\",\"Tiếp tục\"],[\"B\",\"Dừng\"]]",
+            Answer = "A", Explanations = "{\"A\":\"Đã kiểm chứng\"}", ReadSeconds = 40 });
+        await test.Db.SaveChangesAsync();
+        var full = await test.Service.PreviewAsync(await test.Service.ExportAsync(false, default), "all.xlsx", "admin", default);
+        Assert.Empty(full.Errors);
+        Assert.Equal(0, full.Updated);
+        var preview = await test.Service.PreviewAsync(legacy, "legacy.xlsx", "admin", default);
+        Assert.Empty(preview.Errors);
+        Assert.Equal(0, preview.Deactivated);
+        await test.Service.ConfirmAsync(new(preview.PreviewId!, null), "admin", default);
+        Assert.True((await test.Db.QuizQuestions.FindAsync("A01"))!.IsActive);
+    }
     [Theory] [InlineData(10)] [InlineData(50)] [InlineData(100)]
     public async Task ImportHistory_RespectsPageSize(int size)
     {
@@ -69,10 +104,10 @@ public sealed class QuizWorkbookTests
         await using var test = await Fixture.Create();
         byte[] bytes = await test.Edit(w => {
             var q = w.Worksheet("CauHoi"); q.Cell(2, 1).Value = "999"; q.Cell(3, 2).Value = "Q1";
-            q.Cell(2, 11).Clear(); q.Cell(2, 16).Value = "601"; q.Cell(2, 17).Value = "2"; q.Cell(3, 17).Value = "2";
+            q.Cell(2, 12).Clear(); q.Cell(2, 16).Value = "601"; q.Cell(2, 17).Value = "2"; q.Cell(3, 17).Value = "2";
         });
         var p = await test.Service.PreviewAsync(bytes, "bad.xlsx", "admin", default);
-        foreach (string column in new[] { "Số chuyên đề", "Mã câu", "Giải thích A", "Thời gian đọc (giây)", "Thứ tự Thử sức" })
+        foreach (string column in new[] { "Số chuyên đề", "Mã câu", "Giải thích B", "Thời gian đọc (giây)", "Thứ tự Thử sức" })
             Assert.Contains(p.Errors, e => e.Column == column);
         Assert.Null(p.PreviewId);
     }

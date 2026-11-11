@@ -214,10 +214,10 @@ export async function getSchedule() {
 }
 
 // QUIZ-01: [{ cd, title, count, intro, terms }]; co contestId thi chi chuyen de cua de cuoc thi do
-export async function fetchTopics(contestId) {
-  const key = String(contestId ?? '');
+export async function fetchTopics(contestId, bank = 'general') {
+  const key = `${contestId ?? ''}/${bank}`;
   if (topicsCache.has(key)) return { ok: true, data: topicsCache.get(key) };
-  const r = mockMode() && contestId != null ? await mockTopics(contestId) : await getJson(QUIZ_URL + contestQuery(contestId));
+  const r = mockMode() && contestId != null ? await mockTopics(contestId) : await getJson(QUIZ_URL + (contestId == null ? `?bank=${encodeURIComponent(bank)}` : contestQuery(contestId)));
   if (r.ok) topicsCache.set(key, r.data);
   return r;
 }

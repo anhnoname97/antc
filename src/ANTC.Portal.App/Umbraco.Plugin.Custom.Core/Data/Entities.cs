@@ -165,6 +165,8 @@ public class QuestionRetentionPolicy
 /// <summary>Chuyen de cua ngan hang cau hoi.</summary>
 public class QuizTopic
 {
+    public string? PublicCode { get; set; }
+    public string Type { get; set; } = QuizAudience.Personal;
     /// <summary>So chuyen de (hien la 1-8), khong tu tang.</summary>
     public int Id { get; set; }
     public string Title { get; set; } = "";

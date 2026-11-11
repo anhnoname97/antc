@@ -53,6 +53,7 @@ public class AppDbInitializer : IHostedService
         {
             await SeedSampleContestAsync(db, cancellationToken);
         }
+        await QuizBankRelease20261110.ApplyAsync(db, _logger, cancellationToken);
     }
 
     /// <summary>Mot cuoc gom moi chuyen de va cau dang dung, 2026-10-01 den 2026-12-31 gio Viet Nam.</summary>
@@ -71,7 +72,7 @@ public class AppDbInitializer : IHostedService
             UpdatedAt = now,
         };
 
-        List<QuizTopic> topics = await db.QuizTopics.Where(t => t.IsActive)
+        List<QuizTopic> topics = await db.QuizTopics.Where(t => t.IsActive && t.Type == QuizAudience.Personal)
             .Include(t => t.Questions)
             .OrderBy(t => t.Id).ToListAsync(ct);
         contest.BankVersion = await db.QuizImports.Select(x => (long?)x.Id).MaxAsync(ct) ?? 0;
