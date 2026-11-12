@@ -7,6 +7,8 @@
 param([switch]$Build)
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $MyInvocation.MyCommand.Path)
+# File compose local khong dat ten mac dinh (docker-compose.yml) de Vibe Host khong nhan nham.
+$env:COMPOSE_FILE = "compose.local.yml"
 if (-not (Test-Path ".env")) { throw "Thieu .env. Chay: Copy-Item .env.example .env, roi dat ANTC_ADMIN_PASSWORD." }
 
 Write-Host "==> Xoa container va volume du lieu" -ForegroundColor Cyan

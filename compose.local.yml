@@ -1,6 +1,7 @@
 # Moi truong test Docker cho AI Test Assistant.
 #   cp .env.example .env   (dat ANTC_ADMIN_PASSWORD)
-#   docker compose up -d --build --wait
+#   docker compose -f compose.local.yml up -d --build --wait
+# Ten file khong phai docker-compose.yml de Vibe Host (mot container) build bang Dockerfile o goc repo.
 # URL: http://localhost:11000 (hoac http://host.docker.internal:11000), quan tri /umbraco
 # Chay Development de giong run-local (seed noi dung mau, 200 cau hoi, chien dich thi mau).
 services:

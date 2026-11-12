@@ -1,5 +1,5 @@
 # Dockerfile cho moi truong test on dinh (AI Test Assistant). Build tu thu muc goc repo:
-#   docker compose build   (xem docker-compose.yml)
+#   docker compose -f compose.local.yml build   (xem compose.local.yml)
 # Core Umbraco lay tu feed noi bo src/ANTC.Portal.Lib/Build.Core (da commit), khong build core.
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
