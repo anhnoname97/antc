@@ -113,10 +113,12 @@
         {
             primaryUrl = "/thi/";
         }
-        if (secondaryLink == null || string.IsNullOrWhiteSpace(secondaryLink.Url) || secondaryLink.Url == "/cuoc-thi/lam-bai/#ngan-hang" || secondaryLink.Url == "/dang-ky/#ngan-hang")
-        {
-            secondaryUrl = "/ngan-hang/";
-        }
+    }
+
+    // Link tu luyen cu (/dang-ky/#ngan-hang, /cuoc-thi/lam-bai/#ngan-hang) dua ve trang dang ky; ca khi chua co cuoc thi cung phai ve /ngan-hang/.
+    if (secondaryLink == null || string.IsNullOrWhiteSpace(secondaryLink.Url) || secondaryLink.Url == "/cuoc-thi/lam-bai/#ngan-hang" || secondaryLink.Url == "/dang-ky/#ngan-hang")
+    {
+        secondaryUrl = "/ngan-hang/";
     }
 }
 
@@ -157,6 +159,9 @@
         }
     </figure>
 
+    @* Khong co cuoc thi dang dien ra thi an khoi thong tin (thoi gian, doi tuong, the le...) *@
+    @if (currentContest is not null)
+    {
     <div class="facts box">
         <div class="fact">
             <span class="spot">
@@ -201,6 +206,7 @@
             </span>
         </div>
     </div>
+    }
 
     @if (currentContest is null)
     {
