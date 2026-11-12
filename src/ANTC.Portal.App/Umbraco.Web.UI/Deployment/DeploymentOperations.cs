@@ -7,6 +7,40 @@ namespace Antc.Deployment;
 
 public static class DeploymentOperations
 {
+    /// <summary>
+    /// May chu tam tren cung dia chi voi ung dung (ASPNETCORE_URLS) trong luc nhap uSync:
+    /// "/" va "/healthz" tra 200, con lai 503. Khong gui X-ANTC-Release nen script ops van cho ban that.
+    /// Tra null khi khong khai bao dia chi (vd run-local dung launchSettings).
+    /// </summary>
+    public static async Task<WebApplication?> StartPlaceholderAsync(WebApplication app)
+    {
+        if (app.Configuration["ASPNETCORE_URLS"] is not { Length: > 0 } urls) return null;
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseUrls(urls.Split(';', StringSplitOptions.RemoveEmptyEntries));
+        builder.Logging.ClearProviders();
+        var placeholder = builder.Build();
+        placeholder.Run(async context =>
+        {
+            bool probe = context.Request.Path == "/" || context.Request.Path == "/healthz";
+            context.Response.StatusCode = probe ? 200 : 503;
+            context.Response.Headers.CacheControl = "no-store";
+            if (!probe) context.Response.Headers.RetryAfter = "30";
+            context.Response.ContentType = "text/plain; charset=utf-8";
+            await context.Response.WriteAsync("Hệ thống đang khởi tạo. Vui lòng thử lại sau ít phút.", context.RequestAborted);
+        });
+        await placeholder.StartAsync();
+        return placeholder;
+    }
+
+    /// <summary>Con phai nhap uSync cho ban phat hanh nay (chua co bien nhan).</summary>
+    public static bool IsImportPending(WebApplication app)
+    {
+        if (!app.Configuration.GetValue<bool>("Deployment:ImportStructure")) return false;
+        if (app.Configuration["Deployment:ReleaseId"] is not { } releaseId || app.Configuration["Deployment:StatePath"] is not { } state)
+            return true; // De ImportStructureAsync bao loi cau hinh nhu cu.
+        return !File.Exists(Path.Combine(state, releaseId + ".json"));
+    }
+
     public static async Task ImportStructureAsync(WebApplication app)
     {
         if (!app.Configuration.GetValue<bool>("Deployment:ImportStructure")) return;

@@ -61,7 +61,25 @@ builder.CreateUmbracoBuilder()
 WebApplication app = builder.Build();
 
 await app.BootUmbracoAsync();
-await DeploymentOperations.ImportStructureAsync(app);
+
+if (DeploymentOperations.IsImportPending(app))
+{
+    // Nhap uSync lan dau mat vai phut. Trong luc do mot may chu tam giu cong de nen tang trien khai
+    // thay ung dung con song; nhap xong thi tat no truoc khi ung dung that nghe cong.
+    WebApplication? placeholder = await DeploymentOperations.StartPlaceholderAsync(app);
+    try
+    {
+        await DeploymentOperations.ImportStructureAsync(app);
+    }
+    finally
+    {
+        if (placeholder is not null)
+        {
+            await placeholder.StopAsync();
+            await placeholder.DisposeAsync();
+        }
+    }
+}
 
 // IP thật phải được xác định trước khi chia hạn mức và băm IP của lượt thi/câu hỏi.
 app.UseForwardedHeaders();
