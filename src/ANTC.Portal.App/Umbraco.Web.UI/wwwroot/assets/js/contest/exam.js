@@ -59,14 +59,14 @@ async function resolveCurrentContest() {
 }
 
 // He so dong ho doc cua cuoc thi (API-02 contest.readTimerFactor): rong, sai dinh dang hoac am thi coi la 1; nhan ca "0,5" va "0.5".
-// Luyen tap khong co cuoc nen luon la 1.
+// Tu luyen khong dem gio doc (he so 0): chon xong la di tiep duoc ngay. Cuoc thi van theo he so cua tung cuoc.
 function parseFactor(raw) {
   const t = String(raw ?? '').trim().replace(',', '.');
   if (!/^\d+(\.\d+)?$/.test(t)) return 1;
   const f = Number(t);
   return Number.isFinite(f) && f >= 0 ? f : 1;
 }
-const readFactor = () => (state.practice || !state.contest ? 1 : parseFactor(state.contest.readTimerFactor));
+const readFactor = () => (state.practice ? 0 : !state.contest ? 1 : parseFactor(state.contest.readTimerFactor));
 // Cuoc thi khong nhan dap an nua: da lay duoc API-02 ma phase khac 'open' (lan luot khong co cuoc cung la closed)
 const isSubmitOnly = () => !state.practice && !!state.contest && state.contest.phase === 'submit_only';
 
@@ -1034,4 +1034,5 @@ async function boot() {
   showRegister(false);
 }
 
-boot();
+// Trang /ngan-hang/ an noi dung ve san (is-booting) cho toi khi ve xong; loi cung phai hien lai
+boot().finally(() => document.querySelector('.contest-flow-page.is-booting')?.classList.remove('is-booting'));

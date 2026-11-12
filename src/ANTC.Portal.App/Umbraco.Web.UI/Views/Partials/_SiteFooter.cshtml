@@ -1,6 +1,7 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Models.PublishedContent
+@inject Umbraco.Plugin.Custom.Core.Contest.IContestCatalog Contests
 @{
     var site = Model.Root();
     var siteName = site.Value<string>("siteName");
@@ -39,7 +40,9 @@
                     @if (support?.Any() == true) {
                         @await Html.PartialAsync("~/Views/Partials/_SharedLinks.cshtml", (support.AsEnumerable(), path, (string?)null, false), new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["RequirePublicPage"] = true })
                     }
-                    @if (support?.Any(i => (i.Content.Value<string>("label") ?? "").Contains("Cuộc thi")) != true) {
+                    @* Chi hien link cuoc thi khi co cuoc thi dang dien ra *@
+                    @if (support?.Any(i => (i.Content.Value<string>("label") ?? "").Contains("Cuộc thi")) != true
+                        && await Contests.GetCurrentAsync(Context.RequestAborted) is not null) {
                         var contest = site.DescendantsOrSelfOfType("thiThangPage").FirstOrDefault();
                         if (EmergencyContent.PublicUrl(contest) is { } contestUrl) { <a href="@contestUrl">Cuộc thi tìm hiểu</a> }
                     }
