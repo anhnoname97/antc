@@ -2535,3 +2535,8 @@
 .practice-enterprise h2, .practice-enterprise p { margin: 0; }
 .practice-enterprise h2 { color: var(--v2-navy); font-size: 1.625rem; line-height: 1.35; }
 .practice-enterprise .cdlist { margin: 0; }
+
+/* /ngan-hang/: an phan dang ky do may chu ve san cho toi khi exam.js ve xong man tu luyen.
+   Neu JS loi hoac bi chan, sau 3 giay tu hien lai de khong de trang trong. */
+.contest-flow-page.is-booting { visibility: hidden; animation: contest-boot-reveal 0s 3s forwards; }
+@keyframes contest-boot-reveal { to { visibility: visible; } }

@@ -46,41 +46,6 @@ if (guide) {
       if (error.name !== 'AbortError') say('Bạn có thể chép đường dẫn trên thanh địa chỉ để gửi cho người thân.');
     }
   });
-  const speakButton = guide.querySelector('[data-guide-speak]');
-  if (speakButton && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
-    speakButton.hidden = false;
-    let reading = false;
-    const stop = () => {
-      reading = false;
-      speechSynthesis.cancel();
-      speakButton.setAttribute('aria-pressed', 'false');
-      speakButton.querySelector('span').textContent = 'Nghe bài viết';
-    };
-    speakButton.addEventListener('click', () => {
-      if (reading) { stop(); return; }
-      const parts = [...guide.querySelectorAll('h1, .self-check-heading > p:not(.self-check-eyebrow), .action-guide-step-body h2, .action-guide-step-body h3, .action-guide-step-body p, .action-guide-step-body li')]
-        .filter(node => !node.closest('.action-guide-bank:not([open])'))
-        .map(node => node.textContent.trim()).filter(Boolean);
-      if (!parts.length) return;
-      const voice = speechSynthesis.getVoices().find(item => item.lang.toLowerCase().startsWith('vi'));
-      reading = true;
-      speakButton.setAttribute('aria-pressed', 'true');
-      speakButton.querySelector('span').textContent = 'Dừng đọc';
-      parts.forEach((text, index) => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'vi-VN';
-        if (voice) utterance.voice = voice;
-        utterance.onerror = event => {
-          if (event.error !== 'canceled' && event.error !== 'interrupted') {
-            stop(); say('Thiết bị chưa đọc được bài viết. Bạn có thể dùng chức năng đọc màn hình của thiết bị.');
-          }
-        };
-        if (index === parts.length - 1) utterance.onend = stop;
-        speechSynthesis.speak(utterance);
-      });
-    });
-    window.addEventListener('pagehide', stop);
-  }
   window.addEventListener('pageshow', update);
   update();
 }

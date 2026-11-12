@@ -45,16 +45,10 @@ const url = base + '/hay-tu-kiem-tra/huong-dan/co-nguoi-dang-de-doa-ep-buoc-ban/
     await guide.locator('[data-guide-share]').click();
     assert.equal(await page.evaluate(() => window.copiedGuideUrl), url);
     await page.evaluate(() => {
-      window.readParts = [];
-      Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { getVoices: () => [], speak: utterance => window.readParts.push(utterance.text), cancel: () => {} } });
       window.printedGuide = false;
       window.print = () => { window.printedGuide = true; };
     });
-    await guide.locator('[data-guide-speak]').click();
-    assert.equal(await guide.locator('[data-guide-speak]').getAttribute('aria-pressed'), 'true');
-    assert.match((await page.evaluate(() => window.readParts)).join(' '), /An toàn của bạn đứng trên bằng chứng/);
-    await guide.locator('[data-guide-speak]').click();
-    assert.equal(await guide.locator('[data-guide-speak]').getAttribute('aria-pressed'), 'false');
+    assert.equal(await guide.getByRole('button', { name: /Nghe bài viết|Dừng đọc/ }).count(), 0);
     await guide.locator('[data-guide-print]').click();
     assert(await page.evaluate(() => window.printedGuide));
     await guide.locator('[data-font-toggle]').click();
@@ -78,10 +72,10 @@ const url = base + '/hay-tu-kiem-tra/huong-dan/co-nguoi-dang-de-doa-ep-buoc-ban/
     await staticPage.goto(url);
     assert.equal(await staticPage.locator('.action-guide-step').count(), 7);
     assert.equal(await staticPage.locator('a[href="tel:113"]').isVisible(), true);
-    assert.equal(await staticPage.locator('[data-guide-speak]').isVisible(), false);
+    assert.equal(await staticPage.getByRole('button', { name: /Nghe bài viết|Dừng đọc/ }).count(), 0);
     await noJs.close();
     assert.deepEqual(writes, [], 'No submissions from local ticks or document tools');
     assert.deepEqual(errors, []);
-    console.log('PASS: seven steps, native icons/actions, preserved source, keyboard ticks, reload/reset isolation, blocked storage, share URL, speech/print controls, four widths, enlarged font and no-JS content.');
+    console.log('PASS: seven steps, native icons/actions, preserved source, keyboard ticks, reload/reset isolation, blocked storage, share URL, print controls and no speech controls, four widths, enlarged font and no-JS content.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

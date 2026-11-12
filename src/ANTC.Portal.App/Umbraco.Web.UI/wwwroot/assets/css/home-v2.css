@@ -106,7 +106,16 @@
   88% { transform: rotate(-2deg); }
 }
 @media (max-width: 767px) {
-  .home-risk-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .home-risk-cards { grid-template-columns: minmax(0, 1fr); }
+  .home-risk-card { grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 14px; row-gap: 4px; min-height: 112px; border-radius: 14px; }
+  .home-risk-card__image, .home-risk-card__icon { grid-column: 1; grid-row: 1 / -1; align-self: center; margin: 0; }
+  .home-risk-card__image { width: 64px; }
+  .home-risk-card__icon { width: 56px; height: 56px; justify-self: center; }
+  .home-risk-card h3, .home-risk-card p, .home-risk-card__count { grid-column: 2; min-width: 0; }
+  .home-risk-card h3 { font-size: 1rem; line-height: 1.4; }
+  .home-risk-card p { font-size: .875rem; line-height: 1.5; }
+  .home-risk-card__count { margin-top: 2px; font-size: .8125rem; }
+  .home-risk-card__count .site-icon { opacity: 1; transform: none; }
 }
 @media (min-width: 600px) {
   .home-principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }

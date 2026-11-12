@@ -25,7 +25,6 @@
     @if (data.Ready)
     {
         <div class="self-check-controls self-check-document-tools">
-            <button type="button" class="self-check-button" data-checklist-speak aria-pressed="false" hidden>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-megaphone") <span>Nghe bài viết</span></button>
             <button type="button" class="self-check-button" data-font-toggle aria-pressed="false">A+ Chữ lớn</button>
             <button type="button" class="self-check-button" data-checklist-print>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-print") In</button>
             <button type="button" class="self-check-button" data-checklist-share>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-share") Gửi</button>
