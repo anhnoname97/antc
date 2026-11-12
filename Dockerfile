@@ -10,6 +10,9 @@ RUN dotnet publish src/ANTC.Portal.App/Umbraco.Web.UI/Umbraco.Web.UI.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /out .
+# Vibe Host kiem tra suc khoe bang curl/wget chay trong container.
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 # Thu muc du lieu ben (khai trong Vibe Host: set_data_paths)
 # uSync ghi file .cshtml vao Views khi nhap template, nen Views phai ghi duoc.
 RUN mkdir -p /app/App_Data /app/umbraco/Data /app/umbraco/Logs /app/wwwroot/media /app/Keys \
