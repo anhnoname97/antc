@@ -1,6 +1,8 @@
 ﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 @using Umbraco.Cms.Core.Models.Blocks
 @using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Plugin.Custom.Core.Contest
+@inject ContestPromotionService Promotions
 @{
     var site = Model.Root();
     var siteName = site.Value<string>("siteName");
@@ -9,20 +11,22 @@
     var logo = site.Value<IPublishedContent>("logoHeaderImage");
     var logoAlt = site.Value<string>("headerLogoAlt");
     var tagline = site.Value<string>("headerTagline");
+    var mobileTagline = site.Value<string>("headerMobileTagline");
+    if (string.IsNullOrWhiteSpace(mobileTagline)) { mobileTagline = tagline; }
     var menu = site.Value<BlockListModel>("menu");
-    var preview = site.Value<bool>("showPreviewBanner");
     var showFont = site.Value<bool>("showFontSizeControl");
     var mobileNavigation = site.Value<bool>("showMobileNavigation");
     var fontLabel = site.Value<string>("fontSizeControlLabel");
     if (string.IsNullOrWhiteSpace(fontLabel)) { fontLabel = "Chữ lớn"; }
+    var contest = Model.ContentType.Alias != "ungPhoPage" ? await Promotions.GetAsync(Context.RequestAborted) : null;
 }
-@if (preview || showFont)
+@if (contest is not null || showFont)
 {
     <div class="site-utility">
         <div class="site-chrome-wrap site-utility__inner">
-            @if (preview)
+            @if (contest is not null)
             {
-                <p><b>BẢN DỰNG THỬ</b><span> · chưa phải website đang hoạt động</span></p>
+                @await Html.PartialAsync("~/Views/Partials/_ContestAnnouncement.cshtml", Model, new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["InlineAnnouncement"] = true, ["PromotedContest"] = contest })
             }
             @if (showFont)
             {
@@ -42,7 +46,7 @@
             {
                 <span class="site-brand__mark">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-shield")</span>
             }
-            <span class="site-brand__text"><b>@siteName</b>@if (!string.IsNullOrWhiteSpace(tagline)) { <small>@tagline</small> }</span>
+            <span class="site-brand__text"><b>@siteName</b>@if (!string.IsNullOrWhiteSpace(tagline)) { <small class="site-brand__tagline--desktop">@tagline</small><small class="site-brand__tagline--mobile">@mobileTagline</small> }</span>
         </a>
         <nav class="site-header__nav" aria-label="Danh mục chính">
             @await Html.PartialAsync("~/Views/Partials/_SiteNavigation.cshtml", (menu?.AsEnumerable(), (IPublishedContent)Model, false))

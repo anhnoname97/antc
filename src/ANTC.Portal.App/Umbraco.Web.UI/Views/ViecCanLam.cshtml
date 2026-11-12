@@ -23,7 +23,6 @@
     <header class="self-check-heading"><p class="self-check-eyebrow">KHẨN CẤP · Việc cần làm ngay</p><div class="self-check-heading__title"><span class="self-check-spot emergency-spot">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", Model.Value<string>("icon") ?? "alert")</span><h1>@title</h1></div><p>@Model.Value("lead")</p>@await Html.PartialAsync("~/Views/Partials/_SelfCheckUpdated.cshtml", Model)</header>
     @if (image is not null) { <figure class="emergency-image"><img src="@image.Url()" alt="@Model.Value("illustrationAlt")" decoding="async"></figure> }
     <div class="action-guide-page-tools" role="group" aria-label="Công cụ cho trang này">
-        <button class="self-check-button" type="button" data-guide-speak aria-pressed="false" hidden>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-sound")<span>Nghe bài viết</span></button>
         <button class="self-check-button" type="button" data-font-toggle data-font-label="Chữ lớn" aria-pressed="false"><b aria-hidden="true">A+</b><span>Chữ lớn</span></button>
         <button class="self-check-button" type="button" data-guide-print>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-print")<span>In</span></button>
         <button class="self-check-button" type="button" data-guide-share>@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-share")<span>Gửi</span></button>
