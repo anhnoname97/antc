@@ -4,7 +4,8 @@
 @inject Umbraco.Plugin.Custom.Core.Quiz.IQuestionBank QuestionBank
 @{
     Layout = "~/Views/Shared/_SiteLayout.cshtml";
-    if (Context.Request.Path.Value?.TrimEnd('/') == "/ngan-hang")
+    var isBank = Context.Request.Path.Value?.TrimEnd('/') == "/ngan-hang";
+    if (isBank)
     {
         var title = (Model.Value<string>("practiceTitle") ?? "Tự luyện {count} câu").Replace("{count}", QuestionBank.Current.GeneralQuestionCount.ToString());
         var seo = SelfCheckSeoBuilder.Build(Model, Context.Request);
@@ -21,7 +22,8 @@
     <link rel="stylesheet" href="~/assets/css/contest-flow-blocks.css" asp-append-version="true">
     <link rel="stylesheet" href="~/assets/css/contest-activity.css" asp-append-version="true">
 }
-<div class="contest-flow-page" data-reading-urls="@System.Text.Json.JsonSerializer.Serialize(ReadingArticles.All().ToDictionary(x => x.Number.ToString(), x => x.Url))">
+@* /ngan-hang/: an phan dang ky ve san cho toi khi exam.js ve xong man tu luyen, tranh nhay noi dung *@
+<div class="contest-flow-page@(isBank ? " is-booting" : "")" data-reading-urls="@System.Text.Json.JsonSerializer.Serialize(ReadingArticles.All().ToDictionary(x => x.Number.ToString(), x => x.Url))">
     @if (Model.Value<BlockGridModel>("layout") is { } blocks)
     {
         @await Html.GetBlockGridHtmlAsync(blocks)
