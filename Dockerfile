@@ -11,8 +11,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /out .
 # Thu muc du lieu ben (khai trong Vibe Host: set_data_paths)
+# uSync ghi file .cshtml vao Views khi nhap template, nen Views phai ghi duoc.
 RUN mkdir -p /app/App_Data /app/umbraco/Data /app/umbraco/Logs /app/wwwroot/media /app/Keys \
-    && chown -R app:app /app/App_Data /app/umbraco /app/wwwroot/media /app/Keys
+    && chown -R app:app /app/App_Data /app/umbraco /app/wwwroot/media /app/Keys /app/Views
 USER app
 ENV ASPNETCORE_URLS=http://+:8080 \
     ASPNETCORE_ENVIRONMENT=Staging \
