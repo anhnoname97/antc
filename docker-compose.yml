@@ -1,0 +1,39 @@
+# Moi truong test Docker cho AI Test Assistant.
+#   cp .env.example .env   (dat ANTC_ADMIN_PASSWORD)
+#   docker compose up -d --build --wait
+# URL: http://localhost:11000 (hoac http://host.docker.internal:11000), quan tri /umbraco
+# Chay Development de giong run-local (seed noi dung mau, 200 cau hoi, chien dich thi mau).
+services:
+  antc:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: antc-portal:test
+    container_name: antc
+    ports:
+      - "${ANTC_PORT:-11000}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # Duong dan tuong doi so voi content root (/app) -> nam trong volume antc-appdata
+      ConnectionStrings__appDb: "Data Source=App_Data/app.sqlite.db"
+      Umbraco__CMS__WebRouting__UmbracoApplicationUrl: "${ANTC_PUBLIC_URL:-http://localhost:${ANTC_PORT:-11000}}"
+      Umbraco__CMS__Unattended__InstallUnattended: "true"
+      Umbraco__CMS__Unattended__UnattendedUserName: "Quan tri test"
+      Umbraco__CMS__Unattended__UnattendedUserEmail: "admin@antc.local"
+      Umbraco__CMS__Unattended__UnattendedUserPassword: "${ANTC_ADMIN_PASSWORD:?Dat ANTC_ADMIN_PASSWORD trong file .env}"
+      Umbraco__CMS__Unattended__UnattendedTelemetryLevel: "Minimal"
+      Contest__IpHashSalt: "${ANTC_IP_HASH_SALT:-muoi-test-docker-khong-dung-that}"
+      # Du lieu ben vung: chi nhap uSync o lan dau, khong ghi nguoc ra file khi luu
+      uSync__Settings__ImportAtStartup: "None"
+      uSync__Settings__ExportOnSave: "None"
+    volumes:
+      - antc-appdata:/app/App_Data
+      - antc-umbdata:/app/umbraco/Data
+      - antc-media:/app/wwwroot/media
+      - antc-keys:/app/Keys
+    restart: unless-stopped
+volumes:
+  antc-appdata:
+  antc-umbdata:
+  antc-media:
+  antc-keys:

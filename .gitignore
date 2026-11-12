@@ -40,3 +40,6 @@ Thumbs.db
 # Cau hinh MCP chua duong dan rieng cua tung may (sinh lai bang code-review-graph install)
 .mcp.json
 .claude/worktrees/
+
+# Docker test
+.env
