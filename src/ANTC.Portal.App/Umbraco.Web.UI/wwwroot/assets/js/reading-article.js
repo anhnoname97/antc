@@ -1,4 +1,4 @@
-// Cong cu cua trang bai doc: nghe, in, gui va bang kiem bo tui. Nut "Chu lon" do site.js xu ly qua data-font-toggle.
+// Cong cu cua trang bai doc: in, gui va bang kiem bo tui. Nut "Chu lon" do site.js xu ly qua data-font-toggle.
 const page = document.querySelector('[data-reading]');
 const TICKS = 'at_reading_ticks';
 
@@ -14,35 +14,6 @@ function say(message) {
   const status = page.querySelector('[data-reading-status]');
   status.textContent = message;
   status.hidden = false;
-}
-
-function setupSpeak() {
-  const button = page.querySelector('[data-reading-speak]');
-  if (!('speechSynthesis' in window)) return;
-  const label = button.querySelector('span');
-  const stop = () => {
-    speechSynthesis.cancel();
-    button.setAttribute('aria-pressed', 'false');
-    label.textContent = 'Nghe bài viết';
-  };
-  button.hidden = false;
-  button.addEventListener('click', () => {
-    if (button.getAttribute('aria-pressed') === 'true') { stop(); return; }
-    const body = page.querySelector('[data-reading-body]');
-    // Doc tung doan: trinh duyet cat cau qua dai
-    const parts = [...body.querySelectorAll('h2, p, li, td')].map((x) => x.textContent.trim()).filter(Boolean);
-    const voice = speechSynthesis.getVoices().find((x) => /^vi/i.test(x.lang));
-    parts.forEach((text, index) => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'vi-VN';
-      if (voice) utterance.voice = voice;
-      if (index === parts.length - 1) utterance.onend = stop;
-      speechSynthesis.speak(utterance);
-    });
-    button.setAttribute('aria-pressed', 'true');
-    label.textContent = 'Dừng đọc';
-  });
-  window.addEventListener('pagehide', stop);
 }
 
 function setupShare() {
@@ -80,7 +51,6 @@ function setupPockets() {
 }
 
 if (page) {
-  setupSpeak();
   setupShare();
   setupPockets();
 }

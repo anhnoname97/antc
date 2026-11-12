@@ -2,20 +2,33 @@
 @using Umbraco.Plugin.Custom.Core.Contest
 @inject ContestPromotionService Promotions
 @{
-    var enabled = Model.Root().Value<bool>("showHeaderAnnouncement");
-    var contest = enabled && Model.ContentType.Alias != "ungPhoPage" ? await Promotions.GetAsync(Context.RequestAborted) : null;
+    var inline = ViewData["InlineAnnouncement"] is true;
+    var contest = ViewData["PromotedContest"] as ContestInfo
+        ?? (Model.ContentType.Alias != "ungPhoPage" ? await Promotions.GetAsync(Context.RequestAborted) : null);
     var vietnam = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
     DateTime Local(DateTime value) => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value, DateTimeKind.Utc), vietnam);
 }
 @if (contest is not null)
 {
-    <div class="contest-notice" data-contest-notice data-promoted-contest-id="@contest.Id" role="region" aria-label="Thông báo cuộc thi tháng" aria-describedby="contest-notice-safety">
+    <div class="@(inline ? "site-utility__contest" : "contest-notice")" @Html.Raw(inline ? "data-site-contest-announcement" : "data-contest-notice") data-promoted-contest-id="@contest.Id" role="region" aria-label="Thông báo cuộc thi tháng" aria-describedby="contest-notice-safety">
         <span class="sr-only" id="contest-notice-safety">@ContestPromotionService.ShortSafetyNotice</span>
-        <div class="contest-notice__inner">
-            <span class="contest-notice__dot" aria-hidden="true"></span>
-            <span class="contest-notice__text"><b>Cuộc thi tháng @Local(contest.StartAt).ToString("MM/yyyy")</b><span class="contest-notice__details"> · @contest.Name · @Local(contest.StartAt).ToString("d/M") – @Local(contest.EndAt).ToString("d/M/yyyy")</span></span>
-            <a href="/cuoc-thi/">Tham gia ⟶</a>
-            <button type="button" data-contest-notice-close aria-label="Ẩn thông báo cuộc thi">×</button>
+        <div class="@(inline ? "site-utility__contest-inner" : "contest-notice__inner")">
+            @if (inline)
+            {
+                <span class="site-utility__contest-icon" aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "icon-trophy")</span>
+                <span class="site-utility__contest-copy">
+                    <a class="site-utility__contest-title" href="/cuoc-thi/">Cuộc thi <span class="site-utility__contest-month-label">tháng </span>@Local(contest.StartAt).ToString("MM/yyyy")</a>
+                    <span class="site-utility__contest-meta"><span class="site-utility__contest-name">@contest.Name</span><span class="site-utility__contest-dates"><time datetime="@Local(contest.StartAt).ToString("yyyy-MM-dd")">@Local(contest.StartAt).ToString("d/M")</time><span aria-hidden="true"> – </span><time datetime="@Local(contest.EndAt).ToString("yyyy-MM-dd")">@Local(contest.EndAt).ToString("d/M/yyyy")</time></span></span>
+                </span>
+                <a class="site-utility__contest-cta" href="/cuoc-thi/"><span>Tham gia</span><span aria-hidden="true">@await Html.PartialAsync("~/Views/Partials/_SiteIcon.cshtml", "chevron-right")</span></a>
+            }
+            else
+            {
+                <span class="contest-notice__dot" aria-hidden="true"></span>
+                <span class="contest-notice__text"><b>Cuộc thi tháng @Local(contest.StartAt).ToString("MM/yyyy")</b><span class="contest-notice__details"> · @contest.Name · @Local(contest.StartAt).ToString("d/M") – @Local(contest.EndAt).ToString("d/M/yyyy")</span></span>
+                <a href="/cuoc-thi/">Tham gia ⟶</a>
+                <button type="button" data-contest-notice-close aria-label="Ẩn thông báo cuộc thi">×</button>
+            }
         </div>
     </div>
 }

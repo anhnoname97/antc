@@ -59,15 +59,21 @@ const artifacts = process.env.ANTC_HOME_ARTIFACTS;
     for (const width of [1440,1024,768,744,600,390,320]) {
       await page.setViewportSize({width,height:1000});
       await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth + 1,null,{timeout:3000});
+      if (width < 768) await page.waitForFunction(() => [...document.querySelectorAll('.home-risk-card__count .site-icon')].every(el => getComputedStyle(el).opacity === '1'));
       assert.equal(await root.evaluate(el => el.scrollWidth > el.clientWidth + 1),false,`Overflow ${width}`);
       const boxes = await cards.evaluateAll(nodes => nodes.map(el => {const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));
       if (width >= 768) {
         assert(boxes.every(r => Math.abs(r.y - boxes[0].y) < 1),`Five desktop/tablet columns at ${width}`);
         assert(boxes.every(r => Math.abs(r.height - boxes[0].height) < 1));
       } else {
-        assert(Math.abs(boxes[0].y - boxes[1].y) < 1);
-        assert(Math.abs(boxes[2].y - boxes[3].y) < 1);
-        assert(boxes[4].width > boxes[0].width * 1.9,'Last mobile card spans both columns');
+        assert(boxes.every(r => Math.abs(r.x - boxes[0].x) < 1 && Math.abs(r.width - boxes[0].width) < 1),'Mobile cards use one consistent column');
+        assert(boxes.every((r,i) => i === 0 || r.y >= boxes[i-1].y + boxes[i-1].height),'Mobile cards do not overlap');
+        for (const card of await cards.all()) {
+          const image = await card.locator('.home-risk-card__image, .home-risk-card__icon').boundingBox();
+          const title = await card.locator('h3').boundingBox();
+          assert(image && title && image.x + image.width < title.x,'Mobile thumbnail sits beside the text');
+          assert.equal(await card.locator('.home-risk-card__count .site-icon').evaluate(el => getComputedStyle(el).opacity),'1','Mobile navigation arrow remains visible');
+        }
       }
     }
     await page.evaluate(() => document.documentElement.style.fontSize='200%');

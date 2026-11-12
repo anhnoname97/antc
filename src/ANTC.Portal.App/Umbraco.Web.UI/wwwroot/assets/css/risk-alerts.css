@@ -217,7 +217,7 @@
   .risk-tabs, .risk-tools, .risk-ask, .risk-more, .risk-figure, .risk-ph-img, .risk-tgal, .risk-eimg { display: none !important; }
 }
 
-/* Bộ nút Nghe bài viết · Chữ lớn · In · Gửi: theo .tools / .tbtn / .okmsg của bản dựng v2 */
+/* Bộ nút Chữ lớn · In · Gửi: theo .tools / .tbtn / .okmsg của bản dựng v2 */
 .risk-pagetools { display: flex; flex-wrap: wrap; gap: 8px; }
 .risk-pagetools .tbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 9px 13px; border: 1.5px solid var(--v2-line-2); border-radius: 11px; background: var(--v2-surface); color: var(--v2-ink); font: inherit; font-size: 1rem; font-weight: 700; line-height: 1.2; cursor: pointer; }
 .risk-pagetools .tbtn:hover { border-color: var(--v2-blue); }

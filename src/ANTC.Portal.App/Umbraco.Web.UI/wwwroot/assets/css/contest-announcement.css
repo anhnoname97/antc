@@ -7,6 +7,7 @@
 .contest-notice button:hover{background:#ffffff20}
 .contest-notice button:focus-visible,.contest-notice a:focus-visible{outline:2px solid #E3C88F;outline-offset:3px}
 html[data-contest-announcement-hidden="true"] .contest-notice{display:none}
+@media print{.contest-notice{display:none!important}}
 @media(max-width:700px){.contest-notice__details{display:none}.contest-notice__inner{justify-content:flex-start;gap:8px}.contest-notice{font-size:.6875rem}}
 
 .contest-safety-note{font-size:.8125rem;line-height:1.6;max-width:70ch;margin:16px 0}
