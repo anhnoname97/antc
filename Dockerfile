@@ -13,14 +13,15 @@ COPY --from=build /out .
 # Vibe Host kiem tra suc khoe bang curl/wget chay trong container.
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
-# Thu muc du lieu ben (khai trong Vibe Host: set_data_paths)
 # uSync ghi file .cshtml vao Views khi nhap template, nen Views phai ghi duoc.
-RUN mkdir -p /app/App_Data /app/umbraco/Data /app/umbraco/Logs /app/wwwroot/media /app/Keys \
-    && chown -R app:app /app/App_Data /app/umbraco /app/wwwroot/media /app/Keys /app/Views
+# /app/persist: thu muc du lieu ben duy nhat (khai tren Vibe Host), de trong trong image.
+# Khi dat ANTC_DATA_DIR, luc khoi dong tao thu muc con; duong dan CSDL/anh/khoa dat bang bien moi truong.
+RUN mkdir -p /app/App_Data /app/umbraco/Data /app/umbraco/Logs /app/wwwroot/media /app/Keys /app/persist \
+    && chown -R app:app /app/App_Data /app/umbraco /app/wwwroot/media /app/Keys /app/Views /app/persist
 USER app
 ENV ASPNETCORE_URLS=http://+:8080 \
     ASPNETCORE_ENVIRONMENT=Staging \
     Deployment__DataProtectionKeysPath=/app/Keys \
     UMBLOGDIR=/app/umbraco/Logs
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "Umbraco.Web.UI.dll"]
+ENTRYPOINT ["sh", "-c", "if [ -n \"$ANTC_DATA_DIR\" ]; then mkdir -p \"$ANTC_DATA_DIR/umbraco\" \"$ANTC_DATA_DIR/media\" || exit 1; fi; exec dotnet Umbraco.Web.UI.dll"]
