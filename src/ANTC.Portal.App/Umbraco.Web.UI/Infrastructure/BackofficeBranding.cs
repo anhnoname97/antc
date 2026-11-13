@@ -14,7 +14,9 @@ public static class BackofficeBranding
             || path == assets + "/assets/favicon.svg" || path == assets + "/assets/umbraco-logo.svg";
         if ((HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method)) && brandedAsset)
         {
-            context.Response.Redirect(context.Request.PathBase + "/umbraco/branding/shield.svg?v=1.3.0");
+            // Favicon dung chung logo trang chu; logo dau trang backoffice giu khien.
+            context.Response.Redirect(context.Request.PathBase + (path!.EndsWith("/favicon.svg")
+                ? "/favicon.svg?v=2" : "/umbraco/branding/shield.svg?v=1.3.0"));
             return;
         }
 
