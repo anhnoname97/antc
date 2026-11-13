@@ -15,13 +15,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 # uSync ghi file .cshtml vao Views khi nhap template, nen Views phai ghi duoc.
 # /app/persist: thu muc du lieu ben duy nhat (khai tren Vibe Host), de trong trong image.
-# Khi dat ANTC_DATA_DIR, luc khoi dong tao thu muc con; duong dan CSDL/anh/khoa dat bang bien moi truong.
-RUN mkdir -p /app/App_Data /app/umbraco/Data /app/umbraco/Logs /app/wwwroot/media /app/Keys /app/persist \
-    && chown -R app:app /app/App_Data /app/umbraco /app/wwwroot/media /app/Keys /app/Views /app/persist
+# Duong dan CSDL/khoa dat bang bien moi truong; anh tai len: wwwroot/media la symlink sang persist
+# (Umbraco hieu UmbracoMediaPhysicalRootPath "/..." la duong dan trong wwwroot nen khong dung duoc).
+RUN mkdir -p /app/App_Data /app/umbraco/Data /app/umbraco/Logs /app/Keys /app/persist \
+    && rm -rf /app/wwwroot/media && ln -s /app/persist/media /app/wwwroot/media \
+    && chown -R app:app /app/App_Data /app/umbraco /app/Keys /app/Views /app/persist
 USER app
 ENV ASPNETCORE_URLS=http://+:8080 \
     ASPNETCORE_ENVIRONMENT=Staging \
     Deployment__DataProtectionKeysPath=/app/Keys \
     UMBLOGDIR=/app/umbraco/Logs
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "if [ -n \"$ANTC_DATA_DIR\" ]; then mkdir -p \"$ANTC_DATA_DIR/umbraco\" \"$ANTC_DATA_DIR/media\" || exit 1; fi; exec dotnet Umbraco.Web.UI.dll"]
+ENTRYPOINT ["sh", "-c", "mkdir -p /app/persist/umbraco /app/persist/media || exit 1; exec dotnet Umbraco.Web.UI.dll"]
