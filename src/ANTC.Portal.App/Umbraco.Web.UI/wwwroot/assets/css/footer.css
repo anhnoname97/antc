@@ -9,6 +9,8 @@
 .site-footer__main .site-footer__links--support a { font-weight: 400; color: var(--footer-dim); }
 .site-footer__main .site-footer__pending { font-size: .875rem; min-height: 40px; }
 .site-footer__ai { font-size: .8125rem; color: var(--footer-dim); margin: 0; }
+.site-footer__contact { font-size: .875rem; margin: 0; }
+.site-footer__contact a { text-decoration: underline; text-underline-offset: 3px; }
 .site-footer__main h2 { text-transform: none; letter-spacing: 0; font-size: .9375rem; font-weight: 700; }
 .site-footer__main .site-footer__commitments ul { list-style: disc; display: block; padding-left: 20px; }
 .site-footer__main .site-footer__commitments li { display: list-item; margin-bottom: 10px; font-size: .875rem; }

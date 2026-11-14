@@ -54,12 +54,17 @@ public static class DeploymentOperations
         string folder = Path.Combine(app.Environment.ContentRootPath, "uSync", "v18");
         if (!Directory.Exists(folder)) throw new InvalidOperationException("USYNC_STRUCTURE_MISSING");
         using var scope = app.Services.CreateScope();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<WebApplication>>();
+        // Vibe Host chay ban thu (-cand) khong gan o du lieu nen CSDL luon trong: can BootstrapContent=true de no song.
+        // Container that gan o du lieu, CSDL da co noi dung: chi nhap cau truc, khong ghi de noi dung nguoi dung.
         bool bootstrap = app.Configuration.GetValue<bool>("Deployment:BootstrapContent");
         if (bootstrap && scope.ServiceProvider.GetRequiredService<IContentService>().GetRootContent().Any())
-            throw new InvalidOperationException("BOOTSTRAP_REQUIRES_EMPTY_CONTENT");
+        {
+            logger.LogInformation("Deployment: CSDL da co noi dung, bo qua nap noi dung mau, chi nhap cau truc");
+            bootstrap = false;
+        }
         string group = bootstrap ? "All" : "Settings";
         var service = scope.ServiceProvider.GetRequiredService<ISyncService>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<WebApplication>>();
         var actions = (await service.StartupImportAsync([folder], true,
             new SyncHandlerOptions { Group = group }, null)).ToArray();
         if (actions.Length == 0) throw new InvalidOperationException("USYNC_IMPORT_FAILED");

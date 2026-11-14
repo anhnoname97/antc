@@ -13,6 +13,7 @@
     var library = site.Value<IPublishedContent>("footerLibraryPage");
     var libraryUrl = EmergencyContent.PublicUrl(library);
     var aiNote = site.Value<string>("footerAiNote");
+    var contactEmail = site.Value<string>("footerContactEmail")?.Trim();
     var path = Context.Request.Path.Value ?? "/";
     var sponsorLogo = site.Value<IPublishedContent>("sponsorLogo");
     var sponsorName = site.Value<string>("sponsorName");
@@ -47,6 +48,7 @@
                         if (EmergencyContent.PublicUrl(contest) is { } contestUrl) { <a href="@contestUrl">Cuộc thi tìm hiểu</a> }
                     }
                 </nav>
+                @if (!string.IsNullOrWhiteSpace(contactEmail)) { <p class="site-footer__contact">Liên hệ: <a href="mailto:@contactEmail">@contactEmail</a></p> }
                 @if (!string.IsNullOrWhiteSpace(aiNote)) { <p class="site-footer__ai">@aiNote</p> }
             </div>
             @if (commitments?.Any() == true) {
