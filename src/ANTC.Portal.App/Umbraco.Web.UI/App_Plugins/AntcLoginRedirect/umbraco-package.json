@@ -1,0 +1,14 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "ANTC Login Redirect",
+  "version": "1.0.3",
+  "allowPublicAccess": true,
+  "extensions": [
+    {
+      "type": "appEntryPoint",
+      "alias": "Antc.AppEntryPoint.LoginRedirect",
+      "name": "Chuyen thang toi trang dang nhap, khong hien hop chon nha cung cap",
+      "js": "/App_Plugins/AntcLoginRedirect/entrypoint.js?v=1.0.3"
+    }
+  ]
+}
